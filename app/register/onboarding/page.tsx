@@ -411,7 +411,7 @@ function OnboardingContent() {
                 <p className="text-xs text-ink-400 mt-1">Name the page and choose its URL.</p>
               </div>
               <button
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => { setShowCreateModal(false); router.push("/dashboard"); }}
                 className="rounded-lg p-1 text-ink-400 hover:bg-[#1C1C20] hover:text-white"
               >
                 <X className="h-4.5 w-4.5" />
