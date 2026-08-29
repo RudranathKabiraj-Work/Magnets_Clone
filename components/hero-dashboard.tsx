@@ -42,7 +42,7 @@ export default function HeroDashboard() {
         style={
           mounted
             ? { perspective: 1400, rotateX: fluidRotateX, rotateZ: fluidRotateZ, scale: fluidScale, y: fluidY }
-            : undefined
+            : { perspective: 1400, rotateX: 5, rotateZ: -1.2, scale: 0.94, y: 112 }
         }
       >
         <div className="relative overflow-hidden rounded-lg border border-ink-200 bg-white p-2 shadow-[0_32px_90px_-46px_rgba(17,17,17,0.5)] sm:p-3">

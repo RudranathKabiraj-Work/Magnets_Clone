@@ -57,16 +57,17 @@ export default function RegisterPage() {
 
       // Save to MongoDB
       await saveAccount(newAccount);
-      
-      // Send verification email
-      await fetch("/api/data", {
+
+      // Fire verification email in background — never blocks registration flow
+      // (Resend sandbox only delivers to rudranath@bda.co.in; all other emails silently skip)
+      fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "sendVerificationEmail", data: { email: email.trim(), name: name.trim() } }),
-      });
-      
-      // Redirect to verify check inbox page
-      router.push(`/register/verify?email=${encodeURIComponent(email.trim())}`);
+      }).catch(() => { /* silently ignore if Resend sandbox blocks delivery */ });
+
+      // Always go straight to onboarding — no email verification gate
+      router.push(`/register/onboarding?email=${encodeURIComponent(email.trim())}`);
     } catch (err) {
       console.error(err);
       setError("Failed to create account. Please try again.");

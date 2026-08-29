@@ -54,6 +54,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true });
     }
 
+    if (action === "addPage") {
+      await MagnetPageModel.create(data);
+      return NextResponse.json({ success: true });
+    }
+
     if (action === "saveSequences") {
       await SequenceModel.deleteMany({});
       if (Array.isArray(data) && data.length > 0) {
