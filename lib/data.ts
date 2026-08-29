@@ -1,0 +1,287 @@
+export type MagnetStatus = "draft" | "live" | "paused";
+
+export interface MagnetPage {
+  id: string;
+  name: string;
+  slug: string;
+  status: MagnetStatus;
+  views: number;
+  signups: number;
+  conversionRate: number;
+  headline: string;
+  subheadline: string;
+  cta: string;
+  deliverable: string;
+  updatedAt: string;
+  publishedAt: string | null;
+  template: "classic" | "video" | "quiz";
+  accent: string;
+}
+
+export interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  page: string;
+  pageId: string;
+  status: "new" | "delivered" | "opened" | "replied" | "stopped";
+  source: "magnets" | "custom-domain" | "integration";
+  signedUpAt: string;
+  sequence?: string;
+  sequenceStep?: string;
+  tags: string[];
+}
+
+export interface SequenceEmail {
+  id: string;
+  subject: string;
+  delayLabel: string;
+  delayMinutes: number;
+  status: "draft" | "live";
+  sent: number;
+  opened: number;
+}
+
+export interface Sequence {
+  id: string;
+  name: string;
+  pageId?: string;
+  status: "draft" | "live";
+  emails: SequenceEmail[];
+  stopOnBooking: boolean;
+  stats: { signedUp: number; delivered: number; opened: number; replied: number; stopped: number };
+}
+
+export interface Account {
+  name: string;
+  email: string;
+  username: string;
+  password?: string;
+  plan: "Free";
+  brandColor: string;
+  logo: string | null;
+  joinedAt: string;
+  privacyPolicy?: string;
+  termsOfService?: string;
+}
+
+export interface Integration {
+  id: string;
+  name: string;
+  category: "newsletter" | "crm" | "messaging" | "automation" | "calendar" | "email";
+  description: string;
+  connected: boolean;
+  trigger: string;
+}
+
+export const account: Account = {
+  name: "Alex Rivera",
+  email: "alex@rivera.studio",
+  username: "alexrivera",
+  plan: "Free",
+  brandColor: "#FE6F34",
+  logo: null,
+  joinedAt: "June 2026",
+};
+
+export const pages: MagnetPage[] = [
+  {
+    id: "p1",
+    name: "The 5-Minute Content Engine",
+    slug: "content-engine",
+    status: "live",
+    views: 14233,
+    signups: 962,
+    conversionRate: 6.8,
+    headline: "Turn one idea into a week of content",
+    subheadline: "A simple system for repurposing a single post into thirty pieces that actually get seen.",
+    cta: "Get the free guide",
+    deliverable: "A 24-page PDF guide",
+    updatedAt: "2 hours ago",
+    publishedAt: "2026-07-12",
+    template: "classic",
+    accent: "#FE6F34",
+  },
+  {
+    id: "p2",
+    name: "Landing on Your Feet After a Layoff",
+    slug: "layoff-playbook",
+    status: "live",
+    views: 8402,
+    signups: 611,
+    conversionRate: 7.3,
+    headline: "A 30-day job-hunt playbook that actually works",
+    subheadline: "The exact steps to rebuild your routine, network, and applications after a layoff.",
+    cta: "Send me the playbook",
+    deliverable: "A 30-day checklist",
+    updatedAt: "Yesterday",
+    publishedAt: "2026-07-28",
+    template: "video",
+    accent: "#FE504F",
+  },
+  {
+    id: "p3",
+    name: "What's Your Lead Magnet Score?",
+    slug: "lead-score",
+    status: "draft",
+    views: 0,
+    signups: 0,
+    conversionRate: 0,
+    headline: "Score your current lead magnet in 60 seconds",
+    subheadline: "Answer five quick questions and get a personalised score with the gaps holding you back.",
+    cta: "See my score",
+    deliverable: "A personalised score report",
+    updatedAt: "3 days ago",
+    publishedAt: null,
+    template: "quiz",
+    accent: "#127f88",
+  },
+];
+
+export const leads: Lead[] = [
+  {
+    id: "l1",
+    name: "Priya Sharma",
+    email: "priya@northstar.co",
+    page: "The 5-Minute Content Engine",
+    pageId: "p1",
+    status: "opened",
+    source: "magnets",
+    signedUpAt: "Aug 28, 2026",
+    sequence: "Welcome sequence",
+    sequenceStep: "Email 2 · 2 days later",
+    tags: ["content", "solo"],
+  },
+  {
+    id: "l2",
+    name: "Danny Osei",
+    email: "danny@forgeagency.io",
+    page: "Landing on Your Feet After a Layoff",
+    pageId: "p2",
+    status: "replied",
+    source: "custom-domain",
+    signedUpAt: "Aug 28, 2026",
+    sequence: "Interview warm-up",
+    sequenceStep: "Email 1 · delivered",
+    tags: ["job-hunt"],
+  },
+  {
+    id: "l3",
+    name: "Mia Chen",
+    email: "mia@chen-studio.com",
+    page: "The 5-Minute Content Engine",
+    pageId: "p1",
+    status: "delivered",
+    source: "magnets",
+    signedUpAt: "Aug 27, 2026",
+    sequence: "Welcome sequence",
+    sequenceStep: "Email 1 · delivered",
+    tags: ["content"],
+  },
+  {
+    id: "l4",
+    name: "Tom Becker",
+    email: "tom@beckerhealth.com",
+    page: "Landing on Your Feet After a Layoff",
+    pageId: "p2",
+    status: "new",
+    source: "integration",
+    signedUpAt: "Aug 27, 2026",
+    sequence: undefined,
+    sequenceStep: undefined,
+    tags: ["health"],
+  },
+  {
+    id: "l5",
+    name: "Sofia Marino",
+    email: "sofia@marino.design",
+    page: "The 5-Minute Content Engine",
+    pageId: "p1",
+    status: "stopped",
+    source: "magnets",
+    signedUpAt: "Aug 26, 2026",
+    sequence: "Welcome sequence",
+    sequenceStep: "Stopped · booked a call",
+    tags: ["content"],
+  },
+  {
+    id: "l6",
+    name: "Noah Williams",
+    email: "noah@williamsmedia.uk",
+    page: "Landing on Your Feet After a Layoff",
+    pageId: "p2",
+    status: "opened",
+    source: "magnets",
+    signedUpAt: "Aug 25, 2026",
+    sequence: "Interview warm-up",
+    sequenceStep: "Email 2 · 1 day later",
+    tags: [],
+  },
+];
+
+export const sequences: Sequence[] = [
+  {
+    id: "s1",
+    name: "Welcome sequence",
+    pageId: "p1",
+    status: "live",
+    stopOnBooking: true,
+    stats: { signedUp: 962, delivered: 961, opened: 731, replied: 248, stopped: 0 },
+    emails: [
+      { id: "e1", subject: "Your guide is here → The 5-Minute Content Engine", delayLabel: "Instantly", delayMinutes: 0, status: "live", sent: 962, opened: 731 },
+      { id: "e2", subject: "One more idea to get you started", delayLabel: "2 days later", delayMinutes: 2880, status: "live", sent: 733, opened: 402 },
+      { id: "e3", subject: "The repurposing cheat sheet", delayLabel: "5 days later", delayMinutes: 7200, status: "draft", sent: 0, opened: 0 },
+    ],
+  },
+  {
+    id: "s2",
+    name: "Interview warm-up",
+    pageId: "p2",
+    status: "live",
+    stopOnBooking: true,
+    stats: { signedUp: 611, delivered: 610, opened: 411, replied: 132, stopped: 4 },
+    emails: [
+      { id: "e4", subject: "Here's your 30-day job-hunt playbook", delayLabel: "Instantly", delayMinutes: 0, status: "live", sent: 611, opened: 411 },
+      { id: "e5", subject: "3 questions every interviewer is really asking", delayLabel: "3 days later", delayMinutes: 4320, status: "live", sent: 409, opened: 210 },
+    ],
+  },
+  {
+    id: "s3",
+    name: "Nurture for warm leads",
+    status: "draft",
+    stopOnBooking: false,
+    stats: { signedUp: 0, delivered: 0, opened: 0, replied: 0, stopped: 0 },
+    emails: [
+      { id: "e6", subject: "A quick hello", delayLabel: "Instantly", delayMinutes: 0, status: "draft", sent: 0, opened: 0 },
+    ],
+  },
+];
+
+export const integrations: Integration[] = [
+  { id: "beehiiv", name: "Beehiiv", category: "newsletter", description: "Add every new signup to a publication as a subscriber.", connected: false, trigger: "Signup" },
+  { id: "kit", name: "Kit", category: "newsletter", description: "Send new signups to your Kit audience.", connected: false, trigger: "Signup" },
+  { id: "slack", name: "Slack", category: "messaging", description: "Post a notification to a channel the moment someone signs up.", connected: true, trigger: "Signup" },
+  { id: "pipedrive", name: "Pipedrive", category: "crm", description: "Create or update a person in Pipedrive for every signup.", connected: false, trigger: "Signup" },
+  { id: "zapier", name: "Zapier", category: "automation", description: "Trigger your own automation with every new signup.", connected: true, trigger: "Signup" },
+  { id: "calendly", name: "Calendly", category: "calendar", description: "Stop a follow-up sequence when someone books a call.", connected: false, trigger: "Booking" },
+  { id: "calcom", name: "Cal.com", category: "calendar", description: "Stop a follow-up sequence when someone books a call.", connected: false, trigger: "Booking" },
+];
+
+export const pageStats = [
+  { label: "Total views", value: "22,635", change: "+12.4%", up: true },
+  { label: "Signups", value: "1,573", change: "+8.1%", up: true },
+  { label: "Avg. conversion", value: "6.9%", change: "+0.4pp", up: true },
+  { label: "Emails delivered", value: "1,571", change: "99.9%", up: true },
+];
+
+export function getPage(id: string) {
+  return pages.find((p) => p.id === id);
+}
+
+export function getLead(id: string) {
+  return leads.find((l) => l.id === id);
+}
+
+export function getSequence(id: string) {
+  return sequences.find((s) => s.id === id);
+}

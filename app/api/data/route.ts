@@ -1,0 +1,269 @@
+import { NextResponse } from "next/server";
+import { dbConnect } from "@/lib/mongodb";
+import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationModel, ResourceModel } from "@/lib/models";
+import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations } from "@/lib/data";
+export async function GET() {
+  try {
+    await dbConnect();
+
+    // Check if account exists, otherwise seed everything
+    let account = await AccountModel.findOne();
+    if (!account) {
+      // Seed
+      await AccountModel.create(seedAccount);
+      await MagnetPageModel.insertMany(seedPages);
+      await LeadModel.insertMany(seedLeads);
+      await SequenceModel.insertMany(seedSequences);
+      await IntegrationModel.insertMany(seedIntegrations);
+
+      account = await AccountModel.findOne();
+    }
+
+    const [pages, leads, sequences, integrations, resources] = await Promise.all([
+      MagnetPageModel.find().lean(),
+      LeadModel.find().lean(),
+      SequenceModel.find().lean(),
+      IntegrationModel.find().lean(),
+      ResourceModel.find().lean(),
+    ]);
+
+    return NextResponse.json({
+      account,
+      pages,
+      leads,
+      sequences,
+      integrations,
+      resources,
+    });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    await dbConnect();
+    const body = await req.json();
+    const { action, data } = body;
+
+    if (action === "savePages") {
+      await MagnetPageModel.deleteMany({});
+      if (Array.isArray(data) && data.length > 0) {
+        await MagnetPageModel.insertMany(data);
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "saveSequences") {
+      await SequenceModel.deleteMany({});
+      if (Array.isArray(data) && data.length > 0) {
+        await SequenceModel.insertMany(data);
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "saveAccount") {
+      const existing = await AccountModel.findOne({ email: data.email });
+      if (existing) {
+        existing.name = data.name;
+        existing.username = data.username;
+        existing.brandColor = data.brandColor;
+        existing.logo = data.logo;
+        if (data.password) {
+          existing.password = data.password;
+        }
+        await existing.save();
+      } else {
+        await AccountModel.create(data);
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "checkEmail") {
+      const existing = await AccountModel.findOne({ email: data.email.trim().toLowerCase() });
+      return NextResponse.json({ exists: !!existing });
+    }
+
+    if (action === "login") {
+      const { email, password } = data;
+      const account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
+      if (!account) {
+        return NextResponse.json({ error: "No account found with this email. Sign up instead." }, { status: 400 });
+      }
+      const dbPassword = account.password || "password123";
+      if (dbPassword !== password) {
+        return NextResponse.json({ error: "Incorrect password." }, { status: 400 });
+      }
+      return NextResponse.json({ success: true, account });
+    }
+
+    if (action === "updatePassword") {
+      const { email, currentPassword, newPassword } = data;
+      const account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
+      if (!account) {
+        return NextResponse.json({ error: "Account not found." }, { status: 400 });
+      }
+      const dbPassword = account.password || "password123";
+      if (dbPassword !== currentPassword) {
+        return NextResponse.json({ error: "Current password is incorrect." }, { status: 400 });
+      }
+      account.password = newPassword;
+      await account.save();
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "getAccountByEmail") {
+      const account = await AccountModel.findOne({ email: data.email.trim().toLowerCase() });
+      return NextResponse.json({ account });
+    }
+
+    if (action === "saveLeads") {
+      await LeadModel.deleteMany({});
+      if (Array.isArray(data) && data.length > 0) {
+        await LeadModel.insertMany(data);
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "addLead") {
+      await LeadModel.create(data);
+      
+      // Also increment the signup count on the corresponding magnet page
+      if (data.pageId) {
+        const page = await MagnetPageModel.findOne({ id: data.pageId });
+        if (page) {
+          page.signups = (page.signups || 0) + 1;
+          if (page.views > 0) {
+            page.conversionRate = parseFloat(((page.signups / page.views) * 100).toFixed(1));
+          }
+          await page.save();
+        }
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "incrementViews") {
+      const { pageId } = data;
+      const page = await MagnetPageModel.findOne({ id: pageId });
+      if (page) {
+        page.views = (page.views || 0) + 1;
+        if (page.views > 0) {
+          page.conversionRate = parseFloat(((page.signups / page.views) * 100).toFixed(1));
+        }
+        await page.save();
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "saveIntegrations") {
+      await IntegrationModel.deleteMany({});
+      if (Array.isArray(data) && data.length > 0) {
+        await IntegrationModel.insertMany(data);
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "saveResources") {
+      await ResourceModel.deleteMany({});
+      if (Array.isArray(data) && data.length > 0) {
+        await ResourceModel.insertMany(data);
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "addResource") {
+      await ResourceModel.create(data);
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "deleteResource") {
+      await ResourceModel.deleteOne({ id: data.id });
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "sendResetEmail") {
+      const { email } = data;
+      const account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
+      if (!account) {
+        return NextResponse.json({ error: "Account not found." }, { status: 400 });
+      }
+
+      // Send email using Resend HTTP API
+      const resendRes = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "onboarding@resend.dev",
+          to: [email.trim()],
+          subject: "Reset your Magnets password",
+          html: `
+            <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+              <h2 style="color: #FE6F34; text-align: center;">Reset your password</h2>
+              <p>Hi ${account.name || "there"},</p>
+              <p>We received a request to reset your password. Click the button below to choose a new one:</p>
+              <div style="text-align: center; margin: 24px 0;">
+                <a href="${req.headers.get("origin") || "http://localhost:3000"}/dashboard/settings" style="background-color: #FE6F34; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
+              </div>
+              <p style="font-size: 11px; color: #666;">If you didn't request this, you can safely ignore this email.</p>
+            </div>
+          `,
+        }),
+      });
+
+      if (!resendRes.ok) {
+        const errData = await resendRes.json();
+        console.error("Resend API error:", errData);
+        return NextResponse.json({ error: errData.message || "Failed to send email." }, { status: 500 });
+      }
+
+      const emailData = await resendRes.json();
+      return NextResponse.json({ success: true, emailData });
+    }
+
+    if (action === "sendVerificationEmail") {
+      const { email, name } = data;
+
+      // Send verification email using Resend HTTP API
+      const resendRes = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "onboarding@resend.dev",
+          to: [email.trim()],
+          subject: "Verify your Magnets email",
+          html: `
+            <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #fafafa;">
+              <div style="background-color: white; padding: 24px; border-radius: 8px; border: 1px solid #eaeaea; text-align: center;">
+                <h2 style="color: #0E0E10; margin-top: 0; font-size: 20px; font-weight: bold;">Verify your email</h2>
+                <p style="color: #4a4a4a; font-size: 13px; margin-bottom: 24px;">Confirm this email address to finish creating your Magnets account.</p>
+                <div style="margin: 24px 0;">
+                  <a href="${req.headers.get("origin") || "http://localhost:3000"}/register/confirm?email=${encodeURIComponent(email.trim())}" style="background-color: #0E0E10; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px; display: inline-block;">Verify email address</a>
+                </div>
+                <p style="font-size: 11px; color: #888; margin-top: 24px; line-height: 1.5;">This link expires in 24 hours. If you did not create a Magnets account, you can ignore this email.</p>
+              </div>
+            </div>
+          `,
+        }),
+      });
+
+      if (!resendRes.ok) {
+        const errData = await resendRes.json();
+        console.error("Resend API error:", errData);
+        return NextResponse.json({ error: errData.message || "Failed to send verification email." }, { status: 500 });
+      }
+
+      const emailData = await resendRes.json();
+      return NextResponse.json({ success: true, emailData });
+    }
+
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
