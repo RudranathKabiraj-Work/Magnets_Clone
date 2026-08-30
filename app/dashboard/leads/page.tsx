@@ -1,108 +1,298 @@
-import Link from "next/link";
-import { ArrowUpRight, Globe, Inbox, Link2, Search, UserPlus } from "lucide-react";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { type Lead } from "@/lib/data";
-import { dbConnect } from "@/lib/mongodb";
-import { LeadModel, AccountModel } from "@/lib/models";
-import { account as seedAccount } from "@/lib/data";
+import { Users, Mail, Download, Search, Plus, Upload, ChevronDown, Filter } from "lucide-react";
+import { syncWithDatabase, loadLeads, loadAccount } from "@/lib/store";
+import type { Account, Lead } from "@/lib/data";
 
-export const dynamic = "force-dynamic";
+export default function SignupsPage() {
+  const [account, setAccount] = useState<Account | null>(null);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filterMagnet, setFilterMagnet] = useState("All lead magnets");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
 
-const statusStyles: Record<Lead["status"], { dot: string; text: string; label: string }> = {
-  new: { dot: "bg-brand-orange", text: "text-ink-700 dark:text-ink-300", label: "Signed up" },
-  delivered: { dot: "bg-ink-400", text: "text-ink-500 dark:text-ink-400", label: "Delivered" },
-  opened: { dot: "bg-brand-aqua", text: "text-ink-700 dark:text-ink-300", label: "Opened" },
-  replied: { dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-300", label: "Replied" },
-  stopped: { dot: "bg-brand-yellow", text: "text-ink-500 dark:text-ink-400", label: "Stopped" },
-};
+  useEffect(() => {
+    // Load local data instantly
+    const localLeads = loadLeads();
+    const localAccount = loadAccount();
+    if (localLeads.length > 0) setLeads(localLeads);
+    if (localAccount) setAccount(localAccount);
+    setLoading(false);
 
-function SourceIcon({ source }: { source: Lead["source"] }) {
-  if (source === "magnets") return <Inbox className="h-3 w-3" aria-hidden="true" />;
-  if (source === "custom-domain") return <Globe className="h-3 w-3" aria-hidden="true" />;
-  return <Link2 className="h-3 w-3" aria-hidden="true" />;
-}
+    // Sync in background silently
+    syncWithDatabase().then((data) => {
+      if (data) {
+        setAccount(data.account);
+        setLeads(data.leads || []);
+      }
+    });
+  }, []);
 
-export default async function LeadsPage() {
-  await dbConnect();
-  
-  const [accountRaw, leadsRaw] = await Promise.all([
-    AccountModel.findOne().lean(),
-    LeadModel.find().lean()
-  ]);
-  const account = accountRaw ? JSON.parse(JSON.stringify(accountRaw)) : seedAccount;
-  const leads = JSON.parse(JSON.stringify(leadsRaw)) as Lead[];
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setFilterOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const uniqueMagnets = Array.from(new Set(leads.map((l) => l.page)));
+
+  // Filtered leads
+  const filtered = leads.filter((l) => {
+    const matchMagnet = filterMagnet === "All lead magnets" || l.page === filterMagnet;
+    const q = search.toLowerCase();
+    const matchSearch =
+      !q ||
+      l.email.toLowerCase().includes(q) ||
+      l.name.toLowerCase().includes(q) ||
+      l.page.toLowerCase().includes(q);
+    return matchMagnet && matchSearch;
+  });
+
+  // Unique emails (deduped)
+  const uniqueSignups = new Set(leads.map((l) => l.email)).size;
+  const latestSignup = leads.length > 0 ? leads[0] : null;
+
+  const handleExportCSV = () => {
+    if (leads.length === 0) return;
+    const header = ["Email", "Name", "Lead Magnet", "First Signup", "Signups", "Sequence"];
+    const rows = leads.map((l) => [
+      l.email,
+      l.name,
+      l.page,
+      l.signedUpAt,
+      "1",
+      l.sequence || "—",
+    ]);
+    const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "signups.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportCSV = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".csv";
+    input.onchange = () => alert("CSV import coming soon!");
+    input.click();
+  };
+
+  const handleAddManually = () => {
+    alert("Add manually coming soon!");
+  };
+
+  if (loading || !account) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#0E0E10]">
+        <div className="text-sm text-[#9B9085]">Loading signups...</div>
+      </div>
+    );
+  }
 
   return (
-    <DashboardShell account={account} title="Leads">
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <div>
-            <h2 className="text-lg font-semibold text-ink-950 dark:text-white">
-              All leads <span className="text-ink-400">({leads.length})</span>
+    <DashboardShell account={account} title="Signups">
+      <div className="flex flex-col min-h-[calc(100vh-3rem)]">
+        <div className="flex-1 px-6 py-6 lg:px-8">
+
+          {/* Page heading */}
+          <div className="mb-6">
+            <h2 className="flex items-center gap-2 text-3xl font-bold text-white">
+              Signups
+              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#3a3a3f] text-xs font-normal text-[#9B9085] hover:bg-[#1C1C20]">?</span>
             </h2>
-            <p className="mt-0.5 text-sm text-ink-500 dark:text-ink-400">
-              Everyone who signed up, plus their delivery and follow-up status.
-            </p>
+            <p className="text-xs text-[#9B9085] mt-1">Everyone who has signed up to a magnet</p>
           </div>
-          <div className="flex h-9 items-center gap-2 rounded-md border border-ink-200 bg-white px-3 text-sm text-ink-500 dark:border-ink-700 dark:bg-ink-900/95 dark:text-ink-400">
-            <Search className="h-4 w-4" aria-hidden="true" />
-            <input placeholder="Search leads" className="w-40 bg-transparent text-sm outline-none placeholder:text-ink-400" />
+
+          {/* Stat cards */}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-12 mb-6">
+            {/* Unique signups */}
+            <div className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#1C1C20] px-5 py-4 md:col-span-5">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#252529] text-[#9B9085]">
+                <Users className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9085]">Unique signups</p>
+                <p className="mt-0.5 text-3xl font-bold text-white">{uniqueSignups}</p>
+              </div>
+            </div>
+
+            {/* Latest signup */}
+            <div className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#1C1C20] px-5 py-4 md:col-span-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#252529] text-[#9B9085]">
+                <Mail className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9085]">Latest signup</p>
+                <p className="mt-0.5 text-sm font-semibold text-white truncate max-w-[150px]">
+                  {latestSignup ? latestSignup.email : "No signups yet"}
+                </p>
+              </div>
+            </div>
+
+            {/* Export */}
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#1C1C20] px-5 py-4 text-left hover:border-[#2e2e35] transition w-full md:col-span-3"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#252529] text-[#9B9085]">
+                <Download className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9085]">Export</p>
+                <p className="mt-0.5 text-sm font-semibold text-[#FE6F34]">CSV ready to download</p>
+              </div>
+            </button>
+          </div>
+
+          {/* All signups section */}
+          <div className="rounded-lg border border-[#2e2e38] bg-[#1C1C20] overflow-hidden">
+            {/* Section header */}
+            <div className="px-5 pt-5 pb-4 border-b border-[#2e2e38]">
+              <h3 className="text-sm font-semibold text-white">All signups</h3>
+              <p className="text-xs text-[#9B9085] mt-0.5">One row per email, deduplicated across every magnet on this account.</p>
+
+              {/* Filter / Search / Action bar */}
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                {/* Magnet filter dropdown */}
+                <div className="relative" ref={filterRef}>
+                  <button
+                    onClick={() => setFilterOpen((v) => !v)}
+                    className="flex items-center gap-2 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
+                  >
+                    <Filter className="h-3.5 w-3.5" />
+                    {filterMagnet}
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </button>
+                  {filterOpen && (
+                    <div className="absolute left-0 top-full z-20 mt-1 w-52 rounded-md border border-[#2a2a30] bg-[#1C1C20] shadow-lg py-1">
+                      {["All lead magnets", ...uniqueMagnets].map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => { setFilterMagnet(opt); setFilterOpen(false); }}
+                          className={`w-full text-left px-3 py-2 text-xs transition ${
+                            filterMagnet === opt
+                              ? "text-white bg-[#252529]"
+                              : "text-[#9B9085] hover:bg-[#252529] hover:text-white"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Search */}
+                <div className="flex items-center gap-2 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3.5 py-2 flex-1 min-w-48 focus-within:border-[#2e2e35]">
+                  <Search className="h-3.5 w-3.5 text-[#9B9085] shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Search email, name, or magnet"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="bg-transparent text-xs text-white outline-none placeholder:text-[#9B9085] w-full"
+                  />
+                </div>
+
+                {/* Add manually */}
+                <button
+                  onClick={handleAddManually}
+                  className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add manually
+                </button>
+
+                {/* Import CSV */}
+                <button
+                  onClick={handleImportCSV}
+                  className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  Import CSV
+                </button>
+
+                {/* Export CSV */}
+                <button
+                  onClick={handleExportCSV}
+                  className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Export CSV
+                </button>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-[#2e2e38]">
+                    <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#9B9085]">Email</th>
+                    <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#9B9085]">Name</th>
+                    <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#9B9085]">Lead magnets</th>
+                    <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#9B9085]">First signup</th>
+                    <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#9B9085]">Signups</th>
+                    <th className="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#9B9085]">Sequence</th>
+                    <th className="px-5 py-3 text-right text-[10px] font-semibold uppercase tracking-wider text-[#9B9085]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1C1C20]">
+                  {filtered.map((lead) => (
+                    <tr key={lead.id} className="hover:bg-[#1C1C20]/40 transition">
+                      <td className="px-5 py-3.5 text-xs text-white">{lead.email}</td>
+                      <td className="px-5 py-3.5 text-xs text-[#9B9085]">{lead.name}</td>
+                      <td className="px-5 py-3.5 text-xs text-[#9B9085] max-w-[200px] truncate">{lead.page}</td>
+                      <td className="px-5 py-3.5 text-xs text-[#9B9085] whitespace-nowrap">{lead.signedUpAt}</td>
+                      <td className="px-5 py-3.5 text-xs text-[#9B9085]">1</td>
+                      <td className="px-5 py-3.5 text-xs text-[#9B9085]">{lead.sequence || "—"}</td>
+                      <td className="px-5 py-3.5 text-right">
+                        <button className="text-xs text-[#9B9085] hover:text-white transition px-2 py-1 rounded hover:bg-[#1C1C20]">
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Empty state */}
+              {filtered.length === 0 && (
+                <div className="py-16 text-center">
+                  <p className="text-sm font-medium text-white mb-1">No signups yet</p>
+                  <p className="text-xs text-[#9B9085]">
+                    Signups appear here once someone enters their email on a published magnet. Or use{" "}
+                    <button onClick={handleImportCSV} className="text-[#FE6F34] hover:underline">Import CSV</button>
+                    {" / "}
+                    <button onClick={handleAddManually} className="text-[#FE6F34] hover:underline">Add manually</button>.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="mt-5 overflow-hidden rounded-lg border border-ink-200 bg-white dark:border-ink-700 dark:bg-ink-900/95">
-          <div className="hidden grid-cols-[60px_minmax(0,1fr)_minmax(0,1.6fr)_180px] gap-4 border-b border-ink-200 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-400 sm:grid dark:border-ink-700 dark:text-ink-500">
-            <span />
-            <span>Lead</span>
-            <span>Status</span>
-            <span className="text-right">Signed up</span>
+        {/* Footer */}
+        <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
+          <span>Magnets</span>
+          <div className="flex items-center gap-4">
+            <a href="#" className="hover:text-white transition">Privacy</a>
+            <a href="#" className="hover:text-white transition">Terms</a>
           </div>
-          <div className="divide-y divide-ink-200 dark:divide-ink-700">
-            {leads.map((lead) => {
-              const st = statusStyles[lead.status];
-              return (
-                <Link
-                  key={lead.id}
-                  href={`/dashboard/leads/${lead.id}`}
-                  className="grid items-center gap-4 px-5 py-3.5 transition hover:bg-ink-50/70 sm:grid-cols-[60px_minmax(0,1fr)_minmax(0,1.6fr)_180px] dark:hover:bg-white/5"
-                >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-soft text-xs font-bold text-ink-700 dark:bg-ink-950 dark:text-ink-300">
-                    {lead.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-ink-950 dark:text-white">{lead.name}</p>
-                    <p className="truncate text-xs text-ink-500 dark:text-ink-400">{lead.email}</p>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-ink-700 dark:text-ink-300">
-                      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${st.dot}`} />
-                      {st.label}
-                    </div>
-                    <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-ink-500 dark:text-ink-400">
-                      <span className="flex shrink-0 items-center gap-1 text-ink-400 dark:text-ink-500">
-                        <SourceIcon source={lead.source} />
-                      </span>
-                      {lead.page} · {lead.sequenceStep ?? "No sequence"}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between gap-2 sm:justify-end">
-                    <p className="text-xs text-ink-500 dark:text-ink-400">{lead.signedUpAt}</p>
-                    <ArrowUpRight className="h-4 w-4 text-ink-300 dark:text-ink-600" aria-hidden="true" />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-          {leads.length === 0 && (
-            <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-soft text-brand-orange dark:bg-ink-950">
-                <UserPlus className="h-6 w-6" aria-hidden="true" />
-              </span>
-              <p className="text-sm font-medium text-ink-700 dark:text-ink-300">No leads yet</p>
-              <p className="max-w-xs text-sm text-ink-500 dark:text-ink-400">Share your published page and leads will show up here instantly.</p>
-            </div>
-          )}
-        </div>
+        </footer>
       </div>
     </DashboardShell>
   );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut } from "lucide-react";
+import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
@@ -58,42 +58,57 @@ export default function DashboardShell({
     learn: {
       title: "LEARN",
       count: "4 topics",
-      items: ["What is a lead magnet?", "Why use a lead magnet?", "How do they work?", "What works best"],
+      items: [
+        { text: "What is a lead magnet?", icon: "BookOpen" },
+        { text: "Why use a lead magnet?", icon: "Gift" },
+        { text: "How do they work?", icon: "Sliders" },
+        { text: "What works best", icon: "Lightbulb" },
+      ],
     },
     build: {
       title: "BUILD",
       count: "7 topics",
       items: [
-        "Create your first lead magnet",
-        "Edit and publish a magnet",
-        "Hosted resources",
-        "Brand colours and logo",
-        "Delivery emails",
-        "Follow-up sequences",
-        "After-signup experience",
+        { text: "Create your first lead magnet", icon: "Compass" },
+        { text: "Edit and publish a magnet", icon: "FileText" },
+        { text: "Hosted resources", icon: "FolderOpen" },
+        { text: "Brand colours and logo", icon: "Palette" },
+        { text: "Delivery emails", icon: "Send" },
+        { text: "Follow-up sequences", icon: "GitFork" },
+        { text: "After-signup experience", icon: "Calendar" },
       ],
     },
     setup: {
       title: "SET UP",
       count: "4 topics",
-      items: ["Workspace setup", "Custom domains", "Send from my email", "Legal links"],
+      items: [
+        { text: "Workspace setup", icon: "Settings" },
+        { text: "Custom domains", icon: "Globe" },
+        { text: "Send from my email", icon: "Mail" },
+        { text: "Legal links", icon: "BookOpen" },
+      ],
     },
     connections: {
       title: "CONNECTIONS",
       count: "6 topics",
       items: [
-        "Beehiiv and Substack",
-        "Connect Kit",
-        "Connect Slack",
-        "Connect Zapier",
-        "Connect Pipedrive",
-        "Connect a calendar",
+        { text: "Beehiiv and Substack", icon: "Share2" },
+        { text: "Connect Kit", icon: "Cpu" },
+        { text: "Connect Slack", icon: "Slack" },
+        { text: "Connect Zapier", icon: "Zap" },
+        { text: "Connect Pipedrive", icon: "Link" },
+        { text: "Connect a calendar", icon: "Calendar" },
       ],
     },
     manage: {
       title: "MANAGE",
       count: "4 topics",
-      items: ["Manage signups", "Analytics and A/B tests", "Account settings", "Video walkthrough"],
+      items: [
+        { text: "Manage signups", icon: "Users" },
+        { text: "Analytics and A/B tests", icon: "BarChart3" },
+        { text: "Account settings", icon: "User" },
+        { text: "Video walkthrough", icon: "PlayCircle" },
+      ],
     },
   };
 
@@ -106,7 +121,7 @@ export default function DashboardShell({
   ];
 
   const filteredTopics = searchQuery
-    ? allTopicsList.filter((item) => item.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? allTopicsList.filter((item) => item.text.toLowerCase().includes(searchQuery.toLowerCase()))
     : [];
 
   return (
@@ -300,61 +315,67 @@ export default function DashboardShell({
 
       {/* Help Centre Modal */}
       {showHelp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4" onClick={() => setShowHelp(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4" onClick={() => setShowHelp(false)}>
           <div
-            className="relative w-full max-w-3xl rounded-xl border border-ink-800 bg-ink-950 text-white shadow-2xl flex flex-col max-h-[85vh] overflow-hidden"
+            className="relative w-full max-w-4xl rounded-xl border border-[#2e2e38] bg-[#121214] text-white shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-ink-800/80 p-5">
+            <div className="flex items-center justify-between border-b border-[#2e2e38] px-6 py-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded bg-brand-orange text-white">
+                <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#2a1a10] border border-[#FE6F34]/20 text-[#FE6F34]">
                   <HelpCircle className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-white">Help centre</h3>
-                  <p className="text-[11px] text-ink-400 mt-0.5">Learn the basics or find your next step.</p>
+                  <p className="text-[11px] text-[#9B9085] mt-0.5">Learn the basics or find your next step.</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowHelp(false)}
-                className="rounded-lg p-1 text-ink-400 hover:bg-ink-800 hover:text-white"
+                className="rounded-lg p-1 text-[#9B9085] hover:bg-[#1C1C20] hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Modal Search Bar */}
-            <div className="p-5 border-b border-ink-800/80 bg-ink-900/40">
-              <div className="relative flex items-center rounded-md border border-ink-800 bg-ink-950 px-3 focus-within:border-ink-700">
-                <Search className="h-4 w-4 text-ink-500 mr-2" />
+            {/* Modal Scroll Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6" data-lenis-prevent>
+              {/* What do you need help with? Title */}
+              {!searchQuery && (
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-white">What do you need help with?</h2>
+                  <p className="text-xs text-[#9B9085] mt-1">Choose a topic for a clear answer and the exact steps to follow.</p>
+                </div>
+              )}
+
+              {/* Modal Search Bar */}
+              <div className="relative flex items-center rounded-md border border-[#2e2e38] bg-[#0E0E10] px-3 focus-within:border-[#FE6F34] mb-2">
+                <Search className="h-4 w-4 text-[#9B9085] mr-2" />
                 <input
                   type="text"
                   placeholder="Search topics, integrations, or setup"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent py-2 text-xs text-white outline-none placeholder-ink-600 focus:ring-0"
+                  className="w-full bg-transparent py-2.5 text-xs text-white outline-none placeholder-[#9B9085] focus:ring-0"
                 />
               </div>
-            </div>
 
-            {/* Modal Scroll Content */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-6">
               {searchQuery ? (
                 <div>
-                  <p className="text-xs font-bold text-ink-500 uppercase tracking-wider mb-3">Search Results</p>
+                  <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider mb-3">Search Results</p>
                   {filteredTopics.length === 0 ? (
-                    <p className="text-xs text-ink-500 py-4 text-center">No topics match your search query.</p>
+                    <p className="text-xs text-[#9B9085] py-4 text-center">No topics match your search query.</p>
                   ) : (
                     <div className="grid grid-cols-1 gap-2">
                       {filteredTopics.map((topic) => (
                         <button
-                          key={topic}
-                          onClick={() => alert(`Showing details for: ${topic}`)}
-                          className="flex items-center justify-between rounded-lg bg-ink-900/50 hover:bg-ink-800/60 p-3 text-left transition"
+                          key={topic.text}
+                          onClick={() => alert(`Showing details for: ${topic.text}`)}
+                          className="flex items-center justify-between rounded-lg bg-[#1C1C20] border border-[#2e2e38] hover:bg-[#252529] p-3.5 text-left text-xs font-semibold text-white transition"
                         >
-                          <span className="text-xs font-medium text-ink-200">{topic}</span>
-                          <ChevronRight className="h-3 w-3 text-ink-500" />
+                          <span className="text-xs font-semibold text-white">{topic.text}</span>
+                          <ChevronRight className="h-3.5 w-3.5 text-[#FE6F34]" />
                         </button>
                       ))}
                     </div>
@@ -365,62 +386,92 @@ export default function DashboardShell({
                   {/* Left Column (LEARN, SET UP, MANAGE) */}
                   <div className="space-y-6">
                     {/* LEARN */}
-                    <div>
-                      <div className="flex items-center justify-between text-[10px] font-bold text-ink-500 uppercase tracking-wider mb-2.5">
+                    <div className="rounded-xl border border-[#2e2e38] bg-[#1C1C20] p-5">
+                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.learn.title}</span>
                         <span>{helpTopics.learn.count}</span>
                       </div>
-                      <div className="space-y-1.5">
-                        {helpTopics.learn.items.map((topic) => (
-                          <button
-                            key={topic}
-                            onClick={() => alert(`Help topic: ${topic}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-ink-900/40 hover:bg-ink-800/50 p-2.5 text-left text-xs font-medium text-ink-300 transition"
-                          >
-                            <span>{topic}</span>
-                            <ChevronRight className="h-3.5 w-3.5 text-ink-600" />
-                          </button>
-                        ))}
+                      <div className="space-y-2">
+                        {helpTopics.learn.items.map((topic) => {
+                          return (
+                            <button
+                              key={topic.text}
+                              onClick={() => alert(`Help topic: ${topic.text}`)}
+                              className="flex w-full items-center justify-between rounded-lg bg-[#0E0E10]/50 border border-[#2e2e38] hover:bg-[#121214] px-4 py-3 text-left text-xs font-semibold text-white transition"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1C1C20] border border-[#2e2e38] text-[#9B9085]">
+                                  {topic.icon === "BookOpen" && <BookOpen className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Gift" && <Sliders className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Sliders" && <Sliders className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Lightbulb" && <Lightbulb className="h-3.5 w-3.5" />}
+                                </span>
+                                <span>{topic.text}</span>
+                              </div>
+                              <ChevronRight className="h-3.5 w-3.5 text-[#9B9085]/60" />
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
                     {/* SET UP */}
-                    <div>
-                      <div className="flex items-center justify-between text-[10px] font-bold text-ink-500 uppercase tracking-wider mb-2.5">
+                    <div className="rounded-xl border border-[#2e2e38] bg-[#1C1C20] p-5">
+                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.setup.title}</span>
                         <span>{helpTopics.setup.count}</span>
                       </div>
-                      <div className="space-y-1.5">
-                        {helpTopics.setup.items.map((topic) => (
-                          <button
-                            key={topic}
-                            onClick={() => alert(`Help topic: ${topic}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-ink-900/40 hover:bg-ink-800/50 p-2.5 text-left text-xs font-medium text-ink-300 transition"
-                          >
-                            <span>{topic}</span>
-                            <ChevronRight className="h-3.5 w-3.5 text-ink-600" />
-                          </button>
-                        ))}
+                      <div className="space-y-2">
+                        {helpTopics.setup.items.map((topic) => {
+                          return (
+                            <button
+                              key={topic.text}
+                              onClick={() => alert(`Help topic: ${topic.text}`)}
+                              className="flex w-full items-center justify-between rounded-lg bg-[#0E0E10]/50 border border-[#2e2e38] hover:bg-[#121214] px-4 py-3 text-left text-xs font-semibold text-white transition"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1C1C20] border border-[#2e2e38] text-[#9B9085]">
+                                  {topic.icon === "Settings" && <Sliders className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Globe" && <Palette className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Mail" && <FileText className="h-3.5 w-3.5" />}
+                                  {topic.icon === "BookOpen" && <BookOpen className="h-3.5 w-3.5" />}
+                                </span>
+                                <span>{topic.text}</span>
+                              </div>
+                              <ChevronRight className="h-3.5 w-3.5 text-[#9B9085]/60" />
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
                     {/* MANAGE */}
-                    <div>
-                      <div className="flex items-center justify-between text-[10px] font-bold text-ink-500 uppercase tracking-wider mb-2.5">
+                    <div className="rounded-xl border border-[#2e2e38] bg-[#1C1C20] p-5">
+                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.manage.title}</span>
                         <span>{helpTopics.manage.count}</span>
                       </div>
-                      <div className="space-y-1.5">
-                        {helpTopics.manage.items.map((topic) => (
-                          <button
-                            key={topic}
-                            onClick={() => alert(`Help topic: ${topic}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-ink-900/40 hover:bg-ink-800/50 p-2.5 text-left text-xs font-medium text-ink-300 transition"
-                          >
-                            <span>{topic}</span>
-                            <ChevronRight className="h-3.5 w-3.5 text-ink-600" />
-                          </button>
-                        ))}
+                      <div className="space-y-2">
+                        {helpTopics.manage.items.map((topic) => {
+                          return (
+                            <button
+                              key={topic.text}
+                              onClick={() => alert(`Help topic: ${topic.text}`)}
+                              className="flex w-full items-center justify-between rounded-lg bg-[#0E0E10]/50 border border-[#2e2e38] hover:bg-[#121214] px-4 py-3 text-left text-xs font-semibold text-white transition"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1C1C20] border border-[#2e2e38] text-[#9B9085]">
+                                  {topic.icon === "Users" && <Users className="h-3.5 w-3.5" />}
+                                  {topic.icon === "BarChart3" && <Sliders className="h-3.5 w-3.5" />}
+                                  {topic.icon === "User" && <User className="h-3.5 w-3.5" />}
+                                  {topic.icon === "PlayCircle" && <HelpCircle className="h-3.5 w-3.5" />}
+                                </span>
+                                <span>{topic.text}</span>
+                              </div>
+                              <ChevronRight className="h-3.5 w-3.5 text-[#9B9085]/60" />
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -428,42 +479,67 @@ export default function DashboardShell({
                   {/* Right Column (BUILD, CONNECTIONS) */}
                   <div className="space-y-6">
                     {/* BUILD */}
-                    <div>
-                      <div className="flex items-center justify-between text-[10px] font-bold text-ink-500 uppercase tracking-wider mb-2.5">
+                    <div className="rounded-xl border border-[#2e2e38] bg-[#1C1C20] p-5">
+                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.build.title}</span>
                         <span>{helpTopics.build.count}</span>
                       </div>
-                      <div className="space-y-1.5">
-                        {helpTopics.build.items.map((topic) => (
-                          <button
-                            key={topic}
-                            onClick={() => alert(`Help topic: ${topic}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-ink-900/40 hover:bg-ink-800/50 p-2.5 text-left text-xs font-medium text-ink-300 transition"
-                          >
-                            <span>{topic}</span>
-                            <ChevronRight className="h-3.5 w-3.5 text-ink-600" />
-                          </button>
-                        ))}
+                      <div className="space-y-2">
+                        {helpTopics.build.items.map((topic) => {
+                          return (
+                            <button
+                              key={topic.text}
+                              onClick={() => alert(`Help topic: ${topic.text}`)}
+                              className="flex w-full items-center justify-between rounded-lg bg-[#0E0E10]/50 border border-[#2e2e38] hover:bg-[#121214] px-4 py-3 text-left text-xs font-semibold text-white transition"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1C1C20] border border-[#2e2e38] text-[#9B9085]">
+                                  {topic.icon === "Compass" && <HelpCircle className="h-3.5 w-3.5" />}
+                                  {topic.icon === "FileText" && <FileText className="h-3.5 w-3.5" />}
+                                  {topic.icon === "FolderOpen" && <FolderOpen className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Palette" && <Palette className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Send" && <FileText className="h-3.5 w-3.5" />}
+                                  {topic.icon === "GitFork" && <HelpCircle className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Calendar" && <HelpCircle className="h-3.5 w-3.5" />}
+                                </span>
+                                <span>{topic.text}</span>
+                              </div>
+                              <ChevronRight className="h-3.5 w-3.5 text-[#9B9085]/60" />
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
                     {/* CONNECTIONS */}
-                    <div>
-                      <div className="flex items-center justify-between text-[10px] font-bold text-ink-500 uppercase tracking-wider mb-2.5">
+                    <div className="rounded-xl border border-[#2e2e38] bg-[#1C1C20] p-5">
+                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.connections.title}</span>
                         <span>{helpTopics.connections.count}</span>
                       </div>
-                      <div className="space-y-1.5">
-                        {helpTopics.connections.items.map((topic) => (
-                          <button
-                            key={topic}
-                            onClick={() => alert(`Help topic: ${topic}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-ink-900/40 hover:bg-ink-800/50 p-2.5 text-left text-xs font-medium text-ink-300 transition"
-                          >
-                            <span>{topic}</span>
-                            <ChevronRight className="h-3.5 w-3.5 text-ink-600" />
-                          </button>
-                        ))}
+                      <div className="space-y-2">
+                        {helpTopics.connections.items.map((topic) => {
+                          return (
+                            <button
+                              key={topic.text}
+                              onClick={() => alert(`Help topic: ${topic.text}`)}
+                              className="flex w-full items-center justify-between rounded-lg bg-[#0E0E10]/50 border border-[#2e2e38] hover:bg-[#121214] px-4 py-3 text-left text-xs font-semibold text-white transition"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1C1C20] border border-[#2e2e38] text-[#9B9085]">
+                                  {topic.icon === "Share2" && <HelpCircle className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Cpu" && <Sliders className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Slack" && <HelpCircle className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Zap" && <HelpCircle className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Link" && <HelpCircle className="h-3.5 w-3.5" />}
+                                  {topic.icon === "Calendar" && <HelpCircle className="h-3.5 w-3.5" />}
+                                </span>
+                                <span>{topic.text}</span>
+                              </div>
+                              <ChevronRight className="h-3.5 w-3.5 text-[#9B9085]/60" />
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

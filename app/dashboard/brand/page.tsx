@@ -61,7 +61,7 @@ export default function BrandPage() {
     <DashboardShell account={account} title="Brand">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">
         <div>
-          <h2 className="flex items-center gap-1.5 text-lg font-semibold text-ink-950 dark:text-white">
+          <h2 className="flex items-center gap-1.5 text-3xl font-bold text-ink-950 dark:text-white">
             Brand
             <span className="cursor-help rounded-full border border-ink-300 px-1.5 py-0 text-xs font-normal text-ink-500 hover:bg-ink-100">?</span>
           </h2>
