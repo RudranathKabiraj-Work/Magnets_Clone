@@ -357,9 +357,9 @@ export default function BrandPage() {
                       }}
                     >
                       {/* Main Grid Content */}
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
                         {/* Left Details */}
-                        <div className="md:col-span-7 space-y-4">
+                        <div className="md:col-span-7 flex flex-col justify-between h-full py-1">
                           <h3 className="text-xl md:text-3xl font-extrabold leading-tight tracking-tight">
                             101 Winning Viral Templates That Get Results
                           </h3>
@@ -372,7 +372,7 @@ export default function BrandPage() {
                             You know what works on LinkedIn. You've seen the posts that blow up. That's where these templates come in. Real structures pulled from posts that actually performed.
                           </p>
 
-                          <div className="space-y-3 pt-2.5">
+                          <div className="space-y-3 pt-2">
                             <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
                               This playbook breaks down:
                             </p>
@@ -405,7 +405,7 @@ export default function BrandPage() {
                         <div className="md:col-span-5 space-y-3">
                           {/* Media Placeholder Card */}
                           <div
-                            className={`rounded-xl border border-dashed aspect-[4/3] w-full flex items-center justify-center transition-colors duration-300 ${themeMode === "dark"
+                            className={`rounded-xl border border-dashed aspect-[16/11] w-full flex items-center justify-center transition-colors duration-300 ${themeMode === "dark"
                               ? "bg-[#161619]/40"
                               : "bg-white/40"
                               }`}
@@ -416,7 +416,7 @@ export default function BrandPage() {
 
                           {/* Signup Card */}
                           <div
-                            className={`rounded-xl border p-5 shadow-lg transition-all duration-300 backdrop-blur-sm aspect-[4/3] flex flex-col justify-center ${themeMode === "dark"
+                            className={`rounded-xl border p-4 shadow-lg transition-all duration-300 backdrop-blur-sm aspect-[16/11] flex flex-col justify-center ${themeMode === "dark"
                               ? "bg-[#161619]/90 border-[#252529] text-white"
                               : "border-[#e4e4e7] text-zinc-900"
                               }`}
