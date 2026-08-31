@@ -128,24 +128,24 @@ export default function BrandPage() {
 
             {/* Brand Settings Form */}
             <div className="lg:col-span-4">
-              <div className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-6 shadow-xl h-full flex flex-col justify-between">
+              <div className="rounded-xl border border-[#2e2e38] bg-[#18181B] p-6 shadow-xl h-full flex flex-col justify-between">
                 {/* Heading */}
-                <div className="flex items-start gap-3 mb-6">
+                <div className="flex items-start gap-3 mb-4">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
-                    <Palette className="h-4.5 w-4.5 text-[#FE6F34]" />
+                    <Palette className="h-4.5 w-4.5 text-white" />
                   </div>
                   <div>
-                    <h4 className="text-[14.2px] font-bold text-white">Brand settings</h4>
-                    <p className="text-xs text-[#9B9085] mt-0.5">
+                    <h4 className="text-base font-bold text-white">Brand settings</h4>
+                    <p className="text-xs text-[#9B9085] mt-1">
                       These apply to every live page and preview on this account.
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-5">
+                <div className="space-y-6">
                   {/* Business Name */}
                   <div>
-                    <label className="block text-[12.2px] font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                    <label className="block text-sm font-semibold text-[#a1a1aa] mb-2">
                       Business name
                     </label>
                     <input
@@ -155,14 +155,14 @@ export default function BrandPage() {
                       placeholder="Enter business name"
                       className="w-full rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-white outline-none placeholder:text-[#5c5650] focus:border-[#FE6F34] transition"
                     />
-                    <p className="text-[10px] text-[#5c5650] mt-1.5">
+                    <p className="text-xs text-[#71717a] mt-2 leading-relaxed">
                       Optional when your uploaded logo already includes your name.
                     </p>
                   </div>
 
                   {/* Logo Image */}
                   <div>
-                    <label className="block text-[12.2px] font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                    <label className="block text-sm font-semibold text-[#a1a1aa] mb-2">
                       Logo image
                     </label>
                     <div className="flex items-center gap-3">
@@ -198,17 +198,17 @@ export default function BrandPage() {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-[#5c5650]">No logo uploaded</span>
+                        <span className="text-xs text-[#71717a]">No logo uploaded</span>
                       )}
                     </div>
-                    <p className="text-[10px] text-[#5c5650] mt-1.5 leading-relaxed">
+                    <p className="text-xs text-[#71717a] mt-2 leading-relaxed">
                       Optional when you use a business name. PNG, JPG, WebP, or GIF. 10 MB max.
                     </p>
                   </div>
 
                   {/* Primary Color */}
                   <div>
-                    <label className="block text-[12.2px] font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                    <label className="block text-sm font-semibold text-[#a1a1aa] mb-2">
                       Primary
                     </label>
                     <div className="flex items-center rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2.5 focus-within:border-[#FE6F34] transition">
@@ -225,14 +225,14 @@ export default function BrandPage() {
                         type="text"
                         value={brandColor}
                         onChange={(e) => setBrandColor(e.target.value)}
-                        className="w-full bg-transparent text-[14.2px] text-white outline-none uppercase font-mono"
+                        className="w-full bg-transparent text-[14.2px] text-white outline-none font-mono"
                       />
                     </div>
                   </div>
 
                   {/* Page Appearance */}
                   <div>
-                    <label className="block text-[12.2px] font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                    <label className="block text-sm font-semibold text-[#a1a1aa] mb-2">
                       Page appearance
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -259,18 +259,18 @@ export default function BrandPage() {
                         Dark
                       </button>
                     </div>
-                    <p className="text-[10px] text-[#5c5650] mt-1.5">
+                    <p className="text-xs text-[#71717a] mt-2 leading-relaxed">
                       Applied to every public magnet and editor preview.
                     </p>
                   </div>
 
                   {/* Highlight Intensity */}
                   <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-xs font-semibold text-[#9B9085] uppercase tracking-wider">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-semibold text-[#a1a1aa]">
                         Highlight intensity
                       </label>
-                      <span className="rounded bg-[#252529] px-1.5 py-0.5 text-[10px] font-mono font-bold text-white">
+                      <span className="rounded bg-[#252529] px-1.5 py-0.5 text-xs font-mono font-bold text-white">
                         {highlightIntensity}%
                       </span>
                     </div>
@@ -285,7 +285,7 @@ export default function BrandPage() {
                         backgroundImage: `linear-gradient(to right, ${brandColor} 0%, ${brandColor} ${highlightIntensity}%, #2e2e38 ${highlightIntensity}%, #2e2e38 100%)`
                       }}
                     />
-                    <div className="flex justify-between text-[9px] text-[#5c5650] mt-1 font-semibold uppercase tracking-wider">
+                    <div className="flex justify-between text-[10px] text-[#5c5650] mt-1.5 font-semibold uppercase tracking-wider">
                       <span>Subtle</span>
                       <span>Balanced</span>
                       <span>Bold</span>
