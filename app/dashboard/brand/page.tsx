@@ -325,8 +325,8 @@ export default function BrandPage() {
                     }`}
                   style={{
                     backgroundImage: themeMode === "light"
-                      ? `radial-gradient(circle at 0% 0%, ${brandColor}10 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}08 0%, transparent 40%)`
-                      : `radial-gradient(circle at 0% 0%, ${brandColor}15 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}0c 0%, transparent 40%)`
+                      ? `radial-gradient(circle at 0% 0%, ${brandColor}22 0%, transparent 50%), radial-gradient(circle at 100% 100%, ${brandColor}1b 0%, transparent 50%)`
+                      : `radial-gradient(circle at 0% 0%, ${brandColor}28 0%, transparent 50%), radial-gradient(circle at 100% 100%, ${brandColor}1f 0%, transparent 50%)`
                   }}
                 >
                   {/* Mock page container */}
@@ -417,12 +417,14 @@ export default function BrandPage() {
                           {/* Signup Card */}
                           <div
                             className={`rounded-xl border p-4 shadow-lg transition-all duration-300 backdrop-blur-sm aspect-[16/11] flex flex-col justify-center ${themeMode === "dark"
-                              ? "bg-[#161619]/90 border-[#252529] text-white"
+                              ? "border-[#252529] text-white"
                               : "border-[#e4e4e7] text-zinc-900"
                               }`}
                             style={{
                               borderColor: themeMode === "light" ? `${brandColor}30` : undefined,
-                              backgroundColor: themeMode === "light" ? "rgba(255, 255, 255, 0.9)" : undefined
+                              background: themeMode === "light"
+                                ? `linear-gradient(135deg, ${brandColor}18 0%, rgba(255, 255, 255, 0.95) 60%)`
+                                : `linear-gradient(135deg, ${brandColor}18 0%, rgba(22, 22, 25, 0.95) 60%)`
                             }}
                           >
                             <p className="text-xs font-bold text-center">Download for free now</p>
