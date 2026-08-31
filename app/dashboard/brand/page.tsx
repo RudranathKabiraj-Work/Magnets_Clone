@@ -330,24 +330,24 @@ export default function BrandPage() {
                   }}
                 >
                   {/* Mock page container */}
-                  <div className="p-6 md:p-8">
+                  <div className="p-5 md:p-6">
                     {/* Header brand name / logo */}
-                    <div className="flex items-center gap-2.5 mb-8 justify-center">
-                      <div className="h-9 w-9 rounded-lg border border-dashed border-[#a1a1aa]/45 flex items-center justify-center bg-transparent overflow-hidden">
+                    <div className="flex items-center gap-3 mb-8 justify-center">
+                      <div className="h-11 w-11 rounded-xl border border-dashed border-[#a1a1aa]/45 flex items-center justify-center bg-transparent overflow-hidden">
                         {logo ? (
                           <img src={logo} alt="Logo" className="h-full w-full object-cover" />
                         ) : (
-                          <div className="h-4 w-4 rounded-sm border border-dashed border-[#a1a1aa]" />
+                          <div className="h-5 w-5 rounded-sm border border-dashed border-[#a1a1aa]" />
                         )}
                       </div>
-                      <span className="text-sm font-bold tracking-wider uppercase">
+                      <span className={`text-base font-extrabold tracking-wider uppercase ${themeMode === "dark" ? "text-white" : "text-black"}`}>
                         {businessName || "BDA"}
                       </span>
                     </div>
 
                     {/* Main Card Wrapper */}
                     <div
-                      className={`rounded-2xl border p-6 shadow-2xl transition-all duration-300 backdrop-blur-md ${themeMode === "dark"
+                      className={`rounded-2xl border py-4 px-6 shadow-2xl transition-all duration-300 backdrop-blur-md ${themeMode === "dark"
                         ? "bg-[#121214]/80 border-[#252529] text-white"
                         : "border-[#e4e4e7] text-zinc-900"
                         }`}
@@ -359,7 +359,7 @@ export default function BrandPage() {
                       {/* Main Grid Content */}
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
                         {/* Left Details */}
-                        <div className="md:col-span-7 space-y-6">
+                        <div className="md:col-span-7 space-y-4">
                           <h3 className="text-xl md:text-3xl font-extrabold leading-tight tracking-tight">
                             101 Winning Viral Templates That Get Results
                           </h3>
@@ -372,7 +372,7 @@ export default function BrandPage() {
                             You know what works on LinkedIn. You've seen the posts that blow up. That's where these templates come in. Real structures pulled from posts that actually performed.
                           </p>
 
-                          <div className="space-y-3 pt-4">
+                          <div className="space-y-3 pt-2.5">
                             <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
                               This playbook breaks down:
                             </p>
@@ -402,7 +402,7 @@ export default function BrandPage() {
                         </div>
 
                         {/* Right CTA Form & Media Placeholder */}
-                        <div className="md:col-span-5 space-y-4">
+                        <div className="md:col-span-5 space-y-3">
                           {/* Media Placeholder Card */}
                           <div
                             className={`rounded-xl border border-dashed aspect-[4/3] w-full flex items-center justify-center transition-colors duration-300 ${themeMode === "dark"
