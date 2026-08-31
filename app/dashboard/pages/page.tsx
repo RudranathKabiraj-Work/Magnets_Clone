@@ -66,22 +66,58 @@ export default function PagesPage() {
       <div className="flex flex-col min-h-[calc(100vh-3rem)]">
         <div className="flex-1 px-6 py-6 lg:px-8">
 
-          {/* Page heading with New page button */}
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <div>
-              <h2 className="flex items-center gap-2 text-3xl font-bold text-white">
-                Lead magnets
-                <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#1C1C20]">?</span>
-              </h2>
-              <p className="text-xs text-[#9B9085] mt-1">Create, publish, and manage your lead magnets</p>
+          {/* Page heading */}
+          <div className="mb-6">
+            <h2 className="flex items-center gap-2 text-3xl font-bold text-white">
+              Lead magnets
+              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#18181B]">?</span>
+            </h2>
+            <p className="text-xs text-[#9B9085] mt-1">Create, publish, and manage your lead magnets</p>
+          </div>
+
+          {/* Conversion Workspace banner */}
+          <div
+            className="relative mb-5 overflow-hidden rounded-xl border border-[#2e2e38] bg-[#18181B] pt-7 pb-8 px-8"
+            style={{
+              background: "linear-gradient(90deg, #2D1A12 0%, #1D1512 30%, #18181B 70%)",
+            }}
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                {/* Badge */}
+                <div className="mb-4 flex items-center">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#5c2d18] bg-[#2a1309] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+                    <Sparkles className="h-3.5 w-3.5 text-[#FE6F34] fill-[#FE6F34]/20" />
+                    CONVERSION WORKSPACE
+                  </span>
+                </div>
+                <h3 className="text-3xl font-bold text-white tracking-tight mb-2">Your lead magnet library</h3>
+                <p className="text-sm text-[#9B9085]/90">
+                  Create the signup page, delivery email, follow-up emails, and post-signup page.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0 mt-4">
+                {/* Published stat */}
+                <div className="rounded-[14px] border border-[#2e2e38] bg-[#0E0E10]/30 p-4 text-center w-[86px] h-[72px] flex flex-col justify-between">
+                  <p className="text-[9px] font-semibold uppercase tracking-widest text-[#9B9085]/60">PUBLISHED</p>
+                  <p className="text-2xl font-bold text-white leading-none">{live}</p>
+                </div>
+                {/* Total stat */}
+                <div className="rounded-[14px] border border-[#2e2e38] bg-[#0E0E10]/30 p-4 text-center w-[86px] h-[72px] flex flex-col justify-between">
+                  <p className="text-[9px] font-semibold uppercase tracking-widest text-[#9B9085]/60">TOTAL</p>
+                  <p className="text-2xl font-bold text-white leading-none">{total}</p>
+                </div>
+                {/* New page button */}
+                <Link
+                  href="/dashboard/pages/new"
+                  className="flex items-center justify-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-xs font-bold text-black hover:bg-[#e55e28] transition whitespace-nowrap"
+                >
+                  <Plus className="h-3.5 w-3.5 text-black stroke-[2.5px]" />
+                  New page
+                </Link>
+              </div>
             </div>
-            <Link
-              href="/dashboard/pages/new"
-              className="flex items-center justify-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-xs font-semibold text-black hover:bg-[#e55e28] transition whitespace-nowrap"
-            >
-              <Plus className="h-3.5 w-3.5 text-black stroke-[2.5px]" />
-              New page
-            </Link>
           </div>
 
           {/* Search bar + spaces used */}

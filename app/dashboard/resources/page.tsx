@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import Button from "@/components/ui/button";
 import { UploadCloud, Lock, FileText, Trash2, Link2, Inbox } from "lucide-react";
-import { syncWithDatabase } from "@/lib/store";
+import { syncWithDatabase, loadResources, loadAccount } from "@/lib/store";
 import type { Account } from "@/lib/data";
 
 interface Resource {
@@ -22,12 +22,19 @@ export default function ResourcesPage() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
+    // Load local data instantly
+    const localResources = loadResources();
+    const localAccount = loadAccount();
+    if (localResources.length > 0) setResources(localResources);
+    if (localAccount) setAccount(localAccount);
+    setLoading(false);
+
+    // Sync in background silently
     syncWithDatabase().then((data) => {
       if (data) {
         setAccount(data.account);
         setResources(data.resources || []);
       }
-      setLoading(false);
     });
   }, []);
 

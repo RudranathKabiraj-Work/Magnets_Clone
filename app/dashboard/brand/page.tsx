@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { Palette, Check, Upload, Sun, Moon, Trash2 } from "lucide-react";
-import { syncWithDatabase, saveAccount } from "@/lib/store";
+import { syncWithDatabase, saveAccount, loadAccount } from "@/lib/store";
 import type { Account } from "@/lib/data";
 
 export default function BrandPage() {
@@ -19,6 +19,19 @@ export default function BrandPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // Load local data instantly
+    const localAccount = loadAccount();
+    if (localAccount) {
+      setAccount(localAccount);
+      setBusinessName(localAccount.name || "");
+      setBrandColor(localAccount.brandColor || "#FE6F34");
+      setThemeMode(localAccount.themeMode || "light");
+      setHighlightIntensity(localAccount.highlightIntensity ?? 100);
+      setLogo(localAccount.logo || null);
+    }
+    setLoading(false);
+
+    // Sync in background silently
     syncWithDatabase().then((data) => {
       if (data && data.account) {
         setAccount(data.account);
@@ -28,7 +41,6 @@ export default function BrandPage() {
         setHighlightIntensity(data.account.highlightIntensity ?? 100);
         setLogo(data.account.logo || null);
       }
-      setLoading(false);
     });
   }, []);
 
@@ -106,24 +118,24 @@ export default function BrandPage() {
           {/* Page Title */}
           <div className="mb-8">
             <h2 className="flex items-center gap-2 text-3xl font-bold text-white animate-slide-in">
-              Brand settings
-              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#1C1C20]">?</span>
+              Brand
+              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#18181B]">?</span>
             </h2>
             <p className="text-xs text-[#9B9085] mt-1">Configure logo, color scheme, and appearance of your public pages.</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
             
             {/* Brand Settings Form */}
             <div className="lg:col-span-4">
-              <div className="rounded-lg border border-[#2e2e38] bg-[#1C1C20] p-6 shadow-xl h-full flex flex-col justify-between">
+              <div className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-6 shadow-xl h-full flex flex-col justify-between">
                 {/* Heading */}
-                <div className="flex items-start gap-3 mb-6">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
-                    <Palette className="h-4 w-4 text-[#FE6F34]" />
+                 <div className="flex items-start gap-3 mb-6">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
+                    <Palette className="h-4.5 w-4.5 text-[#FE6F34]" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white">Brand settings</h4>
+                    <h4 className="text-[14.2px] font-bold text-white">Brand settings</h4>
                     <p className="text-xs text-[#9B9085] mt-0.5">
                       These apply to every live page and preview on this account.
                     </p>
@@ -133,7 +145,7 @@ export default function BrandPage() {
                 <div className="space-y-5">
                   {/* Business Name */}
                   <div>
-                    <label className="block text-xs font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                    <label className="block text-[12.2px] font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
                       Business name
                     </label>
                     <input
@@ -141,7 +153,7 @@ export default function BrandPage() {
                       value={businessName}
                       onChange={(e) => setBusinessName(e.target.value)}
                       placeholder="Enter business name"
-                      className="w-full rounded-md border border-[#2e2e38] bg-[#0E0E10] px-3.5 py-2.5 text-sm text-white outline-none placeholder:text-[#5c5650] focus:border-[#FE6F34] transition"
+                      className="w-full rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-white outline-none placeholder:text-[#5c5650] focus:border-[#FE6F34] transition"
                     />
                     <p className="text-[10px] text-[#5c5650] mt-1.5">
                       Optional when your uploaded logo already includes your name.
@@ -150,7 +162,7 @@ export default function BrandPage() {
 
                   {/* Logo Image */}
                   <div>
-                    <label className="block text-xs font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                    <label className="block text-[12.2px] font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
                       Logo image
                     </label>
                     <div className="flex items-center gap-3">
@@ -164,7 +176,7 @@ export default function BrandPage() {
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#0E0E10] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#1C1C20] hover:border-[#5c5650] transition"
+                        className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#18181B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#252529] hover:border-[#5c5650] transition"
                       >
                         <Upload className="h-3.5 w-3.5 text-[#9B9085]" />
                         Choose logo
@@ -174,7 +186,7 @@ export default function BrandPage() {
                           <img
                             src={logo}
                             alt="Logo Preview"
-                            className="h-9 w-9 rounded object-contain border border-[#2e2e38] bg-[#0E0E10]"
+                            className="h-9 w-9 rounded object-contain border border-[#2e2e38] bg-[#18181B]"
                           />
                           <button
                             type="button"
@@ -196,10 +208,10 @@ export default function BrandPage() {
 
                   {/* Primary Color */}
                   <div>
-                    <label className="block text-xs font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                    <label className="block text-[12.2px] font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
                       Primary
                     </label>
-                    <div className="flex items-center rounded-md border border-[#2e2e38] bg-[#0E0E10] px-3 py-2.5 focus-within:border-[#FE6F34] transition">
+                    <div className="flex items-center rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2.5 focus-within:border-[#FE6F34] transition">
                       <label className="relative h-5 w-8 shrink-0 rounded cursor-pointer overflow-hidden border border-[#2e2e38] mr-2">
                         <input
                           type="color"
@@ -213,24 +225,24 @@ export default function BrandPage() {
                         type="text"
                         value={brandColor}
                         onChange={(e) => setBrandColor(e.target.value)}
-                        className="w-full bg-transparent text-sm text-white outline-none uppercase font-mono"
+                        className="w-full bg-transparent text-[14.2px] text-white outline-none uppercase font-mono"
                       />
                     </div>
                   </div>
 
                   {/* Page Appearance */}
                   <div>
-                    <label className="block text-xs font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                    <label className="block text-[12.2px] font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
                       Page appearance
                     </label>
                     <div className="grid grid-cols-2 gap-2">
-                      <button
+                       <button
                         type="button"
                         onClick={() => setThemeMode("light")}
-                        className={`flex items-center justify-center gap-1.5 rounded-md border py-2.5 text-xs font-semibold transition ${
+                        className={`flex items-center justify-center gap-1.5 rounded-md border py-2 text-xs font-semibold transition ${
                           themeMode === "light"
                             ? "border-[#5c5650] bg-[#252529] text-white"
-                            : "border-[#2e2e38] bg-[#0E0E10] text-[#9B9085] hover:bg-[#1C1C20] hover:text-white"
+                            : "border-[#2e2e38] bg-[#18181B] text-[#9B9085] hover:bg-[#252529] hover:text-white"
                         }`}
                       >
                         <Sun className="h-3.5 w-3.5" />
@@ -239,10 +251,10 @@ export default function BrandPage() {
                       <button
                         type="button"
                         onClick={() => setThemeMode("dark")}
-                        className={`flex items-center justify-center gap-1.5 rounded-md border py-2.5 text-xs font-semibold transition ${
+                        className={`flex items-center justify-center gap-1.5 rounded-md border py-2 text-xs font-semibold transition ${
                           themeMode === "dark"
                             ? "border-[#5c5650] bg-[#252529] text-white"
-                            : "border-[#2e2e38] bg-[#0E0E10] text-[#9B9085] hover:bg-[#1C1C20] hover:text-white"
+                            : "border-[#2e2e38] bg-[#18181B] text-[#9B9085] hover:bg-[#252529] hover:text-white"
                         }`}
                       >
                         <Moon className="h-3.5 w-3.5" />
@@ -270,7 +282,7 @@ export default function BrandPage() {
                       max="100"
                       value={highlightIntensity}
                       onChange={(e) => setHighlightIntensity(Number(e.target.value))}
-                      className="w-full accent-[#FE6F34] bg-[#0E0E10] h-1 rounded-lg appearance-none cursor-pointer"
+                      className="w-full accent-[#FE6F34] bg-[#18181B] h-1 rounded-lg appearance-none cursor-pointer"
                       style={{
                         backgroundImage: `linear-gradient(to right, ${brandColor} 0%, ${brandColor} ${highlightIntensity}%, #2e2e38 ${highlightIntensity}%, #2e2e38 100%)`
                       }}
@@ -288,10 +300,10 @@ export default function BrandPage() {
                   <span className="text-[10px] text-[#5c5650] leading-tight">
                     {hasUnsavedChanges ? "Unsaved changes stay local until saved." : "All changes saved to database."}
                   </span>
-                  <button
+                   <button
                     onClick={handleSave}
                     disabled={saving || !hasUnsavedChanges}
-                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2.5 text-xs font-bold text-black hover:bg-[#e55e28] transition shrink-0"
+                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] transition shrink-0"
                   >
                     <Check className="h-3.5 w-3.5 stroke-[3px]" />
                     {saving ? "Saving..." : "Save brand"}
@@ -302,7 +314,7 @@ export default function BrandPage() {
 
             {/* Live Preview Panel */}
             <div className="lg:col-span-8">
-              <div className="rounded-lg border border-[#2e2e38] bg-[#1C1C20] p-5 shadow-2xl h-full flex flex-col">
+              <div className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-5 shadow-2xl h-full flex flex-col">
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#2e2e38]/50">
                   <span className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">Preview</span>
                   <span className="text-[10px] text-[#5c5650]">How your brand appears on a full magnet page.</span>
@@ -311,7 +323,7 @@ export default function BrandPage() {
                 <div
                   className={`rounded-lg border transition-all duration-300 overflow-hidden ${
                     themeMode === "dark"
-                      ? "bg-[#0E0E10] border-[#1C1C20] text-white"
+                      ? "bg-[#0E0E10] border-[#2e2e38] text-white"
                       : "bg-[#FAFAFA] border-[#e4e4e7] text-zinc-900"
                   }`}
                   style={{

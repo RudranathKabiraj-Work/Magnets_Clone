@@ -111,7 +111,7 @@ export default function SignupsPage() {
           <div className="mb-6">
             <h2 className="flex items-center gap-2 text-3xl font-bold text-white">
               Signups
-              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#3a3a3f] text-xs font-normal text-[#9B9085] hover:bg-[#1C1C20]">?</span>
+              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#3a3a3f] text-xs font-normal text-[#9B9085] hover:bg-[#18181B]">?</span>
             </h2>
             <p className="text-xs text-[#9B9085] mt-1">Everyone who has signed up to a magnet</p>
           </div>
@@ -119,7 +119,7 @@ export default function SignupsPage() {
           {/* Stat cards */}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-12 mb-6">
             {/* Unique signups */}
-            <div className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#1C1C20] px-5 py-4 md:col-span-5">
+            <div className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#18181B] px-5 py-4 md:col-span-5">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#252529] text-[#9B9085]">
                 <Users className="h-4.5 w-4.5" />
               </div>
@@ -130,7 +130,7 @@ export default function SignupsPage() {
             </div>
 
             {/* Latest signup */}
-            <div className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#1C1C20] px-5 py-4 md:col-span-4">
+            <div className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#18181B] px-5 py-4 md:col-span-4">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#252529] text-[#9B9085]">
                 <Mail className="h-4.5 w-4.5" />
               </div>
@@ -145,7 +145,7 @@ export default function SignupsPage() {
             {/* Export */}
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#1C1C20] px-5 py-4 text-left hover:border-[#2e2e35] transition w-full md:col-span-3"
+              className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#18181B] px-5 py-4 text-left hover:border-[#2e2e35] transition w-full md:col-span-3"
             >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#252529] text-[#9B9085]">
                 <Download className="h-4.5 w-4.5" />
@@ -158,7 +158,7 @@ export default function SignupsPage() {
           </div>
 
           {/* All signups section */}
-          <div className="rounded-lg border border-[#2e2e38] bg-[#1C1C20] overflow-hidden">
+          <div className="rounded-lg border border-[#2e2e38] bg-[#18181B] overflow-hidden">
             {/* Section header */}
             <div className="px-5 pt-5 pb-4 border-b border-[#2e2e38]">
               <h3 className="text-sm font-semibold text-white">All signups</h3>
@@ -170,14 +170,14 @@ export default function SignupsPage() {
                 <div className="relative" ref={filterRef}>
                   <button
                     onClick={() => setFilterOpen((v) => !v)}
-                    className="flex items-center gap-2 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
+                    className="flex items-center gap-2 rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
                   >
                     <Filter className="h-3.5 w-3.5" />
                     {filterMagnet}
                     <ChevronDown className="h-3.5 w-3.5" />
                   </button>
                   {filterOpen && (
-                    <div className="absolute left-0 top-full z-20 mt-1 w-52 rounded-md border border-[#2a2a30] bg-[#1C1C20] shadow-lg py-1">
+                    <div className="absolute left-0 top-full z-20 mt-1 w-52 rounded-md border border-[#2a2a30] bg-[#18181B] shadow-lg py-1">
                       {["All lead magnets", ...uniqueMagnets].map((opt) => (
                         <button
                           key={opt}
@@ -196,7 +196,7 @@ export default function SignupsPage() {
                 </div>
 
                 {/* Search */}
-                <div className="flex items-center gap-2 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3.5 py-2 flex-1 min-w-48 focus-within:border-[#2e2e35]">
+                <div className="flex items-center gap-2 rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2 flex-1 min-w-48 focus-within:border-[#2e2e35]">
                   <Search className="h-3.5 w-3.5 text-[#9B9085] shrink-0" />
                   <input
                     type="text"
@@ -210,7 +210,7 @@ export default function SignupsPage() {
                 {/* Add manually */}
                 <button
                   onClick={handleAddManually}
-                  className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
+                  className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add manually
@@ -219,7 +219,7 @@ export default function SignupsPage() {
                 {/* Import CSV */}
                 <button
                   onClick={handleImportCSV}
-                  className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
+                  className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
                 >
                   <Upload className="h-3.5 w-3.5" />
                   Import CSV
@@ -228,7 +228,7 @@ export default function SignupsPage() {
                 {/* Export CSV */}
                 <button
                   onClick={handleExportCSV}
-                  className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
+                  className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2 text-xs text-[#9B9085] hover:border-[#2e2e35] hover:text-white transition"
                 >
                   <Download className="h-3.5 w-3.5" />
                   Export CSV
@@ -252,7 +252,7 @@ export default function SignupsPage() {
                 </thead>
                 <tbody className="divide-y divide-[#1C1C20]">
                   {filtered.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-[#1C1C20]/40 transition">
+                    <tr key={lead.id} className="hover:bg-[#18181B]/40 transition">
                       <td className="px-5 py-3.5 text-xs text-white">{lead.email}</td>
                       <td className="px-5 py-3.5 text-xs text-[#9B9085]">{lead.name}</td>
                       <td className="px-5 py-3.5 text-xs text-[#9B9085] max-w-[200px] truncate">{lead.page}</td>
@@ -260,7 +260,7 @@ export default function SignupsPage() {
                       <td className="px-5 py-3.5 text-xs text-[#9B9085]">1</td>
                       <td className="px-5 py-3.5 text-xs text-[#9B9085]">{lead.sequence || "—"}</td>
                       <td className="px-5 py-3.5 text-right">
-                        <button className="text-xs text-[#9B9085] hover:text-white transition px-2 py-1 rounded hover:bg-[#1C1C20]">
+                        <button className="text-xs text-[#9B9085] hover:text-white transition px-2 py-1 rounded hover:bg-[#18181B]">
                           View
                         </button>
                       </td>

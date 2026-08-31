@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { User, KeyRound, AlertTriangle, Check, Trash2 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { saveAccount, syncWithDatabase } from "@/lib/store";
+import { saveAccount, syncWithDatabase, loadAccount } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import type { Account } from "@/lib/data";
 
@@ -26,13 +26,22 @@ export default function AccountSettingsPage() {
   const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
+    // Load local data instantly
+    const localAccount = loadAccount();
+    if (localAccount) {
+      setAccount(localAccount);
+      setName(localAccount.name || "");
+      setEmail(localAccount.email || "");
+    }
+    setLoading(false);
+
+    // Sync in background silently
     syncWithDatabase().then((data) => {
       if (data && data.account) {
         setAccount(data.account);
         setName(data.account.name || "");
         setEmail(data.account.email || "");
       }
-      setLoading(false);
     });
   }, []);
 
@@ -130,9 +139,9 @@ export default function AccountSettingsPage() {
   }
 
   const inputClass =
-    "w-full max-w-lg rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3.5 py-2.5 text-sm text-white outline-none placeholder:text-[#9B9085] focus:border-[#FE6F34] transition";
+    "w-full max-w-lg rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-white outline-none placeholder:text-[#9B9085] focus:border-[#FE6F34] transition";
 
-  const labelClass = "block text-xs font-medium text-[#9B9085] mb-1.5";
+  const labelClass = "block text-[12.2px] font-semibold text-[#9B9085] mb-1.5";
 
   return (
     <DashboardShell account={account} title="Account">
@@ -143,7 +152,7 @@ export default function AccountSettingsPage() {
           <div className="mb-8">
             <h2 className="flex items-center gap-2 text-3xl font-bold text-white">
               Account
-              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#1C1C20]">?</span>
+              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#18181B]">?</span>
             </h2>
             <p className="text-xs text-[#9B9085] mt-1">Password, identity, and danger zone.</p>
           </div>
@@ -151,18 +160,18 @@ export default function AccountSettingsPage() {
           <div className="space-y-5">
 
             {/* Who you are */}
-            <section className="rounded-lg border border-[#2e2e38] bg-[#1C1C20] p-6">
+            <section className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-6">
               <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
-                  <User className="h-4 w-4" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
+                  <User className="h-4.5 w-4.5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-white">Who you are</h4>
-                  <p className="text-xs text-[#9B9085] mt-0.5">{email}</p>
+                  <h4 className="text-[14.2px] font-bold text-white">Who you are</h4>
+                  <p className="text-[12.2px] text-[#9B9085] mt-0.5">{email}</p>
                 </div>
               </div>
 
-              <div className="mt-5 pl-11 space-y-4 max-w-2xl">
+              <div className="mt-5 pl-12 space-y-4 max-w-2xl">
                 <div>
                   <label className={labelClass}>Name</label>
                   <input
@@ -183,11 +192,11 @@ export default function AccountSettingsPage() {
                   />
                 </div>
 
-                <div className="pt-2 flex justify-end max-w-lg">
+                 <div className="pt-2 flex justify-end max-w-lg">
                   <button
                     onClick={handleUpdateName}
                     disabled={updatingName}
-                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-xs font-semibold text-black hover:bg-[#e55e28] disabled:opacity-60 transition"
+                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] disabled:opacity-60 transition"
                   >
                     <Check className="h-3.5 w-3.5 text-black stroke-[2.5px]" />
                     {updatingName ? "Updating..." : "Update name"}
@@ -197,18 +206,18 @@ export default function AccountSettingsPage() {
             </section>
 
             {/* Change password */}
-            <section className="rounded-lg border border-[#2e2e38] bg-[#1C1C20] p-6">
+            <section className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-6">
               <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
-                  <KeyRound className="h-4 w-4" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
+                  <KeyRound className="h-4.5 w-4.5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-white">Change password</h4>
-                  <p className="text-xs text-[#9B9085] mt-0.5">Use at least 8 characters. Pick something you don't reuse elsewhere.</p>
+                  <h4 className="text-[14.2px] font-bold text-white">Change password</h4>
+                  <p className="text-[12.2px] text-[#9B9085] mt-0.5">Use at least 8 characters. Pick something you don't reuse elsewhere.</p>
                 </div>
               </div>
 
-              <div className="mt-5 pl-11 space-y-4 max-w-2xl">
+              <div className="mt-5 pl-12 space-y-4 max-w-2xl">
                 <div>
                   <label className={labelClass}>Current password</label>
                   <input
@@ -237,11 +246,11 @@ export default function AccountSettingsPage() {
                   />
                 </div>
 
-                <div className="pt-2 flex justify-end max-w-lg">
+                 <div className="pt-2 flex justify-end max-w-lg">
                   <button
                     onClick={handleUpdatePassword}
                     disabled={updatingPassword}
-                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-xs font-semibold text-black hover:bg-[#e55e28] disabled:opacity-60 transition"
+                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] disabled:opacity-60 transition"
                   >
                     <KeyRound className="h-3.5 w-3.5 text-black stroke-[2.5px]" />
                     {updatingPassword ? "Updating..." : "Update password"}
@@ -251,14 +260,14 @@ export default function AccountSettingsPage() {
             </section>
 
             {/* Danger zone */}
-            <section className="rounded-lg border border-[#2e2e38] bg-[#1C1C20] p-6">
+            <section className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-6">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#552e2e] bg-[#2a1414] text-[#FF8585]">
                   <AlertTriangle className="h-4.5 w-4.5" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-sm font-semibold text-[#FF8585]">Danger zone</h4>
-                  <p className="text-xs text-[#9B9085] leading-relaxed mt-1">
+                  <h4 className="text-[14.2px] font-bold text-[#FF8585]">Danger zone</h4>
+                  <p className="text-[12.2px] text-[#9B9085] leading-relaxed mt-1">
                     Deleting your account removes your magnets, signups, integrations, and any custom domains attached to your account. This is permanent. There is no recovery.
                   </p>
 
@@ -272,7 +281,7 @@ export default function AccountSettingsPage() {
                     <div className="mt-5 flex justify-start">
                       <button
                         onClick={() => setShowDeleteConfirm(true)}
-                        className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-[14px] py-[8px] text-sm font-extrabold text-[#FF8585] hover:border-red-800 hover:text-red-400 disabled:opacity-60 transition"
+                        className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#18181B] px-[14px] py-[8px] text-sm font-extrabold text-[#FF8585] hover:border-red-800 hover:text-red-400 disabled:opacity-60 transition"
                       >
                         <Trash2 className="h-4 w-4 stroke-[3px]" />
                         Delete account
@@ -317,14 +326,14 @@ export default function AccountSettingsPage() {
                             setDeleteConfirmText("");
                             setDeleteError("");
                           }}
-                          className="rounded-md border border-[#2e2e38] bg-[#1C1C20] px-[14px] py-[8px] text-sm font-semibold text-white hover:bg-[#2e2e38] transition"
+                          className="rounded-md border border-[#2e2e38] bg-[#18181B] px-[14px] py-[8px] text-sm font-semibold text-white hover:bg-[#2e2e38] transition"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
                           disabled={deleting}
-                          className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-[14px] py-[8px] text-sm font-extrabold text-[#FF8585] hover:border-red-800 hover:text-red-400 disabled:opacity-60 transition"
+                          className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#18181B] px-[14px] py-[8px] text-sm font-extrabold text-[#FF8585] hover:border-red-800 hover:text-red-400 disabled:opacity-60 transition"
                         >
                           <Trash2 className="h-4 w-4 stroke-[3px]" />
                           {deleting ? "Deleting..." : "Delete permanently"}

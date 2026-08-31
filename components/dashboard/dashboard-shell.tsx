@@ -47,7 +47,7 @@ export default function DashboardShell({
     document.documentElement.style.colorScheme = next ? "dark" : "light";
     try {
       localStorage.setItem("magnets-theme", next ? "dark" : "light");
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const handleLogout = () => {
@@ -135,10 +135,10 @@ export default function DashboardShell({
         <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
       )}
 
-      <aside className="shadow-sm hidden h-screen w-60 shrink-0 flex-col border-r border-[#1B1B1F] bg-[#0E0E10] text-[#9B9085] sticky top-0 md:flex z-40">
-        <div className="flex h-12 shrink-0 items-center border-b border-[#1B1B1F] px-4 dark">
+      <aside className="shadow-sm hidden h-screen w-[14.5rem] shrink-0 flex-col border-r border-white/10 bg-[#18181B] text-[#9B9085] sticky top-0 md:flex z-40">
+        <div className="flex h-12 shrink-0 items-center border-b border-white/10 px-4 dark">
           <Link href="/" aria-label="Magnets home">
-            <BrandLogo height="h-7" width="w-40" />
+            <BrandLogo height="h-5" width="w-[7.5rem]" />
           </Link>
         </div>
         <nav className="mt-4 flex-1 space-y-1.5 px-3" aria-label="Dashboard">
@@ -146,23 +146,22 @@ export default function DashboardShell({
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             const isDividerAfter = idx === 2; // Divider after Signups
 
-            const linkClass = `flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition ${
-              active
-                ? "bg-[#221B17] text-white font-semibold"
-                : "text-[#9B9085] hover:bg-[#1C1613] hover:text-white"
-            }`;
+            const linkClass = `flex items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition ${active
+                ? "bg-[#FE6F34]/15 text-white font-semibold"
+                : "text-[#9B9085] hover:bg-[#FE6F34]/8 hover:text-white"
+              }`;
 
             if (item.isModal) {
               return (
                 <div key={item.href}>
                   <button
                     onClick={() => setShowHelp(true)}
-                    className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition text-[#9B9085] hover:bg-[#1C1613] hover:text-white"
+                    className="flex w-full items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition text-[#9B9085] hover:bg-[#1C1613] hover:text-white"
                   >
                     <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-[#9B9085]"}`} aria-hidden="true" />
                     {item.label}
                   </button>
-                  {isDividerAfter && <div className="my-3 border-t border-[#1B1B1F]" />}
+                  {isDividerAfter && <div className="my-3 border-t border-white/10" />}
                 </div>
               );
             }
@@ -173,15 +172,15 @@ export default function DashboardShell({
                   <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-[#9B9085]"}`} aria-hidden="true" />
                   {item.label}
                 </Link>
-                {isDividerAfter && <div className="my-3 border-t border-[#1B1B1F]" />}
+                {isDividerAfter && <div className="my-3 border-t border-white/10" />}
               </div>
             );
           })}
         </nav>
-        <div className="relative border-t border-[#1B1B1F] px-3 py-4">
+        <div className="relative border-t border-white/10 px-3 py-4">
           {/* Profile Popover Menu */}
           {showProfileMenu && (
-            <div className="absolute bottom-16 left-3 w-52 rounded-lg border border-[#1B1B1F] bg-[#121214] p-1 shadow-lg z-50 text-white flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150">
+            <div className="absolute bottom-16 left-3 w-52 rounded-lg border border-white/10 bg-[#121214] p-1 shadow-lg z-50 text-white flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150">
               <button
                 onClick={toggleTheme}
                 className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-ink-300 hover:bg-[#1B1B1F] hover:text-white transition w-full"
@@ -208,7 +207,7 @@ export default function DashboardShell({
               >
                 <Lightbulb className="h-4 w-4 text-[#9B9085]" /> Request a feature
               </button>
-              <div className="border-t border-[#1B1B1F] my-1" />
+              <div className="border-t border-white/10 my-1" />
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-[#1B1B1F] transition w-full"
@@ -234,22 +233,22 @@ export default function DashboardShell({
       </aside>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-40 bg-ink-950/40 backdrop-blur-sm md:hidden" onClick={() => setMenuOpen(false)}>
+        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setMenuOpen(false)}>
           <div
-            className="dashboard-chrome flex h-full w-72 flex-col bg-white p-4"
+            className="flex h-full w-72 flex-col bg-[#18181B] border-r border-white/10 p-4 text-[#9B9085]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-6 flex items-center justify-between">
-              <BrandLogo height="h-7" width="w-40" />
+            <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
+              <BrandLogo height="h-6" width="w-[8.5rem]" />
               <button
                 aria-label="Close menu"
-                className="flex h-9 w-9 items-center justify-center rounded-md border border-ink-200 text-ink-700"
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 text-[#9B9085] hover:bg-[#1C1613] hover:text-white transition"
                 onClick={() => setMenuOpen(false)}
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
-            <nav className="space-y-1" aria-label="Dashboard">
+            <nav className="space-y-1.5" aria-label="Dashboard">
               {mobileNav.map((item) => {
                 const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
                 if (item.isModal) {
@@ -260,9 +259,9 @@ export default function DashboardShell({
                         setMenuOpen(false);
                         setShowHelp(true);
                       }}
-                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition text-ink-700 hover:bg-ink-100 hover:text-ink-950"
+                      className="flex w-full items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition text-[#9B9085] hover:bg-[#FE6F34]/8 hover:text-white"
                     >
-                      <item.icon className="h-4 w-4 shrink-0 text-ink-400" aria-hidden="true" />
+                      <item.icon className="h-4 w-4 shrink-0 text-[#9B9085]" aria-hidden="true" />
                       {item.label}
                     </button>
                   );
@@ -272,13 +271,12 @@ export default function DashboardShell({
                     key={item.href}
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
-                    className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition ${
-                      active
-                        ? "bg-ink-950 text-white"
-                        : "text-ink-700 hover:bg-ink-100 hover:text-ink-950"
-                    }`}
+                    className={`flex items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition ${active
+                        ? "bg-[#FE6F34]/15 text-white font-semibold"
+                        : "text-[#9B9085] hover:bg-[#FE6F34]/8 hover:text-white"
+                      }`}
                   >
-                    <item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-[#9B9085]"}`} aria-hidden="true" />
                     {item.label}
                   </Link>
                 );
@@ -309,9 +307,51 @@ export default function DashboardShell({
               Help
             </button>
             <ThemeToggle />
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-orange text-sm font-bold text-white">
-              {account.name.charAt(0)}
-            </span>
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FE6F34] text-sm font-bold text-white transition active:scale-95 cursor-pointer"
+              >
+                {account.name.charAt(0).toUpperCase()}
+              </button>
+              {showProfileMenu && (
+                <div className="absolute right-0 top-10 w-52 rounded-lg border border-white/10 bg-[#121214] p-1 shadow-lg z-50 text-white flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <button
+                    onClick={toggleTheme}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#1B1B1F] hover:text-white transition w-full"
+                  >
+                    {dark ? (
+                      <>
+                        <Sun className="h-4 w-4 text-[#9B9085]" /> Light mode
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="h-4 w-4 text-[#9B9085]" /> Dark mode
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => alert("Redirecting to bug report page...")}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#1B1B1F] hover:text-white transition w-full"
+                  >
+                    <Bug className="h-4 w-4 text-[#9B9085]" /> Report a bug
+                  </button>
+                  <button
+                    onClick={() => alert("Redirecting to feature request page...")}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#1B1B1F] hover:text-white transition w-full"
+                  >
+                    <Lightbulb className="h-4 w-4 text-[#9B9085]" /> Request a feature
+                  </button>
+                  <div className="border-t border-white/10 my-1" />
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-[#1B1B1F] transition w-full"
+                  >
+                    <LogOut className="h-4 w-4 text-red-400" /> Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
         <main className="min-w-0 flex-1">{children}</main>

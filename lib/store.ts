@@ -3,10 +3,21 @@
 import { pages as seedPages, sequences as seedSequences, type MagnetPage, type Sequence, type Account, type Lead, type Integration, account as seedAccount, leads as seedLeads, integrations as seedIntegrations } from "@/lib/data";
 
 export function loadPages(): MagnetPage[] {
+  if (typeof window !== "undefined") {
+    const cached = localStorage.getItem("currentUserPages");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {}
+    }
+  }
   return seedPages;
 }
 
 export function savePages(pages: MagnetPage[]) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("currentUserPages", JSON.stringify(pages));
+  }
   fetch("/api/data", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -19,10 +30,21 @@ export function resetPages() {
 }
 
 export function loadSequences(): Sequence[] {
+  if (typeof window !== "undefined") {
+    const cached = localStorage.getItem("currentUserSequences");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {}
+    }
+  }
   return seedSequences;
 }
 
 export function saveSequences(sequences: Sequence[]) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("currentUserSequences", JSON.stringify(sequences));
+  }
   fetch("/api/data", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -48,6 +70,9 @@ export function loadAccount(): Account {
 
 export async function saveAccount(account: Account): Promise<{ success: boolean; account?: Account; error?: string }> {
   try {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("currentUserAccount", JSON.stringify(account));
+    }
     const res = await fetch("/api/data", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -73,10 +98,21 @@ export async function saveAccount(account: Account): Promise<{ success: boolean;
 }
 
 export function loadIntegrations(): Integration[] {
+  if (typeof window !== "undefined") {
+    const cached = localStorage.getItem("currentUserIntegrations");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {}
+    }
+  }
   return seedIntegrations;
 }
 
 export function saveIntegrations(integrations: Integration[]) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("currentUserIntegrations", JSON.stringify(integrations));
+  }
   fetch("/api/data", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -85,14 +121,48 @@ export function saveIntegrations(integrations: Integration[]) {
 }
 
 export function loadLeads(): Lead[] {
+  if (typeof window !== "undefined") {
+    const cached = localStorage.getItem("currentUserLeads");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {}
+    }
+  }
   return seedLeads;
 }
 
 export function saveLeads(leads: Lead[]) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("currentUserLeads", JSON.stringify(leads));
+  }
   fetch("/api/data", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "saveLeads", data: leads }),
+  }).catch(console.error);
+}
+
+export function loadResources(): any[] {
+  if (typeof window !== "undefined") {
+    const cached = localStorage.getItem("currentUserResources");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {}
+    }
+  }
+  return [];
+}
+
+export function saveResources(resources: any[]) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("currentUserResources", JSON.stringify(resources));
+  }
+  fetch("/api/data", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "saveResources", data: resources }),
   }).catch(console.error);
 }
 
@@ -110,9 +180,14 @@ export async function syncWithDatabase(): Promise<{
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
-    if (data && data.account && typeof window !== "undefined") {
-      localStorage.setItem("currentUserAccount", JSON.stringify(data.account));
-      localStorage.setItem("currentUserEmail", data.account.email);
+    if (data && typeof window !== "undefined") {
+      if (data.account) localStorage.setItem("currentUserAccount", JSON.stringify(data.account));
+      if (data.pages) localStorage.setItem("currentUserPages", JSON.stringify(data.pages));
+      if (data.sequences) localStorage.setItem("currentUserSequences", JSON.stringify(data.sequences));
+      if (data.leads) localStorage.setItem("currentUserLeads", JSON.stringify(data.leads));
+      if (data.integrations) localStorage.setItem("currentUserIntegrations", JSON.stringify(data.integrations));
+      if (data.resources) localStorage.setItem("currentUserResources", JSON.stringify(data.resources));
+      if (data.account?.email) localStorage.setItem("currentUserEmail", data.account.email);
     }
     return data;
   } catch (error) {

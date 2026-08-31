@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { Sparkles, Globe, Plug, FileText, ChevronDown, ChevronUp, Check } from "lucide-react";
-import { syncWithDatabase, saveAccount } from "@/lib/store";
+import { syncWithDatabase, saveAccount, loadAccount } from "@/lib/store";
 import type { Account } from "@/lib/data";
 
 export default function WorkspaceSetupPage() {
@@ -22,6 +22,17 @@ export default function WorkspaceSetupPage() {
   });
 
   useEffect(() => {
+    // Load local data instantly
+    const localAccount = loadAccount();
+    if (localAccount) {
+      setAccount(localAccount);
+      setUsername(localAccount.username || "");
+      setPrivacyPolicy(localAccount.privacyPolicy || "");
+      setTermsOfService(localAccount.termsOfService || "");
+    }
+    setLoading(false);
+
+    // Sync in background silently
     syncWithDatabase().then((data) => {
       if (data) {
         setAccount(data.account);
@@ -29,7 +40,6 @@ export default function WorkspaceSetupPage() {
         setPrivacyPolicy(data.account.privacyPolicy || "");
         setTermsOfService(data.account.termsOfService || "");
       }
-      setLoading(false);
     });
   }, []);
 
@@ -67,7 +77,7 @@ export default function WorkspaceSetupPage() {
   const inputClass =
     "w-full border-0 bg-transparent py-2.5 pl-1 pr-3 text-sm text-white outline-none focus:ring-0 placeholder:text-[#9B9085]";
 
-  const labelClass = "block text-xs font-medium text-[#9B9085] mb-1.5";
+  const labelClass = "block text-[12.2px] font-semibold text-[#9B9085] mb-1.5";
 
   return (
     <DashboardShell account={account} title="Workspace setup">
@@ -78,7 +88,7 @@ export default function WorkspaceSetupPage() {
           <div className="mb-6">
             <h2 className="flex items-center gap-2 text-3xl font-bold text-white">
               Workspace setup
-              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#1C1C20]">?</span>
+              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#18181B]">?</span>
             </h2>
             <p className="text-xs text-[#9B9085] mt-1">
               Manage your publishing address,{" "}
@@ -89,9 +99,9 @@ export default function WorkspaceSetupPage() {
 
           {/* Workspace Essentials banner */}
           <div
-            className="relative mb-5 overflow-hidden rounded-xl border border-[#2e2e38] bg-[#1C1C20] pt-7 pb-8 px-8"
+            className="relative mb-5 overflow-hidden rounded-xl border border-[#2e2e38] bg-[#18181B] pt-7 pb-8 px-8"
             style={{
-              background: "linear-gradient(90deg, #2D1A12 0%, #1D1512 30%, #1C1C20 70%)",
+              background: "linear-gradient(90deg, #2D1A12 0%, #1D1512 30%, #18181B 70%)",
             }}
           >
             {/* Badge */}
@@ -128,14 +138,14 @@ export default function WorkspaceSetupPage() {
           <div className="space-y-4">
 
             {/* Public URL card */}
-            <div className="rounded-xl border border-[#2e2e38] bg-[#1C1C20] overflow-hidden">
+            <div className="rounded-xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
               {/* Always-visible header */}
               <div className="flex items-start gap-3 p-5">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#252529] text-[#9B9085]">
-                  <Globe className="h-4 w-4" />
+                  <Globe className="h-4.5 w-4.5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-white">Public URL</h4>
+                  <h4 className="text-[14.2px] font-bold text-white">Public URL</h4>
                   <p className="text-xs text-[#9B9085] mt-0.5">
                     This is the link you can share immediately. A custom domain is completely optional.
                   </p>
@@ -177,12 +187,12 @@ export default function WorkspaceSetupPage() {
                   onClick={() => toggle("custom-domain")}
                   className="flex w-full items-center justify-between px-5 py-3.5 text-left hover:bg-[#252529]/30 transition"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#252529] text-[#9B9085]">
-                      <Globe className="h-3.5 w-3.5" />
+                   <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#252529] text-[#9B9085]">
+                      <Globe className="h-4.5 w-4.5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white">Custom domain</p>
+                      <p className="text-[14.2px] font-bold text-white">Custom domain</p>
                       <p className="text-xs text-[#9B9085] mt-0.5">Use your own domain whenever you are ready. Your Magnets link already works.</p>
                     </div>
                   </div>
@@ -202,17 +212,17 @@ export default function WorkspaceSetupPage() {
             </div>
 
             {/* Optional connections card */}
-            <div className="rounded-xl border border-[#2e2e38] bg-[#1C1C20] overflow-hidden">
+            <div className="rounded-xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
               <button
                 onClick={() => toggle("connections")}
                 className="flex w-full items-center justify-between p-5 text-left hover:bg-[#252529]/20 transition"
               >
-                <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#2a1a08] text-[#FE6F34]">
-                    <Plug className="h-4 w-4" />
+                    <Plug className="h-4.5 w-4.5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white">Optional connections</h4>
+                    <h4 className="text-[14.2px] font-bold text-white">Optional connections</h4>
                     <p className="text-xs text-[#9B9085] mt-0.5">
                       Your page and first email work without these. Add a connection only when it helps your workflow.
                     </p>
@@ -235,17 +245,17 @@ export default function WorkspaceSetupPage() {
             </div>
 
             {/* Legal links card */}
-            <div className="rounded-xl border border-[#2e2e38] bg-[#1C1C20] overflow-hidden">
+            <div className="rounded-xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
               <button
                 onClick={() => toggle("legal-links")}
                 className="flex w-full items-center justify-between p-5 text-left hover:bg-[#252529]/20 transition"
               >
-                <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#2a1a08] text-[#FE6F34]">
-                    <FileText className="h-4 w-4" />
+                    <FileText className="h-4.5 w-4.5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white">Legal links</h4>
+                    <h4 className="text-[14.2px] font-bold text-white">Legal links</h4>
                     <p className="text-xs text-[#9B9085] mt-0.5">
                       Optionally add your own privacy policy and terms to every page footer.
                     </p>
@@ -257,13 +267,13 @@ export default function WorkspaceSetupPage() {
                 <div className="border-t border-[#2e2e38] px-5 py-5 bg-[#0E0E10]/30 space-y-4">
                   <div>
                     <label className={labelClass}>Privacy Policy URL</label>
-                    <input
+                     <input
                       type="url"
                       placeholder="https://yourwebsite.com/privacy"
                       value={privacyPolicy}
                       onChange={(e) => setPrivacyPolicy(e.target.value)}
                       onBlur={handleSave}
-                      className="w-full rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3 py-2.5 text-sm text-white outline-none focus:border-[#FE6F34] placeholder:text-[#9B9085] transition"
+                      className="w-full rounded-md border border-[#2e2e38] bg-[#18181B] px-3 py-2.5 text-sm text-white outline-none focus:border-[#FE6F34] placeholder:text-[#9B9085] transition"
                     />
                   </div>
                   <div>
@@ -274,15 +284,15 @@ export default function WorkspaceSetupPage() {
                       value={termsOfService}
                       onChange={(e) => setTermsOfService(e.target.value)}
                       onBlur={handleSave}
-                      className="w-full rounded-md border border-[#2e2e38] bg-[#1C1C20] px-3 py-2.5 text-sm text-white outline-none focus:border-[#FE6F34] placeholder:text-[#9B9085] transition"
+                      className="w-full rounded-md border border-[#2e2e38] bg-[#18181B] px-3 py-2.5 text-sm text-white outline-none focus:border-[#FE6F34] placeholder:text-[#9B9085] transition"
                     />
                   </div>
-                  <button
+                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center gap-2 rounded-md bg-[#FE6F34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#e55e28] disabled:opacity-60 transition"
+                    className="flex items-center gap-1.5 rounded-md bg-[#FE6F34] px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] disabled:opacity-60 transition"
                   >
-                    <Check className="h-4 w-4" />
+                    <Check className="h-3.5 w-3.5" />
                     {saving ? "Saving..." : "Save links"}
                   </button>
                 </div>
