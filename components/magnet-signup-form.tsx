@@ -9,12 +9,18 @@ export default function MagnetSignupForm({
   accent,
   pageId,
   pageName,
+  brandColor,
+  highlightIntensity,
+  themeMode,
 }: {
   cta: string;
   deliverable: string;
   accent: string;
   pageId: string;
   pageName: string;
+  brandColor?: string;
+  highlightIntensity?: number;
+  themeMode?: "light" | "dark";
 }) {
   const [done, setDone] = useState(false);
   const [email, setEmail] = useState("");
@@ -57,16 +63,22 @@ export default function MagnetSignupForm({
   return (
     <>
       {done ? (
-        <div className="rounded-md border border-ink-200 bg-brand-soft p-5 text-left">
+        <div className={`rounded-md border p-5 text-left transition-colors duration-300 ${
+          themeMode === "dark" ? "bg-[#161619] border-[#252529]" : "bg-brand-soft border-ink-200"
+        }`}>
           <CheckCircle2 className="h-6 w-6 text-emerald-600" aria-hidden="true" />
-          <p className="mt-2 text-sm font-semibold text-ink-950">On its way — check {email}</p>
-          <p className="mt-1 text-xs leading-5 text-ink-600">
+          <p className={`mt-2 text-sm font-semibold ${themeMode === "dark" ? "text-white" : "text-ink-950"}`}>On its way — check {email}</p>
+          <p className={`mt-1 text-xs leading-5 ${themeMode === "dark" ? "text-zinc-400" : "text-ink-600"}`}>
             The resource is being delivered to your inbox right now. If it doesn&apos;t appear within a few minutes, check your
             spam or promotions folders.
           </p>
         </div>
       ) : (
-        <div className="rounded-md border border-ink-200 bg-white p-2.5 text-left shadow-sm">
+        <div className={`rounded-md border p-2.5 text-left shadow-sm transition-colors duration-300 ${
+          themeMode === "dark" 
+            ? "bg-[#161619] border-[#252529] text-white" 
+            : "bg-white border-ink-200 text-ink-900"
+        }`}>
           <form
             onSubmit={handleSubmit}
             className="flex flex-col gap-2 sm:flex-row"
@@ -78,13 +90,16 @@ export default function MagnetSignupForm({
               disabled={loading}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Your best email"
-              className="min-h-11 w-full rounded-md border border-ink-200 bg-white px-3 text-sm text-ink-900 outline-none transition placeholder:text-ink-400 focus:ring-1 sm:min-h-10 focus:border-brand-orange focus:ring-brand-orange"
+              className={`min-h-11 w-full rounded-md border px-3 text-sm outline-none transition sm:min-h-10 ${
+                themeMode === "dark" 
+                  ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700" 
+                  : "bg-white border-ink-200 text-ink-900 placeholder:text-ink-400 focus:border-brand-orange"
+              }`}
             />
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold text-white transition hover:opacity-90 sm:min-h-10 disabled:opacity-50"
-              style={{ backgroundColor: accent }}
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md bg-[#0E0E10] px-4 text-sm font-semibold text-white transition hover:bg-[#161619] sm:min-h-10 disabled:opacity-50"
             >
               {loading ? "Sending..." : cta} <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>

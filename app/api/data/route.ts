@@ -97,6 +97,8 @@ export async function POST(req: Request) {
         existing.username = data.username;
         existing.brandColor = data.brandColor;
         existing.logo = data.logo;
+        existing.themeMode = data.themeMode;
+        existing.highlightIntensity = data.highlightIntensity;
         if (data.password) {
           existing.password = data.password;
         }

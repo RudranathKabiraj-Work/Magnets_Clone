@@ -12,6 +12,8 @@ const AccountSchema = new Schema({
   joinedAt: { type: String, required: true },
   privacyPolicy: { type: String, default: "" },
   termsOfService: { type: String, default: "" },
+  themeMode: { type: String, default: "light" },
+  highlightIntensity: { type: Number, default: 100 },
 });
 
 // MagnetPage Schema

@@ -64,6 +64,8 @@ export interface Account {
   privacyPolicy?: string;
   termsOfService?: string;
   isNewAccount?: boolean;
+  themeMode?: "light" | "dark";
+  highlightIntensity?: number;
 }
 
 export interface Integration {

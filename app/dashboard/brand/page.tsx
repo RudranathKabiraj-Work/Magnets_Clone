@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import Button from "@/components/ui/button";
-import Input, { FieldLabel } from "@/components/ui/input";
-import { Palette, CheckCircle2 } from "lucide-react";
+import { Palette, Check, Upload, Sun, Moon, Trash2 } from "lucide-react";
 import { syncWithDatabase, saveAccount } from "@/lib/store";
 import type { Account } from "@/lib/data";
 
@@ -14,14 +12,21 @@ export default function BrandPage() {
   const [businessName, setBusinessName] = useState("");
   const [brandColor, setBrandColor] = useState("#FE6F34");
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
+  const [highlightIntensity, setHighlightIntensity] = useState<number>(100);
+  const [logo, setLogo] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     syncWithDatabase().then((data) => {
-      if (data) {
+      if (data && data.account) {
         setAccount(data.account);
         setBusinessName(data.account.name || "");
         setBrandColor(data.account.brandColor || "#FE6F34");
+        setThemeMode(data.account.themeMode || "light");
+        setHighlightIntensity(data.account.highlightIntensity ?? 100);
+        setLogo(data.account.logo || null);
       }
       setLoading(false);
     });
@@ -35,12 +40,19 @@ export default function BrandPage() {
       ...account,
       name: businessName.trim(),
       brandColor: brandColor.trim(),
+      themeMode,
+      highlightIntensity,
+      logo,
     };
 
     try {
-      await saveAccount(updatedAccount);
-      setAccount(updatedAccount);
-      alert("Brand settings saved successfully!");
+      const result = await saveAccount(updatedAccount);
+      if (result.success) {
+        setAccount(updatedAccount);
+        alert("Brand settings saved successfully!");
+      } else {
+        alert(result.error || "Failed to save brand settings.");
+      }
     } catch (err) {
       console.error(err);
       alert("Failed to save brand settings.");
@@ -49,193 +61,408 @@ export default function BrandPage() {
     }
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert("File size exceeds 10MB limit.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogo(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeLogo = () => {
+    setLogo(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   if (loading || !account) {
     return (
-      <div className="flex h-screen items-center justify-center bg-ink-50 dark:bg-ink-950">
-        <div className="text-sm text-ink-500">Loading brand settings...</div>
+      <div className="flex h-screen items-center justify-center bg-[#0E0E10]">
+        <div className="text-sm text-[#9B9085]">Loading brand settings...</div>
       </div>
     );
   }
 
+  const hasUnsavedChanges =
+    businessName !== (account.name || "") ||
+    brandColor !== (account.brandColor || "#FE6F34") ||
+    themeMode !== (account.themeMode || "light") ||
+    highlightIntensity !== (account.highlightIntensity ?? 100) ||
+    logo !== account.logo;
+
   return (
     <DashboardShell account={account} title="Brand">
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">
-        <div>
-          <h2 className="flex items-center gap-1.5 text-3xl font-bold text-ink-950 dark:text-white">
-            Brand
-            <span className="cursor-help rounded-full border border-ink-300 px-1.5 py-0 text-xs font-normal text-ink-500 hover:bg-ink-100">?</span>
-          </h2>
-          <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">
-            Logo, page appearance, and colour settings for every magnet.
-          </p>
-        </div>
-
-        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-12">
-          {/* Brand Settings Form */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="rounded-lg border border-ink-200 bg-white p-5 dark:border-ink-800 dark:bg-ink-900">
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-400 uppercase tracking-wider mb-5">
-                <Palette className="h-4 w-4 text-brand-orange" /> Brand settings
-              </span>
-              
-              <div className="space-y-4">
-                <div>
-                  <FieldLabel>Business name</FieldLabel>
-                  <Input
-                    type="text"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    placeholder="Enter business name"
-                  />
-                </div>
-
-                <div>
-                  <FieldLabel>Logo Image</FieldLabel>
-                  <div className="flex items-center gap-3">
-                    <button className="rounded-md border border-ink-200 bg-ink-50 px-3.5 py-2.5 text-xs font-medium text-ink-700 hover:bg-ink-100 dark:border-ink-800 dark:bg-ink-950 dark:text-ink-300">
-                      Choose logo
-                    </button>
-                    <span className="text-xs text-ink-400">No logo uploaded</span>
-                  </div>
-                </div>
-
-                <div>
-                  <FieldLabel>Primary color</FieldLabel>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="h-9 w-9 shrink-0 rounded-md border border-ink-350 shadow-sm"
-                      style={{ backgroundColor: brandColor }}
-                    />
-                    <input
-                      type="color"
-                      value={brandColor}
-                      onChange={(e) => setBrandColor(e.target.value)}
-                      className="h-9 w-9 cursor-pointer rounded border-0 bg-transparent p-0"
-                    />
-                    <Input
-                      type="text"
-                      value={brandColor}
-                      onChange={(e) => setBrandColor(e.target.value)}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <FieldLabel>Page appearance</FieldLabel>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setThemeMode("light")}
-                      className={`rounded-md border py-2.5 text-xs font-semibold ${
-                        themeMode === "light"
-                          ? "border-ink-950 bg-ink-950 text-white"
-                          : "border-ink-200 bg-white text-ink-700 hover:bg-ink-50"
-                      }`}
-                    >
-                      Light
-                    </button>
-                    <button
-                      onClick={() => setThemeMode("dark")}
-                      className={`rounded-md border py-2.5 text-xs font-semibold ${
-                        themeMode === "dark"
-                          ? "border-ink-950 bg-ink-950 text-white"
-                          : "border-ink-200 bg-white text-ink-700 hover:bg-ink-50"
-                      }`}
-                    >
-                      Dark
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <FieldLabel>Highlight Intensity</FieldLabel>
-                  <input type="range" className="w-full accent-ink-950 mt-1" defaultValue={100} />
-                  <div className="flex justify-between text-[10px] text-ink-400 mt-1">
-                    <span>Subtle</span>
-                    <span>Balanced</span>
-                    <span>Bold</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 border-t border-ink-200 pt-5 dark:border-ink-800">
-                <Button className="w-full" onClick={handleSave} disabled={saving}>
-                  {saving ? "Saving..." : "Save brand"}
-                </Button>
-              </div>
-            </div>
+      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-[#0E0E10] text-white animate-fade-in">
+        <div className="flex-1 px-6 py-6 lg:px-8 w-full">
+          
+          {/* Page Title */}
+          <div className="mb-8">
+            <h2 className="flex items-center gap-2 text-3xl font-bold text-white animate-slide-in">
+              Brand settings
+              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#1C1C20]">?</span>
+            </h2>
+            <p className="text-xs text-[#9B9085] mt-1">Configure logo, color scheme, and appearance of your public pages.</p>
           </div>
 
-          {/* Live Preview Panel */}
-          <div className="lg:col-span-7">
-            <p className="text-xs font-bold text-ink-400 uppercase tracking-wider mb-3.5">Preview</p>
-            <div className={`rounded-xl border border-ink-200 overflow-hidden shadow-lg ${themeMode === "dark" ? "bg-ink-950 text-white" : "bg-ink-50 text-ink-900"}`}>
-              {/* Fake browser mockup header */}
-              <div className="flex h-9 items-center justify-between border-b border-ink-200 bg-ink-100 px-4 dark:border-ink-800 dark:bg-ink-900">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-400"></span>
-                  <span className="h-2.5 w-2.5 rounded-full bg-yellow-400"></span>
-                  <span className="h-2.5 w-2.5 rounded-full bg-green-400"></span>
-                </div>
-                <div className="text-[10px] text-ink-400 font-medium select-none">Previewing Live Page</div>
-                <div className="w-12"></div>
-              </div>
-
-              <div className="p-8">
-                {/* Header brand name */}
-                <div className="flex items-center gap-2 mb-8 justify-center lg:justify-start">
-                  <div className="h-7 w-7 rounded border-2 border-dashed border-ink-300 flex items-center justify-center text-[10px] text-ink-400">
-                    Logo
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            
+            {/* Brand Settings Form */}
+            <div className="lg:col-span-4">
+              <div className="rounded-lg border border-[#2e2e38] bg-[#1C1C20] p-6 shadow-xl h-full flex flex-col justify-between">
+                {/* Heading */}
+                <div className="flex items-start gap-3 mb-6">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
+                    <Palette className="h-4 w-4 text-[#FE6F34]" />
                   </div>
-                  <span className="text-sm font-bold tracking-tight uppercase">{businessName || "BRAND"}</span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 items-center">
                   <div>
-                    <h3 className="text-lg font-bold leading-tight">101 Winning Viral Templates That Get Results</h3>
-                    <p className="text-[11px] text-ink-500 mt-2">
-                      Stop staring at a blank page. Start creating content that actually connects.
+                    <h4 className="text-sm font-semibold text-white">Brand settings</h4>
+                    <p className="text-xs text-[#9B9085] mt-0.5">
+                      These apply to every live page and preview on this account.
                     </p>
-                    <ul className="mt-4 space-y-2 text-[10px] text-ink-600 dark:text-ink-400">
-                      <li className="flex items-center gap-1.5">
-                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                        101 fill-in-the-blank templates
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                        Proven structures for storytelling
-                      </li>
-                      <li className="flex items-center gap-1.5">
-                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                        Ready-to-use formats
-                      </li>
-                    </ul>
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  {/* Business Name */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                      Business name
+                    </label>
+                    <input
+                      type="text"
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      placeholder="Enter business name"
+                      className="w-full rounded-md border border-[#2e2e38] bg-[#0E0E10] px-3.5 py-2.5 text-sm text-white outline-none placeholder:text-[#5c5650] focus:border-[#FE6F34] transition"
+                    />
+                    <p className="text-[10px] text-[#5c5650] mt-1.5">
+                      Optional when your uploaded logo already includes your name.
+                    </p>
                   </div>
 
-                  <div className="rounded-lg border border-ink-200 bg-white p-5 shadow-sm dark:border-ink-800 dark:bg-ink-900">
-                    <p className="text-xs font-bold text-center">Download for free now</p>
-                    <p className="text-[9px] text-ink-400 text-center mt-1">By opting in you consent to receive this resource by email.</p>
-                    
-                    <div className="mt-4 space-y-2.5">
-                      <input type="text" placeholder="Name" className="w-full rounded border border-ink-200 bg-ink-50 p-2 text-[10px] text-ink-800 focus:outline-none dark:border-ink-850 dark:bg-ink-950 dark:text-white" disabled />
-                      <input type="email" placeholder="Email" className="w-full rounded border border-ink-200 bg-ink-50 p-2 text-[10px] text-ink-800 focus:outline-none dark:border-ink-850 dark:bg-ink-950 dark:text-white" disabled />
+                  {/* Logo Image */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                      Logo image
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleLogoUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
                       <button
-                        className="w-full rounded py-2 text-[10px] font-semibold text-white transition active:scale-95"
-                        style={{ backgroundColor: brandColor }}
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#0E0E10] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#1C1C20] hover:border-[#5c5650] transition"
                       >
-                        Get the templates
+                        <Upload className="h-3.5 w-3.5 text-[#9B9085]" />
+                        Choose logo
                       </button>
+                      {logo ? (
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={logo}
+                            alt="Logo Preview"
+                            className="h-9 w-9 rounded object-contain border border-[#2e2e38] bg-[#0E0E10]"
+                          />
+                          <button
+                            type="button"
+                            onClick={removeLogo}
+                            className="text-[#FF8585] hover:text-red-400 p-1 transition"
+                            title="Remove logo"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-[#5c5650]">No logo uploaded</span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-[#5c5650] mt-1.5 leading-relaxed">
+                      Optional when you use a business name. PNG, JPG, WebP, or GIF. 10 MB max.
+                    </p>
+                  </div>
+
+                  {/* Primary Color */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                      Primary
+                    </label>
+                    <div className="flex items-center rounded-md border border-[#2e2e38] bg-[#0E0E10] px-3 py-2.5 focus-within:border-[#FE6F34] transition">
+                      <label className="relative h-5 w-8 shrink-0 rounded cursor-pointer overflow-hidden border border-[#2e2e38] mr-2">
+                        <input
+                          type="color"
+                          value={brandColor}
+                          onChange={(e) => setBrandColor(e.target.value)}
+                          className="absolute inset-0 opacity-0 cursor-pointer h-full w-full"
+                        />
+                        <div className="h-full w-full" style={{ backgroundColor: brandColor }} />
+                      </label>
+                      <input
+                        type="text"
+                        value={brandColor}
+                        onChange={(e) => setBrandColor(e.target.value)}
+                        className="w-full bg-transparent text-sm text-white outline-none uppercase font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Page Appearance */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#9B9085] mb-1.5 uppercase tracking-wider">
+                      Page appearance
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setThemeMode("light")}
+                        className={`flex items-center justify-center gap-1.5 rounded-md border py-2.5 text-xs font-semibold transition ${
+                          themeMode === "light"
+                            ? "border-[#5c5650] bg-[#252529] text-white"
+                            : "border-[#2e2e38] bg-[#0E0E10] text-[#9B9085] hover:bg-[#1C1C20] hover:text-white"
+                        }`}
+                      >
+                        <Sun className="h-3.5 w-3.5" />
+                        Light
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setThemeMode("dark")}
+                        className={`flex items-center justify-center gap-1.5 rounded-md border py-2.5 text-xs font-semibold transition ${
+                          themeMode === "dark"
+                            ? "border-[#5c5650] bg-[#252529] text-white"
+                            : "border-[#2e2e38] bg-[#0E0E10] text-[#9B9085] hover:bg-[#1C1C20] hover:text-white"
+                        }`}
+                      >
+                        <Moon className="h-3.5 w-3.5" />
+                        Dark
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-[#5c5650] mt-1.5">
+                      Applied to every public magnet and editor preview.
+                    </p>
+                  </div>
+
+                  {/* Highlight Intensity */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-[#9B9085] uppercase tracking-wider">
+                        Highlight intensity
+                      </label>
+                      <span className="rounded bg-[#252529] px-1.5 py-0.5 text-[10px] font-mono font-bold text-white">
+                        {highlightIntensity}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={highlightIntensity}
+                      onChange={(e) => setHighlightIntensity(Number(e.target.value))}
+                      className="w-full accent-[#FE6F34] bg-[#0E0E10] h-1 rounded-lg appearance-none cursor-pointer"
+                      style={{
+                        backgroundImage: `linear-gradient(to right, ${brandColor} 0%, ${brandColor} ${highlightIntensity}%, #2e2e38 ${highlightIntensity}%, #2e2e38 100%)`
+                      }}
+                    />
+                    <div className="flex justify-between text-[9px] text-[#5c5650] mt-1 font-semibold uppercase tracking-wider">
+                      <span>Subtle</span>
+                      <span>Balanced</span>
+                      <span>Bold</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-12 text-center text-[9px] text-ink-400 border-t border-ink-150 pt-4 dark:border-ink-800">
-                  All rights reserved 2026
+                {/* Action Bar */}
+                <div className="mt-6 border-t border-[#2e2e38] pt-5 flex items-center justify-between gap-3">
+                  <span className="text-[10px] text-[#5c5650] leading-tight">
+                    {hasUnsavedChanges ? "Unsaved changes stay local until saved." : "All changes saved to database."}
+                  </span>
+                  <button
+                    onClick={handleSave}
+                    disabled={saving || !hasUnsavedChanges}
+                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2.5 text-xs font-bold text-black hover:bg-[#e55e28] transition shrink-0"
+                  >
+                    <Check className="h-3.5 w-3.5 stroke-[3px]" />
+                    {saving ? "Saving..." : "Save brand"}
+                  </button>
                 </div>
               </div>
             </div>
+
+            {/* Live Preview Panel */}
+            <div className="lg:col-span-8">
+              <div className="rounded-lg border border-[#2e2e38] bg-[#1C1C20] p-5 shadow-2xl h-full flex flex-col">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#2e2e38]/50">
+                  <span className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">Preview</span>
+                  <span className="text-[10px] text-[#5c5650]">How your brand appears on a full magnet page.</span>
+                </div>
+                {/* Outer frame matching client page background theme mode */}
+                <div
+                  className={`rounded-lg border transition-all duration-300 overflow-hidden ${
+                    themeMode === "dark"
+                      ? "bg-[#0E0E10] border-[#1C1C20] text-white"
+                      : "bg-[#FAFAFA] border-[#e4e4e7] text-zinc-900"
+                  }`}
+                  style={{
+                    backgroundImage: themeMode === "light" 
+                      ? `radial-gradient(circle at 0% 0%, ${brandColor}10 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}08 0%, transparent 40%)`
+                      : `radial-gradient(circle at 0% 0%, ${brandColor}15 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}0c 0%, transparent 40%)`
+                  }}
+                >
+                  {/* Mock page container */}
+                  <div className="p-6 md:p-8">
+                    {/* Header brand name / logo */}
+                    <div className="flex items-center gap-2.5 mb-8 justify-center">
+                      <div className="h-9 w-9 rounded-lg border border-dashed border-[#a1a1aa]/45 flex items-center justify-center bg-transparent overflow-hidden">
+                        {logo ? (
+                          <img src={logo} alt="Logo" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="h-4 w-4 rounded-sm border border-dashed border-[#a1a1aa]" />
+                        )}
+                      </div>
+                      <span className="text-sm font-bold tracking-wider uppercase">
+                        {businessName || "BDA"}
+                      </span>
+                    </div>
+
+                    {/* Main Grid Content */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                      {/* Left Details */}
+                      <div className="md:col-span-7 space-y-4">
+                        <h3 className="text-xl md:text-2xl font-extrabold leading-tight tracking-tight">
+                          101 Winning Viral Templates That Get Results
+                        </h3>
+                        
+                        <p className={`text-xs font-semibold leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
+                          Stop staring at a blank page. Start creating content that actually connects.
+                        </p>
+                        
+                        <p className={`text-[11px] leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                          You know what works on LinkedIn. You've seen the posts that blow up. That's where these templates come in. Real structures pulled from posts that actually performed.
+                        </p>
+
+                        <div className="space-y-2 pt-2">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#9B9085]">
+                            This playbook breaks down:
+                          </p>
+                          <ul className="space-y-2">
+                            {[
+                              "101 fill-in-the-blank templates for every content scenario",
+                              "Proven structures for storytelling, advice, and transformation posts",
+                              "Ready-to-use formats that let you focus on your message"
+                            ].map((item, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-xs">
+                                <span 
+                                  className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full mt-0.5 transition-all duration-300"
+                                  style={{
+                                    backgroundColor: brandColor,
+                                    opacity: highlightIntensity / 100 || 0.1
+                                  }}
+                                >
+                                  <Check className="h-2.5 w-2.5 text-white stroke-[3px]" />
+                                </span>
+                                <span className={themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}>
+                                  {item}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Right CTA Form & Media Placeholder */}
+                      <div className="md:col-span-5 space-y-4">
+                        {/* Media Placeholder Card */}
+                        <div 
+                          className={`rounded-xl border border-dashed aspect-[4/3] w-full flex items-center justify-center transition-colors duration-300 ${
+                            themeMode === "dark" 
+                              ? "bg-[#161619]/40" 
+                              : "bg-white/40"
+                          }`}
+                          style={{ borderColor: `${brandColor}40` }}
+                        >
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-[#9B9085]/60">Media Placeholder</span>
+                        </div>
+
+                        {/* Signup Card */}
+                        <div 
+                          className={`rounded-xl border p-5 shadow-lg transition-all duration-300 ${
+                            themeMode === "dark" 
+                              ? "bg-[#161619] border-[#252529] text-white" 
+                              : "bg-white border-[#e4e4e7] text-zinc-900"
+                          }`}
+                          style={{ borderColor: themeMode === "light" ? `${brandColor}30` : undefined }}
+                        >
+                          <p className="text-xs font-bold text-center">Download for free now</p>
+                          <p className="text-[9px] text-[#9B9085] text-center mt-1 leading-normal">
+                            By opting in you consent to receive this resource by email.
+                          </p>
+                          
+                          <div className="mt-4 space-y-2.5">
+                            <input 
+                              type="text" 
+                              placeholder="Name" 
+                              className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition ${
+                                themeMode === "dark" 
+                                  ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700" 
+                                  : "bg-zinc-50 border-[#e4e4e7] text-zinc-800 focus:border-zinc-350"
+                              }`} 
+                              disabled 
+                            />
+                            <input 
+                              type="email" 
+                              placeholder="Email" 
+                              className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition ${
+                                themeMode === "dark" 
+                                  ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700" 
+                                  : "bg-zinc-50 border-[#e4e4e7] text-zinc-800 focus:border-zinc-350"
+                              }`} 
+                              disabled 
+                            />
+                            
+                            <button
+                            className="w-full rounded-md py-2.5 text-xs font-bold text-white transition duration-200 active:scale-95 shadow-md bg-[#0E0E10] hover:bg-[#161619]"
+                          >
+                            Get the templates
+                          </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer inside Preview */}
+                    <div className={`mt-10 text-center text-[10px] border-t pt-4 transition-all duration-300 ${
+                      themeMode === "dark" ? "border-zinc-800 text-zinc-500" : "border-zinc-200 text-zinc-400"
+                    }`}>
+                      All rights reserved 2026
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
+
+        {/* Footer */}
+        <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
+          <span>Magnets</span>
+          <div className="flex items-center gap-4">
+            <a href="#" className="hover:text-white transition">Privacy</a>
+            <a href="#" className="hover:text-white transition">Terms</a>
+          </div>
+        </footer>
       </div>
     </DashboardShell>
   );

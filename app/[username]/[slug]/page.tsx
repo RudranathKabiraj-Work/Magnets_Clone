@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
-import BrandLogo from "@/components/brand";
 import MagnetSignupForm from "@/components/magnet-signup-form";
 import { dbConnect } from "@/lib/mongodb";
-import { MagnetPageModel } from "@/lib/models";
+import { MagnetPageModel, AccountModel } from "@/lib/models";
 import { type MagnetPage } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +67,11 @@ export default async function MagnetPageRoute({
   params: { username: string; slug: string };
 }) {
   await dbConnect();
-  const pageDoc = await MagnetPageModel.findOne({ slug: params.slug, status: "live" });
+  
+  const [pageDoc, accountDoc] = await Promise.all([
+    MagnetPageModel.findOne({ slug: params.slug, status: "live" }),
+    AccountModel.findOne({ username: params.username })
+  ]);
 
   if (!pageDoc) notFound();
 
@@ -81,64 +84,149 @@ export default async function MagnetPageRoute({
 
   const page = JSON.parse(JSON.stringify(pageDoc)) as MagnetPage;
 
+  const themeMode = accountDoc?.themeMode || "light";
+  const brandColor = accountDoc?.brandColor || "#FE6F34";
+  const logo = accountDoc?.logo || null;
+  const highlightIntensity = accountDoc?.highlightIntensity ?? 100;
+  const businessName = accountDoc?.name || "BDA";
+
   return (
-    <main className="flex min-h-screen flex-col bg-brand-soft text-ink-900">
-      <header className="mx-auto flex h-16 w-full max-w-2xl items-center justify-between px-4 sm:px-6">
-        <a href="/" aria-label="Magnets home">
-          <BrandLogo height="h-7" />
-        </a>
+    <main 
+      className="flex min-h-screen flex-col transition-colors duration-300"
+      style={{
+        backgroundColor: themeMode === "dark" ? "#0E0E10" : "#FAFAFA",
+        color: themeMode === "dark" ? "#ffffff" : "#18181b",
+        backgroundImage: themeMode === "light" 
+          ? `radial-gradient(circle at 0% 0%, ${brandColor}10 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}08 0%, transparent 40%)`
+          : `radial-gradient(circle at 0% 0%, ${brandColor}15 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}0c 0%, transparent 40%)`
+      }}
+    >
+      <header className="mx-auto flex h-16 w-full max-w-6xl items-center justify-center px-4 sm:px-6 relative">
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-lg border border-dashed border-[#a1a1aa]/45 flex items-center justify-center bg-transparent overflow-hidden">
+            {logo ? (
+              <img src={logo} alt="Logo" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-4 w-4 rounded-sm border border-dashed border-[#a1a1aa]" />
+            )}
+          </div>
+          <span className="text-sm font-bold tracking-wider uppercase">
+            {businessName}
+          </span>
+        </div>
         <a
           href="/login"
-          className="text-sm font-medium text-ink-600 transition hover:text-ink-950"
+          className={`absolute right-4 sm:right-6 text-sm font-medium transition ${themeMode === "dark" ? "text-zinc-400 hover:text-white" : "text-ink-600 hover:text-ink-950"}`}
         >
           Sign in
         </a>
       </header>
 
-      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center px-4 pb-16 pt-8 sm:px-6">
-        <div className="text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1 text-[11px] font-medium text-ink-600 shadow-sm">
-            <SparklesIcon className="h-3 w-3" />
-            Free resource
-          </span>
-          <h1
-            className="mx-auto mt-6 max-w-lg text-4xl font-semibold leading-[1.06] tracking-tight sm:text-5xl"
-            style={{
-              color: page.accent === "#111111" || page.accent === "#5C554E" ? "#111111" : page.accent,
-            }}
-          >
-            {page.headline}
-          </h1>
-          <p className="mx-auto mt-4 max-w-md text-base leading-7 text-ink-600 sm:text-lg sm:leading-8">
-            {page.subheadline}
-          </p>
-        </div>
-
-        <div className="mx-auto mt-8 w-full max-w-sm">
-          <MagnetSignupForm cta={page.cta} deliverable={page.deliverable} accent={page.accent} pageId={page.id} pageName={page.name} />
-          <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-ink-500">
-            <GiftIcon className="h-3.5 w-3.5" />
-            {page.deliverable}
-          </p>
-        </div>
-
-        <div className="mx-auto mt-12 w-full max-w-md space-y-2.5">
-          {[
-            "No email chains, no follow-up spam — the resource arrives instantly",
-            "Backed by a practical system people actually finish",
-          ].map((line) => (
-            <div key={line} className="flex items-center gap-2.5 text-sm text-ink-600">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-emerald-600 shadow-sm">
-                <CheckIcon className="h-3 w-3" />
+      {/* Main card container layout */}
+      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-4 pb-16 pt-4 sm:px-6">
+        <div 
+          className={`rounded-2xl border p-6 md:p-8 shadow-2xl transition-all duration-300 ${
+            themeMode === "dark" 
+              ? "bg-[#121214] border-[#252529] text-white" 
+              : "bg-white border-[#e4e4e7] text-zinc-900"
+          }`}
+          style={{ borderColor: themeMode === "light" ? `${brandColor}20` : undefined }}
+        >
+          {/* Grid structure */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+            {/* Left Content */}
+            <div className="md:col-span-7 space-y-5">
+              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-medium shadow-sm ${
+                themeMode === "dark" 
+                  ? "border-[#252529] bg-[#161619] text-zinc-300" 
+                  : "border-ink-200 bg-zinc-50 text-ink-600"
+              }`}>
+                <SparklesIcon className="h-3 w-3 text-brand-orange" />
+                Free resource
               </span>
-              {line}
+              <h1
+                className="text-3xl sm:text-4xl font-extrabold leading-[1.1] tracking-tight"
+                style={{
+                  color: brandColor,
+                }}
+              >
+                {page.headline}
+              </h1>
+              <p className={`text-base leading-relaxed ${
+                themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"
+              }`}>
+                {page.subheadline}
+              </p>
+              
+              <div className="space-y-3 pt-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#9B9085]">
+                  This playbook breaks down:
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    "101 fill-in-the-blank templates for every content scenario",
+                    "Proven structures for storytelling, advice, and transformation posts",
+                    "Ready-to-use formats that let you focus on your message"
+                  ].map((line, idx) => (
+                    <li key={idx} className="flex items-start gap-2.5 text-sm">
+                      <span 
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 shadow-sm"
+                        style={{
+                          backgroundColor: brandColor,
+                          opacity: highlightIntensity / 100
+                        }}
+                      >
+                        <CheckIcon className="h-3 w-3 text-white" />
+                      </span>
+                      <span className={themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}>
+                        {line}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          ))}
+
+            {/* Right Media Placeholder & Form Column */}
+            <div className="md:col-span-5 space-y-4">
+              {/* Media Placeholder */}
+              <div 
+                className={`rounded-xl border border-dashed aspect-[4/3] w-full flex items-center justify-center transition-colors duration-300 ${
+                  themeMode === "dark" 
+                    ? "bg-[#161619]/40" 
+                    : "bg-zinc-50/40"
+                }`}
+                style={{ borderColor: `${brandColor}40` }}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#9B9085]/60">Media Placeholder</span>
+              </div>
+
+              {/* Form Card */}
+              <div className="w-full">
+                <MagnetSignupForm 
+                  cta={page.cta} 
+                  deliverable={page.deliverable} 
+                  accent={page.accent} 
+                  pageId={page.id} 
+                  pageName={page.name}
+                  brandColor={brandColor}
+                  highlightIntensity={highlightIntensity}
+                  themeMode={themeMode}
+                />
+                <p className={`mt-3 flex items-center justify-center gap-1.5 text-xs ${
+                  themeMode === "dark" ? "text-zinc-500" : "text-ink-500"
+                }`}>
+                  <GiftIcon className="h-3.5 w-3.5" />
+                  {page.deliverable}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <p className="mx-auto pb-8 text-center text-[11px] text-ink-400">
-        <a href="/" className="inline-flex items-center gap-1 font-medium hover:text-ink-700">
+      <p className="mx-auto pb-8 text-center text-[11px] text-[#5c5650]">
+        <a href="/" className="inline-flex items-center gap-1 font-medium hover:text-[#FE6F34]">
           Powered by Magnets <MoveRightIcon className="h-3 w-3" />
         </a>
       </p>
