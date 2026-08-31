@@ -348,12 +348,14 @@ export default function BrandPage() {
                     {/* Main Card Wrapper */}
                     <div
                       className={`rounded-2xl border py-4 px-6 shadow-2xl transition-all duration-300 backdrop-blur-md ${themeMode === "dark"
-                        ? "bg-[#121214]/80 border-[#252529] text-white"
-                        : "border-[#e4e4e7] text-zinc-900"
+                        ? "text-white"
+                        : "text-zinc-900"
                         }`}
                       style={{
-                        borderColor: themeMode === "light" ? `${brandColor}20` : undefined,
-                        backgroundColor: themeMode === "light" ? "rgba(255, 255, 255, 0.8)" : undefined
+                        borderColor: `${brandColor}45`,
+                        background: themeMode === "light"
+                          ? `linear-gradient(135deg, ${brandColor}0d 0%, rgba(255, 255, 255, 0.8) 50%)`
+                          : `linear-gradient(135deg, ${brandColor}15 0%, rgba(18, 18, 20, 0.8) 50%)`
                       }}
                     >
                       {/* Main Grid Content */}
@@ -405,26 +407,24 @@ export default function BrandPage() {
                         <div className="md:col-span-5 space-y-3">
                           {/* Media Placeholder Card */}
                           <div
-                            className={`rounded-xl border border-dashed aspect-[16/11] w-full flex items-center justify-center transition-colors duration-300 ${themeMode === "dark"
-                              ? "bg-[#161619]/40"
-                              : "bg-white/40"
-                              }`}
-                            style={{ borderColor: `${brandColor}40` }}
-                          >
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#9B9085]/60">Media Placeholder</span>
-                          </div>
+                            className="rounded-xl border aspect-[16/11] w-full flex items-center justify-center transition-colors duration-300"
+                            style={{
+                              borderColor: `${brandColor}35`,
+                              backgroundColor: `${brandColor}18`
+                            }}
+                          />
 
                           {/* Signup Card */}
                           <div
                             className={`rounded-xl border p-4 shadow-lg transition-all duration-300 backdrop-blur-sm aspect-[16/11] flex flex-col justify-center ${themeMode === "dark"
-                              ? "border-[#252529] text-white"
-                              : "border-[#e4e4e7] text-zinc-900"
+                              ? "text-white"
+                              : "text-zinc-900"
                               }`}
                             style={{
-                              borderColor: themeMode === "light" ? `${brandColor}30` : undefined,
+                              borderColor: `${brandColor}35`,
                               background: themeMode === "light"
                                 ? `linear-gradient(135deg, ${brandColor}18 0%, rgba(255, 255, 255, 0.95) 60%)`
-                                : `linear-gradient(135deg, ${brandColor}18 0%, rgba(22, 22, 25, 0.95) 60%)`
+                                : `linear-gradient(135deg, ${brandColor}2b 0%, rgba(22, 22, 25, 0.95) 60%)`
                             }}
                           >
                             <p className="text-xs font-bold text-center">Download for free now</p>
