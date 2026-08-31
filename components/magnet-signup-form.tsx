@@ -64,9 +64,8 @@ export default function MagnetSignupForm({
   return (
     <>
       {done ? (
-        <div className={`rounded-md border p-5 text-left transition-colors duration-300 ${
-          themeMode === "dark" ? "bg-[#161619] border-[#252529]" : "bg-brand-soft border-ink-200"
-        }`}>
+        <div className={`rounded-md border p-5 text-left transition-colors duration-300 ${themeMode === "dark" ? "bg-[#161619] border-[#252529]" : "bg-brand-soft border-ink-200"
+          }`}>
           <CheckCircle2 className="h-6 w-6 text-emerald-600" aria-hidden="true" />
           <p className={`mt-2 text-sm font-semibold ${themeMode === "dark" ? "text-white" : "text-ink-950"}`}>On its way — check {email}</p>
           <p className={`mt-1 text-xs leading-5 ${themeMode === "dark" ? "text-zinc-400" : "text-ink-600"}`}>
@@ -75,12 +74,11 @@ export default function MagnetSignupForm({
           </p>
         </div>
       ) : (
-        <div className={`rounded-xl border p-6 text-left shadow-lg transition-colors duration-300 ${
-          themeMode === "dark" 
-            ? "bg-[#161619] border-[#252529] text-white" 
-            : "bg-white border-ink-200 text-ink-900"
-        }`}
-        style={{ borderColor: themeMode === "light" ? `${brandColor}30` : undefined }}
+        <div className={`rounded-xl border p-6 text-left shadow-lg transition-colors duration-300 ${themeMode === "dark"
+          ? "bg-[#161619] border-[#252529] text-white"
+          : "bg-white border-ink-200 text-ink-900"
+          }`}
+          style={{ borderColor: themeMode === "light" ? `${brandColor}30` : undefined }}
         >
           <p className="text-sm font-bold text-center">{cta || "Download for free now"}</p>
           <p className="text-xs text-[#9B9085] text-center mt-1.5 leading-normal">
@@ -96,11 +94,10 @@ export default function MagnetSignupForm({
               disabled={loading}
               onChange={(e) => setName(e.target.value)}
               placeholder="Name"
-              className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${
-                themeMode === "dark" 
-                  ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700" 
-                  : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#FE6F34]/50"
-              }`}
+              className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${themeMode === "dark"
+                ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700"
+                : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#FE6F34]/50"
+                }`}
             />
             <input
               type="email"
@@ -109,11 +106,10 @@ export default function MagnetSignupForm({
               disabled={loading}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
-              className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${
-                themeMode === "dark" 
-                  ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700" 
-                  : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#FE6F34]/50"
-              }`}
+              className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${themeMode === "dark"
+                ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700"
+                : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#FE6F34]/50"
+                }`}
             />
             <button
               type="submit"

@@ -314,8 +314,8 @@ export default function BrandPage() {
             <div className="lg:col-span-8">
               <div className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-5 shadow-2xl h-full flex flex-col">
                 <div className="flex flex-col gap-1 mb-4 pb-3 border-b border-[#2e2e38]/50">
-                  <span className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">Preview</span>
-                  <span className="text-[10px] text-[#5c5650]">How your brand appears on a full magnet page.</span>
+                  <span className="text-sm font-bold text-zinc-200 uppercase tracking-wider">Preview</span>
+                  <span className="text-xs text-[#9B9085]">How your brand appears on a full magnet page.</span>
                 </div>
                 {/* Outer frame matching client page background theme mode */}
                 <div
@@ -416,7 +416,7 @@ export default function BrandPage() {
 
                           {/* Signup Card */}
                           <div
-                            className={`rounded-xl border p-5 shadow-lg transition-all duration-300 backdrop-blur-sm md:-ml-8 ${themeMode === "dark"
+                            className={`rounded-xl border p-5 shadow-lg transition-all duration-300 backdrop-blur-sm aspect-[4/3] flex flex-col justify-center ${themeMode === "dark"
                               ? "bg-[#161619]/90 border-[#252529] text-white"
                               : "border-[#e4e4e7] text-zinc-900"
                               }`}
