@@ -371,7 +371,10 @@ export default function BrandPage() {
                           </p>
 
                           <p className={`text-xs leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
-                            You know what works on LinkedIn. You've seen the posts that blow up. That's where these templates come in. Real structures pulled from posts that actually performed.
+                            You know what works on LinkedIn. You've seen the posts that blow up.
+                            <span className="block mt-2.5">
+                              That&apos;s where these templates come in. Real structures pulled from posts that actually performed.
+                            </span>
                           </p>
 
                           <div className="space-y-3 pt-2">
@@ -386,13 +389,12 @@ export default function BrandPage() {
                               ].map((item, idx) => (
                                 <li key={idx} className="flex items-start gap-2 text-xs">
                                   <span
-                                    className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full mt-0.5 transition-all duration-300"
+                                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 transition-all duration-300"
                                     style={{
-                                      backgroundColor: brandColor,
-                                      opacity: highlightIntensity / 100 || 0.1
+                                      backgroundColor: brandColor
                                     }}
                                   >
-                                    <Check className="h-2.5 w-2.5 text-white stroke-[3px]" />
+                                    <Check className="h-3 w-3 text-white stroke-[3px]" />
                                   </span>
                                   <span className={themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}>
                                     {item}
@@ -427,9 +429,9 @@ export default function BrandPage() {
                                 : `linear-gradient(135deg, ${brandColor}2b 0%, rgba(22, 22, 25, 0.95) 60%)`
                             }}
                           >
-                            <p className="text-xs font-bold text-center">Download for free now</p>
-                            <p className="text-[9px] text-[#9B9085] text-center mt-1 leading-normal">
-                              By opting in you consent to receive this resource by email.
+                            <p className="text-lg font-semibold text-center">Download for free now</p>
+                            <p className={`text-[11px] text-center mt-1 leading-normal ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                              By opting in you consent to receive <br /> this resource by email.
                             </p>
 
                             <div className="mt-4 space-y-2.5">

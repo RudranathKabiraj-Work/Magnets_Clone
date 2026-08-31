@@ -80,7 +80,7 @@ export default function MagnetSignupForm({
           }`}
           style={{ borderColor: themeMode === "light" ? `${brandColor}30` : undefined }}
         >
-          <p className="text-sm font-bold text-center">{cta || "Download for free now"}</p>
+          <p className="text-base font-extrabold text-center">{cta || "Download for free now"}</p>
           <p className="text-xs text-[#9B9085] text-center mt-1.5 leading-normal">
             By opting in you consent to receive this resource by email.
           </p>
