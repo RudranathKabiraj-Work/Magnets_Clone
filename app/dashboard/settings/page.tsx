@@ -20,6 +20,10 @@ export default function AccountSettingsPage() {
   const [updatingName, setUpdatingName] = useState(false);
   const [updatingPassword, setUpdatingPassword] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     syncWithDatabase().then((data) => {
@@ -80,25 +84,38 @@ export default function AccountSettingsPage() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    const confirmation = confirm(
-      "WARNING: Deleting your account will permanently delete your magnets, signups, integrations, and domains. This action is irreversible. Are you sure?"
-    );
-    if (!confirmation) return;
+  const handleDeleteAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (deleteConfirmText !== "DELETE") {
+      setDeleteError("Please type DELETE to confirm.");
+      return;
+    }
+    
     setDeleting(true);
+    setDeleteError("");
     try {
       const res = await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "saveAccount", data: {} }),
+        body: JSON.stringify({
+          action: "deleteAccount",
+          data: { email: account!.email, password: deletePassword },
+        }),
       });
       if (res.ok) {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("currentUserAccount");
+          localStorage.removeItem("currentUserEmail");
+        }
         alert("Account successfully deleted.");
         router.push("/");
+      } else {
+        const errData = await res.json();
+        setDeleteError(errData.error || "Failed to delete account.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to delete account.");
+      setDeleteError(err.message || "Failed to delete account.");
     } finally {
       setDeleting(false);
     }
@@ -239,25 +256,82 @@ export default function AccountSettingsPage() {
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#552e2e] bg-[#2a1414] text-[#FF8585]">
                   <AlertTriangle className="h-4.5 w-4.5" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h4 className="text-sm font-semibold text-[#FF8585]">Danger zone</h4>
-                </div>
-              </div>
+                  <p className="text-xs text-[#9B9085] leading-relaxed mt-1">
+                    Deleting your account removes your magnets, signups, integrations, and any custom domains attached to your account. This is permanent. There is no recovery.
+                  </p>
 
-              <div className="mt-[-8px] pl-11">
-                <p className="text-xs text-[#9B9085] leading-relaxed">
-                  Deleting your account removes your magnets, signups, integrations, and any custom domains attached to your account. This is permanent. There is no recovery.
-                </p>
+                  {deleteError && (
+                    <div className="mt-3 text-xs text-red-400 bg-red-950/30 border border-red-900/50 rounded p-2 max-w-md">
+                      {deleteError}
+                    </div>
+                  )}
 
-                <div className="mt-5 flex justify-start">
-                  <button
-                    onClick={handleDeleteAccount}
-                    disabled={deleting}
-                    className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-[14px] py-[8px] text-sm font-extrabold text-[#FF8585] hover:border-red-800 hover:text-red-400 disabled:opacity-60 transition"
-                  >
-                    <Trash2 className="h-4 w-4 stroke-[3px]" />
-                    {deleting ? "Deleting..." : "Delete account"}
-                  </button>
+                  {!showDeleteConfirm ? (
+                    <div className="mt-5 flex justify-start">
+                      <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-[14px] py-[8px] text-sm font-extrabold text-[#FF8585] hover:border-red-800 hover:text-red-400 disabled:opacity-60 transition"
+                      >
+                        <Trash2 className="h-4 w-4 stroke-[3px]" />
+                        Delete account
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleDeleteAccount} className="mt-5 space-y-4 max-w-2xl">
+                      <div>
+                        <label className={labelClass}>
+                          Confirm with your password
+                        </label>
+                        <input
+                          type="password"
+                          required
+                          value={deletePassword}
+                          onChange={(e) => setDeletePassword(e.target.value)}
+                          className={inputClass}
+                        />
+                      </div>
+
+                      <div>
+                        <label className={labelClass}>
+                          Type DELETE to confirm
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="DELETE"
+                          value={deleteConfirmText}
+                          onChange={(e) => setDeleteConfirmText(e.target.value)}
+                          className={inputClass}
+                        />
+                        <span className="block text-[10px] text-[#5c5650] mt-1">Case-sensitive.</span>
+                      </div>
+
+                      <div className="pt-2 flex items-center gap-3">
+                         <button
+                          type="button"
+                          onClick={() => {
+                            setShowDeleteConfirm(false);
+                            setDeletePassword("");
+                            setDeleteConfirmText("");
+                            setDeleteError("");
+                          }}
+                          className="rounded-md border border-[#2e2e38] bg-[#1C1C20] px-[14px] py-[8px] text-sm font-semibold text-white hover:bg-[#2e2e38] transition"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={deleting}
+                          className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#1C1C20] px-[14px] py-[8px] text-sm font-extrabold text-[#FF8585] hover:border-red-800 hover:text-red-400 disabled:opacity-60 transition"
+                        >
+                          <Trash2 className="h-4 w-4 stroke-[3px]" />
+                          {deleting ? "Deleting..." : "Delete permanently"}
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </div>
               </div>
             </section>

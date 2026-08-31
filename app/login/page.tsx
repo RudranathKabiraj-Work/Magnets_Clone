@@ -29,6 +29,12 @@ export default function LoginPage() {
       if (res.ok) {
         const loginData = await res.json();
         if (loginData.success) {
+          if (typeof window !== "undefined") {
+            localStorage.setItem("currentUserEmail", email.trim().toLowerCase());
+            if (loginData.account) {
+              localStorage.setItem("currentUserAccount", JSON.stringify(loginData.account));
+            }
+          }
           router.push("/dashboard/pages");
         } else {
           setError("Failed to login. Please check database connection.");

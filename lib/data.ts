@@ -63,6 +63,7 @@ export interface Account {
   joinedAt: string;
   privacyPolicy?: string;
   termsOfService?: string;
+  isNewAccount?: boolean;
 }
 
 export interface Integration {

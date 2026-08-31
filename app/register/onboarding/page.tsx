@@ -40,6 +40,10 @@ function OnboardingContent() {
             const firstName = data.account.name.split(" ")[0];
             setUserName(firstName);
             setUserSlug(data.account.username || "your-workspace");
+            if (typeof window !== "undefined") {
+              localStorage.setItem("currentUserEmail", email.trim().toLowerCase());
+              localStorage.setItem("currentUserAccount", JSON.stringify(data.account));
+            }
           }
           setLoadingProfile(false);
         })

@@ -3,7 +3,7 @@ import mongoose, { Schema } from "mongoose";
 // Account Schema
 const AccountSchema = new Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   username: { type: String, required: true, unique: true },
   password: { type: String, default: "password123" }, // Default seed password
   plan: { type: String, default: "Free" },

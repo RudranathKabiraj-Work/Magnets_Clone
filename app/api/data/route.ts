@@ -2,21 +2,36 @@ import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongodb";
 import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationModel, ResourceModel } from "@/lib/models";
 import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations } from "@/lib/data";
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await dbConnect();
 
-    // Check if account exists, otherwise seed everything
-    let account = await AccountModel.findOne();
-    if (!account) {
-      // Seed
-      await AccountModel.create(seedAccount);
-      await MagnetPageModel.insertMany(seedPages);
-      await LeadModel.insertMany(seedLeads);
-      await SequenceModel.insertMany(seedSequences);
-      await IntegrationModel.insertMany(seedIntegrations);
+    const { searchParams } = new URL(req.url);
+    const email = searchParams.get("email");
 
-      account = await AccountModel.findOne();
+    let account;
+    if (email) {
+      account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
+    }
+
+    if (!account) {
+      // Check if any account exists, otherwise seed everything
+      const anyAccount = await AccountModel.findOne();
+      if (!anyAccount) {
+        // Seed
+        await AccountModel.create(seedAccount);
+        await MagnetPageModel.insertMany(seedPages);
+        await LeadModel.insertMany(seedLeads);
+        await SequenceModel.insertMany(seedSequences);
+        await IntegrationModel.insertMany(seedIntegrations);
+      }
+
+      if (email) {
+        account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
+      }
+      if (!account) {
+        account = await AccountModel.findOne();
+      }
     }
 
     const [pages, leads, sequences, integrations, resources] = await Promise.all([
@@ -68,8 +83,16 @@ export async function POST(req: Request) {
     }
 
     if (action === "saveAccount") {
-      const existing = await AccountModel.findOne({ email: data.email });
+      let account;
+      const normalizedEmail = data.email.trim().toLowerCase();
+      data.email = normalizedEmail; // ensure we save lowercase
+      const existing = await AccountModel.findOne({ email: normalizedEmail });
       if (existing) {
+        if (data.isNewAccount) {
+          return NextResponse.json({ error: "Account already exists for that email." }, { status: 400 });
+        }
+        // If this is a registration, it shouldn't overwrite. But since we don't have isNew, we can rely on checkEmail or add a check.
+        // Actually, we'll just allow update for now as before, but with the correct normalized email.
         existing.name = data.name;
         existing.username = data.username;
         existing.brandColor = data.brandColor;
@@ -77,16 +100,38 @@ export async function POST(req: Request) {
         if (data.password) {
           existing.password = data.password;
         }
-        await existing.save();
+        account = await existing.save();
       } else {
-        await AccountModel.create(data);
+        let username = data.username;
+        let count = 0;
+        let uniqueUsername = username;
+        while (await AccountModel.findOne({ username: uniqueUsername })) {
+          count++;
+          uniqueUsername = `${username.slice(0, 15 - String(count).length)}${count}`;
+        }
+        data.username = uniqueUsername;
+        account = await AccountModel.create(data);
       }
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, account });
     }
 
     if (action === "checkEmail") {
       const existing = await AccountModel.findOne({ email: data.email.trim().toLowerCase() });
       return NextResponse.json({ exists: !!existing });
+    }
+
+    if (action === "deleteAccount") {
+      const { email, password } = data;
+      const account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
+      if (!account) {
+        return NextResponse.json({ error: "Account not found." }, { status: 400 });
+      }
+      const dbPassword = account.password || "password123";
+      if (dbPassword !== password) {
+        return NextResponse.json({ error: "Incorrect password." }, { status: 400 });
+      }
+      await AccountModel.deleteOne({ email: email.trim().toLowerCase() });
+      return NextResponse.json({ success: true });
     }
 
     if (action === "login") {

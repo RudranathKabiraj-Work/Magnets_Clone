@@ -53,10 +53,16 @@ export default function RegisterPage() {
         brandColor: "#FE6F34",
         logo: null,
         joinedAt: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+        isNewAccount: true,
       };
 
       // Save to MongoDB
-      await saveAccount(newAccount);
+      const saveRes = await saveAccount(newAccount);
+      if (!saveRes.success) {
+        setError(saveRes.error || "Failed to create account. Please try again.");
+        setLoading(false);
+        return;
+      }
 
       // Fire verification email in background — never blocks registration flow
       // (Resend sandbox only delivers to rudranath@bda.co.in; all other emails silently skip)
@@ -68,9 +74,9 @@ export default function RegisterPage() {
 
       // Always go straight to onboarding — no email verification gate
       router.push(`/register/onboarding?email=${encodeURIComponent(email.trim())}`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("Failed to create account. Please try again.");
+      setError(err.message || "Failed to create account. Please try again.");
     } finally {
       setLoading(false);
     }

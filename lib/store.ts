@@ -35,15 +35,41 @@ export function resetSequences() {
 }
 
 export function loadAccount(): Account {
+  if (typeof window !== "undefined") {
+    const cached = localStorage.getItem("currentUserAccount");
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {}
+    }
+  }
   return seedAccount;
 }
 
-export function saveAccount(account: Account) {
-  fetch("/api/data", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "saveAccount", data: account }),
-  }).catch(console.error);
+export async function saveAccount(account: Account): Promise<{ success: boolean; account?: Account; error?: string }> {
+  try {
+    const res = await fetch("/api/data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "saveAccount", data: account }),
+    });
+    if (res.ok) {
+      const resData = await res.json();
+      if (resData.success && resData.account) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("currentUserAccount", JSON.stringify(resData.account));
+          localStorage.setItem("currentUserEmail", resData.account.email);
+        }
+        return { success: true, account: resData.account };
+      }
+      return { success: false, error: resData.error || "Failed to save account" };
+    }
+    const errData = await res.json();
+    return { success: false, error: errData.error || "Failed to save account" };
+  } catch (error: any) {
+    console.error("Error saving account:", error);
+    return { success: false, error: error.message || "Failed to save account" };
+  }
 }
 
 export function loadIntegrations(): Integration[] {
@@ -79,9 +105,15 @@ export async function syncWithDatabase(): Promise<{
   resources?: any[];
 } | null> {
   try {
-    const res = await fetch("/api/data");
+    const email = typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null;
+    const url = email ? `/api/data?email=${encodeURIComponent(email)}` : "/api/data";
+    const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
+    if (data && data.account && typeof window !== "undefined") {
+      localStorage.setItem("currentUserAccount", JSON.stringify(data.account));
+      localStorage.setItem("currentUserEmail", data.account.email);
+    }
     return data;
   } catch (error) {
     console.error("Failed to sync database", error);

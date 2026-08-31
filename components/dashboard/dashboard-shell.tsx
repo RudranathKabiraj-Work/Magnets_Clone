@@ -51,6 +51,10 @@ export default function DashboardShell({
   };
 
   const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("currentUserEmail");
+      localStorage.removeItem("currentUserAccount");
+    }
     router.push("/login");
   };
 
