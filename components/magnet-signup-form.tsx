@@ -23,6 +23,7 @@ export default function MagnetSignupForm({
   themeMode?: "light" | "dark";
 }) {
   const [done, setDone] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -34,7 +35,7 @@ export default function MagnetSignupForm({
     try {
       const newLead = {
         id: `l_${Date.now()}`,
-        name: email.split("@")[0],
+        name: name.trim() || email.split("@")[0],
         email: email.trim(),
         page: pageName,
         pageId: pageId,
@@ -74,40 +75,54 @@ export default function MagnetSignupForm({
           </p>
         </div>
       ) : (
-        <div className={`rounded-md border p-2.5 text-left shadow-sm transition-colors duration-300 ${
+        <div className={`rounded-xl border p-6 text-left shadow-lg transition-colors duration-300 ${
           themeMode === "dark" 
             ? "bg-[#161619] border-[#252529] text-white" 
             : "bg-white border-ink-200 text-ink-900"
-        }`}>
+        }`}
+        style={{ borderColor: themeMode === "light" ? `${brandColor}30` : undefined }}
+        >
+          <p className="text-sm font-bold text-center">{cta || "Download for free now"}</p>
+          <p className="text-xs text-[#9B9085] text-center mt-1.5 leading-normal">
+            By opting in you consent to receive this resource by email.
+          </p>
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-2 sm:flex-row"
+            className="mt-4 flex flex-col gap-3"
           >
+            <input
+              type="text"
+              value={name}
+              disabled={loading}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Name"
+              className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${
+                themeMode === "dark" 
+                  ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700" 
+                  : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#FE6F34]/50"
+              }`}
+            />
             <input
               type="email"
               required
               value={email}
               disabled={loading}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Your best email"
-              className={`min-h-11 w-full rounded-md border px-3 text-sm outline-none transition sm:min-h-10 ${
+              placeholder="Email"
+              className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${
                 themeMode === "dark" 
                   ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700" 
-                  : "bg-white border-ink-200 text-ink-900 placeholder:text-ink-400 focus:border-brand-orange"
+                  : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#FE6F34]/50"
               }`}
             />
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md bg-[#0E0E10] px-4 text-sm font-semibold text-white transition hover:bg-[#161619] sm:min-h-10 disabled:opacity-50"
+              className="w-full min-h-11 inline-flex items-center justify-center rounded-md bg-[#0E0E10] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#161619] disabled:opacity-50"
             >
-              {loading ? "Sending..." : cta} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              {loading ? "Sending..." : cta}
             </button>
           </form>
-          <p className="mt-2 flex items-center justify-center gap-1 text-[11px] text-ink-400">
-            <Check className="h-3 w-3 text-emerald-600" aria-hidden="true" />
-            No spam. Unsubscribe any time.
-          </p>
         </div>
       )}
     </>

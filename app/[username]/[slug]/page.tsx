@@ -67,7 +67,7 @@ export default async function MagnetPageRoute({
   params: { username: string; slug: string };
 }) {
   await dbConnect();
-  
+
   const [pageDoc, accountDoc] = await Promise.all([
     MagnetPageModel.findOne({ slug: params.slug, status: "live" }),
     AccountModel.findOne({ username: params.username })
@@ -91,12 +91,12 @@ export default async function MagnetPageRoute({
   const businessName = accountDoc?.name || "BDA";
 
   return (
-    <main 
+    <main
       className="flex min-h-screen flex-col transition-colors duration-300"
       style={{
         backgroundColor: themeMode === "dark" ? "#0E0E10" : "#FAFAFA",
         color: themeMode === "dark" ? "#ffffff" : "#18181b",
-        backgroundImage: themeMode === "light" 
+        backgroundImage: themeMode === "light"
           ? `radial-gradient(circle at 0% 0%, ${brandColor}10 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}08 0%, transparent 40%)`
           : `radial-gradient(circle at 0% 0%, ${brandColor}15 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}0c 0%, transparent 40%)`
       }}
@@ -124,52 +124,44 @@ export default async function MagnetPageRoute({
 
       {/* Main card container layout */}
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-4 pb-16 pt-4 sm:px-6">
-        <div 
-          className={`rounded-2xl border p-6 md:p-8 shadow-2xl transition-all duration-300 ${
-            themeMode === "dark" 
-              ? "bg-[#121214] border-[#252529] text-white" 
-              : "bg-white border-[#e4e4e7] text-zinc-900"
-          }`}
+        <div
+          className={`rounded-2xl border p-6 md:p-8 shadow-2xl transition-all duration-300 backdrop-blur-md ${themeMode === "dark"
+            ? "bg-[#121214]/80 border-[#252529] text-white"
+            : "bg-white/80 border-[#e4e4e7] text-zinc-900"
+            }`}
           style={{ borderColor: themeMode === "light" ? `${brandColor}20` : undefined }}
         >
           {/* Grid structure */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
             {/* Left Content */}
-            <div className="md:col-span-7 space-y-5">
-              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-medium shadow-sm ${
-                themeMode === "dark" 
-                  ? "border-[#252529] bg-[#161619] text-zinc-300" 
-                  : "border-ink-200 bg-zinc-50 text-ink-600"
-              }`}>
+            <div className="md:col-span-6 space-y-7">
+              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-medium shadow-sm ${themeMode === "dark"
+                ? "border-[#252529] bg-[#161619] text-zinc-300"
+                : "border-ink-200 bg-zinc-50 text-ink-600"
+                }`}>
                 <SparklesIcon className="h-3 w-3 text-brand-orange" />
                 Free resource
               </span>
-              <h1
-                className="text-3xl sm:text-4xl font-extrabold leading-[1.1] tracking-tight"
-                style={{
-                  color: brandColor,
-                }}
-              >
+              <h1 className="text-3xl sm:text-4xl font-extrabold leading-[1.1] tracking-tight">
                 {page.headline}
               </h1>
-              <p className={`text-base leading-relaxed ${
-                themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"
-              }`}>
+              <p className={`text-base leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"
+                }`}>
                 {page.subheadline}
               </p>
-              
-              <div className="space-y-3 pt-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#9B9085]">
+
+              <div className="space-y-4 pt-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
                   This playbook breaks down:
                 </p>
-                <ul className="space-y-3">
+                <ul className="space-y-4">
                   {[
                     "101 fill-in-the-blank templates for every content scenario",
                     "Proven structures for storytelling, advice, and transformation posts",
                     "Ready-to-use formats that let you focus on your message"
                   ].map((line, idx) => (
                     <li key={idx} className="flex items-start gap-2.5 text-sm">
-                      <span 
+                      <span
                         className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 shadow-sm"
                         style={{
                           backgroundColor: brandColor,
@@ -188,14 +180,13 @@ export default async function MagnetPageRoute({
             </div>
 
             {/* Right Media Placeholder & Form Column */}
-            <div className="md:col-span-5 space-y-4">
+            <div className="md:col-span-6 space-y-4">
               {/* Media Placeholder */}
-              <div 
-                className={`rounded-xl border border-dashed aspect-[4/3] w-full flex items-center justify-center transition-colors duration-300 ${
-                  themeMode === "dark" 
-                    ? "bg-[#161619]/40" 
-                    : "bg-zinc-50/40"
-                }`}
+              <div
+                className={`rounded-xl border border-dashed aspect-[4/3] w-full flex items-center justify-center transition-colors duration-300 ${themeMode === "dark"
+                  ? "bg-[#161619]/40"
+                  : "bg-zinc-50/40"
+                  }`}
                 style={{ borderColor: `${brandColor}40` }}
               >
                 <span className="text-[10px] font-bold uppercase tracking-widest text-[#9B9085]/60">Media Placeholder</span>
@@ -203,19 +194,18 @@ export default async function MagnetPageRoute({
 
               {/* Form Card */}
               <div className="w-full">
-                <MagnetSignupForm 
-                  cta={page.cta} 
-                  deliverable={page.deliverable} 
-                  accent={page.accent} 
-                  pageId={page.id} 
+                <MagnetSignupForm
+                  cta={page.cta}
+                  deliverable={page.deliverable}
+                  accent={page.accent}
+                  pageId={page.id}
                   pageName={page.name}
                   brandColor={brandColor}
                   highlightIntensity={highlightIntensity}
                   themeMode={themeMode}
                 />
-                <p className={`mt-3 flex items-center justify-center gap-1.5 text-xs ${
-                  themeMode === "dark" ? "text-zinc-500" : "text-ink-500"
-                }`}>
+                <p className={`mt-3 flex items-center justify-center gap-1.5 text-xs ${themeMode === "dark" ? "text-zinc-500" : "text-ink-500"
+                  }`}>
                   <GiftIcon className="h-3.5 w-3.5" />
                   {page.deliverable}
                 </p>

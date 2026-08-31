@@ -15,7 +15,7 @@ export default function BrandPage() {
   const [highlightIntensity, setHighlightIntensity] = useState<number>(100);
   const [logo, setLogo] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -114,7 +114,7 @@ export default function BrandPage() {
     <DashboardShell account={account} title="Brand">
       <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-[#0E0E10] text-white animate-fade-in">
         <div className="flex-1 px-6 py-6 lg:px-8 w-full">
-          
+
           {/* Page Title */}
           <div className="mb-8">
             <h2 className="flex items-center gap-2 text-3xl font-bold text-white animate-slide-in">
@@ -125,12 +125,12 @@ export default function BrandPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-            
+
             {/* Brand Settings Form */}
             <div className="lg:col-span-4">
               <div className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-6 shadow-xl h-full flex flex-col justify-between">
                 {/* Heading */}
-                 <div className="flex items-start gap-3 mb-6">
+                <div className="flex items-start gap-3 mb-6">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
                     <Palette className="h-4.5 w-4.5 text-[#FE6F34]" />
                   </div>
@@ -236,14 +236,13 @@ export default function BrandPage() {
                       Page appearance
                     </label>
                     <div className="grid grid-cols-2 gap-2">
-                       <button
+                      <button
                         type="button"
                         onClick={() => setThemeMode("light")}
-                        className={`flex items-center justify-center gap-1.5 rounded-md border py-2 text-xs font-semibold transition ${
-                          themeMode === "light"
-                            ? "border-[#5c5650] bg-[#252529] text-white"
-                            : "border-[#2e2e38] bg-[#18181B] text-[#9B9085] hover:bg-[#252529] hover:text-white"
-                        }`}
+                        className={`flex items-center justify-center gap-1.5 rounded-md border py-2 text-xs font-semibold transition ${themeMode === "light"
+                          ? "border-[#5c5650] bg-[#252529] text-white"
+                          : "border-[#2e2e38] bg-[#18181B] text-[#9B9085] hover:bg-[#252529] hover:text-white"
+                          }`}
                       >
                         <Sun className="h-3.5 w-3.5" />
                         Light
@@ -251,11 +250,10 @@ export default function BrandPage() {
                       <button
                         type="button"
                         onClick={() => setThemeMode("dark")}
-                        className={`flex items-center justify-center gap-1.5 rounded-md border py-2 text-xs font-semibold transition ${
-                          themeMode === "dark"
-                            ? "border-[#5c5650] bg-[#252529] text-white"
-                            : "border-[#2e2e38] bg-[#18181B] text-[#9B9085] hover:bg-[#252529] hover:text-white"
-                        }`}
+                        className={`flex items-center justify-center gap-1.5 rounded-md border py-2 text-xs font-semibold transition ${themeMode === "dark"
+                          ? "border-[#5c5650] bg-[#252529] text-white"
+                          : "border-[#2e2e38] bg-[#18181B] text-[#9B9085] hover:bg-[#252529] hover:text-white"
+                          }`}
                       >
                         <Moon className="h-3.5 w-3.5" />
                         Dark
@@ -300,7 +298,7 @@ export default function BrandPage() {
                   <span className="text-[10px] text-[#5c5650] leading-tight">
                     {hasUnsavedChanges ? "Unsaved changes stay local until saved." : "All changes saved to database."}
                   </span>
-                   <button
+                  <button
                     onClick={handleSave}
                     disabled={saving || !hasUnsavedChanges}
                     className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] transition shrink-0"
@@ -315,19 +313,18 @@ export default function BrandPage() {
             {/* Live Preview Panel */}
             <div className="lg:col-span-8">
               <div className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-5 shadow-2xl h-full flex flex-col">
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#2e2e38]/50">
+                <div className="flex flex-col gap-1 mb-4 pb-3 border-b border-[#2e2e38]/50">
                   <span className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">Preview</span>
                   <span className="text-[10px] text-[#5c5650]">How your brand appears on a full magnet page.</span>
                 </div>
                 {/* Outer frame matching client page background theme mode */}
                 <div
-                  className={`rounded-lg border transition-all duration-300 overflow-hidden ${
-                    themeMode === "dark"
-                      ? "bg-[#0E0E10] border-[#2e2e38] text-white"
-                      : "bg-[#FAFAFA] border-[#e4e4e7] text-zinc-900"
-                  }`}
+                  className={`rounded-lg border transition-all duration-300 overflow-hidden ${themeMode === "dark"
+                    ? "bg-[#0E0E10] border-[#2e2e38] text-white"
+                    : "bg-[#FAFAFA] border-[#e4e4e7] text-zinc-900"
+                    }`}
                   style={{
-                    backgroundImage: themeMode === "light" 
+                    backgroundImage: themeMode === "light"
                       ? `radial-gradient(circle at 0% 0%, ${brandColor}10 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}08 0%, transparent 40%)`
                       : `radial-gradient(circle at 0% 0%, ${brandColor}15 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}0c 0%, transparent 40%)`
                   }}
@@ -348,115 +345,131 @@ export default function BrandPage() {
                       </span>
                     </div>
 
-                    {/* Main Grid Content */}
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-                      {/* Left Details */}
-                      <div className="md:col-span-7 space-y-4">
-                        <h3 className="text-xl md:text-2xl font-extrabold leading-tight tracking-tight">
-                          101 Winning Viral Templates That Get Results
-                        </h3>
-                        
-                        <p className={`text-xs font-semibold leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
-                          Stop staring at a blank page. Start creating content that actually connects.
-                        </p>
-                        
-                        <p className={`text-[11px] leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
-                          You know what works on LinkedIn. You've seen the posts that blow up. That's where these templates come in. Real structures pulled from posts that actually performed.
-                        </p>
+                    {/* Main Card Wrapper */}
+                    <div
+                      className={`rounded-2xl border p-6 shadow-2xl transition-all duration-300 backdrop-blur-md ${themeMode === "dark"
+                        ? "bg-[#121214]/80 border-[#252529] text-white"
+                        : "border-[#e4e4e7] text-zinc-900"
+                        }`}
+                      style={{
+                        borderColor: themeMode === "light" ? `${brandColor}20` : undefined,
+                        backgroundColor: themeMode === "light" ? "rgba(255, 255, 255, 0.8)" : undefined
+                      }}
+                    >
+                      {/* Main Grid Content */}
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                        {/* Left Details */}
+                        <div className="md:col-span-7 space-y-6">
+                          <h3 className="text-xl md:text-3xl font-extrabold leading-tight tracking-tight">
+                            101 Winning Viral Templates That Get Results
+                          </h3>
 
-                        <div className="space-y-2 pt-2">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#9B9085]">
-                            This playbook breaks down:
+                          <p className={`text-sm font-semibold leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
+                            Stop staring at a blank page. Start creating content that actually connects.
                           </p>
-                          <ul className="space-y-2">
-                            {[
-                              "101 fill-in-the-blank templates for every content scenario",
-                              "Proven structures for storytelling, advice, and transformation posts",
-                              "Ready-to-use formats that let you focus on your message"
-                            ].map((item, idx) => (
-                              <li key={idx} className="flex items-start gap-2 text-xs">
-                                <span 
-                                  className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full mt-0.5 transition-all duration-300"
-                                  style={{
-                                    backgroundColor: brandColor,
-                                    opacity: highlightIntensity / 100 || 0.1
-                                  }}
-                                >
-                                  <Check className="h-2.5 w-2.5 text-white stroke-[3px]" />
-                                </span>
-                                <span className={themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}>
-                                  {item}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
 
-                      {/* Right CTA Form & Media Placeholder */}
-                      <div className="md:col-span-5 space-y-4">
-                        {/* Media Placeholder Card */}
-                        <div 
-                          className={`rounded-xl border border-dashed aspect-[4/3] w-full flex items-center justify-center transition-colors duration-300 ${
-                            themeMode === "dark" 
-                              ? "bg-[#161619]/40" 
+                          <p className={`text-xs leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                            You know what works on LinkedIn. You've seen the posts that blow up. That's where these templates come in. Real structures pulled from posts that actually performed.
+                          </p>
+
+                          <div className="space-y-3 pt-4">
+                            <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
+                              This playbook breaks down:
+                            </p>
+                            <ul className="space-y-3">
+                              {[
+                                "101 fill-in-the-blank templates for every content scenario",
+                                "Proven structures for storytelling, advice, and transformation posts",
+                                "Ready-to-use formats that let you focus on your message"
+                              ].map((item, idx) => (
+                                <li key={idx} className="flex items-start gap-2 text-xs">
+                                  <span
+                                    className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full mt-0.5 transition-all duration-300"
+                                    style={{
+                                      backgroundColor: brandColor,
+                                      opacity: highlightIntensity / 100 || 0.1
+                                    }}
+                                  >
+                                    <Check className="h-2.5 w-2.5 text-white stroke-[3px]" />
+                                  </span>
+                                  <span className={themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}>
+                                    {item}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Right CTA Form & Media Placeholder */}
+                        <div className="md:col-span-5 space-y-4">
+                          {/* Media Placeholder Card */}
+                          <div
+                            className={`rounded-xl border border-dashed aspect-[4/3] w-full flex items-center justify-center transition-colors duration-300 ${themeMode === "dark"
+                              ? "bg-[#161619]/40"
                               : "bg-white/40"
-                          }`}
-                          style={{ borderColor: `${brandColor}40` }}
-                        >
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-[#9B9085]/60">Media Placeholder</span>
-                        </div>
-
-                        {/* Signup Card */}
-                        <div 
-                          className={`rounded-xl border p-5 shadow-lg transition-all duration-300 ${
-                            themeMode === "dark" 
-                              ? "bg-[#161619] border-[#252529] text-white" 
-                              : "bg-white border-[#e4e4e7] text-zinc-900"
-                          }`}
-                          style={{ borderColor: themeMode === "light" ? `${brandColor}30` : undefined }}
-                        >
-                          <p className="text-xs font-bold text-center">Download for free now</p>
-                          <p className="text-[9px] text-[#9B9085] text-center mt-1 leading-normal">
-                            By opting in you consent to receive this resource by email.
-                          </p>
-                          
-                          <div className="mt-4 space-y-2.5">
-                            <input 
-                              type="text" 
-                              placeholder="Name" 
-                              className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition ${
-                                themeMode === "dark" 
-                                  ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700" 
-                                  : "bg-zinc-50 border-[#e4e4e7] text-zinc-800 focus:border-zinc-350"
-                              }`} 
-                              disabled 
-                            />
-                            <input 
-                              type="email" 
-                              placeholder="Email" 
-                              className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition ${
-                                themeMode === "dark" 
-                                  ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700" 
-                                  : "bg-zinc-50 border-[#e4e4e7] text-zinc-800 focus:border-zinc-350"
-                              }`} 
-                              disabled 
-                            />
-                            
-                            <button
-                            className="w-full rounded-md py-2.5 text-xs font-bold text-white transition duration-200 active:scale-95 shadow-md bg-[#0E0E10] hover:bg-[#161619]"
+                              }`}
+                            style={{ borderColor: `${brandColor}40` }}
                           >
-                            Get the templates
-                          </button>
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#9B9085]/60">Media Placeholder</span>
+                          </div>
+
+                          {/* Signup Card */}
+                          <div
+                            className={`rounded-xl border p-5 shadow-lg transition-all duration-300 backdrop-blur-sm md:-ml-8 ${themeMode === "dark"
+                              ? "bg-[#161619]/90 border-[#252529] text-white"
+                              : "border-[#e4e4e7] text-zinc-900"
+                              }`}
+                            style={{
+                              borderColor: themeMode === "light" ? `${brandColor}30` : undefined,
+                              backgroundColor: themeMode === "light" ? "rgba(255, 255, 255, 0.9)" : undefined
+                            }}
+                          >
+                            <p className="text-xs font-bold text-center">Download for free now</p>
+                            <p className="text-[9px] text-[#9B9085] text-center mt-1 leading-normal">
+                              By opting in you consent to receive this resource by email.
+                            </p>
+
+                            <div className="mt-4 space-y-2.5">
+                              <input
+                                type="text"
+                                placeholder="Name"
+                                className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition pointer-events-none select-none ${themeMode === "dark"
+                                  ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
+                                  : "border-[#e4e4e7] text-zinc-800 focus:border-[#FE6F34]/50"
+                                  }`}
+                                style={{
+                                  backgroundColor: themeMode === "light" ? "#ffffff" : undefined
+                                }}
+                                readOnly
+                              />
+                              <input
+                                type="email"
+                                placeholder="Email"
+                                className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition pointer-events-none select-none ${themeMode === "dark"
+                                  ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
+                                  : "border-[#e4e4e7] text-zinc-800 focus:border-[#FE6F34]/50"
+                                  }`}
+                                style={{
+                                  backgroundColor: themeMode === "light" ? "#ffffff" : undefined
+                                }}
+                                readOnly
+                              />
+
+                              <button
+                                className="w-full rounded-md py-2.5 text-xs font-bold text-white transition duration-200 active:scale-95 shadow-md bg-[#0E0E10] hover:bg-[#161619]"
+                              >
+                                Get the templates
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Footer inside Preview */}
-                    <div className={`mt-10 text-center text-[10px] border-t pt-4 transition-all duration-300 ${
-                      themeMode === "dark" ? "border-zinc-800 text-zinc-500" : "border-zinc-200 text-zinc-400"
-                    }`}>
+                    <div className={`mt-10 text-center text-[10px] border-t pt-4 transition-all duration-300 ${themeMode === "dark" ? "border-zinc-800 text-zinc-500" : "border-zinc-200 text-zinc-400"
+                      }`}>
                       All rights reserved 2026
                     </div>
                   </div>
