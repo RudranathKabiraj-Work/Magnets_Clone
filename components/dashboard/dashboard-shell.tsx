@@ -422,7 +422,707 @@ export default function DashboardShell({
 
             {/* Modal Scroll Content */}
             <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6" data-lenis-prevent>
-              {selectedTopic === "Delivery emails" ? (
+              {selectedTopic === "Connect Kit" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: AUDIENCE SYNC */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <Mail className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">AUDIENCE SYNC</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I connect Kit?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Add each new signup to Kit automatically and tag them with the lead magnet they requested. Open Workspace setup, expand Optional connections, then open Kit under Automations.
+                    </p>
+                  </div>
+
+                  {/* 3 Numbered Steps */}
+                  <div className="pt-2 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Start the connection</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Choose Connect Kit. Magnets sends you to Kit's secure authorization screen.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Approve in Kit</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Sign in to Kit if needed, choose the account, and approve access.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Check the connection</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Return to Magnets and confirm that the connected account name is shown.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Dark Info Box */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#1c1c22] p-5 text-left">
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        New signups are added or updated by email and receive a tag identifying the lead magnet they requested.
+                      </p>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-2 text-left">
+                      <Link
+                        href="/dashboard/setup#connections-section"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open Kit connection</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Connect Pipedrive" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: CRM SYNC */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <LinkIcon className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">CRM SYNC</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I connect Pipedrive?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Keep new contacts in your CRM without entering the same name and email by hand.
+                    </p>
+                  </div>
+
+                  {/* 4 Numbered Steps */}
+                  <div className="pt-2 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Find your API token</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          In Pipedrive, open Personal preferences, then API.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Copy the token safely</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Copy the token. Treat it like a password and do not share it anywhere else.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Add it to Magnets</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          In Magnets, open Workspace setup, Optional connections, then Pipedrive. Paste the token.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        4
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Test the connection</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Choose Test connection and wait for the connected confirmation.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Dark Info Box */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#1c1c22] p-5 text-left">
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Each signup creates or updates a Pipedrive person. Existing people are matched by email.
+                      </p>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-2 text-left">
+                      <Link
+                        href="/dashboard/setup#connections-section"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open Pipedrive connection</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Connect Slack" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: SIGNUP NOTIFICATIONS */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <Slack className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">SIGNUP NOTIFICATIONS</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I connect Slack?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Send a useful signup alert to the right channel so your team can see interest as it happens.
+                    </p>
+                  </div>
+
+                  {/* 4 Numbered Steps */}
+                  <div className="pt-2 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Create an incoming webhook</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Create a Slack app, turn on Incoming Webhooks, then choose Add New Webhook to Workspace.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Copy the webhook URL</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Choose the channel, authorise the app, and copy the hooks.slack.com URL. Treat this URL like a password.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Paste it into Magnets</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          In Magnets, open Workspace setup, Optional connections, then Slack. Paste the URL into the webhook field.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        4
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Test the connection</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Choose Send test and confirm the message arrives in the selected channel.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Dark Info Box */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#1c1c22] p-5 text-left">
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Slack receives the signup name, email, lead magnet title, and public page link.
+                      </p>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-2 text-left">
+                      <Link
+                        href="/dashboard/setup#connections-section"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open Slack connection</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Beehiiv and Substack" || selectedTopic === "Manage signups" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: AUDIENCE SYNC */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <Share2 className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">AUDIENCE SYNC</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I connect Beehiiv or Substack?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Send new signups straight to the newsletter you already use, without exporting and importing a list by hand. Open Workspace setup, expand Optional connections, then open Newsletter under Audience sync.
+                    </p>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Every signup remains saved in Magnets. Make it clear on the signup page if requesting the resource also adds someone to your newsletter.
+                    </p>
+                  </div>
+
+                  {/* 2 Column Cards: Beehiiv vs Substack */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                    {/* Beehiiv Card */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-3.5 text-left">
+                      <h4 className="text-base font-bold text-white">Beehiiv</h4>
+                      <ol className="space-y-3 text-sm text-[#9B9085] leading-relaxed">
+                        <li>
+                          <strong className="text-white font-bold">1.</strong> In Beehiiv, open Settings, Workspace Settings, then API.
+                        </li>
+                        <li>
+                          <strong className="text-white font-bold">2.</strong> Copy the API V2 publication ID for the publication you want.
+                        </li>
+                        <li>
+                          <strong className="text-white font-bold">3.</strong> Create an API key and copy it when shown. Beehiiv only shows the key once.
+                        </li>
+                        <li>
+                          <strong className="text-white font-bold">4.</strong> Paste both values into Magnets. They save when you leave each field.
+                        </li>
+                      </ol>
+                      <p className="text-xs text-[#666675] leading-relaxed pt-1">
+                        Beehiiv restricts API access to workspace owners and admins and may ask for identity verification.
+                      </p>
+                    </div>
+
+                    {/* Substack Card */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-3.5 text-left">
+                      <h4 className="text-base font-bold text-white">Substack</h4>
+                      <ol className="space-y-3 text-sm text-[#9B9085] leading-relaxed">
+                        <li>
+                          <strong className="text-white font-bold">1.</strong> Find your publication subdomain.
+                        </li>
+                        <li>
+                          <strong className="text-white font-bold">2.</strong> Enter only the first part, such as myletter.
+                        </li>
+                        <li>
+                          <strong className="text-white font-bold">3.</strong> Do not enter myletter.substack.com.
+                        </li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  {/* Disclaimer Text */}
+                  <p className="text-xs text-[#71717a] leading-relaxed pt-1 text-left">
+                    Substack does not provide a documented public subscriber API for this connection. It uses Substack's public signup flow and may stop working if that flow changes.
+                  </p>
+
+                  {/* Bottom Action Button */}
+                  <div className="pt-2 text-left">
+                    <Link
+                      href="/dashboard/setup#connections-section"
+                      onClick={() => setShowHelp(false)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                    >
+                      <span>Open newsletter connections</span>
+                      <span className="text-base font-bold">→</span>
+                    </Link>
+                  </div>
+                </div>
+              ) : selectedTopic === "Legal links" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: PUBLIC PAGE FOOTER */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <BookOpen className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">PUBLIC PAGE FOOTER</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I add legal links?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Add links to your own privacy policy and terms so visitors can understand how your business handles their information and the rules that apply to your offer.
+                    </p>
+                  </div>
+
+                  {/* 4 Numbered Steps */}
+                  <div className="pt-2 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Open the legal settings</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Open Workspace setup and expand Legal links.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Add your privacy policy</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Paste the full public URL for your privacy policy, beginning with https://.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Add your terms</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Add a full public URL for your terms if you use them.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        4
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Check the public page</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Open a page preview and check both links. They open in a new tab from every public lead magnet footer.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Dark Yellowish-Brown Warning Card: Magnets does not write these policies for you */}
+                    <div className="rounded-2xl border border-[#4d4022] bg-[#221e16] p-5 text-left space-y-1.5">
+                      <h4 className="text-sm font-bold text-[#fbbf24]">Magnets does not write these policies for you</h4>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        The right wording depends on your business, location, audience, and the services you use. Get appropriate legal advice if you are unsure what your policies need to cover. Leaving a field blank hides that custom link.
+                      </p>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-2 text-left">
+                      <Link
+                        href="/dashboard/setup"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open Legal links</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Send from my email" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: EMAIL DELIVERY */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <Mail className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">EMAIL DELIVERY</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I send from my own email?</h2>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dark Reddish-Chocolate Notice Card: This is optional */}
+                  <div className="rounded-2xl border border-[#452b23] bg-[#221a18] px-5 py-4 space-y-1.5 text-left">
+                    <h3 className="text-sm font-bold text-white">
+                      This is optional
+                    </h3>
+                    <p className="text-sm text-[#9B9085] leading-relaxed">
+                      If Magnets sending is already connected, you can publish and deliver a resource without setting up your own sender domain. Using a recognisable From address can make the email feel more consistent with your brand.
+                    </p>
+                  </div>
+
+                  {/* 4 Numbered Steps */}
+                  <div className="pt-1 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Add your domain</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          In Workspace setup, add the root domain you own. You do not have to publish your pages on that domain.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Choose the From address</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Open Optional connections, then Your sender domain. Choose a sending subdomain and the address you want people to see.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Add the sending records</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Add the exact DNS records shown by Magnets wherever your domain's DNS is managed.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        4
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Verify the sender</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Return to Magnets and run the verification check. Use the address only after it shows as verified.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Dark Info Card */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#1c1c22] p-5 text-left">
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Magnets uses a sending subdomain so its email reputation is separated from your main website. Copy every DNS record exactly as shown. Verification is often quick, but DNS changes can take up to 72 hours to appear.
+                      </p>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-1 text-left">
+                      <Link
+                        href="/dashboard/setup"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open email setup</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Custom domains" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: OPTIONAL SETUP */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <Globe className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">OPTIONAL SETUP</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">Use your own domain</h2>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dark Reddish-Chocolate Top Notice Card: You can skip this completely */}
+                  <div className="rounded-2xl border border-[#452b23] bg-[#221a18] px-5 py-4 space-y-1.5 text-left">
+                    <h3 className="text-sm font-bold text-white">
+                      You can skip this completely.
+                    </h3>
+                    <p className="text-sm text-[#9B9085] leading-relaxed">
+                      Every published lead magnet can use its included magnets.so link. A custom domain gives you a recognisable branded address, but it is not required to create, publish, deliver, or collect signups.
+                    </p>
+                  </div>
+
+                  {/* 3 Numbered Steps */}
+                  <div className="pt-1 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Choose your address</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Use the root domain you already own, such as example.com, then choose a page subdomain such as get.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Prove you own the domain</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Magnets gives you a TXT record. Add it wherever your DNS is managed, then click Check ownership.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Point the subdomain to Magnets</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Add the CNAME record shown in Magnets and connect the subdomain. DNS changes can take a little while to appear.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Divider & Bottom Action Button */}
+                    <div className="pt-4 border-t border-[#2e2e38]">
+                      <Link
+                        href="/dashboard/setup"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open custom-domain setup</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Workspace setup" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: YOUR ACCOUNT FOUNDATIONS */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <Settings className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">YOUR ACCOUNT FOUNDATIONS</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">What belongs in Workspace setup?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Workspace setup controls where your pages live, where emails come from, and which other tools receive new signups. You do not need to connect every option before creating a lead magnet.
+                    </p>
+                  </div>
+
+                  {/* 5 Cards Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                    {/* Magnets URL */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-4 space-y-1.5 text-left">
+                      <h4 className="text-base font-bold text-white">Magnets URL</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Choose the included magnets.so address used by your published pages.
+                      </p>
+                    </div>
+
+                    {/* Custom domain */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-4 space-y-1.5 text-left">
+                      <h4 className="text-base font-bold text-white">Custom domain</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Optionally use a branded page address on a domain you own.
+                      </p>
+                    </div>
+
+                    {/* Email and scheduling */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-4 space-y-1.5 text-left">
+                      <h4 className="text-base font-bold text-white">Email and scheduling</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Optionally use your own sender domain or stop a sequence when someone books.
+                      </p>
+                    </div>
+
+                    {/* Connections */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-4 space-y-1.5 text-left">
+                      <h4 className="text-base font-bold text-white">Connections</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Optionally send signups to a newsletter, Slack, Zapier, Kit, or Pipedrive.
+                      </p>
+                    </div>
+
+                    {/* Legal links */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-4 space-y-1.5 text-left">
+                      <h4 className="text-base font-bold text-white">Legal links</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Add your privacy policy and terms to the footer of every public lead magnet page.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Warm Reddish-Chocolate Tip Card */}
+                  <div className="rounded-2xl border border-[#452b23] bg-[#221a18] px-5 py-4 text-left">
+                    <p className="text-sm text-[#9B9085] leading-relaxed">
+                      Start with your Magnets URL. Add a custom domain and integrations only when they support the way you want to publish, deliver, or follow up.
+                    </p>
+                  </div>
+
+                  {/* Bottom Action Button */}
+                  <div className="pt-1 text-left">
+                    <Link
+                      href="/dashboard/setup"
+                      onClick={() => setShowHelp(false)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                    >
+                      <span>Open Workspace setup</span>
+                      <span className="text-base font-bold">→</span>
+                    </Link>
+                  </div>
+                </div>
+              ) : selectedTopic === "Delivery emails" ? (
                 <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                   {/* Header: DELIVER THE PROMISE */}
                   <div className="space-y-4">
@@ -532,7 +1232,7 @@ export default function DashboardShell({
                   <div className="space-y-4">
                     <div className="flex items-center gap-3.5">
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
-                        <Palette className="h-4 w-4" />
+                        <Palette className="h-5.5 w-5.5" />
                       </span>
                       <div>
                         <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">PAGE APPEARANCE</p>
@@ -618,7 +1318,7 @@ export default function DashboardShell({
                   <div className="space-y-4">
                     <div className="flex items-center gap-3.5">
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
-                        <FolderOpen className="h-4 w-4" />
+                        <FolderOpen className="h-5.5 w-5.5" />
                       </span>
                       <div>
                         <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">FILES AND DOWNLOADS</p>
@@ -699,7 +1399,7 @@ export default function DashboardShell({
                   <div className="space-y-4">
                     <div className="flex items-center gap-3.5">
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
-                        <FileText className="h-4 w-4" />
+                        <FileText className="h-5.5 w-5.5" />
                       </span>
                       <div>
                         <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">BUILD THE FULL JOURNEY</p>

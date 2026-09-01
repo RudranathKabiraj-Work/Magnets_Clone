@@ -212,7 +212,7 @@ export default function WorkspaceSetupPage() {
             </div>
 
             {/* Optional connections card */}
-            <div className="rounded-2xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
+            <div id="connections-section" className="rounded-2xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
               <button
                 onClick={() => toggle("connections")}
                 className="flex w-full items-center justify-between p-5 text-left hover:bg-[#252529]/20 transition"
@@ -236,10 +236,73 @@ export default function WorkspaceSetupPage() {
                 </div>
               </button>
               {openSections["connections"] && (
-                <div className="border-t border-[#2e2e38] px-5 py-4 bg-[#0E0E10]/30">
-                  <p className="text-xs text-[#9B9085] leading-relaxed">
-                    Connections are configured in your dashboard sidebar settings. Emails are automatically delivered via Magnets Mail SMTP service at no charge.
-                  </p>
+                <div className="border-t border-[#2e2e38] px-5 py-5 bg-[#0E0E10]/30 space-y-6">
+                  {/* AUDIENCE SYNC Section */}
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#9B9085]">AUDIENCE SYNC</p>
+                      <p className="text-xs text-[#666675]">Forward signups into an existing newsletter audience.</p>
+                    </div>
+
+                    {/* Newsletter Box */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#121214] overflow-hidden">
+                      <div className="flex items-center justify-between p-4 bg-[#18181c] border-b border-[#2e2e38]">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#2a1a08] text-[#FE6F34]">
+                            <Sparkles className="h-4 w-4 text-[#FE6F34]" />
+                          </div>
+                          <div>
+                            <h5 className="text-sm font-bold text-white">Newsletter</h5>
+                            <p className="text-xs text-[#9B9085]">
+                              Forward signups to Beehiiv or Substack. Connect Kit in Automations. Signups are always saved in Magnets too.
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronUp className="h-4 w-4 text-[#9B9085]" />
+                      </div>
+
+                      <div className="p-4 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-white mb-1.5 flex items-center gap-1">
+                              <span>Beehiiv publication ID</span>
+                              <span className="text-[#666675] cursor-help">?</span>
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Publication ID"
+                              className="w-full rounded-xl border border-[#FE6F34]/80 bg-[#0E0E10] px-3.5 py-2.5 text-xs text-white placeholder:text-[#52525b] outline-none focus:ring-1 focus:ring-[#FE6F34]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-white mb-1.5 flex items-center gap-1">
+                              <span>Beehiiv API key</span>
+                              <span className="text-[#666675] cursor-help">?</span>
+                            </label>
+                            <input
+                              type="password"
+                              placeholder="API key"
+                              className="w-full rounded-xl border border-[#2e2e38] bg-[#0E0E10] px-3.5 py-2.5 text-xs text-white placeholder:text-[#52525b] outline-none focus:border-[#FE6F34]"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-white mb-1.5 flex items-center gap-1">
+                            <span>Substack publication</span>
+                            <span className="text-[#666675] cursor-help">?</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="myletter"
+                            className="w-full rounded-xl border border-[#2e2e38] bg-[#0E0E10] px-3.5 py-2.5 text-xs text-white placeholder:text-[#52525b] outline-none focus:border-[#FE6F34]"
+                          />
+                          <p className="mt-1 text-[11px] text-[#666675]">Just the subdomain. myletter, not myletter.substack.com</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
