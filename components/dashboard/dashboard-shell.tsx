@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft } from "lucide-react";
+import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
@@ -67,7 +67,7 @@ export default function DashboardShell({
         { text: "What is a lead magnet?", icon: "BookOpen" },
         { text: "Why use a lead magnet?", icon: "Gift" },
         { text: "How do they work?", icon: "Sliders" },
-        { text: "What works best", icon: "Lightbulb" },
+        { text: "What works best?", icon: "Lightbulb" },
       ],
     },
     build: {
@@ -148,8 +148,8 @@ export default function DashboardShell({
             const isDividerAfter = idx === 2; // Divider after Signups
 
             const linkClass = `group flex items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition ${active
-                ? "bg-[#FFF0EA] text-[#1c1c1f] font-semibold dark:bg-[#FE6F34]/15 dark:text-white"
-                : "text-[#666666] hover:bg-zinc-100 hover:text-black dark:text-[#9B9085] dark:hover:bg-[#25252a] dark:hover:text-white"
+              ? "bg-[#FFF0EA] text-[#1c1c1f] font-semibold dark:bg-[#FE6F34]/15 dark:text-white"
+              : "text-[#666666] hover:bg-zinc-100 hover:text-black dark:text-[#9B9085] dark:hover:bg-[#25252a] dark:hover:text-white"
               }`;
 
             if (item.isModal) {
@@ -223,9 +223,8 @@ export default function DashboardShell({
 
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className={`flex items-center gap-2.5 px-2 py-1.5 w-full text-left rounded-lg transition-colors cursor-pointer ${
-                showProfileMenu ? "bg-zinc-100 dark:bg-[#26262B]" : "hover:bg-zinc-100 dark:hover:bg-[#26262B]"
-              }`}
+              className={`flex items-center gap-2.5 px-2 py-1.5 w-full text-left rounded-lg transition-colors cursor-pointer ${showProfileMenu ? "bg-zinc-100 dark:bg-[#26262B]" : "hover:bg-zinc-100 dark:hover:bg-[#26262B]"
+                }`}
             >
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-xs font-bold text-white dark:bg-[#121214]">
                 {account.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || account.name.charAt(0)}
@@ -279,8 +278,8 @@ export default function DashboardShell({
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
                     className={`flex items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition ${active
-                        ? "bg-[#FE6F34]/15 text-white font-semibold"
-                        : "text-[#9B9085] hover:bg-[#FE6F34]/8 hover:text-white"
+                      ? "bg-[#FE6F34]/15 text-white font-semibold"
+                      : "text-[#9B9085] hover:bg-[#FE6F34]/8 hover:text-white"
                       }`}
                   >
                     <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-[#9B9085]"}`} aria-hidden="true" />
@@ -370,12 +369,12 @@ export default function DashboardShell({
 
       {/* Help Centre Modal */}
       {showHelp && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px] p-3 md:p-4 transition-all duration-200"
           onClick={() => setShowHelp(false)}
         >
           <div
-            className="relative w-full max-w-4xl h-[94vh] max-h-[96vh] rounded-2xl border border-[#2e2e38] bg-[#1a1a1e] text-white shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className="relative w-full max-w-4xl h-[94vh] max-h-[96vh] rounded-2xl border border-[#2e2e38] bg-[#18181c] text-white shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -416,7 +415,168 @@ export default function DashboardShell({
 
             {/* Modal Scroll Content */}
             <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6" data-lenis-prevent>
-              {selectedTopic === "How do they work?" ? (
+              {selectedTopic === "What works best?" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  <div className="flex items-center gap-3.5">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                      <Sparkles className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-[10px] font-bold text-[#9B9085] uppercase tracking-wider">QUALITY BEATS SIZE</p>
+                      <h2 className="text-lg font-bold text-white leading-tight">What lead magnets work best?</h2>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                    There is no single format that wins for every audience. The strongest option is the one that solves one specific problem, is easy to use, and naturally connects to what you help people do next. A concise checklist can be more valuable than a long ebook if it gets someone to a result.
+                  </p>
+
+                  {/* 2-column Grid of Lead Magnet Format Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                    {/* Checklist */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#18181c] p-3.5 sm:p-4 space-y-2.5">
+                      <div className="flex items-center gap-2 text-[#FE6F34]">
+                        <FileText className="h-4 w-4" />
+                        <h4 className="text-sm font-bold text-white">Checklist</h4>
+                      </div>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        A repeatable process with clear steps
+                      </p>
+                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                        <span className="font-semibold text-white">Example:</span> The 12-point landing-page launch checklist
+                      </div>
+                    </div>
+
+                    {/* Template */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#18181c] p-3.5 sm:p-4 space-y-2.5">
+                      <div className="flex items-center gap-2 text-[#FE6F34]">
+                        <FileText className="h-4 w-4" />
+                        <h4 className="text-sm font-bold text-white">Template</h4>
+                      </div>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Saving someone time on a task they already do
+                      </p>
+                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                        <span className="font-semibold text-white">Example:</span> A client onboarding email template pack
+                      </div>
+                    </div>
+
+                    {/* Short guide */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#18181c] p-3.5 sm:p-4 space-y-2.5">
+                      <div className="flex items-center gap-2 text-[#FE6F34]">
+                        <FileText className="h-4 w-4" />
+                        <h4 className="text-sm font-bold text-white">Short guide</h4>
+                      </div>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Explaining a narrow problem or decision
+                      </p>
+                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                        <span className="font-semibold text-white">Example:</span> A practical guide to pricing your first workshop
+                      </div>
+                    </div>
+
+                    {/* Scorecard or quiz */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#18181c] p-3.5 sm:p-4 space-y-2.5">
+                      <div className="flex items-center gap-2 text-[#FE6F34]">
+                        <FileText className="h-4 w-4" />
+                        <h4 className="text-sm font-bold text-white">Scorecard or quiz</h4>
+                      </div>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Helping someone understand their current position
+                      </p>
+                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                        <span className="font-semibold text-white">Example:</span> How ready is your business to hire?
+                      </div>
+                    </div>
+
+                    {/* Swipe file */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#18181c] p-3.5 sm:p-4 space-y-2.5">
+                      <div className="flex items-center gap-2 text-[#FE6F34]">
+                        <FileText className="h-4 w-4" />
+                        <h4 className="text-sm font-bold text-white">Swipe file</h4>
+                      </div>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Giving proven examples people can adapt
+                      </p>
+                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                        <span className="font-semibold text-white">Example:</span> 25 welcome-email subject lines
+                      </div>
+                    </div>
+
+                    {/* Calculator */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#18181c] p-3.5 sm:p-4 space-y-2.5">
+                      <div className="flex items-center gap-2 text-[#FE6F34]">
+                        <FileText className="h-4 w-4" />
+                        <h4 className="text-sm font-bold text-white">Calculator</h4>
+                      </div>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Turning complicated inputs into a useful answer
+                      </p>
+                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                        <span className="font-semibold text-white">Example:</span> Your freelance day-rate calculator
+                      </div>
+                    </div>
+
+                    {/* Interactive AI artefact */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#18181c] p-3.5 sm:p-4 space-y-2.5">
+                      <div className="flex items-center gap-2 text-[#FE6F34]">
+                        <FileText className="h-4 w-4" />
+                        <h4 className="text-sm font-bold text-white">Interactive AI artefact</h4>
+                      </div>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Creating a useful personalised result from someone's answers
+                      </p>
+                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                        <span className="font-semibold text-white">Example:</span> A positioning statement or campaign brief generator
+                      </div>
+                    </div>
+
+                    {/* Five-day email course */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#18181c] p-3.5 sm:p-4 space-y-2.5">
+                      <div className="flex items-center gap-2 text-[#FE6F34]">
+                        <FileText className="h-4 w-4" />
+                        <h4 className="text-sm font-bold text-white">Five-day email course</h4>
+                      </div>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Teaching a practical process in small, useful daily steps
+                      </p>
+                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                        <span className="font-semibold text-white">Example:</span> Build your first client referral system in five days
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dark Green Banner: A strong idea should pass four checks */}
+                  <div className="rounded-2xl border border-[#1b3e2b] bg-[#0c1f15] p-5 space-y-3">
+                    <h4 className="text-sm font-bold text-[#34d399]">A strong idea should pass four checks</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-semibold text-[#34d399]">
+                      <p>One clear audience and problem</p>
+                      <p>A specific, benefit-led title</p>
+                      <p>A result they can use quickly</p>
+                      <p>A natural link to your paid offer</p>
+                    </div>
+                  </div>
+
+                  {/* Bottom 2 Advice Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {/* Make an AI artefact genuinely useful */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#18181c] p-4 space-y-2">
+                      <h4 className="text-sm font-bold text-white">Make an AI artefact genuinely useful</h4>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Ask only for the information needed to create a specific output. Give the visitor something they can use immediately, not a generic block of generated text.
+                      </p>
+                    </div>
+
+                    {/* Build trust before making the offer */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#18181c] p-4 space-y-2">
+                      <h4 className="text-sm font-bold text-white">Build trust before making the offer</h4>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        In a five-day course, deliver one clear win each day. On the final day, introduce a relevant paid next step that helps the reader continue the progress they have already made.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "How do they work?" ? (
                 <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                   <div className="flex items-center gap-3.5">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
