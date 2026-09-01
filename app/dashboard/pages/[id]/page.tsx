@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Check, Copy, Eye, FileText, Gift, Image as ImageIcon, Loader2, Palette, PenLine, Rocket, SpellCheck, Type } from "lucide-react";
@@ -270,7 +272,7 @@ export default function PageEditor() {
         </aside>
 
         <div className="vercel-dot-bg flex min-h-[70vh] items-start justify-center bg-brand-soft px-4 py-10 sm:h-[calc(100dvh-3rem)] sm:min-h-0 sm:overflow-y-auto dark:bg-ink-950">
-          <div className="w-full max-w-sm overflow-hidden rounded-lg border border-ink-200 bg-white shadow-hero dark:border-ink-700">
+          <div className="w-full max-w-sm overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-hero dark:border-ink-700">
             <div className="flex h-9 items-center justify-between border-b border-ink-100 px-3 dark:border-ink-700">
               <div className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-brand-coral" />

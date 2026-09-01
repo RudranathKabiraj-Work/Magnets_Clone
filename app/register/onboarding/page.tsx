@@ -136,7 +136,7 @@ function OnboardingContent() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0E0E10] p-4 text-white font-sans">
-      <div className="relative w-full max-w-2xl rounded-xl border border-[#1C1C20] bg-[#131316] overflow-hidden shadow-2xl flex flex-col min-h-[580px]">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-[#1C1C20] bg-[#131316] overflow-hidden shadow-2xl flex flex-col min-h-[580px]">
         
         {/* Header */}
         <div className="p-6 border-b border-[#1C1C20] flex items-center justify-between">
@@ -181,21 +181,21 @@ function OnboardingContent() {
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="rounded-lg border border-[#1C1C20] bg-[#121214]/50 p-4">
+                <div className="rounded-2xl border border-[#1C1C20] bg-[#121214]/50 p-4">
                   <div className="flex h-7 w-7 items-center justify-center rounded bg-[#2A1B15] text-[#FF8C53] mb-3">
                     <Gift className="h-4 w-4" />
                   </div>
                   <h4 className="text-xs font-semibold text-white">Attract the right people</h4>
                   <p className="mt-1 text-[10px] text-ink-400 leading-relaxed">Focus on one problem your ideal customer already wants solved.</p>
                 </div>
-                <div className="rounded-lg border border-[#1C1C20] bg-[#121214]/50 p-4">
+                <div className="rounded-2xl border border-[#1C1C20] bg-[#121214]/50 p-4">
                   <div className="flex h-7 w-7 items-center justify-center rounded bg-[#2A1B15] text-[#FF8C53] mb-3">
                     <Monitor className="h-4 w-4" />
                   </div>
                   <h4 className="text-xs font-semibold text-white">Capture real interest</h4>
                   <p className="mt-1 text-[10px] text-ink-400 leading-relaxed">Turn a passing visitor into someone you can reach again.</p>
                 </div>
-                <div className="rounded-lg border border-[#1C1C20] bg-[#121214]/50 p-4">
+                <div className="rounded-2xl border border-[#1C1C20] bg-[#121214]/50 p-4">
                   <div className="flex h-7 w-7 items-center justify-center rounded bg-[#2A1B15] text-[#FF8C53] mb-3">
                     <Rocket className="h-4 w-4" />
                   </div>
@@ -204,7 +204,7 @@ function OnboardingContent() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-emerald-950/20 bg-emerald-950/10 p-3 text-emerald-400 text-[11px] leading-relaxed">
+              <div className="rounded-2xl border border-emerald-950/20 bg-emerald-950/10 p-3 text-emerald-400 text-[11px] leading-relaxed">
                 <strong>You can launch without a custom domain.</strong> Magnets gives you a working link immediately, and you can connect your own domain later.
               </div>
             </div>
@@ -239,7 +239,7 @@ function OnboardingContent() {
                     <button
                       key={item.id}
                       onClick={() => setSelectedFormat(item.id)}
-                      className={`flex items-start gap-3 rounded-lg border p-3 text-left transition w-full ${
+                      className={`flex items-start gap-3 rounded-2xl border p-3 text-left transition w-full ${
                         selected
                           ? "border-brand-orange bg-[#241B15]"
                           : "border-[#1C1C20] bg-[#121214]/50 hover:bg-[#1C1C20]/50"
@@ -338,7 +338,7 @@ function OnboardingContent() {
                 </p>
               </div>
 
-              <div className="w-full max-w-md rounded-lg border border-[#1C1C20] bg-[#0E0E10]/80 p-4 text-left">
+              <div className="w-full max-w-md rounded-2xl border border-[#1C1C20] bg-[#0E0E10]/80 p-4 text-left">
                 <span className="text-[9px] font-bold text-[#9B9085] uppercase tracking-widest block">Your free publishing address</span>
                 <span className="mt-1 block text-xs font-mono text-white/95">magnets.so/{userSlug}/...</span>
               </div>
@@ -406,7 +406,7 @@ function OnboardingContent() {
       {/* Create Lead Magnet Modal Overlay */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-md rounded-xl border border-[#1C1C20] bg-[#131316] p-6 shadow-2xl text-white">
+          <div className="relative w-full max-w-md rounded-2xl border border-[#1C1C20] bg-[#131316] p-6 shadow-2xl text-white">
             
             {/* Modal Header */}
             <div className="flex items-start justify-between">

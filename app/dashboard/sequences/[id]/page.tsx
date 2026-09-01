@@ -163,7 +163,7 @@ export default function SequenceEditor() {
             {seq.emails.map((email, i) => (
               <div
                 key={email.id}
-                className="rounded-lg border border-ink-200 bg-white p-4 dark:border-ink-700 dark:bg-ink-900/95"
+                className="rounded-2xl border border-ink-200 bg-white p-4 dark:border-ink-700 dark:bg-ink-900/95"
               >
                 <div className="flex items-center gap-2">
                   <GripVertical className="h-4 w-4 shrink-0 text-ink-300 dark:text-ink-600" aria-hidden="true" />
@@ -221,7 +221,7 @@ export default function SequenceEditor() {
             ))}
             <button
               onClick={addEmail}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-ink-300 py-3 text-sm font-medium text-ink-600 transition hover:border-ink-400 hover:bg-white dark:border-ink-700 dark:text-ink-300 dark:hover:border-ink-500 dark:hover:bg-ink-900/95"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-ink-300 py-3 text-sm font-medium text-ink-600 transition hover:border-ink-400 hover:bg-white dark:border-ink-700 dark:text-ink-300 dark:hover:border-ink-500 dark:hover:bg-ink-900/95"
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
               Add email
@@ -229,7 +229,7 @@ export default function SequenceEditor() {
           </section>
 
           <aside className="space-y-4">
-            <section className="rounded-lg border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
+            <section className="rounded-2xl border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
               <h3 className="text-sm font-semibold text-ink-950 dark:text-white">Performance</h3>
               <div className="mt-4 space-y-3">
                 {[
@@ -249,7 +249,7 @@ export default function SequenceEditor() {
                 ))}
               </div>
             </section>
-            <section className="rounded-lg border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
+            <section className="rounded-2xl border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-ink-950 dark:text-white">Stop on booking</h3>

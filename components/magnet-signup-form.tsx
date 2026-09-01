@@ -64,7 +64,7 @@ export default function MagnetSignupForm({
   return (
     <>
       {done ? (
-        <div className={`rounded-md border p-5 text-left transition-colors duration-300 ${themeMode === "dark" ? "bg-[#161619] border-[#252529]" : "bg-brand-soft border-ink-200"
+        <div className={`rounded-2xl border p-5 text-left transition-colors duration-300 ${themeMode === "dark" ? "bg-[#161619] border-[#252529]" : "bg-brand-soft border-ink-200"
           }`}>
           <CheckCircle2 className="h-6 w-6 text-emerald-600" aria-hidden="true" />
           <p className={`mt-2 text-sm font-semibold ${themeMode === "dark" ? "text-white" : "text-ink-950"}`}>On its way — check {email}</p>
@@ -74,7 +74,7 @@ export default function MagnetSignupForm({
           </p>
         </div>
       ) : (
-        <div className={`rounded-xl border p-6 text-left shadow-lg transition-colors duration-300 ${themeMode === "dark"
+        <div className={`rounded-2xl border p-6 text-left shadow-lg transition-colors duration-300 ${themeMode === "dark"
           ? "bg-[#161619] border-[#252529] text-white"
           : "bg-white border-ink-200 text-ink-900"
           }`}

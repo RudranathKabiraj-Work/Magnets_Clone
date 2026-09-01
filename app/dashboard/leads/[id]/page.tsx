@@ -100,7 +100,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
 
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-4">
-            <section className="rounded-lg border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
+            <section className="rounded-2xl border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
               <div className="flex items-start gap-3">
                 <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${st.color}`} />
                 <div>
@@ -110,7 +110,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
               </div>
             </section>
 
-            <section className="rounded-lg border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
+            <section className="rounded-2xl border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
               <h3 className="text-sm font-semibold text-ink-950 dark:text-white">Signed up via</h3>
               <div className="mt-3 flex items-center gap-2">
                 <SourceLabel source={lead.source} />
@@ -141,7 +141,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
               </div>
             </section>
 
-            <section className="rounded-lg border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
+            <section className="rounded-2xl border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
               <h3 className="text-sm font-semibold text-ink-950 dark:text-white">Notes</h3>
               <textarea
                 placeholder="Add a note about this lead…"
@@ -152,7 +152,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
           </div>
 
           <aside className="h-fit space-y-4">
-            <section className="rounded-lg border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
+            <section className="rounded-2xl border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-950 dark:text-white">
                 <Tag className="h-4 w-4 text-ink-400" aria-hidden="true" />
                 Tags
@@ -172,7 +172,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
                 )}
               </div>
             </section>
-            <section className="rounded-lg border border-ink-200 bg-brand-soft p-5 dark:border-ink-700 dark:bg-ink-900/95">
+            <section className="rounded-2xl border border-ink-200 bg-brand-soft p-5 dark:border-ink-700 dark:bg-ink-900/95">
               <h3 className="text-sm font-semibold text-ink-950 dark:text-white">Who converted</h3>
               <p className="mt-2 text-sm leading-6 text-ink-600 dark:text-ink-300">
                 {lead.name} is one of {lead.pageId === "p1" ? "962" : "611"} signups on {lead.page}. Follow-up emails are the

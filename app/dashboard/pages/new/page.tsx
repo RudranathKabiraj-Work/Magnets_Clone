@@ -78,7 +78,7 @@ export default function NewPage() {
           </div>
         </div>
 
-        <form onSubmit={create} className="mt-8 space-y-6 rounded-lg border border-ink-200 bg-white p-6 shadow-card dark:border-ink-700 dark:bg-ink-900/95">
+        <form onSubmit={create} className="mt-8 space-y-6 rounded-2xl border border-ink-200 bg-white p-6 shadow-card dark:border-ink-700 dark:bg-ink-900/95">
           <label className="block">
             <FieldLabel>Page name</FieldLabel>
             <Input

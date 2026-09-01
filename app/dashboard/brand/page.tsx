@@ -128,7 +128,7 @@ export default function BrandPage() {
 
             {/* Brand Settings Form */}
             <div className="lg:col-span-4">
-              <div className="rounded-xl border border-[#2e2e38] bg-[#18181B] p-6 shadow-xl h-full flex flex-col justify-between">
+              <div className="rounded-2xl border border-[#2e2e38] bg-[#18181B] p-6 shadow-xl h-full flex flex-col justify-between">
                 {/* Heading */}
                 <div className="flex items-start gap-3 mb-4">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
@@ -312,14 +312,14 @@ export default function BrandPage() {
 
             {/* Live Preview Panel */}
             <div className="lg:col-span-8">
-              <div className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-5 shadow-2xl h-full flex flex-col">
+              <div className="rounded-2xl border border-[#2e2e38] bg-[#18181B] p-5 shadow-2xl h-full flex flex-col">
                 <div className="flex flex-col gap-1 mb-4 pb-3 border-b border-[#2e2e38]/50">
                   <span className="text-sm font-bold text-zinc-200 uppercase tracking-wider">Preview</span>
                   <span className="text-xs text-[#9B9085]">How your brand appears on a full magnet page.</span>
                 </div>
                 {/* Outer frame matching client page background theme mode */}
                 <div
-                  className={`rounded-lg border transition-all duration-300 overflow-hidden ${themeMode === "dark"
+                  className={`rounded-2xl border transition-all duration-300 overflow-hidden ${themeMode === "dark"
                     ? "bg-[#0E0E10] border-[#2e2e38] text-white"
                     : "bg-[#FAFAFA] border-[#e4e4e7] text-zinc-900"
                     }`}

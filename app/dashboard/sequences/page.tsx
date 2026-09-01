@@ -50,7 +50,7 @@ export default function SequencesPage() {
               <Link
                 key={seq.id}
                 href={`/dashboard/sequences/${seq.id}`}
-                className="group rounded-lg border border-ink-200 bg-white p-5 transition hover:border-ink-300 hover:shadow-card dark:border-ink-700 dark:bg-ink-900/95 dark:hover:border-ink-500"
+                className="group rounded-2xl border border-ink-200 bg-white p-5 transition hover:border-ink-300 hover:shadow-card dark:border-ink-700 dark:bg-ink-900/95 dark:hover:border-ink-500"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -92,7 +92,7 @@ export default function SequencesPage() {
 
           <Link
             href="/dashboard/sequences/new"
-            className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-ink-300 text-center transition hover:border-ink-400 hover:bg-white dark:border-ink-700 dark:hover:border-ink-500 dark:hover:bg-ink-900/95"
+            className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-ink-300 text-center transition hover:border-ink-400 hover:bg-white dark:border-ink-700 dark:hover:border-ink-500 dark:hover:bg-ink-900/95"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-soft text-brand-orange dark:bg-ink-950">
               <Plus className="h-5 w-5" aria-hidden="true" />

@@ -79,7 +79,7 @@ export default function HelpPage() {
             {guides.map((guide, idx) => (
               <div
                 key={idx}
-                className="group cursor-pointer rounded-lg border border-ink-200 bg-white p-5 transition hover:border-brand-orange dark:border-ink-800 dark:bg-ink-900"
+                className="group cursor-pointer rounded-2xl border border-ink-200 bg-white p-5 transition hover:border-brand-orange dark:border-ink-800 dark:bg-ink-900"
               >
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-ink-950 group-hover:text-brand-orange dark:text-white">
@@ -100,7 +100,7 @@ export default function HelpPage() {
               <MessageSquare className="h-4 w-4 text-brand-orange" /> Contact Support
             </span>
 
-            <form onSubmit={handleSendMessage} className="rounded-lg border border-ink-200 bg-white p-5 dark:border-ink-800 dark:bg-ink-900">
+            <form onSubmit={handleSendMessage} className="rounded-2xl border border-ink-200 bg-white p-5 dark:border-ink-800 dark:bg-ink-900">
               <div className="space-y-4">
                 <div>
                   <FieldLabel>Your Email</FieldLabel>

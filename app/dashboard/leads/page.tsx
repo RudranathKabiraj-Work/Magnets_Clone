@@ -119,7 +119,7 @@ export default function SignupsPage() {
           {/* Stat cards */}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-12 mb-6">
             {/* Unique signups */}
-            <div className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#18181B] px-5 py-4 md:col-span-5">
+            <div className="flex items-center gap-4 rounded-2xl border border-[#2e2e38] bg-[#18181B] px-5 py-4 md:col-span-5">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#252529] text-[#9B9085]">
                 <Users className="h-4.5 w-4.5" />
               </div>
@@ -130,7 +130,7 @@ export default function SignupsPage() {
             </div>
 
             {/* Latest signup */}
-            <div className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#18181B] px-5 py-4 md:col-span-4">
+            <div className="flex items-center gap-4 rounded-2xl border border-[#2e2e38] bg-[#18181B] px-5 py-4 md:col-span-4">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#252529] text-[#9B9085]">
                 <Mail className="h-4.5 w-4.5" />
               </div>
@@ -145,7 +145,7 @@ export default function SignupsPage() {
             {/* Export */}
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-4 rounded-lg border border-[#2e2e38] bg-[#18181B] px-5 py-4 text-left hover:border-[#2e2e35] transition w-full md:col-span-3"
+              className="flex items-center gap-4 rounded-2xl border border-[#2e2e38] bg-[#18181B] px-5 py-4 text-left hover:border-[#2e2e35] transition w-full md:col-span-3"
             >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#252529] text-[#9B9085]">
                 <Download className="h-4.5 w-4.5" />
@@ -158,7 +158,7 @@ export default function SignupsPage() {
           </div>
 
           {/* All signups section */}
-          <div className="rounded-lg border border-[#2e2e38] bg-[#18181B] overflow-hidden">
+          <div className="rounded-2xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
             {/* Section header */}
             <div className="px-5 pt-5 pb-4 border-b border-[#2e2e38]">
               <h3 className="text-sm font-semibold text-white">All signups</h3>

@@ -45,7 +45,7 @@ export default function HeroDashboard() {
             : { perspective: 1400, rotateX: 5, rotateZ: -1.2, scale: 0.94, y: 112 }
         }
       >
-        <div className="relative overflow-hidden rounded-lg border border-ink-200 bg-white p-2 shadow-[0_32px_90px_-46px_rgba(17,17,17,0.5)] sm:p-3">
+        <div className="relative overflow-hidden rounded-2xl border border-ink-200 bg-white p-2 shadow-[0_32px_90px_-46px_rgba(17,17,17,0.5)] sm:p-3">
           <div className="flex h-9 items-center gap-1.5 border-b border-ink-100 px-2 pb-2">
             <span className="h-2.5 w-2.5 rounded-full bg-brand-coral" />
             <span className="h-2.5 w-2.5 rounded-full bg-brand-yellow" />

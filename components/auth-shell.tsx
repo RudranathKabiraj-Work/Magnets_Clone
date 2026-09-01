@@ -2,7 +2,7 @@ import { ArrowRightIcon } from "@/components/icons";
 import { MagnetsMark } from "@/components/brand";
 
 const cardClass =
-  "space-y-4 rounded-lg border border-ink-200 bg-white p-6 shadow-form";
+  "space-y-4 rounded-2xl border border-ink-200 bg-white p-6 shadow-form";
 
 export default function AuthShell({
   title,

@@ -160,7 +160,7 @@ export default function AccountSettingsPage() {
           <div className="space-y-5">
 
             {/* Who you are */}
-            <section className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-6">
+            <section className="rounded-2xl border border-[#2e2e38] bg-[#18181B] p-6">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
                   <User className="h-4.5 w-4.5" />
@@ -206,7 +206,7 @@ export default function AccountSettingsPage() {
             </section>
 
             {/* Change password */}
-            <section className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-6">
+            <section className="rounded-2xl border border-[#2e2e38] bg-[#18181B] p-6">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
                   <KeyRound className="h-4.5 w-4.5" />
@@ -260,7 +260,7 @@ export default function AccountSettingsPage() {
             </section>
 
             {/* Danger zone */}
-            <section className="rounded-lg border border-[#2e2e38] bg-[#18181B] p-6">
+            <section className="rounded-2xl border border-[#2e2e38] bg-[#18181B] p-6">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#552e2e] bg-[#2a1414] text-[#FF8585]">
                   <AlertTriangle className="h-4.5 w-4.5" />

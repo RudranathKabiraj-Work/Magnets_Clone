@@ -55,7 +55,7 @@ export default function IntegrationsPage() {
             return (
               <div
                 key={item.id}
-                className="flex flex-col justify-between gap-4 rounded-lg border border-ink-200 bg-white p-5 sm:flex-row sm:items-center dark:border-ink-700 dark:bg-ink-900/95"
+                className="flex flex-col justify-between gap-4 rounded-2xl border border-ink-200 bg-white p-5 sm:flex-row sm:items-center dark:border-ink-700 dark:bg-ink-900/95"
               >
                 <div className="flex items-start gap-4">
                   <span
@@ -96,7 +96,7 @@ export default function IntegrationsPage() {
           })}
         </div>
 
-        <div className="mt-8 rounded-lg border border-ink-200 bg-brand-soft p-5 text-sm leading-6 text-ink-700 dark:border-ink-700 dark:bg-ink-900/95 dark:text-ink-300">
+        <div className="mt-8 rounded-2xl border border-ink-200 bg-brand-soft p-5 text-sm leading-6 text-ink-700 dark:border-ink-700 dark:bg-ink-900/95 dark:text-ink-300">
           <p className="font-semibold text-ink-950 dark:text-white">A note on connections</p>
           <p className="mt-1.5">
             Each integration only receives the information needed to perform its action. Signup data stays owned by you, and

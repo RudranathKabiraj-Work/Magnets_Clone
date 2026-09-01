@@ -142,7 +142,7 @@ export default function ResourcesPage() {
           </div>
 
           {/* Drag & Drop area */}
-          <div className="relative mt-6 rounded-lg border border-dashed border-ink-300 bg-white p-12 text-center transition hover:border-ink-400 dark:border-ink-700 dark:bg-ink-900">
+          <div className="relative mt-6 rounded-2xl border border-dashed border-ink-300 bg-white p-12 text-center transition hover:border-ink-400 dark:border-ink-700 dark:bg-ink-900">
             <input
               type="file"
               className="absolute inset-0 cursor-pointer opacity-0"
@@ -161,7 +161,7 @@ export default function ResourcesPage() {
           </div>
 
           {/* Info Banner */}
-          <div className="mt-4 flex items-start gap-3 rounded-lg border border-ink-200 bg-ink-50 p-3.5 text-xs text-ink-600 dark:border-ink-800 dark:bg-ink-900/60 dark:text-ink-400">
+          <div className="mt-4 flex items-start gap-3 rounded-2xl border border-ink-200 bg-ink-50 p-3.5 text-xs text-ink-600 dark:border-ink-800 dark:bg-ink-900/60 dark:text-ink-400">
             <Lock className="h-4 w-4 shrink-0 text-ink-500 mt-0.5" />
             <p>
               Files are private in storage and only you can manage them. Anyone you give a unique resource link to can{" "}
@@ -172,7 +172,7 @@ export default function ResourcesPage() {
           {/* Resources list */}
           <div className="mt-4">
             {resources.length === 0 ? (
-              <div className="rounded-lg border border-ink-100 bg-white py-16 text-center dark:border-ink-800 dark:bg-ink-900">
+              <div className="rounded-2xl border border-ink-100 bg-white py-16 text-center dark:border-ink-800 dark:bg-ink-900">
                 <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-ink-50 text-ink-400 dark:bg-ink-800">
                   <FileText className="h-5 w-5" />
                 </div>
@@ -180,7 +180,7 @@ export default function ResourcesPage() {
                 <p className="mt-1 text-xs text-ink-400">Upload your first file to get a reusable download link.</p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-lg border border-ink-200 bg-white dark:border-ink-800 dark:bg-ink-900">
+              <div className="overflow-hidden rounded-2xl border border-ink-200 bg-white dark:border-ink-800 dark:bg-ink-900">
                 <table className="min-w-full divide-y divide-ink-200 dark:divide-ink-800">
                   <thead className="bg-ink-50 dark:bg-ink-950/40">
                     <tr>

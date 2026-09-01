@@ -99,7 +99,7 @@ export default function WorkspaceSetupPage() {
 
           {/* Workspace Essentials banner */}
           <div
-            className="relative mb-5 overflow-hidden rounded-xl border border-[#2e2e38] bg-[#18181B] pt-7 pb-8 px-8"
+            className="relative mb-5 overflow-hidden rounded-2xl border border-[#2e2e38] bg-[#18181B] pt-7 pb-8 px-8"
             style={{
               background: "linear-gradient(90deg, #2D1A12 0%, #1D1512 30%, #18181B 70%)",
             }}
@@ -124,7 +124,7 @@ export default function WorkspaceSetupPage() {
               </div>
 
               {/* Public URL ready status card */}
-              <div className="flex items-center gap-2.5 rounded-lg border border-[#2e2e38] bg-[#0E0E10]/70 px-4 py-3 shrink-0">
+              <div className="flex items-center gap-2.5 rounded-2xl border border-[#2e2e38] bg-[#0E0E10]/70 px-4 py-3 shrink-0">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
                 <div>
                   <p className="text-xs font-semibold text-white">Public URL ready</p>
@@ -138,7 +138,7 @@ export default function WorkspaceSetupPage() {
           <div className="space-y-4">
 
             {/* Public URL card */}
-            <div className="rounded-xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
+            <div className="rounded-2xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
               {/* Always-visible header */}
               <div className="flex items-start gap-3 p-5">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#252529] text-[#9B9085]">
@@ -174,7 +174,7 @@ export default function WorkspaceSetupPage() {
                     <p className="mt-1.5 text-[11px] text-[#9B9085]">Lowercase letters, numbers, and hyphens.</p>
                   </div>
                   {/* Share this link card */}
-                  <div className="rounded-lg border border-[#2e2e38] bg-[#0E0E10] px-4 py-3 shrink-0 md:w-56">
+                  <div className="rounded-2xl border border-[#2e2e38] bg-[#0E0E10] px-4 py-3 shrink-0 md:w-56">
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-[#9B9085] mb-1.5">Share this link</p>
                     <p className="text-sm font-semibold text-white">magnets.so/{username}</p>
                   </div>
@@ -212,7 +212,7 @@ export default function WorkspaceSetupPage() {
             </div>
 
             {/* Optional connections card */}
-            <div className="rounded-xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
+            <div className="rounded-2xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
               <button
                 onClick={() => toggle("connections")}
                 className="flex w-full items-center justify-between p-5 text-left hover:bg-[#252529]/20 transition"
@@ -245,7 +245,7 @@ export default function WorkspaceSetupPage() {
             </div>
 
             {/* Legal links card */}
-            <div className="rounded-xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
+            <div className="rounded-2xl border border-[#2e2e38] bg-[#18181B] overflow-hidden">
               <button
                 onClick={() => toggle("legal-links")}
                 className="flex w-full items-center justify-between p-5 text-left hover:bg-[#252529]/20 transition"

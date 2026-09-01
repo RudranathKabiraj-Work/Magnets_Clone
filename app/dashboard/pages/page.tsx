@@ -29,6 +29,8 @@ export default function PagesPage() {
     );
   }, [pages, search]);
 
+  const [isDark, setIsDark] = useState(false);
+
   useEffect(() => {
     // Load local data instantly
     const localPages = loadPages();
@@ -37,6 +39,12 @@ export default function PagesPage() {
     if (localAccount) setAccount(localAccount);
     setLoading(false);
 
+    // Track theme mode
+    const checkDark = () => setIsDark(document.documentElement.classList.contains("dark"));
+    checkDark();
+    const observer = new MutationObserver(checkDark);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
     // Sync in background silently
     syncWithDatabase().then((data) => {
       if (data) {
@@ -44,6 +52,8 @@ export default function PagesPage() {
         if (data.account) setAccount(data.account);
       }
     });
+
+    return () => observer.disconnect();
   }, []);
 
   function removePage(id: string) {
@@ -68,52 +78,47 @@ export default function PagesPage() {
 
           {/* Page heading */}
           <div className="mb-6">
-            <h2 className="flex items-center gap-2 text-3xl font-bold text-white">
+            <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-950 dark:text-white">
               Lead magnets
-              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#18181B]">?</span>
+              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 bg-white text-xs font-normal text-zinc-500 hover:bg-zinc-100 dark:border-[#2e2e38] dark:bg-transparent dark:text-[#9B9085] dark:hover:bg-[#18181B]">?</span>
             </h2>
-            <p className="text-xs text-[#9B9085] mt-1">Create, publish, and manage your lead magnets</p>
+            <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Create, publish, and manage your lead magnets</p>
           </div>
 
           {/* Conversion Workspace banner */}
-          <div
-            className="relative mb-6 overflow-hidden rounded-2xl border border-[#34343f] py-7 px-8 shadow-xl"
-            style={{
-              background: "radial-gradient(circle at 6% 50%, rgba(254, 111, 52, 0.22) 0%, transparent 45%), linear-gradient(135deg, #2b201b 0%, #222227 50%, #1d1d22 100%)",
-            }}
-          >
+          <div className="conversion-banner-bg relative mb-6 overflow-hidden rounded-2xl border border-zinc-200/80 py-7 px-8 shadow-sm dark:border-[#2b2b34]">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 {/* Badge */}
                 <div className="mb-3.5 flex items-center">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FE6F34]/40 bg-[#351b11] px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#FE6F34]">
-                    <Sparkles className="h-3.5 w-3.5 text-[#FE6F34] fill-[#FE6F34]/20" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FE6F34]/30 bg-[#FFF0EA] px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#FE6F34] dark:border-[#5C2E1A] dark:bg-[#2E1810] dark:text-[#FF8C53]">
+                    <Sparkles className="h-3.5 w-3.5 text-[#FE6F34] dark:text-[#FF8C53] fill-[#FE6F34]/20" />
                     CONVERSION WORKSPACE
                   </span>
                 </div>
-                <h3 className="text-3xl font-bold text-white tracking-tight mb-1.5">Your lead magnet library</h3>
-                <p className="text-sm text-[#a3998e]">
+                <h3 className="text-3xl font-bold text-zinc-950 dark:text-white tracking-tight mb-1.5">Your lead magnet library</h3>
+                <p className="text-sm text-zinc-600 dark:text-[#9E968F]">
                   Create the signup page, delivery email, follow-up emails, and post-signup page.
                 </p>
               </div>
 
               <div className="flex items-center gap-3 shrink-0">
                 {/* Published stat */}
-                <div className="rounded-xl border border-[#34343f] bg-[#2a2a30]/90 p-3.5 text-left w-24 flex flex-col justify-between shadow-sm">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#888894]">PUBLISHED</p>
-                  <p className="text-2xl font-bold text-white leading-none mt-2">{live}</p>
+                <div className="rounded-2xl border border-zinc-200/80 bg-white p-3.5 text-left w-24 flex flex-col justify-between shadow-sm dark:border-[#282830] dark:bg-[#18181C]/90">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86]">PUBLISHED</p>
+                  <p className="text-2xl font-bold text-zinc-950 dark:text-white leading-none mt-2">{live}</p>
                 </div>
                 {/* Total stat */}
-                <div className="rounded-xl border border-[#34343f] bg-[#2a2a30]/90 p-3.5 text-left w-24 flex flex-col justify-between shadow-sm">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#888894]">TOTAL</p>
-                  <p className="text-2xl font-bold text-white leading-none mt-2">{total}</p>
+                <div className="rounded-2xl border border-zinc-200/80 bg-white p-3.5 text-left w-24 flex flex-col justify-between shadow-sm dark:border-[#282830] dark:bg-[#18181C]/90">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86]">TOTAL</p>
+                  <p className="text-2xl font-bold text-zinc-950 dark:text-white leading-none mt-2">{total}</p>
                 </div>
                 {/* New page button */}
                 <Link
                   href="/dashboard/pages/new"
-                  className="flex items-center justify-center gap-1.5 rounded-xl bg-[#FE6F34] px-5 py-3 text-xs font-bold text-white hover:bg-[#ff7d47] transition shadow-md whitespace-nowrap"
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-black px-5 py-3 text-xs font-bold text-white hover:bg-zinc-800 transition shadow-md whitespace-nowrap dark:bg-[#FE6F34] dark:text-black dark:hover:bg-[#ff7d47]"
                 >
-                  <Plus className="h-4 w-4 text-white stroke-[2.5px]" />
+                  <Plus className="h-4 w-4 text-white dark:text-black stroke-[2.5px]" />
                   New page
                 </Link>
               </div>
@@ -122,34 +127,34 @@ export default function PagesPage() {
 
           {/* Search bar + spaces used */}
           <div className="mb-4 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5 rounded-xl border border-[#2e2e38] bg-[#141417] px-4 py-3 w-[380px] focus-within:border-[#FE6F34]/50 transition-colors shadow-sm">
-              <Search className="h-4 w-4 text-[#9B9085] shrink-0" />
+            <div className="flex items-center gap-2.5 rounded-2xl border border-zinc-200/80 bg-white px-4 py-3 w-[380px] focus-within:border-[#FE6F34]/50 transition-colors shadow-sm dark:border-[#2e2e38] dark:bg-[#141417]">
+              <Search className="h-4 w-4 text-zinc-400 dark:text-[#9B9085] shrink-0" />
               <input
                 type="text"
                 placeholder="Search by title or URL..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent text-xs text-white outline-none placeholder:text-[#9B9085] w-full"
+                className="bg-transparent text-xs text-zinc-900 outline-none placeholder:text-zinc-400 dark:text-white dark:placeholder:text-[#9B9085] w-full"
               />
             </div>
-            <p className="text-xs text-[#9B9085] shrink-0">{total} of 250 spaces used</p>
+            <p className="text-xs text-zinc-500 dark:text-[#9B9085] shrink-0">{total} of 250 spaces used</p>
           </div>
 
           {/* Pages list or empty state */}
-          <div className="rounded-2xl border border-[#2e2e38] bg-[#0E0E10] overflow-hidden">
+          <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-sm overflow-hidden dark:border-[#2e2e38] dark:bg-[#0E0E10]">
             {filtered.length === 0 && pages.length === 0 ? (
               /* Empty state */
               <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2a1a08] mb-5">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF0EA] text-[#FE6F34] mb-5 dark:bg-[#2a1a08]">
                   <Sparkles className="h-7 w-7 text-[#FE6F34]" />
                 </div>
-                <p className="text-lg font-semibold text-white mb-2">Create your first lead magnet</p>
-                <p className="text-xs text-[#9B9085] max-w-xs mb-6 leading-relaxed">
+                <p className="text-lg font-semibold text-zinc-950 dark:text-white mb-2">Create your first lead magnet</p>
+                <p className="text-xs text-zinc-500 dark:text-[#9B9085] max-w-xs mb-6 leading-relaxed">
                   Build the landing page, resource email, and follow-up sequence in one guided flow.
                 </p>
                 <Link
                   href="/dashboard/pages/new"
-                  className="flex items-center gap-2 rounded-xl bg-[#FE6F34] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#e55e28] transition"
+                  className="flex items-center gap-2 rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition dark:bg-[#FE6F34] dark:hover:bg-[#e55e28]"
                 >
                   <Plus className="h-4 w-4" />
                   Create lead magnet
@@ -158,20 +163,20 @@ export default function PagesPage() {
             ) : filtered.length === 0 ? (
               /* No search results */
               <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                <p className="text-sm font-medium text-white mb-1">No results found</p>
-                <p className="text-xs text-[#9B9085]">Try a different title or URI.</p>
+                <p className="text-sm font-medium text-zinc-950 dark:text-white mb-1">No results found</p>
+                <p className="text-xs text-zinc-500 dark:text-[#9B9085]">Try a different title or URI.</p>
               </div>
             ) : (
               /* Pages list */
-              <div className="divide-y divide-[#252529]">
+              <div className="divide-y divide-zinc-200/80 dark:divide-[#252529]">
                 {filtered.map((page) => (
                   <div
                     key={page.id}
-                    className="flex flex-col gap-4 p-4 transition hover:bg-[#252529]/40 sm:flex-row sm:items-center sm:px-5"
+                    className="flex flex-col gap-4 p-4 transition hover:bg-zinc-50/80 sm:flex-row sm:items-center sm:px-5 dark:hover:bg-[#252529]/40"
                   >
                     {/* Color preview thumbnail */}
                     <div
-                      className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[#2e2e38]"
+                      className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-zinc-200 dark:border-[#2e2e38]"
                       style={{ backgroundColor: page.accent }}
                     >
                       <div className="absolute inset-x-2 top-2 h-1 rounded-full bg-white/80" />
@@ -187,13 +192,13 @@ export default function PagesPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link
                           href={`/dashboard/pages/${page.id}`}
-                          className="truncate text-sm font-semibold text-white hover:text-[#FE6F34] transition"
+                          className="truncate text-sm font-semibold text-zinc-950 hover:text-[#FE6F34] transition dark:text-white dark:hover:text-[#FE6F34]"
                         >
                           {page.name}
                         </Link>
                         <StatusBadge status={page.status} />
                       </div>
-                      <div className="mt-1 flex items-center gap-3 text-xs text-[#9B9085] flex-wrap">
+                      <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500 dark:text-[#9B9085] flex-wrap">
                         <span className="inline-flex items-center gap-1">
                           <Rocket className="h-3 w-3" />
                           /{account.username}/{page.slug}
@@ -203,7 +208,7 @@ export default function PagesPage() {
                             href={`https://magnets.so/${account.username}/${page.slug}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 hover:text-white transition"
+                            className="inline-flex items-center gap-1 hover:text-zinc-950 transition dark:hover:text-white"
                           >
                             <ExternalLink className="h-3 w-3" />
                             View
@@ -215,20 +220,20 @@ export default function PagesPage() {
                     {/* Stats */}
                     <div className="flex items-center gap-6 text-right shrink-0">
                       <div>
-                        <p className="text-sm font-semibold text-white">{page.views.toLocaleString()}</p>
-                        <p className="flex items-center justify-end gap-1 text-[11px] text-[#9B9085]">
+                        <p className="text-sm font-semibold text-zinc-950 dark:text-white">{page.views.toLocaleString()}</p>
+                        <p className="flex items-center justify-end gap-1 text-[11px] text-zinc-500 dark:text-[#9B9085]">
                           <Eye className="h-3 w-3" /> views
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-white">{page.signups.toLocaleString()}</p>
-                        <p className="text-[11px] text-[#9B9085]">signups</p>
+                        <p className="text-sm font-semibold text-zinc-950 dark:text-white">{page.signups.toLocaleString()}</p>
+                        <p className="text-[11px] text-zinc-500 dark:text-[#9B9085]">signups</p>
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-white">
+                        <p className="text-sm font-semibold text-zinc-950 dark:text-white">
                           {page.conversionRate ? `${page.conversionRate.toFixed(1)}%` : "—"}
                         </p>
-                        <p className="flex items-center justify-end gap-1 text-[11px] text-[#9B9085]">
+                        <p className="flex items-center justify-end gap-1 text-[11px] text-zinc-500 dark:text-[#9B9085]">
                           <MousePointerClick className="h-3 w-3" /> conv.
                         </p>
                       </div>
@@ -239,14 +244,14 @@ export default function PagesPage() {
                       <Link
                         href={`/dashboard/pages/${page.id}`}
                         aria-label={`Edit ${page.name}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2e2e38] text-[#9B9085] hover:border-[#3a3a3f] hover:text-white transition"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 transition dark:border-[#2e2e38] dark:bg-transparent dark:text-[#9B9085] dark:hover:border-[#3a3a3f] dark:hover:text-white"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </Link>
                       <button
                         aria-label={`Delete ${page.name}`}
                         onClick={() => removePage(page.id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2e2e38] text-[#9B9085] hover:border-red-800 hover:text-red-400 transition"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 hover:border-red-600 hover:text-red-600 transition dark:border-[#2e2e38] dark:bg-transparent dark:text-[#9B9085] dark:hover:border-red-800 dark:hover:text-red-400"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -259,7 +264,7 @@ export default function PagesPage() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
+        <footer className="mt-auto border-t border-zinc-200/80 px-6 py-4 flex items-center justify-between text-xs text-zinc-400 dark:border-[#2e2e38] dark:text-[#9B9085]">
           <span>Magnets</span>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-white transition">Privacy</a>

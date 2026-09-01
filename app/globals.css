@@ -6,6 +6,15 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(247, 245, 241, 0)), #f7f5f1;
 }
 
+.conversion-banner-bg {
+  background: linear-gradient(90deg, #3C2219 0%, #2A1913 25%, #181617 50%, #131315 75%);
+}
+
+html:not(.dark)[data-theme="light"] .conversion-banner-bg,
+html.light .conversion-banner-bg {
+  background: radial-gradient(circle at 4% 35%, rgba(254, 111, 52, 0.1) 0%, transparent 55%), linear-gradient(135deg, #FFF7F4 0%, #FAFAFA 50%, #F5F4F2 100%);
+}
+
 .vercel-grid-bg {
   background-image: linear-gradient(rgba(17, 17, 17, 0.045) 1px, transparent 0),
     linear-gradient(90deg, rgba(17, 17, 17, 0.045) 1px, transparent 0);

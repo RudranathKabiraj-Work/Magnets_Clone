@@ -135,8 +135,8 @@ export default function DashboardShell({
         <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
       )}
 
-      <aside className="shadow-sm hidden h-screen w-[14.5rem] shrink-0 flex-col border-r border-white/10 bg-[#18181B] text-[#9B9085] sticky top-0 md:flex z-40">
-        <div className="flex h-12 shrink-0 items-center border-b border-white/10 px-4 dark">
+      <aside className="shadow-sm hidden h-screen w-[14.5rem] shrink-0 flex-col border-r border-[#e4e4e7] bg-white text-zinc-600 sticky top-0 md:flex z-40 dark:border-white/10 dark:bg-[#18181B] dark:text-[#9B9085]">
+        <div className="flex h-12 shrink-0 items-center border-b border-[#e4e4e7] px-4 dark:border-white/10">
           <Link href="/" aria-label="Magnets home">
             <BrandLogo height="h-5" width="w-[7.5rem]" />
           </Link>
@@ -146,9 +146,9 @@ export default function DashboardShell({
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             const isDividerAfter = idx === 2; // Divider after Signups
 
-            const linkClass = `flex items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition ${active
-                ? "bg-[#FE6F34]/15 text-white font-semibold"
-                : "text-[#9B9085] hover:bg-[#FE6F34]/8 hover:text-white"
+            const linkClass = `group flex items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition ${active
+                ? "bg-[#FFF0EA] text-[#1c1c1f] font-semibold dark:bg-[#FE6F34]/15 dark:text-white"
+                : "text-[#666666] hover:bg-zinc-100 hover:text-black dark:text-[#9B9085] dark:hover:bg-[#25252a] dark:hover:text-white"
               }`;
 
             if (item.isModal) {
@@ -156,12 +156,12 @@ export default function DashboardShell({
                 <div key={item.href}>
                   <button
                     onClick={() => setShowHelp(true)}
-                    className="flex w-full items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition text-[#9B9085] hover:bg-[#1C1613] hover:text-white"
+                    className="group flex w-full items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition text-[#666666] hover:bg-zinc-100 hover:text-black dark:text-[#9B9085] dark:hover:bg-[#25252a] dark:hover:text-white"
                   >
-                    <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-[#9B9085]"}`} aria-hidden="true" />
+                    <item.icon className={`h-4 w-4 shrink-0 transition-colors ${active ? "text-[#FE6F34] dark:text-white" : "text-[#888888] group-hover:text-black dark:text-[#9B9085] dark:group-hover:text-white"}`} aria-hidden="true" />
                     {item.label}
                   </button>
-                  {isDividerAfter && <div className="my-3 border-t border-white/10" />}
+                  {isDividerAfter && <div className="my-3 border-t border-[#e4e4e7] dark:border-white/10" />}
                 </div>
               );
             }
@@ -169,53 +169,53 @@ export default function DashboardShell({
             return (
               <div key={item.href}>
                 <Link href={item.href} className={linkClass}>
-                  <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-[#9B9085]"}`} aria-hidden="true" />
+                  <item.icon className={`h-4 w-4 shrink-0 transition-colors ${active ? "text-[#FE6F34] dark:text-white" : "text-[#888888] group-hover:text-black dark:text-[#9B9085] dark:group-hover:text-white"}`} aria-hidden="true" />
                   {item.label}
                 </Link>
-                {isDividerAfter && <div className="my-3 border-t border-white/10" />}
+                {isDividerAfter && <div className="my-3 border-t border-[#e4e4e7] dark:border-white/10" />}
               </div>
             );
           })}
         </nav>
-        <div className="border-t border-white/10 px-2.5 py-2">
+        <div className="border-t border-[#e4e4e7] px-2.5 py-2 dark:border-white/10">
           <div className="relative">
             {/* Profile Popover Menu */}
             {showProfileMenu && (
-              <div className="absolute bottom-full mb-2 left-0 w-52 rounded-xl border border-[#2e2e38] bg-[#1a1a1e] p-1.5 shadow-2xl z-50 text-white flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150">
+              <div className="absolute bottom-full mb-2 left-0 w-52 rounded-xl border border-[#e4e4e7] bg-white p-1.5 shadow-2xl z-50 text-zinc-900 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150 dark:border-[#2e2e38] dark:bg-[#1a1a1e] dark:text-white">
                 <button
                   onClick={toggleTheme}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-ink-300 hover:bg-[#26262B] hover:text-white transition w-full"
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-black transition w-full dark:text-ink-300 dark:hover:bg-[#26262B] dark:hover:text-white"
                 >
                   {dark ? (
                     <>
-                      <Sun className="h-4 w-4 text-[#9B9085]" /> Light mode
+                      <Sun className="h-4 w-4 text-[#888888] dark:text-[#9B9085]" /> Light mode
                     </>
                   ) : (
                     <>
-                      <Moon className="h-4 w-4 text-[#9B9085]" /> Dark mode
+                      <Moon className="h-4 w-4 text-[#888888] dark:text-[#9B9085]" /> Dark mode
                     </>
                   )}
                 </button>
                 <a
                   href="mailto:hello@magnets.so?subject=Bug%20Report"
                   onClick={() => setShowProfileMenu(false)}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-ink-300 hover:bg-[#26262B] hover:text-white transition w-full"
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-black transition w-full dark:text-ink-300 dark:hover:bg-[#26262B] dark:hover:text-white"
                 >
-                  <Bug className="h-4 w-4 text-[#9B9085]" /> Report a bug
+                  <Bug className="h-4 w-4 text-[#888888] dark:text-[#9B9085]" /> Report a bug
                 </a>
                 <a
                   href="mailto:hello@magnets.so?subject=Feature%20Request"
                   onClick={() => setShowProfileMenu(false)}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-ink-300 hover:bg-[#26262B] hover:text-white transition w-full"
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-black transition w-full dark:text-ink-300 dark:hover:bg-[#26262B] dark:hover:text-white"
                 >
-                  <Lightbulb className="h-4 w-4 text-[#9B9085]" /> Request a feature
+                  <Lightbulb className="h-4 w-4 text-[#888888] dark:text-[#9B9085]" /> Request a feature
                 </a>
-                <div className="border-t border-white/10 my-1" />
+                <div className="border-t border-[#e4e4e7] my-1 dark:border-white/10" />
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-[#26262B] transition w-full"
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 transition w-full dark:text-red-400 dark:hover:bg-[#26262B]"
                 >
-                  <LogOut className="h-4 w-4 text-red-400" /> Logout
+                  <LogOut className="h-4 w-4 text-red-600 dark:text-red-400" /> Logout
                 </button>
               </div>
             )}
@@ -223,15 +223,15 @@ export default function DashboardShell({
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               className={`flex items-center gap-2.5 px-2 py-1.5 w-full text-left rounded-lg transition-colors cursor-pointer ${
-                showProfileMenu ? "bg-[#26262B]" : "hover:bg-[#26262B]"
+                showProfileMenu ? "bg-zinc-100 dark:bg-[#26262B]" : "hover:bg-zinc-100 dark:hover:bg-[#26262B]"
               }`}
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#121214] text-xs font-bold text-white">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-xs font-bold text-white dark:bg-[#121214]">
                 {account.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || account.name.charAt(0)}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-white leading-tight">{account.name}</p>
-                <p className="truncate text-[10px] text-[#9B9085] leading-tight mt-0.5">{account.email}</p>
+                <p className="truncate text-xs font-semibold text-zinc-900 leading-tight dark:text-white">{account.name}</p>
+                <p className="truncate text-[10px] text-zinc-500 leading-tight mt-0.5 dark:text-[#9B9085]">{account.email}</p>
               </div>
             </button>
           </div>
@@ -292,7 +292,7 @@ export default function DashboardShell({
         </div>
       )}
 
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col bg-[#FAFAFA] dark:bg-[#0E0E10]">
         <header className="dashboard-chrome sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-ink-200 bg-white px-4 sm:px-6 md:hidden">
           <div className="flex items-center gap-3">
             <button
@@ -441,7 +441,7 @@ export default function DashboardShell({
                   {/* Left Column (LEARN, SET UP, MANAGE) */}
                   <div className="space-y-6">
                     {/* LEARN */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-5">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.learn.title}</span>
                         <span>{helpTopics.learn.count}</span>
@@ -469,7 +469,7 @@ export default function DashboardShell({
                     </div>
 
                     {/* SET UP */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-5">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.setup.title}</span>
                         <span>{helpTopics.setup.count}</span>
@@ -497,7 +497,7 @@ export default function DashboardShell({
                     </div>
 
                     {/* MANAGE */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-5">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.manage.title}</span>
                         <span>{helpTopics.manage.count}</span>
@@ -528,7 +528,7 @@ export default function DashboardShell({
                   {/* Right Column (BUILD, CONNECTIONS) */}
                   <div className="space-y-6">
                     {/* BUILD */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-5">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.build.title}</span>
                         <span>{helpTopics.build.count}</span>
@@ -559,7 +559,7 @@ export default function DashboardShell({
                     </div>
 
                     {/* CONNECTIONS */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-5">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.connections.title}</span>
                         <span>{helpTopics.connections.count}</span>
