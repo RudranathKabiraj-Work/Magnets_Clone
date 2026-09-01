@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2 } from "lucide-react";
+import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
@@ -31,6 +31,7 @@ export default function DashboardShell({
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [dark, setDark] = useState(false);
@@ -365,235 +366,7 @@ export default function DashboardShell({
         <main className="min-w-0 flex-1">{children}</main>
       </div>
 
-      {/* Help Centre Modal */}
-      {showHelp && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px] p-3 md:p-4 transition-all duration-200"
-          onClick={() => setShowHelp(false)}
-        >
-          <div
-            className="relative w-full max-w-4xl h-[94vh] max-h-[96vh] rounded-2xl border border-[#2e2e38] bg-[#1a1a1e] text-white shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#2e2e38] px-6 py-4">
-              <div className="flex items-center gap-3.5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FE6F34] text-white shadow-sm">
-                  <Sliders className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-white">Help centre</h3>
-                  <p className="text-[11px] text-[#9B9085] mt-0.5">Learn the basics or find your next step.</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowHelp(false)}
-                className="rounded-lg p-1.5 text-[#9B9085] hover:bg-[#25252b] hover:text-white transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
 
-            {/* Modal Scroll Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6" data-lenis-prevent>
-              {/* What do you need help with? Title */}
-              {!searchQuery && (
-                <div className="mb-4">
-                  <h2 className="text-xl font-bold text-white">What do you need help with?</h2>
-                  <p className="text-xs text-[#9B9085] mt-1">Choose a topic for a clear answer and the exact steps to follow.</p>
-                </div>
-              )}
-
-              {/* Modal Search Bar */}
-              <div className="relative flex items-center rounded-lg border border-[#2e2e38] bg-[#141417] px-3.5 focus-within:border-[#FE6F34] mb-2 transition-colors">
-                <Search className="h-4 w-4 text-[#9B9085] mr-2 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search topics, integrations, or setup"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent py-2.5 text-xs text-white outline-none placeholder-[#71717a] focus:ring-0"
-                />
-              </div>
-
-              {searchQuery ? (
-                <div>
-                  <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider mb-3">Search Results</p>
-                  {filteredTopics.length === 0 ? (
-                    <p className="text-xs text-[#9B9085] py-6 text-center">No topics match your search query.</p>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-2">
-                      {filteredTopics.map((topic) => (
-                        <button
-                          key={topic.text}
-                          onClick={() => alert(`Showing details for: ${topic.text}`)}
-                          className="flex items-center justify-between rounded-lg bg-[#222227] border border-[#2e2e38] hover:bg-[#282830] p-3.5 text-left text-xs font-semibold text-white transition-colors"
-                        >
-                          <span className="text-xs font-semibold text-white">{topic.text}</span>
-                          <ChevronRight className="h-3.5 w-3.5 text-[#FE6F34]" />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-                  {/* Left Column (LEARN, SET UP, MANAGE) */}
-                  <div className="space-y-3.5">
-                    {/* LEARN */}
-                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
-                        <span>{helpTopics.learn.title}</span>
-                        <span>{helpTopics.learn.count}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {helpTopics.learn.items.map((topic) => (
-                          <button
-                            key={topic.text}
-                            onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
-                          >
-                            <div className="flex items-center gap-3.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
-                                {topic.icon === "BookOpen" && <BookOpen className="h-3.5 w-3.5" />}
-                                {topic.icon === "Gift" && <Gift className="h-3.5 w-3.5" />}
-                                {topic.icon === "Sliders" && <Sliders className="h-3.5 w-3.5" />}
-                                {topic.icon === "Lightbulb" && <Lightbulb className="h-3.5 w-3.5" />}
-                              </span>
-                              <span>{topic.text}</span>
-                            </div>
-                            <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* SET UP */}
-                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
-                        <span>{helpTopics.setup.title}</span>
-                        <span>{helpTopics.setup.count}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {helpTopics.setup.items.map((topic) => (
-                          <button
-                            key={topic.text}
-                            onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
-                          >
-                            <div className="flex items-center gap-3.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
-                                {topic.icon === "Settings" && <Settings className="h-3.5 w-3.5" />}
-                                {topic.icon === "Globe" && <Globe className="h-3.5 w-3.5" />}
-                                {topic.icon === "Mail" && <Mail className="h-3.5 w-3.5" />}
-                                {topic.icon === "BookOpen" && <BookOpen className="h-3.5 w-3.5" />}
-                              </span>
-                              <span>{topic.text}</span>
-                            </div>
-                            <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* MANAGE */}
-                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
-                        <span>{helpTopics.manage.title}</span>
-                        <span>{helpTopics.manage.count}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {helpTopics.manage.items.map((topic) => (
-                          <button
-                            key={topic.text}
-                            onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
-                          >
-                            <div className="flex items-center gap-3.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
-                                {topic.icon === "Users" && <Users className="h-3.5 w-3.5" />}
-                                {topic.icon === "BarChart3" && <BarChart3 className="h-3.5 w-3.5" />}
-                                {topic.icon === "User" && <User className="h-3.5 w-3.5" />}
-                                {topic.icon === "PlayCircle" && <PlayCircle className="h-3.5 w-3.5" />}
-                              </span>
-                              <span>{topic.text}</span>
-                            </div>
-                            <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Column (BUILD, CONNECTIONS) */}
-                  <div className="space-y-3.5">
-                    {/* BUILD */}
-                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
-                        <span>{helpTopics.build.title}</span>
-                        <span>{helpTopics.build.count}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {helpTopics.build.items.map((topic) => (
-                          <button
-                            key={topic.text}
-                            onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
-                          >
-                            <div className="flex items-center gap-3.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
-                                {topic.icon === "Compass" && <Compass className="h-3.5 w-3.5" />}
-                                {topic.icon === "FileText" && <FileText className="h-3.5 w-3.5" />}
-                                {topic.icon === "FolderOpen" && <FolderOpen className="h-3.5 w-3.5" />}
-                                {topic.icon === "Palette" && <Palette className="h-3.5 w-3.5" />}
-                                {topic.icon === "Send" && <Send className="h-3.5 w-3.5" />}
-                                {topic.icon === "GitFork" && <GitFork className="h-3.5 w-3.5" />}
-                                {topic.icon === "Calendar" && <Calendar className="h-3.5 w-3.5" />}
-                              </span>
-                              <span>{topic.text}</span>
-                            </div>
-                            <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* CONNECTIONS */}
-                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
-                        <span>{helpTopics.connections.title}</span>
-                        <span>{helpTopics.connections.count}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {helpTopics.connections.items.map((topic) => (
-                          <button
-                            key={topic.text}
-                            onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
-                          >
-                            <div className="flex items-center gap-3.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
-                                {topic.icon === "Share2" && <Share2 className="h-3.5 w-3.5" />}
-                                {topic.icon === "Cpu" && <Cpu className="h-3.5 w-3.5" />}
-                                {topic.icon === "Slack" && <Slack className="h-3.5 w-3.5" />}
-                                {topic.icon === "Zap" && <Zap className="h-3.5 w-3.5" />}
-                                {topic.icon === "Link" && <LinkIcon className="h-3.5 w-3.5" />}
-                                {topic.icon === "Calendar" && <Calendar className="h-3.5 w-3.5" />}
-                              </span>
-                              <span>{topic.text}</span>
-                            </div>
-                            <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Help Centre Modal */}
       {showHelp && (
@@ -617,208 +390,263 @@ export default function DashboardShell({
                 </div>
               </div>
               <button
-                onClick={() => setShowHelp(false)}
+                onClick={() => {
+                  setShowHelp(false);
+                  setSelectedTopic(null);
+                }}
                 className="rounded-lg p-1.5 text-[#9B9085] hover:bg-[#25252b] hover:text-white transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Modal Scroll Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6" data-lenis-prevent>
-              {/* What do you need help with? Title */}
-              {!searchQuery && (
-                <div className="mb-4">
-                  <h2 className="text-xl font-bold text-white">What do you need help with?</h2>
-                  <p className="text-xs text-[#9B9085] mt-1">Choose a topic for a clear answer and the exact steps to follow.</p>
-                </div>
-              )}
-
-              {/* Modal Search Bar */}
-              <div className="relative flex items-center rounded-lg border border-[#2e2e38] bg-[#141417] px-3.5 focus-within:border-[#FE6F34] mb-2 transition-colors">
-                <Search className="h-4 w-4 text-[#9B9085] mr-2 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search topics, integrations, or setup"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent py-2.5 text-xs text-white outline-none placeholder-[#71717a] focus:ring-0"
-                />
+            {/* Sub-header navigation when inside a topic */}
+            {selectedTopic && (
+              <div className="flex items-center justify-between border-b border-[#2e2e38] bg-transparent px-6 py-3">
+                <button
+                  onClick={() => setSelectedTopic(null)}
+                  className="flex items-center gap-2.5 rounded-xl bg-transparent px-3.5 py-1.5 ml-6 text-sm font-semibold text-[#d4c8bc] hover:bg-[#282830] hover:text-white transition-all"
+                >
+                  <ArrowLeft className="h-4 w-4 text-[#9B9085]" />
+                  <span>All help topics</span>
+                </button>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#666675] mr-4">LEARN</span>
               </div>
+            )}
 
-              {searchQuery ? (
-                <div>
-                  <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider mb-3">Search Results</p>
-                  {filteredTopics.length === 0 ? (
-                    <p className="text-xs text-[#9B9085] py-6 text-center">No topics match your search query.</p>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-2">
-                      {filteredTopics.map((topic) => (
-                        <button
-                          key={topic.text}
-                          onClick={() => alert(`Showing details for: ${topic.text}`)}
-                          className="flex items-center justify-between rounded-lg bg-[#222227] border border-[#2e2e38] hover:bg-[#282830] p-3.5 text-left text-xs font-semibold text-white transition-colors"
-                        >
-                          <span className="text-xs font-semibold text-white">{topic.text}</span>
-                          <ChevronRight className="h-3.5 w-3.5 text-[#FE6F34]" />
-                        </button>
-                      ))}
+            {/* Modal Scroll Content */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6" data-lenis-prevent>
+              {selectedTopic === "What is a lead magnet?" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                      <Gift className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="text-[11px] font-bold text-[#9B9085] uppercase tracking-wider">THE SIMPLE DEFINITION</p>
+                      <h2 className="text-2xl font-bold text-white mt-1">What is a lead magnet?</h2>
                     </div>
-                  )}
+                  </div>
+
+                  <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                    A lead magnet is a useful resource or experience offered in exchange for contact information, usually an email address. It gives a potential customer a quick win around a problem you solve, and gives you a relevant reason to follow up with them.
+                  </p>
+
+                  <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-5 space-y-2">
+                    <h4 className="text-sm font-semibold text-white">Think of it as a useful preview</h4>
+                    <p className="text-xs text-[#9B9085] leading-relaxed">
+                      A bookkeeper might offer a month-end checklist. The checklist solves a real problem now, demonstrates how the bookkeeper can help, and creates a natural path to a future conversation about managing the reader's finances.
+                    </p>
+                  </div>
+                </div>
+              ) : selectedTopic ? (
+                <div className="max-w-2xl mx-auto py-8 text-center space-y-4">
+                  <h3 className="text-xl font-bold text-white">{selectedTopic}</h3>
+                  <p className="text-sm text-[#9B9085]">Detailed guide and steps for this topic will be available here soon.</p>
+                  <button
+                    onClick={() => setSelectedTopic(null)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#222227] px-4 py-2 text-xs font-semibold text-white border border-[#2e2e38] hover:bg-[#282830] transition-colors"
+                  >
+                    Back to topics
+                  </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-                  {/* Left Column (LEARN, SET UP, MANAGE) */}
-                  <div className="space-y-3.5">
-                    {/* LEARN */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
-                        <span>{helpTopics.learn.title}</span>
-                        <span>{helpTopics.learn.count}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {helpTopics.learn.items.map((topic) => (
-                          <button
-                            key={topic.text}
-                            onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
-                          >
-                            <div className="flex items-center gap-3.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
-                                {topic.icon === "BookOpen" && <BookOpen className="h-3.5 w-3.5" />}
-                                {topic.icon === "Gift" && <Gift className="h-3.5 w-3.5" />}
-                                {topic.icon === "Sliders" && <Sliders className="h-3.5 w-3.5" />}
-                                {topic.icon === "Lightbulb" && <Lightbulb className="h-3.5 w-3.5" />}
-                              </span>
-                              <span>{topic.text}</span>
-                            </div>
-                            <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
-                          </button>
-                        ))}
-                      </div>
+                <>
+                  {/* What do you need help with? Title */}
+                  {!searchQuery && (
+                    <div className="mb-4">
+                      <h2 className="text-xl font-bold text-white">What do you need help with?</h2>
+                      <p className="text-xs text-[#9B9085] mt-1">Choose a topic for a clear answer and the exact steps to follow.</p>
                     </div>
+                  )}
 
-                    {/* SET UP */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
-                        <span>{helpTopics.setup.title}</span>
-                        <span>{helpTopics.setup.count}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {helpTopics.setup.items.map((topic) => (
-                          <button
-                            key={topic.text}
-                            onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
-                          >
-                            <div className="flex items-center gap-3.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
-                                {topic.icon === "Settings" && <Settings className="h-3.5 w-3.5" />}
-                                {topic.icon === "Globe" && <Globe className="h-3.5 w-3.5" />}
-                                {topic.icon === "Mail" && <Mail className="h-3.5 w-3.5" />}
-                                {topic.icon === "BookOpen" && <BookOpen className="h-3.5 w-3.5" />}
-                              </span>
-                              <span>{topic.text}</span>
-                            </div>
-                            <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* MANAGE */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
-                        <span>{helpTopics.manage.title}</span>
-                        <span>{helpTopics.manage.count}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {helpTopics.manage.items.map((topic) => (
-                          <button
-                            key={topic.text}
-                            onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
-                          >
-                            <div className="flex items-center gap-3.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
-                                {topic.icon === "Users" && <Users className="h-3.5 w-3.5" />}
-                                {topic.icon === "BarChart3" && <BarChart3 className="h-3.5 w-3.5" />}
-                                {topic.icon === "User" && <User className="h-3.5 w-3.5" />}
-                                {topic.icon === "PlayCircle" && <PlayCircle className="h-3.5 w-3.5" />}
-                              </span>
-                              <span>{topic.text}</span>
-                            </div>
-                            <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                  {/* Modal Search Bar */}
+                  <div className="relative flex items-center rounded-lg border border-[#2e2e38] bg-[#141417] px-3.5 focus-within:border-[#FE6F34] mb-2 transition-colors">
+                    <Search className="h-4 w-4 text-[#9B9085] mr-2 shrink-0" />
+                    <input
+                      type="text"
+                      placeholder="Search topics, integrations, or setup"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-transparent py-2.5 text-xs text-white outline-none placeholder-[#71717a] focus:ring-0"
+                    />
                   </div>
 
-                  {/* Right Column (BUILD, CONNECTIONS) */}
-                  <div className="space-y-6">
-                    {/* BUILD */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
-                        <span>{helpTopics.build.title}</span>
-                        <span>{helpTopics.build.count}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {helpTopics.build.items.map((topic) => (
-                          <button
-                            key={topic.text}
-                            onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
-                          >
-                            <div className="flex items-center gap-3.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
-                                {topic.icon === "Compass" && <Compass className="h-3.5 w-3.5" />}
-                                {topic.icon === "FileText" && <FileText className="h-3.5 w-3.5" />}
-                                {topic.icon === "FolderOpen" && <FolderOpen className="h-3.5 w-3.5" />}
-                                {topic.icon === "Palette" && <Palette className="h-3.5 w-3.5" />}
-                                {topic.icon === "Send" && <Send className="h-3.5 w-3.5" />}
-                                {topic.icon === "GitFork" && <GitFork className="h-3.5 w-3.5" />}
-                                {topic.icon === "Calendar" && <Calendar className="h-3.5 w-3.5" />}
-                              </span>
-                              <span>{topic.text}</span>
-                            </div>
-                            <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
-                          </button>
-                        ))}
-                      </div>
+                  {searchQuery ? (
+                    <div>
+                      <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider mb-3">Search Results</p>
+                      {filteredTopics.length === 0 ? (
+                        <p className="text-xs text-[#9B9085] py-6 text-center">No topics match your search query.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-2">
+                          {filteredTopics.map((topic) => (
+                            <button
+                              key={topic.text}
+                              onClick={() => setSelectedTopic(topic.text)}
+                              className="flex items-center justify-between rounded-lg bg-[#222227] border border-[#2e2e38] hover:bg-[#282830] p-3.5 text-left text-xs font-semibold text-white transition-colors"
+                            >
+                              <span className="text-xs font-semibold text-white">{topic.text}</span>
+                              <ChevronRight className="h-3.5 w-3.5 text-[#FE6F34]" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+                      {/* Left Column (LEARN, SET UP, MANAGE) */}
+                      <div className="space-y-3.5">
+                        {/* LEARN */}
+                        <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
+                            <span>{helpTopics.learn.title}</span>
+                            <span>{helpTopics.learn.count}</span>
+                          </div>
+                          <div className="space-y-2">
+                            {helpTopics.learn.items.map((topic) => (
+                              <button
+                                key={topic.text}
+                                onClick={() => setSelectedTopic(topic.text)}
+                                className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                              >
+                                <div className="flex items-center gap-3.5">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
+                                    {topic.icon === "BookOpen" && <BookOpen className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Gift" && <Gift className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Sliders" && <Sliders className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Lightbulb" && <Lightbulb className="h-3.5 w-3.5" />}
+                                  </span>
+                                  <span>{topic.text}</span>
+                                </div>
+                                <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
 
-                    {/* CONNECTIONS */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
-                        <span>{helpTopics.connections.title}</span>
-                        <span>{helpTopics.connections.count}</span>
+                        {/* SET UP */}
+                        <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
+                            <span>{helpTopics.setup.title}</span>
+                            <span>{helpTopics.setup.count}</span>
+                          </div>
+                          <div className="space-y-2">
+                            {helpTopics.setup.items.map((topic) => (
+                              <button
+                                key={topic.text}
+                                onClick={() => setSelectedTopic(topic.text)}
+                                className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                              >
+                                <div className="flex items-center gap-3.5">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
+                                    {topic.icon === "Settings" && <Settings className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Globe" && <Globe className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Mail" && <Mail className="h-3.5 w-3.5" />}
+                                    {topic.icon === "BookOpen" && <BookOpen className="h-3.5 w-3.5" />}
+                                  </span>
+                                  <span>{topic.text}</span>
+                                </div>
+                                <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* MANAGE */}
+                        <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
+                            <span>{helpTopics.manage.title}</span>
+                            <span>{helpTopics.manage.count}</span>
+                          </div>
+                          <div className="space-y-2">
+                            {helpTopics.manage.items.map((topic) => (
+                              <button
+                                key={topic.text}
+                                onClick={() => setSelectedTopic(topic.text)}
+                                className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                              >
+                                <div className="flex items-center gap-3.5">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
+                                    {topic.icon === "Users" && <Users className="h-3.5 w-3.5" />}
+                                    {topic.icon === "BarChart3" && <BarChart3 className="h-3.5 w-3.5" />}
+                                    {topic.icon === "User" && <User className="h-3.5 w-3.5" />}
+                                    {topic.icon === "PlayCircle" && <PlayCircle className="h-3.5 w-3.5" />}
+                                  </span>
+                                  <span>{topic.text}</span>
+                                </div>
+                                <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        {helpTopics.connections.items.map((topic) => (
-                          <button
-                            key={topic.text}
-                            onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
-                          >
-                            <div className="flex items-center gap-3.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
-                                {topic.icon === "Share2" && <Share2 className="h-3.5 w-3.5" />}
-                                {topic.icon === "Cpu" && <Cpu className="h-3.5 w-3.5" />}
-                                {topic.icon === "Slack" && <Slack className="h-3.5 w-3.5" />}
-                                {topic.icon === "Zap" && <Zap className="h-3.5 w-3.5" />}
-                                {topic.icon === "Link" && <LinkIcon className="h-3.5 w-3.5" />}
-                                {topic.icon === "Calendar" && <Calendar className="h-3.5 w-3.5" />}
-                              </span>
-                              <span>{topic.text}</span>
-                            </div>
-                            <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
-                          </button>
-                        ))}
+
+                      {/* Right Column (BUILD, CONNECTIONS) */}
+                      <div className="space-y-3.5">
+                        {/* BUILD */}
+                        <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
+                            <span>{helpTopics.build.title}</span>
+                            <span>{helpTopics.build.count}</span>
+                          </div>
+                          <div className="space-y-2">
+                            {helpTopics.build.items.map((topic) => (
+                              <button
+                                key={topic.text}
+                                onClick={() => setSelectedTopic(topic.text)}
+                                className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                              >
+                                <div className="flex items-center gap-3.5">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
+                                    {topic.icon === "Compass" && <Compass className="h-3.5 w-3.5" />}
+                                    {topic.icon === "FileText" && <FileText className="h-3.5 w-3.5" />}
+                                    {topic.icon === "FolderOpen" && <FolderOpen className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Palette" && <Palette className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Send" && <Send className="h-3.5 w-3.5" />}
+                                    {topic.icon === "GitFork" && <GitFork className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Calendar" && <Calendar className="h-3.5 w-3.5" />}
+                                  </span>
+                                  <span>{topic.text}</span>
+                                </div>
+                                <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* CONNECTIONS */}
+                        <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
+                            <span>{helpTopics.connections.title}</span>
+                            <span>{helpTopics.connections.count}</span>
+                          </div>
+                          <div className="space-y-2">
+                            {helpTopics.connections.items.map((topic) => (
+                              <button
+                                key={topic.text}
+                                onClick={() => setSelectedTopic(topic.text)}
+                                className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                              >
+                                <div className="flex items-center gap-3.5">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
+                                    {topic.icon === "Share2" && <Share2 className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Cpu" && <Cpu className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Slack" && <Slack className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Zap" && <Zap className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Link" && <LinkIcon className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Calendar" && <Calendar className="h-3.5 w-3.5" />}
+                                  </span>
+                                  <span>{topic.text}</span>
+                                </div>
+                                <ChevronRight className="h-3.5 w-3.5 text-[#71717a]" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  )}
+                </>
               )}
             </div>
           </div>
