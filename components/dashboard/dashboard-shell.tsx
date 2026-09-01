@@ -451,7 +451,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                           >
                             <div className="flex items-center gap-3.5">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -479,7 +479,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                           >
                             <div className="flex items-center gap-3.5">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -507,7 +507,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                           >
                             <div className="flex items-center gap-3.5">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -538,7 +538,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                           >
                             <div className="flex items-center gap-3.5">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -569,7 +569,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                           >
                             <div className="flex items-center gap-3.5">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -681,7 +681,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                           >
                             <div className="flex items-center gap-3.5">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -709,7 +709,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                           >
                             <div className="flex items-center gap-3.5">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -737,7 +737,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                           >
                             <div className="flex items-center gap-3.5">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -768,7 +768,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                           >
                             <div className="flex items-center gap-3.5">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -799,7 +799,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#1b1b20] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                           >
                             <div className="flex items-center gap-3.5">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
