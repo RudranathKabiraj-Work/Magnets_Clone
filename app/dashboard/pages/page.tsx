@@ -77,43 +77,43 @@ export default function PagesPage() {
 
           {/* Conversion Workspace banner */}
           <div
-            className="relative mb-5 overflow-hidden rounded-xl border border-[#2e2e38] bg-[#18181B] pt-7 pb-8 px-8"
+            className="relative mb-6 overflow-hidden rounded-2xl border border-[#34343f] py-7 px-8 shadow-xl"
             style={{
-              background: "linear-gradient(90deg, #2D1A12 0%, #1D1512 30%, #18181B 70%)",
+              background: "radial-gradient(circle at 6% 50%, rgba(254, 111, 52, 0.22) 0%, transparent 45%), linear-gradient(135deg, #2b201b 0%, #222227 50%, #1d1d22 100%)",
             }}
           >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 {/* Badge */}
-                <div className="mb-4 flex items-center">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#5c2d18] bg-[#2a1309] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+                <div className="mb-3.5 flex items-center">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FE6F34]/40 bg-[#351b11] px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#FE6F34]">
                     <Sparkles className="h-3.5 w-3.5 text-[#FE6F34] fill-[#FE6F34]/20" />
                     CONVERSION WORKSPACE
                   </span>
                 </div>
-                <h3 className="text-3xl font-bold text-white tracking-tight mb-2">Your lead magnet library</h3>
-                <p className="text-sm text-[#9B9085]/90">
+                <h3 className="text-3xl font-bold text-white tracking-tight mb-1.5">Your lead magnet library</h3>
+                <p className="text-sm text-[#a3998e]">
                   Create the signup page, delivery email, follow-up emails, and post-signup page.
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0 mt-4">
+              <div className="flex items-center gap-3 shrink-0">
                 {/* Published stat */}
-                <div className="rounded-[14px] border border-[#2e2e38] bg-[#0E0E10]/30 p-4 text-center w-[86px] h-[72px] flex flex-col justify-between">
-                  <p className="text-[9px] font-semibold uppercase tracking-widest text-[#9B9085]/60">PUBLISHED</p>
-                  <p className="text-2xl font-bold text-white leading-none">{live}</p>
+                <div className="rounded-xl border border-[#34343f] bg-[#2a2a30]/90 p-3.5 text-left w-24 flex flex-col justify-between shadow-sm">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#888894]">PUBLISHED</p>
+                  <p className="text-2xl font-bold text-white leading-none mt-2">{live}</p>
                 </div>
                 {/* Total stat */}
-                <div className="rounded-[14px] border border-[#2e2e38] bg-[#0E0E10]/30 p-4 text-center w-[86px] h-[72px] flex flex-col justify-between">
-                  <p className="text-[9px] font-semibold uppercase tracking-widest text-[#9B9085]/60">TOTAL</p>
-                  <p className="text-2xl font-bold text-white leading-none">{total}</p>
+                <div className="rounded-xl border border-[#34343f] bg-[#2a2a30]/90 p-3.5 text-left w-24 flex flex-col justify-between shadow-sm">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#888894]">TOTAL</p>
+                  <p className="text-2xl font-bold text-white leading-none mt-2">{total}</p>
                 </div>
                 {/* New page button */}
                 <Link
                   href="/dashboard/pages/new"
-                  className="flex items-center justify-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-xs font-bold text-black hover:bg-[#e55e28] transition whitespace-nowrap"
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-[#FE6F34] px-5 py-3 text-xs font-bold text-white hover:bg-[#ff7d47] transition shadow-md whitespace-nowrap"
                 >
-                  <Plus className="h-3.5 w-3.5 text-black stroke-[2.5px]" />
+                  <Plus className="h-4 w-4 text-white stroke-[2.5px]" />
                   New page
                 </Link>
               </div>
@@ -122,8 +122,8 @@ export default function PagesPage() {
 
           {/* Search bar + spaces used */}
           <div className="mb-4 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 rounded-lg border border-[#2e2e38] bg-[#0E0E10] px-3 py-2 w-72 focus-within:border-[#3a3a3f]">
-              <Search className="h-3.5 w-3.5 text-[#9B9085] shrink-0" />
+            <div className="flex items-center gap-2.5 rounded-xl border border-[#2e2e38] bg-[#141417] px-4 py-3 w-[380px] focus-within:border-[#FE6F34]/50 transition-colors shadow-sm">
+              <Search className="h-4 w-4 text-[#9B9085] shrink-0" />
               <input
                 type="text"
                 placeholder="Search by title or URL..."
@@ -136,7 +136,7 @@ export default function PagesPage() {
           </div>
 
           {/* Pages list or empty state */}
-          <div className="rounded-xl border border-[#2e2e38] bg-[#0E0E10] overflow-hidden">
+          <div className="rounded-2xl border border-[#2e2e38] bg-[#0E0E10] overflow-hidden">
             {filtered.length === 0 && pages.length === 0 ? (
               /* Empty state */
               <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
@@ -149,7 +149,7 @@ export default function PagesPage() {
                 </p>
                 <Link
                   href="/dashboard/pages/new"
-                  className="flex items-center gap-2 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#e55e28] transition"
+                  className="flex items-center gap-2 rounded-xl bg-[#FE6F34] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#e55e28] transition"
                 >
                   <Plus className="h-4 w-4" />
                   Create lead magnet
@@ -239,14 +239,14 @@ export default function PagesPage() {
                       <Link
                         href={`/dashboard/pages/${page.id}`}
                         aria-label={`Edit ${page.name}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-md border border-[#2e2e38] text-[#9B9085] hover:border-[#3a3a3f] hover:text-white transition"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2e2e38] text-[#9B9085] hover:border-[#3a3a3f] hover:text-white transition"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </Link>
                       <button
                         aria-label={`Delete ${page.name}`}
                         onClick={() => removePage(page.id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-md border border-[#2e2e38] text-[#9B9085] hover:border-red-800 hover:text-red-400 transition"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2e2e38] text-[#9B9085] hover:border-red-800 hover:text-red-400 transition"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
