@@ -112,31 +112,31 @@ export default function BrandPage() {
 
   return (
     <DashboardShell account={account} title="Brand">
-      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-[#0E0E10] text-white animate-fade-in">
+      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-zinc-50 dark:bg-[#0E0E10] text-zinc-900 dark:text-white transition-colors duration-200 animate-fade-in">
         <div className="flex-1 px-6 py-6 lg:px-8 w-full">
 
           {/* Page Title */}
           <div className="mb-8">
-            <h2 className="flex items-center gap-2 text-3xl font-bold text-white animate-slide-in">
+            <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-900 dark:text-white animate-slide-in">
               Brand
-              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#18181B]">?</span>
+              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-100 dark:hover:bg-[#18181B]">?</span>
             </h2>
-            <p className="text-xs text-[#9B9085] mt-1">Configure logo, color scheme, and appearance of your public pages.</p>
+            <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Configure logo, color scheme, and appearance of your public pages.</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
 
             {/* Brand Settings Form */}
             <div className="lg:col-span-4">
-              <div className="rounded-2xl border border-[#2e2e38] bg-[#18181B] p-6 shadow-xl h-full flex flex-col justify-between">
+              <div className="rounded-2xl border border-[#FE6F34]/35 bg-white dark:border-[#FE6F34]/30 dark:bg-[#18181B] p-6 shadow-sm dark:shadow-xl h-full flex flex-col justify-between transition-colors">
                 {/* Heading */}
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
-                    <Palette className="h-4.5 w-4.5 text-white" />
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#FE6F34]/30 bg-[#FFF0EA] dark:border-[#FE6F34]/30 dark:bg-[#2a1a14] text-[#FE6F34]">
+                    <Palette className="h-4.5 w-4.5 text-[#FE6F34]" />
                   </div>
                   <div>
-                    <h4 className="text-base font-bold text-white">Brand settings</h4>
-                    <p className="text-xs text-[#9B9085] mt-1">
+                    <h4 className="text-base font-bold text-zinc-900 dark:text-white">Brand settings</h4>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
                       These apply to every live page and preview on this account.
                     </p>
                   </div>
@@ -145,7 +145,7 @@ export default function BrandPage() {
                 <div className="space-y-6">
                   {/* Business Name */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#a1a1aa] mb-2">
+                    <label className="block text-sm font-semibold text-zinc-700 dark:text-[#a1a1aa] mb-2">
                       Business name
                     </label>
                     <input
@@ -153,16 +153,16 @@ export default function BrandPage() {
                       value={businessName}
                       onChange={(e) => setBusinessName(e.target.value)}
                       placeholder="Enter business name"
-                      className="w-full rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-white outline-none placeholder:text-[#5c5650] focus:border-[#FE6F34] transition"
+                      className="w-full rounded-md border border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#5c5650] focus:border-[#FE6F34] transition"
                     />
-                    <p className="text-xs text-[#71717a] mt-2 leading-relaxed">
+                    <p className="text-xs text-zinc-500 dark:text-[#71717a] mt-2 leading-relaxed">
                       Optional when your uploaded logo already includes your name.
                     </p>
                   </div>
 
                   {/* Logo Image */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#a1a1aa] mb-2">
+                    <label className="block text-sm font-semibold text-zinc-700 dark:text-[#a1a1aa] mb-2">
                       Logo image
                     </label>
                     <div className="flex items-center gap-3">
@@ -176,9 +176,9 @@ export default function BrandPage() {
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#18181B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#252529] hover:border-[#5c5650] transition"
+                        className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#18181B] px-4 py-2 text-xs font-semibold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#252529] hover:border-zinc-300 dark:hover:border-[#5c5650] transition"
                       >
-                        <Upload className="h-3.5 w-3.5 text-[#9B9085]" />
+                        <Upload className="h-3.5 w-3.5 text-zinc-500 dark:text-[#9B9085]" />
                         Choose logo
                       </button>
                       {logo ? (
@@ -186,33 +186,33 @@ export default function BrandPage() {
                           <img
                             src={logo}
                             alt="Logo Preview"
-                            className="h-9 w-9 rounded object-contain border border-[#2e2e38] bg-[#18181B]"
+                            className="h-9 w-9 rounded object-contain border border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B]"
                           />
                           <button
                             type="button"
                             onClick={removeLogo}
-                            className="text-[#FF8585] hover:text-red-400 p-1 transition"
+                            className="text-red-500 dark:text-[#FF8585] hover:text-red-600 dark:hover:text-red-400 p-1 transition"
                             title="Remove logo"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-[#71717a]">No logo uploaded</span>
+                        <span className="text-xs text-zinc-500 dark:text-[#71717a]">No logo uploaded</span>
                       )}
                     </div>
-                    <p className="text-xs text-[#71717a] mt-2 leading-relaxed">
+                    <p className="text-xs text-zinc-500 dark:text-[#71717a] mt-2 leading-relaxed">
                       Optional when you use a business name. PNG, JPG, WebP, or GIF. 10 MB max.
                     </p>
                   </div>
 
                   {/* Primary Color */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#a1a1aa] mb-2">
+                    <label className="block text-sm font-semibold text-zinc-700 dark:text-[#a1a1aa] mb-2">
                       Primary
                     </label>
-                    <div className="flex items-center rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2.5 focus-within:border-[#FE6F34] transition">
-                      <label className="relative h-5 w-8 shrink-0 rounded cursor-pointer overflow-hidden border border-[#2e2e38] mr-2">
+                    <div className="flex items-center rounded-md border border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 focus-within:border-[#FE6F34] transition">
+                      <label className="relative h-5 w-8 shrink-0 rounded cursor-pointer overflow-hidden border border-zinc-200 dark:border-[#2e2e38] mr-2">
                         <input
                           type="color"
                           value={brandColor}
@@ -225,14 +225,14 @@ export default function BrandPage() {
                         type="text"
                         value={brandColor}
                         onChange={(e) => setBrandColor(e.target.value)}
-                        className="w-full bg-transparent text-[14.2px] text-white outline-none font-mono"
+                        className="w-full bg-transparent text-[14.2px] text-zinc-900 dark:text-white outline-none font-mono"
                       />
                     </div>
                   </div>
 
                   {/* Page Appearance */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#a1a1aa] mb-2">
+                    <label className="block text-sm font-semibold text-zinc-700 dark:text-[#a1a1aa] mb-2">
                       Page appearance
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -240,8 +240,8 @@ export default function BrandPage() {
                         type="button"
                         onClick={() => setThemeMode("light")}
                         className={`flex items-center justify-center gap-1.5 rounded-md border py-2 text-xs font-semibold transition ${themeMode === "light"
-                          ? "border-[#5c5650] bg-[#252529] text-white"
-                          : "border-[#2e2e38] bg-[#18181B] text-[#9B9085] hover:bg-[#252529] hover:text-white"
+                          ? "border-[#FE6F34] bg-[#FFF0EA] dark:bg-[#252529] text-zinc-900 dark:text-white font-bold"
+                          : "border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] text-zinc-600 dark:text-[#9B9085] hover:bg-zinc-50 dark:hover:bg-[#252529] hover:text-zinc-900 dark:hover:text-white"
                           }`}
                       >
                         <Sun className="h-3.5 w-3.5" />
@@ -251,15 +251,15 @@ export default function BrandPage() {
                         type="button"
                         onClick={() => setThemeMode("dark")}
                         className={`flex items-center justify-center gap-1.5 rounded-md border py-2 text-xs font-semibold transition ${themeMode === "dark"
-                          ? "border-[#5c5650] bg-[#252529] text-white"
-                          : "border-[#2e2e38] bg-[#18181B] text-[#9B9085] hover:bg-[#252529] hover:text-white"
+                          ? "border-[#FE6F34] bg-zinc-900 text-white font-bold"
+                          : "border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] text-zinc-600 dark:text-[#9B9085] hover:bg-zinc-50 dark:hover:bg-[#252529] hover:text-zinc-900 dark:hover:text-white"
                           }`}
                       >
                         <Moon className="h-3.5 w-3.5" />
                         Dark
                       </button>
                     </div>
-                    <p className="text-xs text-[#71717a] mt-2 leading-relaxed">
+                    <p className="text-xs text-zinc-500 dark:text-[#71717a] mt-2 leading-relaxed">
                       Applied to every public magnet and editor preview.
                     </p>
                   </div>
@@ -312,10 +312,10 @@ export default function BrandPage() {
 
             {/* Live Preview Panel */}
             <div className="lg:col-span-8">
-              <div className="rounded-2xl border border-[#2e2e38] bg-[#18181B] p-5 shadow-2xl h-full flex flex-col">
-                <div className="flex flex-col gap-1 mb-4 pb-3 border-b border-[#2e2e38]/50">
-                  <span className="text-sm font-bold text-zinc-200 uppercase tracking-wider">Preview</span>
-                  <span className="text-xs text-[#9B9085]">How your brand appears on a full magnet page.</span>
+              <div className="rounded-2xl border border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] p-5 shadow-sm dark:shadow-2xl h-full flex flex-col transition-colors">
+                <div className="flex flex-col gap-1 mb-4 pb-3 border-b border-zinc-200 dark:border-[#2e2e38]/50">
+                  <span className="text-sm font-bold text-zinc-900 dark:text-zinc-200 uppercase tracking-wider">Preview</span>
+                  <span className="text-xs text-zinc-500 dark:text-[#9B9085]">How your brand appears on a full magnet page.</span>
                 </div>
                 {/* Outer frame matching client page background theme mode */}
                 <div

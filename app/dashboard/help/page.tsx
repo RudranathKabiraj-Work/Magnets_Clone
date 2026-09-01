@@ -58,7 +58,8 @@ export default function HelpPage() {
 
   return (
     <DashboardShell account={account} title="Help">
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">
+      <div className="flex flex-col min-h-[calc(100vh-3rem)]">
+      <div className="mx-auto max-w-6xl w-full px-4 py-8 sm:px-6 lg:px-10 flex-1">
         <div>
           <h2 className="flex items-center gap-1.5 text-lg font-semibold text-ink-950 dark:text-white">
             Help Center
@@ -123,6 +124,16 @@ export default function HelpPage() {
             </form>
           </div>
         </div>
+      </div>
+
+        {/* Footer */}
+        <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
+          <span>Magnets</span>
+          <div className="flex items-center gap-4">
+            <a href="#" className="hover:text-white transition">Privacy</a>
+            <a href="#" className="hover:text-white transition">Terms</a>
+          </div>
+        </footer>
       </div>
     </DashboardShell>
   );

@@ -229,11 +229,11 @@ export default function ResourcesPage() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-auto border-t border-ink-200 dark:border-ink-800 px-6 py-4 flex items-center justify-between text-xs text-ink-400">
+        <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
           <span>Magnets</span>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-ink-600 dark:hover:text-ink-300 transition">Privacy</a>
-            <a href="#" className="hover:text-ink-600 dark:hover:text-ink-300 transition">Terms</a>
+            <a href="#" className="hover:text-white transition">Privacy</a>
+            <a href="#" className="hover:text-white transition">Terms</a>
           </div>
         </footer>
       </div>

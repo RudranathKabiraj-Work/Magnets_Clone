@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink } from "lucide-react";
+import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink, ListChecks } from "lucide-react";
 import { useState, useEffect } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
@@ -387,8 +387,8 @@ export default function DashboardShell({
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-[#2e2e38] px-6 py-4">
               <div className="flex items-center gap-3.5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FE6F34] text-white shadow-sm">
-                  <Sliders className="h-5 w-5" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FE6F34] text-black shadow-sm">
+                  <ListChecks className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-white">Help centre</h3>
@@ -2697,7 +2697,7 @@ export default function DashboardShell({
                   .replace(/[^a-z0-9\s-]/g, "")
                   .replace(/\s+/g, "-") || "untitled-page";
                 const newId = `page-${Date.now()}`;
-                
+
                 try {
                   const { loadPages, savePages } = require("@/lib/store");
                   const currentPages = loadPages();
@@ -2722,7 +2722,7 @@ export default function DashboardShell({
                     },
                   };
                   savePages([newPage, ...currentPages]);
-                } catch (_) {}
+                } catch (_) { }
 
                 setShowCreateMagnetModal(false);
                 setCreateMagnetName("");

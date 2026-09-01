@@ -37,7 +37,8 @@ export default function IntegrationsPage() {
 
   return (
     <DashboardShell account={account} title="Integrations">
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-10">
+      <div className="flex flex-col min-h-[calc(100vh-3rem)]">
+      <div className="mx-auto max-w-5xl w-full px-4 py-8 sm:px-6 lg:px-10 flex-1">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <h2 className="text-lg font-semibold text-ink-950 dark:text-white">
@@ -59,11 +60,10 @@ export default function IntegrationsPage() {
               >
                 <div className="flex items-start gap-4">
                   <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${
-                      item.connected
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${item.connected
                         ? "bg-brand-soft text-brand-orange dark:bg-ink-950"
                         : "bg-ink-100 text-ink-400 dark:bg-ink-950 dark:text-ink-500"
-                    }`}
+                      }`}
                   >
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </span>
@@ -103,6 +103,16 @@ export default function IntegrationsPage() {
             credentials are encrypted at rest.
           </p>
         </div>
+      </div>
+
+        {/* Footer */}
+        <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
+          <span>Magnets</span>
+          <div className="flex items-center gap-4">
+            <a href="#" className="hover:text-white transition">Privacy</a>
+            <a href="#" className="hover:text-white transition">Terms</a>
+          </div>
+        </footer>
       </div>
     </DashboardShell>
   );

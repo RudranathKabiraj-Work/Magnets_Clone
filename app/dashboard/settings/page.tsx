@@ -99,7 +99,7 @@ export default function AccountSettingsPage() {
       setDeleteError("Please type DELETE to confirm.");
       return;
     }
-    
+
     setDeleting(true);
     setDeleteError("");
     try {
@@ -150,53 +150,53 @@ export default function AccountSettingsPage() {
 
           {/* Page heading */}
           <div className="mb-8">
-            <h2 className="flex items-center gap-2 text-3xl font-bold text-white">
+            <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-900 dark:text-white">
               Account
               <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#18181B]">?</span>
             </h2>
             <p className="text-xs text-[#9B9085] mt-1">Password, identity, and danger zone.</p>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-5 rounded-3xl bg-gradient-to-b from-[#FFF0EA]/40 via-transparent to-transparent dark:from-[#FE6F34]/5 dark:via-transparent dark:to-transparent p-1.5 sm:p-2">
 
             {/* Who you are */}
-            <section className="rounded-2xl border border-[#2e2e38] bg-[#18181B] p-6">
+            <section className="rounded-2xl border border-[#FE6F34]/40 bg-white dark:border-[#FE6F34]/35 dark:bg-[#18181B] p-6 transition-all shadow-sm hover:border-[#FE6F34] dark:hover:border-[#FE6F34]/60">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#FE6F34]/30 bg-[#FFF0EA] dark:border-[#FE6F34]/30 dark:bg-[#2a1a14] text-[#FE6F34]">
                   <User className="h-4.5 w-4.5" />
                 </div>
                 <div>
-                  <h4 className="text-[14.2px] font-bold text-white">Who you are</h4>
-                  <p className="text-[12.2px] text-[#9B9085] mt-0.5">{email}</p>
+                  <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Who you are</h4>
+                  <p className="text-[12.2px] text-[#71717a] dark:text-[#9B9085] mt-0.5">{email}</p>
                 </div>
               </div>
 
               <div className="mt-5 pl-12 space-y-4 max-w-2xl">
                 <div>
-                  <label className={labelClass}>Name</label>
+                  <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">Name</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your Name"
-                    className={inputClass}
+                    className="w-full max-w-lg rounded-md border border-[#e4e4e7] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#FE6F34] transition"
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Email</label>
+                  <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">Email</label>
                   <input
                     type="email"
                     value={email}
                     disabled
-                    className={`${inputClass} opacity-50 cursor-not-allowed`}
+                    className="w-full max-w-lg rounded-md border border-[#e4e4e7] bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-500 dark:text-white outline-none opacity-60 cursor-not-allowed transition"
                   />
                 </div>
 
-                 <div className="pt-2 flex justify-end max-w-lg">
+                <div className="pt-2 flex justify-end max-w-lg">
                   <button
                     onClick={handleUpdateName}
                     disabled={updatingName}
-                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] disabled:opacity-60 transition"
+                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] disabled:opacity-60 transition shadow-sm"
                   >
                     <Check className="h-3.5 w-3.5 text-black stroke-[2.5px]" />
                     {updatingName ? "Updating..." : "Update name"}
@@ -206,51 +206,51 @@ export default function AccountSettingsPage() {
             </section>
 
             {/* Change password */}
-            <section className="rounded-2xl border border-[#2e2e38] bg-[#18181B] p-6">
+            <section className="rounded-2xl border border-[#FE6F34]/40 bg-white dark:border-[#FE6F34]/35 dark:bg-[#18181B] p-6 transition-all shadow-sm hover:border-[#FE6F34] dark:hover:border-[#FE6F34]/60">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#2e2e38] bg-[#252529] text-[#9B9085]">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#FE6F34]/30 bg-[#FFF0EA] dark:border-[#FE6F34]/30 dark:bg-[#2a1a14] text-[#FE6F34]">
                   <KeyRound className="h-4.5 w-4.5" />
                 </div>
                 <div>
-                  <h4 className="text-[14.2px] font-bold text-white">Change password</h4>
-                  <p className="text-[12.2px] text-[#9B9085] mt-0.5">Use at least 8 characters. Pick something you don't reuse elsewhere.</p>
+                  <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Change password</h4>
+                  <p className="text-[12.2px] text-[#71717a] dark:text-[#9B9085] mt-0.5">Use at least 8 characters. Pick something you don't reuse elsewhere.</p>
                 </div>
               </div>
 
               <div className="mt-5 pl-12 space-y-4 max-w-2xl">
                 <div>
-                  <label className={labelClass}>Current password</label>
+                  <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">Current password</label>
                   <input
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className={inputClass}
+                    className="w-full max-w-lg rounded-md border border-[#e4e4e7] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#FE6F34] transition"
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>New password</label>
+                  <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">New password</label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className={inputClass}
+                    className="w-full max-w-lg rounded-md border border-[#e4e4e7] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#FE6F34] transition"
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Confirm new password</label>
+                  <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">Confirm new password</label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={inputClass}
+                    className="w-full max-w-lg rounded-md border border-[#e4e4e7] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#FE6F34] transition"
                   />
                 </div>
 
-                 <div className="pt-2 flex justify-end max-w-lg">
+                <div className="pt-2 flex justify-end max-w-lg">
                   <button
                     onClick={handleUpdatePassword}
                     disabled={updatingPassword}
-                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] disabled:opacity-60 transition"
+                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] disabled:opacity-60 transition shadow-sm"
                   >
                     <KeyRound className="h-3.5 w-3.5 text-black stroke-[2.5px]" />
                     {updatingPassword ? "Updating..." : "Update password"}
@@ -260,13 +260,13 @@ export default function AccountSettingsPage() {
             </section>
 
             {/* Danger zone */}
-            <section className="rounded-2xl border border-[#2e2e38] bg-[#18181B] p-6">
+            <section className="rounded-2xl border border-red-200 dark:border-red-900/60 bg-white dark:bg-[#18181B] p-6 transition-colors shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#552e2e] bg-[#2a1414] text-[#FF8585]">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-red-200 bg-red-50 dark:border-[#552e2e] dark:bg-[#2a1414] text-red-600 dark:text-[#FF8585]">
                   <AlertTriangle className="h-4.5 w-4.5" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-[14.2px] font-bold text-[#FF8585]">Danger zone</h4>
+                  <h4 className="text-[14.2px] font-bold text-red-600 dark:text-[#FF8585]">Danger zone</h4>
                   <p className="text-[12.2px] text-[#9B9085] leading-relaxed mt-1">
                     Deleting your account removes your magnets, signups, integrations, and any custom domains attached to your account. This is permanent. There is no recovery.
                   </p>
@@ -281,7 +281,7 @@ export default function AccountSettingsPage() {
                     <div className="mt-5 flex justify-start">
                       <button
                         onClick={() => setShowDeleteConfirm(true)}
-                        className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#18181B] px-[14px] py-[8px] text-sm font-extrabold text-[#FF8585] hover:border-red-800 hover:text-red-400 disabled:opacity-60 transition"
+                        className="flex items-center gap-1.5 rounded-md border border-red-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-[14px] py-[8px] text-sm font-extrabold text-red-600 dark:text-[#FF8585] hover:border-red-400 dark:hover:border-red-800 transition"
                       >
                         <Trash2 className="h-4 w-4 stroke-[3px]" />
                         Delete account
@@ -318,7 +318,7 @@ export default function AccountSettingsPage() {
                       </div>
 
                       <div className="pt-2 flex items-center gap-3">
-                         <button
+                        <button
                           type="button"
                           onClick={() => {
                             setShowDeleteConfirm(false);

@@ -276,7 +276,7 @@ export default function PagesPage() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-auto border-t border-zinc-200/80 px-6 py-4 flex items-center justify-between text-xs text-zinc-400 dark:border-[#2e2e38] dark:text-[#9B9085]">
+        <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
           <span>Magnets</span>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-white transition">Privacy</a>
