@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Magnets",
     short_name: "Magnets",
     description: "Build lead-magnet pages, capture emails, deliver resources, and follow up from one place.",
-    start_url: "/dashboard/pages",
+    start_url: "/dashboard/leadmagnets",
     scope: "/",
     display: "standalone",
     theme_color: "#F7F5F1",

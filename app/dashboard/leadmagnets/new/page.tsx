@@ -55,14 +55,14 @@ export default function NewPage() {
     };
     const next = [page, ...loadPages()];
     savePages(next);
-    router.push(`/dashboard/pages/${page.id}`);
+    router.push(`/dashboard/leadmagnets/${page.id}`);
   }
 
   return (
     <DashboardShell account={account} title="New page">
       <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
         <Link
-          href="/dashboard/pages"
+          href="/dashboard/leadmagnets"
           className="inline-flex h-8 items-center gap-1.5 text-sm font-medium text-ink-600 transition hover:text-ink-950 dark:text-ink-300 dark:hover:text-white"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />

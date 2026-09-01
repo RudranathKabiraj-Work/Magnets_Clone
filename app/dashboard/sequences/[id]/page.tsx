@@ -130,7 +130,7 @@ export default function SequenceEditor() {
               {attachedPage ? (
                 <>
                   Attached to{" "}
-                  <Link href={`/dashboard/pages/${attachedPage.id}`} className="font-medium text-ink-800 underline-offset-4 hover:underline dark:text-ink-200">
+                  <Link href={`/dashboard/leadmagnets/${attachedPage.id}`} className="font-medium text-ink-800 underline-offset-4 hover:underline dark:text-ink-200">
                     {attachedPage.name}
                   </Link>
                 </>

@@ -53,7 +53,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
         <div className="flex flex-col items-center gap-3 px-6 py-24 text-center">
           <p className="text-sm font-medium text-ink-700 dark:text-ink-300">Lead not found</p>
           <Link
-            href="/dashboard/leads"
+            href="/dashboard/signups"
             className="inline-flex h-10 items-center gap-2 rounded-md bg-ink-950 px-4 text-sm font-semibold text-white transition hover:bg-brand-orange hover:text-ink-950 dark:bg-brand-orange dark:text-ink-950"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -70,7 +70,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
     <DashboardShell account={account} title="Lead">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-10">
         <Link
-          href="/dashboard/leads"
+          href="/dashboard/signups"
           className="inline-flex h-8 items-center gap-1.5 text-sm font-medium text-ink-600 transition hover:text-ink-950 dark:text-ink-300 dark:hover:text-white"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
@@ -115,7 +115,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
               <div className="mt-3 flex items-center gap-2">
                 <SourceLabel source={lead.source} />
                 <Link
-                  href={`/dashboard/pages/${lead.pageId}`}
+                  href={`/dashboard/leadmagnets/${lead.pageId}`}
                   className="inline-flex items-center gap-1 text-sm font-medium text-ink-700 underline-offset-4 hover:text-ink-950 hover:underline dark:text-ink-300 dark:hover:text-white"
                 >
                   {lead.page} <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />

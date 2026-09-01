@@ -9,9 +9,9 @@ import BrandLogo from "@/components/brand";
 import type { Account } from "@/lib/data";
 
 const mobileNav = [
-  { href: "/dashboard/pages", label: "Lead magnets", icon: FileText },
-  { href: "/dashboard/resources", label: "Hosted resources", icon: FolderOpen },
-  { href: "/dashboard/leads", label: "Signups", icon: Users },
+  { href: "/dashboard/leadmagnets", label: "Lead magnets", icon: FileText },
+  { href: "/dashboard/hostresources", label: "Hosted resources", icon: FolderOpen },
+  { href: "/dashboard/signups", label: "Signups", icon: Users },
   { href: "/dashboard/setup", label: "Workspace setup", icon: Sliders },
   { href: "/dashboard/brand", label: "Brand", icon: Palette },
   { href: "/dashboard/settings", label: "Account", icon: User },
@@ -369,7 +369,7 @@ export default function DashboardShell({
             </div>
           </div>
         </header>
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1 bg-[#FAFAF8] dark:bg-[#0E0E10]">{children}</main>
       </div>
 
 
@@ -381,18 +381,18 @@ export default function DashboardShell({
           onClick={() => setShowHelp(false)}
         >
           <div
-            className="relative w-full max-w-4xl h-[94vh] max-h-[96vh] rounded-2xl border border-[#2e2e38] bg-[#18181c] text-white shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className="relative w-full max-w-4xl h-[94vh] max-h-[96vh] rounded-2xl border border-[#E5E3DD] bg-white text-zinc-900 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 dark:border-[#2e2e38] dark:bg-[#18181c] dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#2e2e38] px-6 py-4">
+            <div className="flex items-center justify-between border-b border-[#E5E3DD] dark:border-[#2e2e38] px-6 py-4">
               <div className="flex items-center gap-3.5">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FE6F34] text-black shadow-sm">
                   <ListChecks className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Help centre</h3>
-                  <p className="text-[11px] text-[#9B9085] mt-0.5">Learn the basics or find your next step.</p>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Help centre</h3>
+                  <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5">Learn the basics or find your next step.</p>
                 </div>
               </div>
               <button
@@ -400,7 +400,7 @@ export default function DashboardShell({
                   setShowHelp(false);
                   setSelectedTopic(null);
                 }}
-                className="rounded-lg p-1.5 text-[#9B9085] hover:bg-[#25252b] hover:text-white transition-colors"
+                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#25252b] dark:hover:text-white transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -408,10 +408,10 @@ export default function DashboardShell({
 
             {/* Sub-header navigation when inside a topic */}
             {selectedTopic && (
-              <div className="flex items-center justify-between border-b border-[#2e2e38] bg-transparent px-6 py-2.5">
+              <div className="flex items-center justify-between border-b border-[#E5E3DD] dark:border-[#2e2e38] bg-transparent px-6 py-2.5">
                 <button
                   onClick={() => setSelectedTopic(null)}
-                  className="flex items-center gap-2.5 rounded-lg bg-transparent px-4 py-2 ml-6 text-sm font-semibold text-[#d4c8bc] hover:bg-[#282830] hover:text-white transition-all"
+                  className="flex items-center gap-2.5 rounded-lg bg-transparent px-4 py-2 ml-6 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:text-[#d4c8bc] dark:hover:bg-[#282830] dark:hover:text-white transition-all"
                 >
                   <ArrowLeft className="h-4 w-4 text-[#9B9085]" />
                   <span>All help topics</span>
@@ -634,7 +634,7 @@ export default function DashboardShell({
                     {/* Bottom Action Button */}
                     <div className="pt-2 text-left">
                       <Link
-                        href="/dashboard/pages"
+                        href="/dashboard/leadmagnets"
                         onClick={() => setShowHelp(false)}
                         className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
                       >
@@ -701,7 +701,7 @@ export default function DashboardShell({
                   {/* Bottom Action Button */}
                   <div className="pt-2 text-left">
                     <Link
-                      href="/dashboard/leads"
+                      href="/dashboard/signups"
                       onClick={() => setShowHelp(false)}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
                     >
@@ -1680,7 +1680,7 @@ export default function DashboardShell({
                     {/* Bottom Action Button */}
                     <div className="pt-2">
                       <Link
-                        href="/dashboard/pages"
+                        href="/dashboard/leadmagnets"
                         onClick={() => setShowHelp(false)}
                         className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
                       >
@@ -1847,7 +1847,7 @@ export default function DashboardShell({
                     {/* Bottom Action Button */}
                     <div className="pt-2">
                       <Link
-                        href="/dashboard/resources"
+                        href="/dashboard/hostresources"
                         onClick={() => setShowHelp(false)}
                         className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
                       >
@@ -1975,7 +1975,7 @@ export default function DashboardShell({
                     {/* Bottom Action Button */}
                     <div className="pt-2">
                       <Link
-                        href="/dashboard/pages"
+                        href="/dashboard/leadmagnets"
                         onClick={() => setShowHelp(false)}
                         className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
                       >
@@ -2459,20 +2459,20 @@ export default function DashboardShell({
                   {/* What do you need help with? Title */}
                   {!searchQuery && (
                     <div className="mb-4">
-                      <h2 className="text-xl font-bold text-white">What do you need help with?</h2>
-                      <p className="text-xs text-[#9B9085] mt-1">Choose a topic for a clear answer and the exact steps to follow.</p>
+                      <h2 className="text-xl font-bold text-zinc-900 dark:text-white">What do you need help with?</h2>
+                      <p className="text-xs text-zinc-700 dark:text-[#9B9085] mt-1">Choose a topic for a clear answer and the exact steps to follow.</p>
                     </div>
                   )}
 
                   {/* Modal Search Bar */}
-                  <div className="relative flex items-center rounded-lg border border-[#2e2e38] bg-[#141417] px-3.5 focus-within:border-[#FE6F34] mb-2 transition-colors">
-                    <Search className="h-4 w-4 text-[#9B9085] mr-2 shrink-0" />
+                  <div className="relative flex items-center rounded-xl border border-[#E5E3DD] bg-white dark:border-[#2e2e38] dark:bg-[#141417] px-3.5 focus-within:border-[#FE6F34] mb-2 transition-colors shadow-sm dark:shadow-none">
+                    <Search className="h-4 w-4 text-zinc-400 dark:text-[#9B9085] mr-2 shrink-0" />
                     <input
                       type="text"
                       placeholder="Search topics, integrations, or setup"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-transparent py-2.5 text-xs text-white outline-none placeholder-[#71717a] focus:ring-0"
+                      className="w-full bg-transparent py-2.5 text-xs text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder-[#71717a] focus:ring-0"
                     />
                   </div>
 
@@ -2501,8 +2501,8 @@ export default function DashboardShell({
                       {/* Left Column (LEARN, SET UP, MANAGE) */}
                       <div className="space-y-3.5">
                         {/* LEARN */}
-                        <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                          <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
+                        <div className="rounded-2xl border border-[#E5E3DD] bg-[#F7F5F0] dark:border-[#2e2e38] dark:bg-[#222227] p-3.5 sm:p-4">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 dark:text-[#9B9085] uppercase tracking-wider mb-3">
                             <span>{helpTopics.learn.title}</span>
                             <span>{helpTopics.learn.count}</span>
                           </div>
@@ -2511,10 +2511,10 @@ export default function DashboardShell({
                               <button
                                 key={topic.text}
                                 onClick={() => setSelectedTopic(topic.text)}
-                                className="group flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-white border border-[#E5E3DD] hover:bg-[#F5F3ED] dark:bg-[#161619] dark:border-[#3f3f4c] dark:hover:bg-[#222227] dark:hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-zinc-800 dark:text-[#d4c8bc] transition-all shadow-sm dark:shadow-none"
                               >
                                 <div className="flex items-center gap-3.5">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F5F3EE] border border-[#E5E3DD] text-zinc-700 dark:bg-[#222228] dark:border-[#2e2e38] dark:text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
                                     {topic.icon === "BookOpen" && <BookOpen className="h-3.5 w-3.5" />}
                                     {topic.icon === "Gift" && <Gift className="h-3.5 w-3.5" />}
                                     {topic.icon === "Sliders" && <Sliders className="h-3.5 w-3.5" />}
@@ -2529,8 +2529,8 @@ export default function DashboardShell({
                         </div>
 
                         {/* SET UP */}
-                        <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                          <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
+                        <div className="rounded-2xl border border-[#E5E3DD] bg-[#F7F5F0] dark:border-[#2e2e38] dark:bg-[#222227] p-3.5 sm:p-4">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 dark:text-[#9B9085] uppercase tracking-wider mb-3">
                             <span>{helpTopics.setup.title}</span>
                             <span>{helpTopics.setup.count}</span>
                           </div>
@@ -2539,10 +2539,10 @@ export default function DashboardShell({
                               <button
                                 key={topic.text}
                                 onClick={() => setSelectedTopic(topic.text)}
-                                className="group flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-white border border-[#E5E3DD] hover:bg-[#F5F3ED] dark:bg-[#161619] dark:border-[#3f3f4c] dark:hover:bg-[#222227] dark:hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-zinc-800 dark:text-[#d4c8bc] transition-all shadow-sm dark:shadow-none"
                               >
                                 <div className="flex items-center gap-3.5">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F5F3EE] border border-[#E5E3DD] text-zinc-700 dark:bg-[#222228] dark:border-[#2e2e38] dark:text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
                                     {topic.icon === "Settings" && <Settings className="h-3.5 w-3.5" />}
                                     {topic.icon === "Globe" && <Globe className="h-3.5 w-3.5" />}
                                     {topic.icon === "Mail" && <Mail className="h-3.5 w-3.5" />}
@@ -2557,8 +2557,8 @@ export default function DashboardShell({
                         </div>
 
                         {/* MANAGE */}
-                        <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                          <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
+                        <div className="rounded-2xl border border-[#E5E3DD] bg-[#F7F5F0] dark:border-[#2e2e38] dark:bg-[#222227] p-3.5 sm:p-4">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 dark:text-[#9B9085] uppercase tracking-wider mb-3">
                             <span>{helpTopics.manage.title}</span>
                             <span>{helpTopics.manage.count}</span>
                           </div>
@@ -2567,10 +2567,10 @@ export default function DashboardShell({
                               <button
                                 key={topic.text}
                                 onClick={() => setSelectedTopic(topic.text)}
-                                className="group flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-white border border-[#E5E3DD] hover:bg-[#F5F3ED] dark:bg-[#161619] dark:border-[#3f3f4c] dark:hover:bg-[#222227] dark:hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-zinc-800 dark:text-[#d4c8bc] transition-all shadow-sm dark:shadow-none"
                               >
                                 <div className="flex items-center gap-3.5">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F5F3EE] border border-[#E5E3DD] text-zinc-700 dark:bg-[#222228] dark:border-[#2e2e38] dark:text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
                                     {topic.icon === "Users" && <Users className="h-3.5 w-3.5" />}
                                     {topic.icon === "BarChart3" && <BarChart3 className="h-3.5 w-3.5" />}
                                     {topic.icon === "User" && <User className="h-3.5 w-3.5" />}
@@ -2588,8 +2588,8 @@ export default function DashboardShell({
                       {/* Right Column (BUILD, CONNECTIONS) */}
                       <div className="space-y-3.5">
                         {/* BUILD */}
-                        <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                          <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
+                        <div className="rounded-2xl border border-[#E5E3DD] bg-[#F7F5F0] dark:border-[#2e2e38] dark:bg-[#222227] p-3.5 sm:p-4">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 dark:text-[#9B9085] uppercase tracking-wider mb-3">
                             <span>{helpTopics.build.title}</span>
                             <span>{helpTopics.build.count}</span>
                           </div>
@@ -2598,10 +2598,10 @@ export default function DashboardShell({
                               <button
                                 key={topic.text}
                                 onClick={() => setSelectedTopic(topic.text)}
-                                className="group flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-white border border-[#E5E3DD] hover:bg-[#F5F3ED] dark:bg-[#161619] dark:border-[#3f3f4c] dark:hover:bg-[#222227] dark:hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-zinc-800 dark:text-[#d4c8bc] transition-all shadow-sm dark:shadow-none"
                               >
                                 <div className="flex items-center gap-3.5">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F5F3EE] border border-[#E5E3DD] text-zinc-700 dark:bg-[#222228] dark:border-[#2e2e38] dark:text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
                                     {topic.icon === "Compass" && <Compass className="h-3.5 w-3.5" />}
                                     {topic.icon === "FileText" && <FileText className="h-3.5 w-3.5" />}
                                     {topic.icon === "FolderOpen" && <FolderOpen className="h-3.5 w-3.5" />}
@@ -2619,8 +2619,8 @@ export default function DashboardShell({
                         </div>
 
                         {/* CONNECTIONS */}
-                        <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
-                          <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
+                        <div className="rounded-2xl border border-[#E5E3DD] bg-[#F7F5F0] dark:border-[#2e2e38] dark:bg-[#222227] p-3.5 sm:p-4">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 dark:text-[#9B9085] uppercase tracking-wider mb-3">
                             <span>{helpTopics.connections.title}</span>
                             <span>{helpTopics.connections.count}</span>
                           </div>
@@ -2629,10 +2629,10 @@ export default function DashboardShell({
                               <button
                                 key={topic.text}
                                 onClick={() => setSelectedTopic(topic.text)}
-                                className="group flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-white border border-[#E5E3DD] hover:bg-[#F5F3ED] dark:bg-[#161619] dark:border-[#3f3f4c] dark:hover:bg-[#222227] dark:hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-zinc-800 dark:text-[#d4c8bc] transition-all shadow-sm dark:shadow-none"
                               >
                                 <div className="flex items-center gap-3.5">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F5F3EE] border border-[#E5E3DD] text-zinc-700 dark:bg-[#222228] dark:border-[#2e2e38] dark:text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
                                     {topic.icon === "Share2" && <Share2 className="h-3.5 w-3.5" />}
                                     {topic.icon === "Cpu" && <Cpu className="h-3.5 w-3.5" />}
                                     {topic.icon === "Slack" && <Slack className="h-3.5 w-3.5" />}
@@ -2726,20 +2726,20 @@ export default function DashboardShell({
 
                 setShowCreateMagnetModal(false);
                 setCreateMagnetName("");
-                router.push(`/dashboard/pages/${newId}`);
+                router.push(`/dashboard/leadmagnets/${newId}`);
               }}
               className="space-y-4"
             >
               {/* Page Name */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#d4c8bc]">Page name</label>
+                <label className="text-xs font-semibold text-zinc-800 dark:text-[#d4c8bc]">Page name</label>
                 <input
                   type="text"
                   autoFocus
                   value={createMagnetName}
                   onChange={(e) => setCreateMagnetName(e.target.value)}
                   placeholder="AI Pipeline Playbook"
-                  className="w-full rounded-xl border border-[#FE6F34]/80 bg-[#121214] px-3.5 py-2.5 text-xs text-white placeholder:text-[#52525b] outline-none focus:ring-1 focus:ring-[#FE6F34] transition-all"
+                  className="w-full rounded-xl border border-zinc-200 dark:border-[#2e2e38] bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#52525b] outline-none focus:ring-1 focus:ring-[#FE6F34] transition-all"
                   required
                 />
               </div>

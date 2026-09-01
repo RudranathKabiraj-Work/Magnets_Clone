@@ -35,7 +35,7 @@ export default function LoginPage() {
               localStorage.setItem("currentUserAccount", JSON.stringify(loginData.account));
             }
           }
-          router.push("/dashboard/pages");
+          router.push("/dashboard/leadmagnets");
         } else {
           setError("Failed to login. Please check database connection.");
         }

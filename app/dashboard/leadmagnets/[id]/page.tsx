@@ -50,7 +50,7 @@ export default function PageEditor() {
           <p className="text-sm font-medium text-ink-700 dark:text-ink-300">Page not found</p>
           <p className="text-sm text-ink-500 dark:text-ink-400">It may have been deleted or the link is wrong.</p>
           <Link
-            href="/dashboard/pages"
+            href="/dashboard/leadmagnets"
             className="inline-flex h-10 items-center gap-2 rounded-md bg-ink-950 px-4 text-sm font-semibold text-white transition hover:bg-brand-orange hover:text-ink-950 dark:bg-brand-orange dark:text-ink-950"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -95,7 +95,7 @@ export default function PageEditor() {
       <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-ink-200 bg-white/90 px-4 backdrop-blur sm:px-5 dark:border-ink-700 dark:bg-ink-900/95">
         <div className="flex min-w-0 items-center gap-2.5">
           <Link
-            href="/dashboard/pages"
+            href="/dashboard/leadmagnets"
             aria-label="Back to pages"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-ink-600 transition hover:bg-ink-50 hover:text-ink-950 dark:text-ink-300 dark:hover:bg-white/5 dark:hover:text-white"
           >

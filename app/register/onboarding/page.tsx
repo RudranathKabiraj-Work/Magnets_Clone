@@ -102,7 +102,7 @@ function OnboardingContent() {
       });
 
       if (res.ok) {
-        router.push(`/dashboard/pages/${pageId}`);
+        router.push(`/dashboard/leadmagnets/${pageId}`);
       } else {
         alert("Failed to create page. Please try again.");
       }

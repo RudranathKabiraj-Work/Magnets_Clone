@@ -203,7 +203,7 @@ export default function PagesPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link
-                          href={`/dashboard/pages/${page.id}`}
+                          href={`/dashboard/leadmagnets/${page.id}`}
                           className="truncate text-sm font-semibold text-zinc-950 hover:text-[#FE6F34] transition dark:text-white dark:hover:text-[#FE6F34]"
                         >
                           {page.name}
@@ -254,7 +254,7 @@ export default function PagesPage() {
                     {/* Actions */}
                     <div className="flex items-center gap-1.5 shrink-0">
                       <Link
-                        href={`/dashboard/pages/${page.id}`}
+                        href={`/dashboard/leadmagnets/${page.id}`}
                         aria-label={`Edit ${page.name}`}
                         className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 transition dark:border-[#2e2e38] dark:bg-transparent dark:text-[#9B9085] dark:hover:border-[#3a3a3f] dark:hover:text-white"
                       >
@@ -337,7 +337,7 @@ export default function PagesPage() {
                 setPages(nextPages);
                 savePages(nextPages);
                 setShowCreateModal(false);
-                router.push(`/dashboard/pages/${newId}`);
+                router.push(`/dashboard/leadmagnets/${newId}`);
               }}
               className="space-y-4"
             >
