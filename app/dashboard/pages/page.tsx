@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, Eye, MousePointerClick, Pencil, Plus, Rocket, Search, Sparkles, Trash2 } from "lucide-react";
+import { ExternalLink, Eye, MousePointerClick, Pencil, Plus, Rocket, Search, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import StatusBadge from "@/components/dashboard/status-badge";
@@ -15,6 +15,18 @@ export default function PagesPage() {
   const [pages, setPages] = useState<MagnetPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  // Modal State for 'Create a magnet' popup
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newName, setNewName] = useState("");
+
+  const newSlug = useMemo(() => {
+    return newName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-") || "untitled-page";
+  }, [newName]);
 
   const live = useMemo(() => pages.filter((p) => p.status === "live").length, [pages]);
   const total = pages.length;
@@ -113,14 +125,14 @@ export default function PagesPage() {
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86]">TOTAL</p>
                   <p className="text-2xl font-bold text-zinc-950 dark:text-white leading-none mt-2">{total}</p>
                 </div>
-                {/* New page button */}
-                <Link
-                  href="/dashboard/pages/new"
-                  className="flex items-center justify-center gap-1.5 rounded-xl bg-black px-5 py-3 text-xs font-bold text-white hover:bg-zinc-800 transition shadow-md whitespace-nowrap dark:bg-[#FE6F34] dark:text-black dark:hover:bg-[#ff7d47]"
+                {/* New page button - opens popup modal */}
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-black px-5 py-3 text-xs font-bold text-white hover:bg-zinc-800 transition shadow-md whitespace-nowrap dark:bg-[#FE6F34] dark:text-black dark:hover:bg-[#ff7d47] cursor-pointer"
                 >
                   <Plus className="h-4 w-4 text-white dark:text-black stroke-[2.5px]" />
                   New page
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -152,13 +164,13 @@ export default function PagesPage() {
                 <p className="text-xs text-zinc-500 dark:text-[#9B9085] max-w-xs mb-6 leading-relaxed">
                   Build the landing page, resource email, and follow-up sequence in one guided flow.
                 </p>
-                <Link
-                  href="/dashboard/pages/new"
-                  className="flex items-center gap-2 rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition dark:bg-[#FE6F34] dark:hover:bg-[#e55e28]"
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="flex items-center gap-2 rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition dark:bg-[#FE6F34] dark:hover:bg-[#e55e28] cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
                   Create lead magnet
-                </Link>
+                </button>
               </div>
             ) : filtered.length === 0 ? (
               /* No search results */
@@ -272,6 +284,111 @@ export default function PagesPage() {
           </div>
         </footer>
       </div>
+
+      {/* 'Create a magnet' Modal Overlay matching exact user screenshot */}
+      {showCreateModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-all duration-200"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div
+            className="relative w-full max-w-[460px] rounded-2xl border border-[#2e2e38] bg-[#18181c] p-6 text-white shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-base font-bold text-white">Create a magnet</h3>
+                <p className="text-xs text-[#9B9085] mt-1">Name the page and choose its URL.</p>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="rounded-lg p-1 text-[#9B9085] hover:bg-[#25252b] hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Input Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const cleanSlug = newSlug;
+                const newId = `page-${Date.now()}`;
+                const newMagnetPage: MagnetPage = {
+                  id: newId,
+                  name: newName.trim() || "Untitled Page",
+                  slug: cleanSlug,
+                  status: "draft",
+                  headline: newName.trim() || "Untitled Page",
+                  subheadline: "Enter your email to get instant access.",
+                  buttonText: "Get instant access",
+                  accent: "#FE6F34",
+                  views: 0,
+                  signups: 0,
+                  updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                  deliveryEmail: {
+                    subject: "Your resource is inside",
+                    previewText: "Here is your link",
+                    body: "Thanks for signing up!",
+                    linkText: "Access resource",
+                    linkUrl: "",
+                  },
+                };
+
+                const nextPages = [newMagnetPage, ...pages];
+                setPages(nextPages);
+                savePages(nextPages);
+                setShowCreateModal(false);
+                router.push(`/dashboard/pages/${newId}`);
+              }}
+              className="space-y-4"
+            >
+              {/* Page Name */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#d4c8bc]">Page name</label>
+                <input
+                  type="text"
+                  autoFocus
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="AI Pipeline Playbook"
+                  className="w-full rounded-xl border border-[#FE6F34]/80 bg-[#121214] px-3.5 py-2.5 text-xs text-white placeholder:text-[#52525b] outline-none focus:ring-1 focus:ring-[#FE6F34] transition-all"
+                  required
+                />
+              </div>
+
+              {/* URL Slug */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#d4c8bc]">URL slug</label>
+                <div className="flex items-center rounded-xl border border-[#2e2e38] bg-[#121214] px-3.5 py-2.5 text-xs text-[#9B9085]">
+                  <span className="text-[#666675] shrink-0 mr-1.5">/</span>
+                  <span className="font-mono text-[#d4c8bc] truncate">{newSlug}</span>
+                </div>
+                <p className="text-[11px] text-[#666675]">The path of the page. Lowercase, digits, and hyphens only.</p>
+              </div>
+
+              {/* Modal Action Buttons */}
+              <div className="pt-3 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="rounded-xl border border-[#2e2e38] bg-[#222228] px-4 py-2 text-xs font-semibold text-white hover:bg-[#2c2c34] transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#FE6F34] px-4 py-2 text-xs font-bold text-black hover:bg-[#ff7d47] transition-all cursor-pointer shadow-sm"
+                >
+                  <span>+</span>
+                  <span>Create page</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </DashboardShell>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles } from "lucide-react";
+import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket } from "lucide-react";
 import { useState, useEffect } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
@@ -415,7 +415,110 @@ export default function DashboardShell({
 
             {/* Modal Scroll Content */}
             <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6" data-lenis-prevent>
-              {selectedTopic === "What works best?" ? (
+              {selectedTopic === "Create your first lead magnet" ? (
+                <div className="max-w-[43rem] mx-auto space-y-4 py-2">
+                  {/* Top Card: Build a direct path from interest to your email list */}
+                  <div className="rounded-2xl border border-[#6e3e30] bg-[#18181c] bg-[radial-gradient(ellipse_160%_200%_at_left_center,#562c1e_0%,#341d17_28%,#1d1719_55%,#18181c_100%)] p-6 space-y-4">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[#4a2e26] bg-[#221614] px-3.5 py-1 text-[11px] font-bold tracking-wider text-[#FE6F34] uppercase">
+                      <Rocket className="h-3.5 w-3.5 text-[#FE6F34]" />
+                      <span>YOUR FIRST LAUNCH</span>
+                    </div>
+
+                    <h2 className="text-xl font-bold text-white leading-tight">
+                      Build a direct path from interest to your email list
+                    </h2>
+
+                    <p className="text-sm text-[#9B9085] leading-relaxed">
+                      Magnets builds the signup, delivery, and follow-up journey. You create the actual resource people receive, then add its download or access link to the Delivery email.
+                    </p>
+                  </div>
+
+                  {/* Bottom Card: Create the resource before you publish */}
+                  <div className="rounded-2xl border border-[#6e3e30] bg-[#201816] p-6 space-y-2.5">
+                    <h3 className="text-base font-bold text-white">
+                      Create the resource before you publish
+                    </h3>
+                    <p className="text-sm text-[#9B9085] leading-relaxed">
+                      Make the PDF, template, video, email course, AI tool, or other useful resource yourself. Magnets does not generate the finished resource for you. It gives that resource a page, captures the signup, emails the link, and manages what happens next.
+                    </p>
+                  </div>
+
+                  {/* 4-Step Action Steps Section */}
+                  <div className="pt-3 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Create the actual resource</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Pick one small problem and make the PDF, template, video, course, tool, or other resource that solves it.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Get an accessible link</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Upload a file under Hosted resources and copy its unique link, or use a public share link from wherever the resource is hosted.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Paste the link into the Delivery email</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Open the Delivery email tab and add a prominent linked button or line of text so subscribers can open or download the resource.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        4
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Complete and publish the journey</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Finish the Landing page, optional Sequence, and After signup tabs. Preview everything, publish the page, and share its public link.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Divider & Action Buttons */}
+                    <div className="pt-5 border-t border-[#2e2e38] flex items-center gap-3">
+                      <Link
+                        href="/dashboard/pages/new"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Create a lead magnet</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+
+                      <Link
+                        href="/dashboard/setup"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center rounded-xl border border-[#2e2e38] bg-[#222228] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2c2c34] transition-all cursor-pointer"
+                      >
+                        Set up a custom domain
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "What works best?" ? (
                 <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                   <div className="flex items-center gap-3.5">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
