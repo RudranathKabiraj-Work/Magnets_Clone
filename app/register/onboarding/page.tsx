@@ -405,7 +405,7 @@ function OnboardingContent() {
 
       {/* Create Lead Magnet Modal Overlay */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-md rounded-xl border border-[#1C1C20] bg-[#131316] p-6 shadow-2xl text-white">
             
             {/* Modal Header */}
