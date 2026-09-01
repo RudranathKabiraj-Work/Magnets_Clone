@@ -177,58 +177,64 @@ export default function DashboardShell({
             );
           })}
         </nav>
-        <div className="relative border-t border-white/10 px-3 py-4">
-          {/* Profile Popover Menu */}
-          {showProfileMenu && (
-            <div className="absolute bottom-16 left-3 w-52 rounded-lg border border-white/10 bg-[#121214] p-1 shadow-lg z-50 text-white flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150">
-              <button
-                onClick={toggleTheme}
-                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-ink-300 hover:bg-[#1B1B1F] hover:text-white transition w-full"
-              >
-                {dark ? (
-                  <>
-                    <Sun className="h-4 w-4 text-[#9B9085]" /> Light mode
-                  </>
-                ) : (
-                  <>
-                    <Moon className="h-4 w-4 text-[#9B9085]" /> Dark mode
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => alert("Redirecting to bug report page...")}
-                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-ink-300 hover:bg-[#1B1B1F] hover:text-white transition w-full"
-              >
-                <Bug className="h-4 w-4 text-[#9B9085]" /> Report a bug
-              </button>
-              <button
-                onClick={() => alert("Redirecting to feature request page...")}
-                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-ink-300 hover:bg-[#1B1B1F] hover:text-white transition w-full"
-              >
-                <Lightbulb className="h-4 w-4 text-[#9B9085]" /> Request a feature
-              </button>
-              <div className="border-t border-white/10 my-1" />
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-[#1B1B1F] transition w-full"
-              >
-                <LogOut className="h-4 w-4 text-red-400" /> Logout
-              </button>
-            </div>
-          )}
+        <div className="border-t border-white/10 px-2.5 py-2">
+          <div className="relative">
+            {/* Profile Popover Menu */}
+            {showProfileMenu && (
+              <div className="absolute bottom-full mb-2 left-0 w-52 rounded-xl border border-[#2e2e38] bg-[#1a1a1e] p-1.5 shadow-2xl z-50 text-white flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-ink-300 hover:bg-[#26262B] hover:text-white transition w-full"
+                >
+                  {dark ? (
+                    <>
+                      <Sun className="h-4 w-4 text-[#9B9085]" /> Light mode
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="h-4 w-4 text-[#9B9085]" /> Dark mode
+                    </>
+                  )}
+                </button>
+                <a
+                  href="mailto:hello@magnets.so?subject=Bug%20Report"
+                  onClick={() => setShowProfileMenu(false)}
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-ink-300 hover:bg-[#26262B] hover:text-white transition w-full"
+                >
+                  <Bug className="h-4 w-4 text-[#9B9085]" /> Report a bug
+                </a>
+                <a
+                  href="mailto:hello@magnets.so?subject=Feature%20Request"
+                  onClick={() => setShowProfileMenu(false)}
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-ink-300 hover:bg-[#26262B] hover:text-white transition w-full"
+                >
+                  <Lightbulb className="h-4 w-4 text-[#9B9085]" /> Request a feature
+                </a>
+                <div className="border-t border-white/10 my-1" />
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-[#26262B] transition w-full"
+                >
+                  <LogOut className="h-4 w-4 text-red-400" /> Logout
+                </button>
+              </div>
+            )}
 
-          <button
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-3 px-1 py-1 w-full text-left rounded-md hover:bg-[#121214] transition cursor-pointer"
-          >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#18181B] text-xs font-semibold text-white">
-              {account.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || account.name.charAt(0)}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold text-white">{account.name}</p>
-              <p className="truncate text-[10px] text-[#9B9085]">{account.email}</p>
-            </div>
-          </button>
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className={`flex items-center gap-2.5 px-2 py-1.5 w-full text-left rounded-lg transition-colors cursor-pointer ${
+                showProfileMenu ? "bg-[#26262B]" : "hover:bg-[#26262B]"
+              }`}
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#121214] text-xs font-bold text-white">
+                {account.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || account.name.charAt(0)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-white leading-tight">{account.name}</p>
+                <p className="truncate text-[10px] text-[#9B9085] leading-tight mt-0.5">{account.email}</p>
+              </div>
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -315,10 +321,10 @@ export default function DashboardShell({
                 {account.name.charAt(0).toUpperCase()}
               </button>
               {showProfileMenu && (
-                <div className="absolute right-0 top-10 w-52 rounded-lg border border-white/10 bg-[#121214] p-1 shadow-lg z-50 text-white flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute right-0 top-10 w-52 rounded-xl border border-[#2e2e38] bg-[#1a1a1e] p-1.5 shadow-2xl z-50 text-white flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-2 duration-150">
                   <button
                     onClick={toggleTheme}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#1B1B1F] hover:text-white transition w-full"
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#26262B] hover:text-white transition w-full"
                   >
                     {dark ? (
                       <>
@@ -330,22 +336,24 @@ export default function DashboardShell({
                       </>
                     )}
                   </button>
-                  <button
-                    onClick={() => alert("Redirecting to bug report page...")}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#1B1B1F] hover:text-white transition w-full"
+                  <a
+                    href="mailto:hello@magnets.so?subject=Bug%20Report"
+                    onClick={() => setShowProfileMenu(false)}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#26262B] hover:text-white transition w-full"
                   >
                     <Bug className="h-4 w-4 text-[#9B9085]" /> Report a bug
-                  </button>
-                  <button
-                    onClick={() => alert("Redirecting to feature request page...")}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#1B1B1F] hover:text-white transition w-full"
+                  </a>
+                  <a
+                    href="mailto:hello@magnets.so?subject=Feature%20Request"
+                    onClick={() => setShowProfileMenu(false)}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#26262B] hover:text-white transition w-full"
                   >
                     <Lightbulb className="h-4 w-4 text-[#9B9085]" /> Request a feature
-                  </button>
+                  </a>
                   <div className="border-t border-white/10 my-1" />
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-[#1B1B1F] transition w-full"
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-[#26262B] transition w-full"
                   >
                     <LogOut className="h-4 w-4 text-red-400" /> Logout
                   </button>
