@@ -35,8 +35,13 @@ export default function DashboardShell({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [dark, setDark] = useState(false);
+  const [showCreateMagnetModal, setShowCreateMagnetModal] = useState(false);
+  const [createMagnetName, setCreateMagnetName] = useState("");
+
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setDark(typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
   }, []);
 
@@ -226,12 +231,14 @@ export default function DashboardShell({
               className={`flex items-center gap-2.5 px-2 py-1.5 w-full text-left rounded-lg transition-colors cursor-pointer ${showProfileMenu ? "bg-zinc-100 dark:bg-[#26262B]" : "hover:bg-zinc-100 dark:hover:bg-[#26262B]"
                 }`}
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-xs font-bold text-white dark:bg-[#121214]">
-                {account.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || account.name.charAt(0)}
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-xs font-bold text-white dark:bg-[#121214]" suppressHydrationWarning>
+                {mounted
+                  ? (account.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || account.name.charAt(0))
+                  : (account.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "RK")}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-zinc-900 leading-tight dark:text-white">{account.name}</p>
-                <p className="truncate text-[10px] text-zinc-500 leading-tight mt-0.5 dark:text-[#9B9085]">{account.email}</p>
+                <p className="truncate text-xs font-semibold text-zinc-900 leading-tight dark:text-white" suppressHydrationWarning>{account.name}</p>
+                <p className="truncate text-[10px] text-zinc-500 leading-tight mt-0.5 dark:text-[#9B9085]" suppressHydrationWarning>{account.email}</p>
               </div>
             </button>
           </div>
@@ -415,7 +422,406 @@ export default function DashboardShell({
 
             {/* Modal Scroll Content */}
             <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6" data-lenis-prevent>
-              {selectedTopic === "Create your first lead magnet" ? (
+              {selectedTopic === "Delivery emails" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: DELIVER THE PROMISE */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <Send className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">DELIVER THE PROMISE</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do delivery emails work?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      The delivery email is sent immediately after a successful signup. It should make the promised resource easy to find and remind the reader why it is useful.
+                    </p>
+                  </div>
+
+                  {/* Warm Reddish-Brown Tinted Card: Bring your own resource link */}
+                  <div className="rounded-2xl border border-[#452b23] bg-[#221a18] px-5 py-4 space-y-1.5 text-left">
+                    <h3 className="text-base font-bold text-white text-left">
+                      Bring your own resource link
+                    </h3>
+                    <p className="text-sm text-[#9B9085] leading-relaxed text-left">
+                      Create the resource yourself, then paste its full download or access link into this email. For files, you can upload the resource under Hosted resources and use the unique link Magnets gives you.
+                    </p>
+                  </div>
+
+                  {/* 4 Numbered Steps */}
+                  <div className="pt-2 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Open the email editor</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Open a lead magnet and choose the Delivery email tab.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Set the inbox details</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Write a clear subject and preview line so the reader recognises what they requested.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Make access obvious</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Add a short welcome and a prominent link to the promised file or resource.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        4
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Preview before sending</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Use Preview to check the exact email before publishing the lead magnet.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Dark Info Card: Delivery content and sender setup are different */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#1c1c22] p-5 space-y-1.5">
+                      <h4 className="text-sm font-bold text-white">Delivery content and sender setup are different</h4>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        The Delivery email tab controls what the email says. Your sender setup controls the From name and address. You can edit the email without connecting your own sender domain.
+                      </p>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-2">
+                      <Link
+                        href="/dashboard/pages"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open Lead magnets</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Brand colours and logo" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: PAGE APPEARANCE */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <Palette className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">PAGE APPEARANCE</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I update my brand colours?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Brand settings apply to every public lead magnet and to the editor preview.
+                    </p>
+                  </div>
+
+                  {/* 4 Numbered Steps */}
+                  <div className="pt-2 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Open your brand settings</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Open Brand from the dashboard sidebar.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Set the identity and colour</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Add your business name, upload a logo, and choose the primary colour used across your pages.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Choose the page style</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Choose light or dark page appearance and adjust the highlight intensity.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        4
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Preview and save</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Check the preview, then choose Save brand.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-2">
+                      <Link
+                        href="/dashboard/brand"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open Brand settings</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Hosted resources" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: FILES AND DOWNLOADS */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <FolderOpen className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">FILES AND DOWNLOADS</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I host a resource?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Hosted resources give you a stable download link for a PDF, image, ZIP file, or other supported resource. The file is private in storage. Only someone with its unique link can download it.
+                    </p>
+                  </div>
+
+                  {/* 3 Numbered Steps */}
+                  <div className="pt-2 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Upload the file</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Open Hosted resources from the sidebar and choose Upload resource.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Name the resource</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Give it a clear name. This is the name shown in your resource library.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Add it to the Delivery email</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Copy its unique link, then paste it into the Delivery email for the lead magnet that should send it.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Dark Warning Card: Deleting a resource revokes its link */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#1c1c22] p-5 space-y-1.5">
+                      <h4 className="text-sm font-bold text-white">Deleting a resource revokes its link</h4>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Anyone using the old link will lose access immediately, so update any lead magnets that still use it.
+                      </p>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-2">
+                      <Link
+                        href="/dashboard/resources"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open Hosted resources</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Edit and publish a magnet" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: BUILD THE FULL JOURNEY */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <FileText className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">BUILD THE FULL JOURNEY</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I edit and publish a lead magnet?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Each lead magnet has one editor for the page people visit, the email that delivers the resource, any follow-up emails, and what happens after signup. Changes save automatically while you work.
+                    </p>
+                  </div>
+
+                  {/* 2x2 Grid of 4 Editor Component Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                    {/* Landing page */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-2">
+                      <h4 className="text-base font-bold text-white">Landing page</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Write the promise, explain the value, add an image, and choose the details the form should collect.
+                      </p>
+                    </div>
+
+                    {/* Delivery email */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-2">
+                      <h4 className="text-base font-bold text-white">Delivery email</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Set the subject, preview text, and message that sends the promised resource.
+                      </p>
+                    </div>
+
+                    {/* Sequence */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-2">
+                      <h4 className="text-base font-bold text-white">Sequence</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Add optional follow-up emails and choose the delay before each one.
+                      </p>
+                    </div>
+
+                    {/* After signup */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-2">
+                      <h4 className="text-base font-bold text-white">After signup</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Show a confirmation, redirect to another URL, or create a custom next-step page.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 4 Numbered Steps */}
+                  <div className="pt-3 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Preview the experience</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Use Preview to check the real page or email before sharing it.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Get help with the copy</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Use the writing copilot for copy ideas or revisions, then review the changes before applying them.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Publish when ready</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Change the status to Published when the page is ready. Draft pages are not available to visitors.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        4
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Share the page</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Copy the public link or download its QR code from the page actions, then share it with your audience.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Dark Red Warning Card */}
+                    <div className="rounded-2xl border border-[#4d2226] bg-[#221617] p-5">
+                      <p className="text-xs text-[#f87171] leading-relaxed">
+                        Deleting a lead magnet removes its public page and cannot be undone. Signups already collected remain in your Signups area.
+                      </p>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-2">
+                      <Link
+                        href="/dashboard/pages"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open Lead magnets</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Create your first lead magnet" ? (
                 <div className="max-w-[43rem] mx-auto space-y-4 py-2">
                   {/* Top Card: Build a direct path from interest to your email list */}
                   <div className="rounded-2xl border border-[#6e3e30] bg-[#18181c] bg-[radial-gradient(ellipse_160%_200%_at_left_center,#562c1e_0%,#341d17_28%,#1d1719_55%,#18181c_100%)] p-6 space-y-4">
@@ -499,14 +905,16 @@ export default function DashboardShell({
 
                     {/* Divider & Action Buttons */}
                     <div className="pt-5 border-t border-[#2e2e38] flex items-center gap-3">
-                      <Link
-                        href="/dashboard/pages/new"
-                        onClick={() => setShowHelp(false)}
+                      <button
+                        onClick={() => {
+                          setShowHelp(false);
+                          setShowCreateMagnetModal(true);
+                        }}
                         className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
                       >
                         <span>Create a lead magnet</span>
                         <span className="text-base font-bold">→</span>
-                      </Link>
+                      </button>
 
                       <Link
                         href="/dashboard/setup"
@@ -525,7 +933,7 @@ export default function DashboardShell({
                       <Sparkles className="h-4 w-4" />
                     </span>
                     <div>
-                      <p className="text-[10px] font-bold text-[#9B9085] uppercase tracking-wider">QUALITY BEATS SIZE</p>
+                      <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">QUALITY BEATS SIZE</p>
                       <h2 className="text-lg font-bold text-white leading-tight">What lead magnets work best?</h2>
                     </div>
                   </div>
@@ -686,7 +1094,7 @@ export default function DashboardShell({
                       <Sliders className="h-4 w-4" />
                     </span>
                     <div>
-                      <p className="text-[10px] font-bold text-[#9B9085] uppercase tracking-wider">FROM VISITOR TO SUBSCRIBER</p>
+                      <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">FROM VISITOR TO SUBSCRIBER</p>
                       <h2 className="text-lg font-bold text-white leading-tight">How do lead magnets work?</h2>
                     </div>
                   </div>
@@ -788,7 +1196,7 @@ export default function DashboardShell({
                       <CheckCircle2 className="h-4 w-4" />
                     </span>
                     <div>
-                      <p className="text-[10px] font-bold text-[#9B9085] uppercase tracking-wider">GIVE VALUE FIRST</p>
+                      <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">GIVE VALUE FIRST</p>
                       <h2 className="text-lg font-bold text-white leading-tight">Why use a lead magnet?</h2>
                     </div>
                   </div>
@@ -855,7 +1263,7 @@ export default function DashboardShell({
                       <Gift className="h-4 w-4" />
                     </span>
                     <div>
-                      <p className="text-[10px] font-bold text-[#9B9085] uppercase tracking-wider">THE SIMPLE DEFINITION</p>
+                      <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">THE SIMPLE DEFINITION</p>
                       <h2 className="text-lg font-bold text-white leading-tight">What is a lead magnet?</h2>
                     </div>
                   </div>
@@ -1081,6 +1489,125 @@ export default function DashboardShell({
                 </>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 'Create a magnet' Popup Modal Overlay triggered from DashboardShell */}
+      {showCreateMagnetModal && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-all duration-200"
+          onClick={() => setShowCreateMagnetModal(false)}
+        >
+          <div
+            className="relative w-full max-w-[460px] rounded-2xl border border-[#2e2e38] bg-[#18181c] p-6 text-white shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-base font-bold text-white">Create a magnet</h3>
+                <p className="text-xs text-[#9B9085] mt-1">Name the page and choose its URL.</p>
+              </div>
+              <button
+                onClick={() => setShowCreateMagnetModal(false)}
+                className="rounded-lg p-1 text-[#9B9085] hover:bg-[#25252b] hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const cleanSlug = createMagnetName
+                  .toLowerCase()
+                  .trim()
+                  .replace(/[^a-z0-9\s-]/g, "")
+                  .replace(/\s+/g, "-") || "untitled-page";
+                const newId = `page-${Date.now()}`;
+                
+                try {
+                  const { loadPages, savePages } = require("@/lib/store");
+                  const currentPages = loadPages();
+                  const newPage = {
+                    id: newId,
+                    name: createMagnetName.trim() || "Untitled Page",
+                    slug: cleanSlug,
+                    status: "draft",
+                    headline: createMagnetName.trim() || "Untitled Page",
+                    subheadline: "Enter your email to get instant access.",
+                    buttonText: "Get instant access",
+                    accent: "#FE6F34",
+                    views: 0,
+                    signups: 0,
+                    updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                    deliveryEmail: {
+                      subject: "Your resource is inside",
+                      previewText: "Here is your link",
+                      body: "Thanks for signing up!",
+                      linkText: "Access resource",
+                      linkUrl: "",
+                    },
+                  };
+                  savePages([newPage, ...currentPages]);
+                } catch (_) {}
+
+                setShowCreateMagnetModal(false);
+                setCreateMagnetName("");
+                router.push(`/dashboard/pages/${newId}`);
+              }}
+              className="space-y-4"
+            >
+              {/* Page Name */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#d4c8bc]">Page name</label>
+                <input
+                  type="text"
+                  autoFocus
+                  value={createMagnetName}
+                  onChange={(e) => setCreateMagnetName(e.target.value)}
+                  placeholder="AI Pipeline Playbook"
+                  className="w-full rounded-xl border border-[#FE6F34]/80 bg-[#121214] px-3.5 py-2.5 text-xs text-white placeholder:text-[#52525b] outline-none focus:ring-1 focus:ring-[#FE6F34] transition-all"
+                  required
+                />
+              </div>
+
+              {/* URL Slug */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#d4c8bc]">URL slug</label>
+                <div className="flex items-center rounded-xl border border-[#2e2e38] bg-[#121214] px-3.5 py-2.5 text-xs text-[#9B9085]">
+                  <span className="text-[#666675] shrink-0 mr-1.5">/</span>
+                  <span className="font-mono text-[#d4c8bc] truncate">
+                    {createMagnetName
+                      .toLowerCase()
+                      .trim()
+                      .replace(/[^a-z0-9\s-]/g, "")
+                      .replace(/\s+/g, "-") || "untitled-page"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#666675]">The path of the page. Lowercase, digits, and hyphens only.</p>
+              </div>
+
+              {/* Modal Action Buttons */}
+              <div className="pt-3 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateMagnetModal(false)}
+                  className="rounded-xl border border-[#2e2e38] bg-[#222228] px-4 py-2 text-xs font-semibold text-white hover:bg-[#2c2c34] transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#FE6F34] px-4 py-2 text-xs font-bold text-black hover:bg-[#ff7d47] transition-all cursor-pointer shadow-sm"
+                >
+                  <span>+</span>
+                  <span>Create page</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
