@@ -442,7 +442,7 @@ export default function DashboardShell({
                       <p className="text-xs text-[#9B9085] leading-relaxed">
                         A repeatable process with clear steps
                       </p>
-                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                      <div className="rounded-xl bg-[#222227] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#2e2e38]">
                         <span className="font-semibold text-white">Example:</span> The 12-point landing-page launch checklist
                       </div>
                     </div>
@@ -456,7 +456,7 @@ export default function DashboardShell({
                       <p className="text-xs text-[#9B9085] leading-relaxed">
                         Saving someone time on a task they already do
                       </p>
-                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                      <div className="rounded-xl bg-[#222227] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#2e2e38]">
                         <span className="font-semibold text-white">Example:</span> A client onboarding email template pack
                       </div>
                     </div>
@@ -470,7 +470,7 @@ export default function DashboardShell({
                       <p className="text-xs text-[#9B9085] leading-relaxed">
                         Explaining a narrow problem or decision
                       </p>
-                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                      <div className="rounded-xl bg-[#222227] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#2e2e38]">
                         <span className="font-semibold text-white">Example:</span> A practical guide to pricing your first workshop
                       </div>
                     </div>
@@ -484,7 +484,7 @@ export default function DashboardShell({
                       <p className="text-xs text-[#9B9085] leading-relaxed">
                         Helping someone understand their current position
                       </p>
-                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                      <div className="rounded-xl bg-[#222227] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#2e2e38]">
                         <span className="font-semibold text-white">Example:</span> How ready is your business to hire?
                       </div>
                     </div>
@@ -498,7 +498,7 @@ export default function DashboardShell({
                       <p className="text-xs text-[#9B9085] leading-relaxed">
                         Giving proven examples people can adapt
                       </p>
-                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                      <div className="rounded-xl bg-[#222227] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#2e2e38]">
                         <span className="font-semibold text-white">Example:</span> 25 welcome-email subject lines
                       </div>
                     </div>
@@ -512,7 +512,7 @@ export default function DashboardShell({
                       <p className="text-xs text-[#9B9085] leading-relaxed">
                         Turning complicated inputs into a useful answer
                       </p>
-                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                      <div className="rounded-xl bg-[#222227] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#2e2e38]">
                         <span className="font-semibold text-white">Example:</span> Your freelance day-rate calculator
                       </div>
                     </div>
@@ -526,7 +526,7 @@ export default function DashboardShell({
                       <p className="text-xs text-[#9B9085] leading-relaxed">
                         Creating a useful personalised result from someone's answers
                       </p>
-                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                      <div className="rounded-xl bg-[#222227] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#2e2e38]">
                         <span className="font-semibold text-white">Example:</span> A positioning statement or campaign brief generator
                       </div>
                     </div>
@@ -540,16 +540,16 @@ export default function DashboardShell({
                       <p className="text-xs text-[#9B9085] leading-relaxed">
                         Teaching a practical process in small, useful daily steps
                       </p>
-                      <div className="rounded-xl bg-[#111114] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#24242c]">
+                      <div className="rounded-xl bg-[#222227] p-2.5 text-xs text-[#d4c8bc] font-medium border border-[#2e2e38]">
                         <span className="font-semibold text-white">Example:</span> Build your first client referral system in five days
                       </div>
                     </div>
                   </div>
 
                   {/* Dark Green Banner: A strong idea should pass four checks */}
-                  <div className="rounded-2xl border border-[#1b3e2b] bg-[#0c1f15] p-5 space-y-3">
-                    <h4 className="text-sm font-bold text-[#34d399]">A strong idea should pass four checks</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-semibold text-[#34d399]">
+                  <div className="rounded-2xl border border-[#22543d] bg-[#122e20] p-5 space-y-3">
+                    <h4 className="text-sm font-bold text-[#6ee7b7]">A strong idea should pass four checks</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-semibold text-[#6ee7b7]">
                       <p>One clear audience and problem</p>
                       <p>A specific, benefit-led title</p>
                       <p>A result they can use quickly</p>
