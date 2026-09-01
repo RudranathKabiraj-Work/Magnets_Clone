@@ -402,10 +402,10 @@ export default function DashboardShell({
 
             {/* Sub-header navigation when inside a topic */}
             {selectedTopic && (
-              <div className="flex items-center justify-between border-b border-[#2e2e38] bg-transparent px-6 py-3">
+              <div className="flex items-center justify-between border-b border-[#2e2e38] bg-transparent px-6 py-2.5">
                 <button
                   onClick={() => setSelectedTopic(null)}
-                  className="flex items-center gap-2.5 rounded-xl bg-transparent px-3.5 py-1.5 ml-6 text-sm font-semibold text-[#d4c8bc] hover:bg-[#282830] hover:text-white transition-all"
+                  className="flex items-center gap-2.5 rounded-lg bg-transparent px-4 py-2 ml-6 text-sm font-semibold text-[#d4c8bc] hover:bg-[#282830] hover:text-white transition-all"
                 >
                   <ArrowLeft className="h-4 w-4 text-[#9B9085]" />
                   <span>All help topics</span>
@@ -416,15 +416,184 @@ export default function DashboardShell({
 
             {/* Modal Scroll Content */}
             <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6" data-lenis-prevent>
-              {selectedTopic === "What is a lead magnet?" ? (
+              {selectedTopic === "How do they work?" ? (
                 <div className="max-w-[43rem] mx-auto space-y-6 py-2">
-                  <div className="flex items-start gap-4">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
-                      <Gift className="h-5 w-5" />
+                  <div className="flex items-center gap-3.5">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                      <Sliders className="h-4 w-4" />
                     </span>
                     <div>
-                      <p className="text-[11px] font-bold text-[#9B9085] uppercase tracking-wider">THE SIMPLE DEFINITION</p>
-                      <h2 className="text-2xl font-bold text-white mt-1">What is a lead magnet?</h2>
+                      <p className="text-[10px] font-bold text-[#9B9085] uppercase tracking-wider">FROM VISITOR TO SUBSCRIBER</p>
+                      <h2 className="text-lg font-bold text-white leading-tight">How do lead magnets work?</h2>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                    The resource, page, delivery, and follow-up work together as one simple flow.
+                  </p>
+
+                  {/* 6-step flow */}
+                  <div className="space-y-5 pt-1">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-[#1c1c1e] text-xs font-semibold mt-0.5">
+                        1
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-white">Make the resource</h4>
+                        <p className="text-sm text-[#9B9085] leading-relaxed mt-0.5">
+                          Create the actual PDF, template, video, course, tool, or other resource people will receive.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-[#1c1c1e] text-xs font-semibold mt-0.5">
+                        2
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-white">Add it to the journey</h4>
+                        <p className="text-sm text-[#9B9085] leading-relaxed mt-0.5">
+                          Give the resource an accessible link and paste that link into the Delivery email in Magnets.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-[#1c1c1e] text-xs font-semibold mt-0.5">
+                        3
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-white">Promote the page</h4>
+                        <p className="text-sm text-[#9B9085] leading-relaxed mt-0.5">
+                          Publish the page and share its link in the places your audience already pays attention.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-[#1c1c1e] text-xs font-semibold mt-0.5">
+                        4
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-white">They sign up</h4>
+                        <p className="text-sm text-[#9B9085] leading-relaxed mt-0.5">
+                          A visitor sees the promise and enters their details to request the resource.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 5 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-[#1c1c1e] text-xs font-semibold mt-0.5">
+                        5
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-white">They get the promised value</h4>
+                        <p className="text-sm text-[#9B9085] leading-relaxed mt-0.5">
+                          Magnets emails the resource link immediately and records the signup for you.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 6 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-[#1c1c1e] text-xs font-semibold mt-0.5">
+                        6
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-white">Continue the conversation</h4>
+                        <p className="text-sm text-[#9B9085] leading-relaxed mt-0.5">
+                          Relevant follow-up can help them use the resource, answer the next question, or introduce your offer.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Tip Card */}
+                  <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-4 text-sm text-[#9B9085] leading-relaxed mt-4">
+                    Publishing is only the start. Put the link in your website, social profiles, posts, newsletter, podcast notes, or anywhere else the right people already find you.
+                  </div>
+                </div>
+              ) : selectedTopic === "Why use a lead magnet?" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  <div className="flex items-center gap-3.5">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                      <CheckCircle2 className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-[10px] font-bold text-[#9B9085] uppercase tracking-wider">GIVE VALUE FIRST</p>
+                      <h2 className="text-lg font-bold text-white leading-tight">Why use a lead magnet?</h2>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                    Most people will not buy or book the first time they find you. A lead magnet asks for a much smaller commitment, so useful attention does not have to disappear when they leave the page.
+                  </p>
+
+                  {/* 2x2 Grid of Benefit Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {/* Capture interest */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4 space-y-1.5">
+                      <div className="flex items-center gap-2 text-[#34d399]">
+                        <CheckCircle2 className="h-4 w-4" />
+                      </div>
+                      <h4 className="text-sm font-semibold text-white">Capture interest</h4>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Give someone a reason to join your audience before they are ready to buy.
+                      </p>
+                    </div>
+
+                    {/* Attract better-fit leads */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4 space-y-1.5">
+                      <div className="flex items-center gap-2 text-[#34d399]">
+                        <CheckCircle2 className="h-4 w-4" />
+                      </div>
+                      <h4 className="text-sm font-semibold text-white">Attract better-fit leads</h4>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        A focused resource appeals to people who already care about the problem you solve.
+                      </p>
+                    </div>
+
+                    {/* Prove your expertise */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4 space-y-1.5">
+                      <div className="flex items-center gap-2 text-[#34d399]">
+                        <CheckCircle2 className="h-4 w-4" />
+                      </div>
+                      <h4 className="text-sm font-semibold text-white">Prove your expertise</h4>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        A genuinely useful result lets people experience the quality of your thinking.
+                      </p>
+                    </div>
+
+                    {/* Create an automatic next step */}
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4 space-y-1.5">
+                      <div className="flex items-center gap-2 text-[#34d399]">
+                        <CheckCircle2 className="h-4 w-4" />
+                      </div>
+                      <h4 className="text-sm font-semibold text-white">Create an automatic next step</h4>
+                      <p className="text-xs text-[#9B9085] leading-relaxed">
+                        Deliver the resource immediately, then send relevant follow-up without doing it by hand.
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-[#9B9085] leading-relaxed pt-1">
+                    The subject of the resource also tells you something useful about intent. Someone who requests a pricing template, for example, has shown you the problem they are trying to solve.
+                  </p>
+                </div>
+              ) : selectedTopic === "What is a lead magnet?" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  <div className="flex items-center gap-3.5">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                      <Gift className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-[10px] font-bold text-[#9B9085] uppercase tracking-wider">THE SIMPLE DEFINITION</p>
+                      <h2 className="text-lg font-bold text-white leading-tight">What is a lead magnet?</h2>
                     </div>
                   </div>
 
@@ -507,10 +676,10 @@ export default function DashboardShell({
                               <button
                                 key={topic.text}
                                 onClick={() => setSelectedTopic(topic.text)}
-                                className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                               >
                                 <div className="flex items-center gap-3.5">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
                                     {topic.icon === "BookOpen" && <BookOpen className="h-3.5 w-3.5" />}
                                     {topic.icon === "Gift" && <Gift className="h-3.5 w-3.5" />}
                                     {topic.icon === "Sliders" && <Sliders className="h-3.5 w-3.5" />}
@@ -535,10 +704,10 @@ export default function DashboardShell({
                               <button
                                 key={topic.text}
                                 onClick={() => setSelectedTopic(topic.text)}
-                                className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                               >
                                 <div className="flex items-center gap-3.5">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
                                     {topic.icon === "Settings" && <Settings className="h-3.5 w-3.5" />}
                                     {topic.icon === "Globe" && <Globe className="h-3.5 w-3.5" />}
                                     {topic.icon === "Mail" && <Mail className="h-3.5 w-3.5" />}
@@ -563,10 +732,10 @@ export default function DashboardShell({
                               <button
                                 key={topic.text}
                                 onClick={() => setSelectedTopic(topic.text)}
-                                className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                               >
                                 <div className="flex items-center gap-3.5">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
                                     {topic.icon === "Users" && <Users className="h-3.5 w-3.5" />}
                                     {topic.icon === "BarChart3" && <BarChart3 className="h-3.5 w-3.5" />}
                                     {topic.icon === "User" && <User className="h-3.5 w-3.5" />}
@@ -594,10 +763,10 @@ export default function DashboardShell({
                               <button
                                 key={topic.text}
                                 onClick={() => setSelectedTopic(topic.text)}
-                                className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                               >
                                 <div className="flex items-center gap-3.5">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
                                     {topic.icon === "Compass" && <Compass className="h-3.5 w-3.5" />}
                                     {topic.icon === "FileText" && <FileText className="h-3.5 w-3.5" />}
                                     {topic.icon === "FolderOpen" && <FolderOpen className="h-3.5 w-3.5" />}
@@ -625,10 +794,10 @@ export default function DashboardShell({
                               <button
                                 key={topic.text}
                                 onClick={() => setSelectedTopic(topic.text)}
-                                className="flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-[#161619] border border-[#3f3f4c] hover:bg-[#222227] hover:border-[#525266] p-3.5 text-left text-sm font-semibold text-[#d4c8bc] transition-all"
                               >
                                 <div className="flex items-center gap-3.5">
-                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#222228] border border-[#2e2e38] text-[#9B9085] group-hover:bg-[#FE6F34]/15 group-hover:border-[#FE6F34]/40 group-hover:text-[#FE6F34] transition-all">
                                     {topic.icon === "Share2" && <Share2 className="h-3.5 w-3.5" />}
                                     {topic.icon === "Cpu" && <Cpu className="h-3.5 w-3.5" />}
                                     {topic.icon === "Slack" && <Slack className="h-3.5 w-3.5" />}
