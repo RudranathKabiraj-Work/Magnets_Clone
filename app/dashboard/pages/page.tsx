@@ -322,18 +322,15 @@ export default function PagesPage() {
                   status: "draft",
                   headline: newName.trim() || "Untitled Page",
                   subheadline: "Enter your email to get instant access.",
-                  buttonText: "Get instant access",
+                  cta: "Get instant access",
+                  deliverable: "Instant Access",
                   accent: "#FE6F34",
                   views: 0,
                   signups: 0,
+                  conversionRate: 0,
                   updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-                  deliveryEmail: {
-                    subject: "Your resource is inside",
-                    previewText: "Here is your link",
-                    body: "Thanks for signing up!",
-                    linkText: "Access resource",
-                    linkUrl: "",
-                  },
+                  publishedAt: null,
+                  template: "classic"
                 };
 
                 const nextPages = [newMagnetPage, ...pages];

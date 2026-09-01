@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket } from "lucide-react";
+import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
@@ -422,7 +422,471 @@ export default function DashboardShell({
 
             {/* Modal Scroll Content */}
             <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6" data-lenis-prevent>
-              {selectedTopic === "Connect Kit" ? (
+              {selectedTopic === "Video walkthrough" ? (
+                <div className="max-w-[42rem] mx-auto space-y-6 py-2">
+                  {/* Header: WATCH THE FULL FLOW */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">WATCH THE FULL FLOW</p>
+                      <h2 className="text-2xl font-bold text-white leading-tight mt-1">Platform walkthrough</h2>
+                    </div>
+
+                    <a
+                      href="https://www.loom.com/share/ebb8dded5142439d8a97e338a49cb104"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-xs font-medium text-[#9B9085] hover:text-white transition-colors"
+                    >
+                      <span>Open in Loom</span>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+
+                  {/* Video Mockup Player Container */}
+                  <div className="relative overflow-hidden rounded-2xl border border-[#2e2e38] bg-[#161619] shadow-2xl flex flex-col">
+                    {/* Embedded Video Viewport */}
+                    <div className="relative h-[320px] max-h-[350px] w-full bg-[#18181c] overflow-hidden flex flex-col justify-between group">
+                      <iframe
+                        src="https://www.loom.com/embed/ebb8dded5142439d8a97e338a49cb104"
+                        title="Platform Walkthrough"
+                        className="h-full w-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+
+                      {/* Floating Emojis over Scrubber Bar */}
+                      <div className="absolute bottom-3 left-4 z-10 text-base pointer-events-none">❤️🔥</div>
+                      <div className="absolute bottom-3 left-[45%] z-10 text-xl pointer-events-none">🔥🔥</div>
+                      <div className="absolute bottom-3 right-6 z-10 flex items-center justify-center h-5 w-5 rounded bg-[#2e2e38] text-[10px] font-bold text-white border border-[#444452] pointer-events-none">
+                        3
+                      </div>
+                    </div>
+
+                    {/* Loom Bottom Reaction Bar */}
+                    <div className="flex items-center justify-between px-5 py-3 bg-[#1c1c22] border-t border-[#2e2e38]">
+                      <button className="text-[#9B9085] hover:text-white transition">
+                        <span className="text-sm">▼</span>
+                      </button>
+
+                      {/* Emoji Reactions Row */}
+                      <div className="flex items-center gap-3 text-lg">
+                        <button className="hover:scale-125 transition">❤️</button>
+                        <button className="hover:scale-125 transition">👍</button>
+                        <button className="hover:scale-125 transition">🔥</button>
+                        <button className="hover:scale-125 transition">👏</button>
+                        <button className="hover:scale-125 transition">🙌</button>
+                        <button className="hover:scale-125 transition">👀</button>
+                        <button className="text-xs text-[#9B9085] hover:text-white font-bold bg-[#282832] p-1.5 rounded-lg border border-[#3f3f4c]">
+                          +😃
+                        </button>
+                      </div>
+
+                      {/* Comment Button */}
+                      <button className="flex items-center gap-1.5 rounded-xl border border-[#3f3f4c] bg-[#222228] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-[#2e2e38] transition cursor-pointer">
+                        <span>+</span>
+                        <span>Comment</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Account settings" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: IDENTITY AND SECURITY */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <Settings className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">IDENTITY AND SECURITY</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">What can I change in Account settings?</h2>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2 Column Cards: Your name vs Password */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                    {/* Your name Card */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-2.5 text-left">
+                      <h4 className="text-base font-bold text-white">Your name</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Update the name shown on your Magnets account. Your sign-in email is read-only here.
+                      </p>
+                    </div>
+
+                    {/* Password Card */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-2.5 text-left">
+                      <h4 className="text-base font-bold text-white">Password</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Confirm your current password, then choose a different password with at least 8 characters.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Reddish Notice Card: Account deletion is permanent */}
+                  <div className="rounded-2xl border border-[#452b23] bg-[#221a18] px-5 py-4 text-left space-y-1.5">
+                    <h4 className="text-sm font-bold text-[#f87171]">Account deletion is permanent</h4>
+                    <p className="text-xs text-[#9B9085] leading-relaxed">
+                      Deleting the account removes its lead magnets, signups, integrations, and attached custom domains. There is no recovery. Magnets asks for your password and the word DELETE before it can continue.
+                    </p>
+                  </div>
+
+                  {/* Bottom Action Button */}
+                  <div className="pt-2 text-left">
+                    <Link
+                      href="/dashboard/settings"
+                      onClick={() => setShowHelp(false)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                    >
+                      <span>Open Account settings</span>
+                      <span className="text-base font-bold">→</span>
+                    </Link>
+                  </div>
+                </div>
+              ) : selectedTopic === "Analytics and A/B tests" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: MEASURE RESULTS */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <BarChart3 className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">MEASURE RESULTS</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do analytics and A/B tests work?</h2>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2 Column Cards: Analytics vs A/B testing */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                    {/* Analytics Card */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-3 text-left">
+                      <h4 className="text-base font-bold text-white">Analytics</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Open a lead magnet and choose Analytics to see total signups, unique people, tracked visits and conversions, conversion rate, engagement, and results from the after-signup experience. Total signups include repeat requests. Conversion rate uses only signups matched to a tracked visit.
+                      </p>
+                    </div>
+
+                    {/* A/B testing Card */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-3 text-left">
+                      <h4 className="text-base font-bold text-white">A/B testing</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Test a different title or image against the current page. Magnets splits new visitors between the versions and keeps each visitor on the same version.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 4 Numbered Steps */}
+                  <div className="pt-2 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Create a second version</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Open the landing-page editor and find Test title and image.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Start the comparison</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Change the title, image, or both, then start the test.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Watch the results</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Review each version's visits and conversion rate in Analytics.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        4
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Use the winner</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          After 7 days, once every version has at least 25 visitors, Magnets selects by conversion rate and applies the winner automatically.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-2 text-left">
+                      <Link
+                        href="/dashboard/pages"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open Lead magnets</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Manage signups" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: LEAD MANAGEMENT */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <Users className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">LEAD MANAGEMENT</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I manage signups?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      The Signups area contains everyone who has requested one of your lead magnets.
+                    </p>
+                  </div>
+
+                  {/* 2x2 Grid of 4 Feature Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                    {/* Review */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-4 space-y-1.5 text-left">
+                      <h4 className="text-base font-bold text-white">Review</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        See which lead magnet someone requested and the status of their follow-up sequence.
+                      </p>
+                    </div>
+
+                    {/* Add or import */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-4 space-y-1.5 text-left">
+                      <h4 className="text-base font-bold text-white">Add or import</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Add one person manually or import up to 5,000 rows from a CSV file.
+                      </p>
+                    </div>
+
+                    {/* Export */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-4 space-y-1.5 text-left">
+                      <h4 className="text-base font-bold text-white">Export</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Download the current signup list as a CSV file.
+                      </p>
+                    </div>
+
+                    {/* Control follow-up */}
+                    <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-4 space-y-1.5 text-left">
+                      <h4 className="text-base font-bold text-white">Control follow-up</h4>
+                      <p className="text-sm text-[#9B9085] leading-relaxed">
+                        Start a missing sequence or stop an active sequence for an individual signup.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Bottom Action Button */}
+                  <div className="pt-2 text-left">
+                    <Link
+                      href="/dashboard/leads"
+                      onClick={() => setShowHelp(false)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                    >
+                      <span>Open Signups</span>
+                      <span className="text-base font-bold">→</span>
+                    </Link>
+                  </div>
+                </div>
+              ) : selectedTopic === "Connect a calendar" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: SEQUENCE CONTROLS */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <Calendar className="h-5.5 w-5.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">SEQUENCE CONTROLS</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I connect a calendar?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Stop sending sales follow-up after a lead has already booked. Magnets can stop an eligible sequence when the booking email matches the signup and that lead magnet has the option enabled. Your sender setup must be ready first.
+                    </p>
+                  </div>
+
+                  {/* 4 Numbered Steps */}
+                  <div className="pt-2 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Open Calendar settings</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Open Workspace setup, Optional connections, then Calendar.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Add the provider credential</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          For Calendly, create a personal access token under Integrations, API and Webhooks. For Cal.com, create an API key.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Finish the connection</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Connect the account. Calendly requires a paid plan that supports webhooks. Magnets configures the booking webhook for you.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        4
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Enable it per lead magnet</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          In each lead magnet's Sequence tab, turn on the option to stop the sequence when a booking is received.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-2 text-left">
+                      <Link
+                        href="/dashboard/setup#connections-section"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open Calendar connection</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Connect Zapier" ? (
+                <div className="max-w-[43rem] mx-auto space-y-6 py-2">
+                  {/* Header: AUTOMATIONS */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
+                        <svg className="h-5.5 w-5.5 fill-[#FE6F34]" viewBox="0 0 24 24">
+                          <path d="M12 2a4 4 0 0 0-4 4v3.5a.5.5 0 0 0 .5.5H12a4 4 0 0 0 4-4V2z" />
+                          <path d="M2 16a4 4 0 0 0 4 4h3.5a.5.5 0 0 0 .5-.5V16a4 4 0 0 0-4-4H2z" />
+                          <path d="M16 22a4 4 0 0 0 4-4v-3.5a.5.5 0 0 0-.5-.5H16a4 4 0 0 0-4 4V22z" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">AUTOMATIONS</p>
+                        <h2 className="text-xl font-bold text-white leading-tight">How do I connect Zapier?</h2>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-[#d4c8bc] leading-relaxed">
+                      Use each signup to start another workflow, such as adding a database row, creating a task, or notifying another tool.
+                    </p>
+                  </div>
+
+                  {/* 4 Numbered Steps */}
+                  <div className="pt-2 space-y-6">
+                    {/* Step 1 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        1
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Create the trigger</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Create a Zap and choose Webhooks by Zapier as the trigger.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        2
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Copy the Catch Hook URL</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Choose Catch Hook, open the Test tab, then copy the unique webhook URL.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        3
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Add it to Magnets</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Open Workspace setup, Optional connections, then Zapier. Paste the URL into Magnets.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F4F0] text-xs font-bold text-[#1c1c1e] mt-0.5">
+                        4
+                      </span>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-white">Test and map the fields</h4>
+                        <p className="text-xs text-[#9B9085] leading-relaxed">
+                          Choose Send test in Magnets. Return to Zapier, choose Test trigger, then map the sample fields into your next action.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bottom Action Button */}
+                    <div className="pt-2 text-left">
+                      <Link
+                        href="/dashboard/setup#connections-section"
+                        onClick={() => setShowHelp(false)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#FE6F34] px-4 py-2.5 text-sm font-semibold text-[#18181b] hover:bg-[#ff7b43] transition-all cursor-pointer shadow-sm"
+                      >
+                        <span>Open Zapier connection</span>
+                        <span className="text-base font-bold">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedTopic === "Connect Kit" ? (
                 <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                   {/* Header: AUDIENCE SYNC */}
                   <div className="space-y-4">
@@ -1630,7 +2094,7 @@ export default function DashboardShell({
                 <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                   <div className="flex items-center gap-3.5">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
-                      <Sparkles className="h-4 w-4" />
+                      <Sparkles className="h-5.5 w-5.5" />
                     </span>
                     <div>
                       <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">QUALITY BEATS SIZE</p>
@@ -1791,7 +2255,7 @@ export default function DashboardShell({
                 <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                   <div className="flex items-center gap-3.5">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
-                      <Sliders className="h-4 w-4" />
+                      <Sliders className="h-5.5 w-5.5" />
                     </span>
                     <div>
                       <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">FROM VISITOR TO SUBSCRIBER</p>
@@ -1893,7 +2357,7 @@ export default function DashboardShell({
                 <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                   <div className="flex items-center gap-3.5">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
-                      <CheckCircle2 className="h-4 w-4" />
+                      <CheckCircle2 className="h-5.5 w-5.5" />
                     </span>
                     <div>
                       <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">GIVE VALUE FIRST</p>
@@ -1960,7 +2424,7 @@ export default function DashboardShell({
                 <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                   <div className="flex items-center gap-3.5">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#222228] border border-[#2e2e38] text-[#FE6F34]">
-                      <Gift className="h-4 w-4" />
+                      <Gift className="h-5.5 w-5.5" />
                     </span>
                     <div>
                       <p className="text-xs font-bold text-[#9B9085] uppercase tracking-wider">THE SIMPLE DEFINITION</p>
@@ -2172,7 +2636,13 @@ export default function DashboardShell({
                                     {topic.icon === "Share2" && <Share2 className="h-3.5 w-3.5" />}
                                     {topic.icon === "Cpu" && <Cpu className="h-3.5 w-3.5" />}
                                     {topic.icon === "Slack" && <Slack className="h-3.5 w-3.5" />}
-                                    {topic.icon === "Zap" && <Zap className="h-3.5 w-3.5" />}
+                                    {topic.icon === "Zap" && (
+                                      <svg className="h-3.5 w-3.5 fill-[#9B9085] group-hover:fill-[#FE6F34] transition-all" viewBox="0 0 24 24">
+                                        <path d="M12 2a4 4 0 0 0-4 4v3.5a.5.5 0 0 0 .5.5H12a4 4 0 0 0 4-4V2z" />
+                                        <path d="M2 16a4 4 0 0 0 4 4h3.5a.5.5 0 0 0 .5-.5V16a4 4 0 0 0-4-4H2z" />
+                                        <path d="M16 22a4 4 0 0 0 4 4v-3.5a.5.5 0 0 0-.5-.5H16a4 4 0 0 0-4 4V22z" />
+                                      </svg>
+                                    )}
                                     {topic.icon === "Link" && <LinkIcon className="h-3.5 w-3.5" />}
                                     {topic.icon === "Calendar" && <Calendar className="h-3.5 w-3.5" />}
                                   </span>
