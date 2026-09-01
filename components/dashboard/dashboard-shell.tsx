@@ -441,7 +441,7 @@ export default function DashboardShell({
                   {/* Left Column (LEARN, SET UP, MANAGE) */}
                   <div className="space-y-6">
                     {/* LEARN */}
-                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.learn.title}</span>
                         <span>{helpTopics.learn.count}</span>
@@ -451,7 +451,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] px-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] pl-2.5 pr-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -469,7 +469,7 @@ export default function DashboardShell({
                     </div>
 
                     {/* SET UP */}
-                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.setup.title}</span>
                         <span>{helpTopics.setup.count}</span>
@@ -479,7 +479,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] px-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] pl-2.5 pr-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -497,7 +497,7 @@ export default function DashboardShell({
                     </div>
 
                     {/* MANAGE */}
-                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.manage.title}</span>
                         <span>{helpTopics.manage.count}</span>
@@ -507,7 +507,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] px-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] pl-2.5 pr-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -528,7 +528,7 @@ export default function DashboardShell({
                   {/* Right Column (BUILD, CONNECTIONS) */}
                   <div className="space-y-6">
                     {/* BUILD */}
-                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.build.title}</span>
                         <span>{helpTopics.build.count}</span>
@@ -538,7 +538,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] px-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] pl-2.5 pr-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -559,7 +559,7 @@ export default function DashboardShell({
                     </div>
 
                     {/* CONNECTIONS */}
-                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-2xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.connections.title}</span>
                         <span>{helpTopics.connections.count}</span>
@@ -569,7 +569,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] px-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] pl-2.5 pr-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -671,7 +671,7 @@ export default function DashboardShell({
                   {/* Left Column (LEARN, SET UP, MANAGE) */}
                   <div className="space-y-6">
                     {/* LEARN */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.learn.title}</span>
                         <span>{helpTopics.learn.count}</span>
@@ -681,7 +681,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] px-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] pl-2.5 pr-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -699,7 +699,7 @@ export default function DashboardShell({
                     </div>
 
                     {/* SET UP */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.setup.title}</span>
                         <span>{helpTopics.setup.count}</span>
@@ -709,7 +709,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] px-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] pl-2.5 pr-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -727,7 +727,7 @@ export default function DashboardShell({
                     </div>
 
                     {/* MANAGE */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.manage.title}</span>
                         <span>{helpTopics.manage.count}</span>
@@ -737,7 +737,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] px-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] pl-2.5 pr-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -758,7 +758,7 @@ export default function DashboardShell({
                   {/* Right Column (BUILD, CONNECTIONS) */}
                   <div className="space-y-6">
                     {/* BUILD */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.build.title}</span>
                         <span>{helpTopics.build.count}</span>
@@ -768,7 +768,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] px-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] pl-2.5 pr-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
@@ -789,7 +789,7 @@ export default function DashboardShell({
                     </div>
 
                     {/* CONNECTIONS */}
-                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-5">
+                    <div className="rounded-xl border border-[#2e2e38] bg-[#222227] p-3.5 sm:p-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-[#9B9085] uppercase tracking-wider mb-3">
                         <span>{helpTopics.connections.title}</span>
                         <span>{helpTopics.connections.count}</span>
@@ -799,7 +799,7 @@ export default function DashboardShell({
                           <button
                             key={topic.text}
                             onClick={() => alert(`Help topic: ${topic.text}`)}
-                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] px-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
+                            className="flex w-full items-center justify-between rounded-lg bg-[#161619] border border-[#2b2b34] hover:bg-[#1b1b20] hover:border-[#383844] pl-2.5 pr-3.5 py-2.5 text-left text-xs font-semibold text-white transition-all"
                           >
                             <div className="flex items-center gap-2.5">
                               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#222228] border border-[#2e2e38] text-[#9B9085]">
