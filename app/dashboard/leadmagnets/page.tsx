@@ -326,7 +326,7 @@ export default function PagesPage() {
                   slug: cleanSlug,
                   status: "draft",
                   headline: newName.trim() || "Untitled Page",
-                  subheadline: "Enter your email to get instant access.",
+                  subheadline: "",
                   cta: "Get instant access",
                   deliverable: "Instant Access",
                   accent: "#FE6F34",

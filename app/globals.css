@@ -250,6 +250,36 @@ html.light .conversion-banner-bg {
   color: inherit;
 }
 
+.dark .app-theme .magnet-page--light .bg-white {
+  background-color: #ffffff !important;
+}
+
+.dark .app-theme .magnet-page--light .bg-\[\#F9F9FB\] {
+  background-color: #F9F9FB !important;
+}
+
+.dark .app-theme .magnet-page--light .bg-\[\#FAFAFA\] {
+  background-color: #FAFAFA !important;
+}
+
+.dark .app-theme .magnet-page--light :is(.text-zinc-900, .text-black, .text-zinc-800, .text-zinc-700) {
+  color: #09090b !important;
+}
+
+.dark .app-theme .magnet-page--light :is(.text-zinc-600, .text-zinc-500, .text-zinc-400) {
+  color: #52525b !important;
+}
+
+.dark .app-theme .magnet-page--light input {
+  background-color: #ffffff !important;
+  color: #09090b !important;
+  border-color: #e4e4e7 !important;
+}
+
+.dark .app-theme .magnet-page--light input::placeholder {
+  color: #a1a1aa !important;
+}
+
 .dark .app-theme .magnet-page--light .inline-edit:hover {
   background-color: rgb(247 245 241 / 0.7) !important;
   color: inherit !important;
