@@ -16,6 +16,11 @@ export default function SignupsPage() {
   const filterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     // Load local data instantly
     const localLeads = loadLeads();
     const localAccount = loadAccount();
@@ -94,7 +99,7 @@ export default function SignupsPage() {
     alert("Add manually coming soon!");
   };
 
-  if (loading || !account) {
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#0E0E10]">
         <div className="text-sm text-[#9B9085]">Loading signups...</div>

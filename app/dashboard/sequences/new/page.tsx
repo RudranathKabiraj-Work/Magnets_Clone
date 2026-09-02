@@ -18,6 +18,11 @@ export default function NewSequence() {
   const [pages, setPages] = useState(() => loadPages());
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     syncWithDatabase().then((data) => {
       if (data) {
         if (data.pages) setPages(data.pages);

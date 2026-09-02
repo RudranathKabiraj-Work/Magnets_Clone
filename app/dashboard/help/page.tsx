@@ -15,6 +15,11 @@ export default function HelpPage() {
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     syncWithDatabase().then((data) => {
       if (data) {
         setAccount(data.account);
@@ -33,7 +38,7 @@ export default function HelpPage() {
     setSending(false);
   };
 
-  if (loading || !account) {
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-ink-50 dark:bg-ink-950">
         <div className="text-sm text-ink-500">Loading help center...</div>
@@ -105,7 +110,7 @@ export default function HelpPage() {
               <div className="space-y-4">
                 <div>
                   <FieldLabel>Your Email</FieldLabel>
-                  <Input type="email" value={account.email} disabled />
+                  <Input type="email" value={account?.email || ""} disabled />
                 </div>
                 <div>
                   <FieldLabel>How can we help?</FieldLabel>

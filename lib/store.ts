@@ -4,14 +4,17 @@ import { pages as seedPages, sequences as seedSequences, type MagnetPage, type S
 
 export function loadPages(): MagnetPage[] {
   if (typeof window !== "undefined") {
+    const email = localStorage.getItem("currentUserEmail");
+    if (!email) return [];
     const cached = localStorage.getItem("currentUserPages");
     if (cached) {
       try {
         return JSON.parse(cached);
       } catch (e) {}
     }
+    return seedPages;
   }
-  return seedPages;
+  return [];
 }
 
 export function savePages(pages: MagnetPage[]) {
@@ -31,14 +34,17 @@ export function resetPages() {
 
 export function loadSequences(): Sequence[] {
   if (typeof window !== "undefined") {
+    const email = localStorage.getItem("currentUserEmail");
+    if (!email) return [];
     const cached = localStorage.getItem("currentUserSequences");
     if (cached) {
       try {
         return JSON.parse(cached);
       } catch (e) {}
     }
+    return seedSequences;
   }
-  return seedSequences;
+  return [];
 }
 
 export function saveSequences(sequences: Sequence[]) {
@@ -56,16 +62,19 @@ export function resetSequences() {
   saveSequences(seedSequences);
 }
 
-export function loadAccount(): Account {
+export function loadAccount(): Account | null {
   if (typeof window !== "undefined") {
+    const email = localStorage.getItem("currentUserEmail");
+    if (!email) return null;
     const cached = localStorage.getItem("currentUserAccount");
     if (cached) {
       try {
         return JSON.parse(cached);
       } catch (e) {}
     }
+    return seedAccount;
   }
-  return seedAccount;
+  return null;
 }
 
 export async function saveAccount(account: Account): Promise<{ success: boolean; account?: Account; error?: string }> {
@@ -99,14 +108,17 @@ export async function saveAccount(account: Account): Promise<{ success: boolean;
 
 export function loadIntegrations(): Integration[] {
   if (typeof window !== "undefined") {
+    const email = localStorage.getItem("currentUserEmail");
+    if (!email) return [];
     const cached = localStorage.getItem("currentUserIntegrations");
     if (cached) {
       try {
         return JSON.parse(cached);
       } catch (e) {}
     }
+    return seedIntegrations;
   }
-  return seedIntegrations;
+  return [];
 }
 
 export function saveIntegrations(integrations: Integration[]) {
@@ -122,14 +134,17 @@ export function saveIntegrations(integrations: Integration[]) {
 
 export function loadLeads(): Lead[] {
   if (typeof window !== "undefined") {
+    const email = localStorage.getItem("currentUserEmail");
+    if (!email) return [];
     const cached = localStorage.getItem("currentUserLeads");
     if (cached) {
       try {
         return JSON.parse(cached);
       } catch (e) {}
     }
+    return seedLeads;
   }
-  return seedLeads;
+  return [];
 }
 
 export function saveLeads(leads: Lead[]) {
@@ -176,7 +191,8 @@ export async function syncWithDatabase(): Promise<{
 } | null> {
   try {
     const email = typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null;
-    const url = email ? `/api/data?email=${encodeURIComponent(email)}` : "/api/data";
+    if (!email) return null;
+    const url = `/api/data?email=${encodeURIComponent(email)}`;
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();

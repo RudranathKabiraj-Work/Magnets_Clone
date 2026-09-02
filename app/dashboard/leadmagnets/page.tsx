@@ -44,6 +44,11 @@ export default function PagesPage() {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     // Load local data instantly
     const localPages = loadPages();
     const localAccount = loadAccount();
@@ -75,7 +80,7 @@ export default function PagesPage() {
     router.refresh();
   }
 
-  if (loading || !account) {
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#0E0E10]">
         <div className="text-sm text-[#9B9085]">Loading pages...</div>
@@ -213,11 +218,11 @@ export default function PagesPage() {
                       <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500 dark:text-[#9B9085] flex-wrap">
                         <span className="inline-flex items-center gap-1">
                           <Rocket className="h-3 w-3" />
-                          /{account.username}/{page.slug}
+                          /{account?.username || ""}/{page.slug}
                         </span>
                         {page.status === "live" && (
                           <a
-                            href={`https://magnets.so/${account.username}/${page.slug}`}
+                            href={`https://magnets.so/${account?.username || ""}/${page.slug}`}
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 hover:text-zinc-950 transition dark:hover:text-white"

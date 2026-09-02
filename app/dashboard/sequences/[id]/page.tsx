@@ -28,6 +28,11 @@ export default function SequenceEditor() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     syncWithDatabase().then((data) => {
       if (data) {
         if (data.sequences) {

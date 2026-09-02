@@ -26,6 +26,11 @@ export default function AccountSettingsPage() {
   const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     // Load local data instantly
     const localAccount = loadAccount();
     if (localAccount) {
@@ -130,7 +135,7 @@ export default function AccountSettingsPage() {
     }
   };
 
-  if (loading || !account) {
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#0E0E10]">
         <div className="text-sm text-[#9B9085]">Loading account...</div>

@@ -23,10 +23,11 @@ export default function DashboardShell({
   title,
   children,
 }: {
-  account: Account;
+  account?: Account | null;
   title: string;
   children: React.ReactNode;
 }) {
+  const displayAccount = account || { name: "User", email: "", plan: "Free", brandColor: "#FE6F34" };
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -39,11 +40,31 @@ export default function DashboardShell({
   const [createMagnetName, setCreateMagnetName] = useState("");
 
   const [mounted, setMounted] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
     setMounted(true);
     setDark(typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
-  }, []);
+
+    if (typeof window !== "undefined") {
+      const email = localStorage.getItem("currentUserEmail");
+      if (!email) {
+        setIsAuthenticated(false);
+        window.location.href = "/login";
+        return;
+      } else {
+        setIsAuthenticated(true);
+      }
+    }
+  }, [router]);
+
+  if (isAuthenticated === null || isAuthenticated === false) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-[#18181B]">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-orange border-t-transparent" />
+      </div>
+    );
+  }
 
   const toggleTheme = () => {
     const next = !dark;
@@ -233,12 +254,12 @@ export default function DashboardShell({
             >
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-xs font-bold text-white dark:bg-[#121214]" suppressHydrationWarning>
                 {mounted
-                  ? (account.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || account.name.charAt(0))
-                  : (account.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "RK")}
+                  ? (displayAccount.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || displayAccount.name.charAt(0))
+                  : (displayAccount.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "RK")}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-zinc-900 leading-tight dark:text-white" suppressHydrationWarning>{account.name}</p>
-                <p className="truncate text-[10px] text-zinc-500 leading-tight mt-0.5 dark:text-[#9B9085]" suppressHydrationWarning>{account.email}</p>
+                <p className="truncate text-xs font-semibold text-zinc-900 leading-tight dark:text-white" suppressHydrationWarning>{displayAccount.name}</p>
+                <p className="truncate text-[10px] text-zinc-500 leading-tight mt-0.5 dark:text-[#9B9085]" suppressHydrationWarning>{displayAccount.email}</p>
               </div>
             </button>
           </div>
@@ -327,7 +348,7 @@ export default function DashboardShell({
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FE6F34] text-sm font-bold text-white transition active:scale-95 cursor-pointer"
               >
-                {account.name.charAt(0).toUpperCase()}
+                {displayAccount.name.charAt(0).toUpperCase()}
               </button>
               {showProfileMenu && (
                 <div className="absolute right-0 top-10 w-52 rounded-xl border border-[#2e2e38] bg-[#1a1a1e] p-1.5 shadow-2xl z-50 text-white flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-2 duration-150">

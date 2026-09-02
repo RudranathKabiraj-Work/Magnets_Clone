@@ -28,6 +28,11 @@ export default function NewPage() {
   const slug = slugify(name);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     syncWithDatabase().then((data) => {
       if (data && data.account) setAccount(data.account);
     });
@@ -94,7 +99,7 @@ export default function NewPage() {
           <div>
             <FieldLabel>Your Magnets URL</FieldLabel>
             <div className="flex h-9 items-center gap-1 overflow-hidden rounded-md border border-ink-200 bg-ink-50 px-3 text-sm text-ink-700 dark:border-ink-700 dark:bg-ink-950 dark:text-ink-300">
-              <span className="text-ink-500 dark:text-ink-400">magnets.so/{account.username}/</span>
+              <span className="text-ink-500 dark:text-ink-400">magnets.so/{account?.username || ""}/</span>
               <span className="truncate font-medium">{slug}</span>
             </div>
             <p className="mt-1.5 text-xs text-ink-500 dark:text-ink-400">

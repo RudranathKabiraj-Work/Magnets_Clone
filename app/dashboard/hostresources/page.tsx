@@ -22,6 +22,11 @@ export default function ResourcesPage() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     // Load local data instantly
     const localResources = loadResources();
     const localAccount = loadAccount();
@@ -105,7 +110,7 @@ export default function ResourcesPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
   };
 
-  if (loading || !account) {
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-ink-50 dark:bg-ink-950">
         <div className="text-sm text-ink-500">Loading resources...</div>

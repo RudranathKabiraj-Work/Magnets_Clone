@@ -23,6 +23,11 @@ export default function WorkspaceSetupPage() {
   });
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     // Load local data instantly
     const localAccount = loadAccount();
     if (localAccount) {
@@ -67,7 +72,7 @@ export default function WorkspaceSetupPage() {
   const toggle = (key: string) =>
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  if (loading || !account) {
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#FAFAFA] dark:bg-[#0E0E10]">
         <div className="text-sm text-zinc-500 dark:text-[#9B9085]">Loading settings...</div>

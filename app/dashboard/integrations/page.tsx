@@ -21,6 +21,11 @@ export default function IntegrationsPage() {
   const connected = items.filter((i) => i.connected).length;
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     syncWithDatabase().then((data) => {
       if (data) {
         if (data.integrations) setItems(data.integrations);

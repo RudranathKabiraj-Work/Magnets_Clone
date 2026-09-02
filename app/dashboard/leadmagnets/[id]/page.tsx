@@ -32,6 +32,11 @@ export default function PageEditor() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     syncWithDatabase().then((data) => {
       if (data) {
         if (data.pages) {
@@ -61,7 +66,7 @@ export default function PageEditor() {
     );
   }
 
-  const url = `https://magnets.so/${account.username}/${page.slug}`;
+  const url = `https://magnets.so/${account?.username || ""}/${page.slug}`;
   const live = page.status === "live";
 
   function update(patch: Partial<MagnetPage>) {

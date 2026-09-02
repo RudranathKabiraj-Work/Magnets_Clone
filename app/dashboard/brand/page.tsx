@@ -19,6 +19,11 @@ export default function BrandPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     // Load local data instantly
     const localAccount = loadAccount();
     if (localAccount) {
@@ -95,7 +100,7 @@ export default function BrandPage() {
     }
   };
 
-  if (loading || !account) {
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#0E0E10]">
         <div className="text-sm text-[#9B9085]">Loading brand settings...</div>
@@ -104,11 +109,11 @@ export default function BrandPage() {
   }
 
   const hasUnsavedChanges =
-    businessName !== (account.name || "") ||
-    brandColor !== (account.brandColor || "#FE6F34") ||
-    themeMode !== (account.themeMode || "light") ||
-    highlightIntensity !== (account.highlightIntensity ?? 100) ||
-    logo !== account.logo;
+    businessName !== (account?.name || "") ||
+    brandColor !== (account?.brandColor || "#FE6F34") ||
+    themeMode !== (account?.themeMode || "light") ||
+    highlightIntensity !== (account?.highlightIntensity ?? 100) ||
+    logo !== account?.logo;
 
   return (
     <DashboardShell account={account} title="Brand">

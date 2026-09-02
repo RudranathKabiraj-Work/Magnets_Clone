@@ -14,6 +14,11 @@ export default function SequencesPage() {
   const live = useMemo(() => sequences.filter((s) => s.status === "live").length, [sequences]);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
+      window.location.href = "/login";
+      return;
+    }
+
     syncWithDatabase().then((data) => {
       if (data) {
         if (data.sequences) setSequences(data.sequences);
