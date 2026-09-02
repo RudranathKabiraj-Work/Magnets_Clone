@@ -62,15 +62,36 @@ export default function PagesPage() {
     const observer = new MutationObserver(checkDark);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
-    // Sync in background silently
-    syncWithDatabase().then((data) => {
-      if (data) {
-        if (data.pages) setPages(data.pages);
-        if (data.account) setAccount(data.account);
-      }
+    // Helper to fetch latest data silently
+    const fetchLatest = () => {
+      syncWithDatabase().then((data) => {
+        if (data) {
+          if (data.pages) setPages(data.pages);
+          if (data.account) setAccount(data.account);
+        }
+      });
+    };
+
+    // Sync immediately on mount
+    fetchLatest();
+
+    // 1. Auto-sync whenever user switches to or clicks this browser tab/window
+    const handleFocus = () => fetchLatest();
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("storage", handleFocus);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") fetchLatest();
     });
 
-    return () => observer.disconnect();
+    // 2. Real-time background polling every 4 seconds
+    const interval = setInterval(fetchLatest, 4000);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("storage", handleFocus);
+      clearInterval(interval);
+    };
   }, []);
 
   function removePage(id: string) {
