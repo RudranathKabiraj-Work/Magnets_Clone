@@ -8,21 +8,21 @@ export default function SiteHeader() {
       <a aria-label="Magnets home" href="/">
         <BrandLogo />
       </a>
-      <nav aria-label="Main navigation" className="hidden items-center gap-7 text-sm text-ink-600 md:flex">
-        <a className="transition hover:text-ink-950" href="#how-it-works">
+      <nav aria-label="Main navigation" className="hidden items-center gap-7 text-sm text-ink-600 dark:text-ink-300 md:flex">
+        <a className="transition hover:text-ink-950 dark:hover:text-white" href="#how-it-works">
           How it works
         </a>
-        <a className="transition hover:text-ink-950" href="#features">
+        <a className="transition hover:text-ink-950 dark:hover:text-white" href="#features">
           Features
         </a>
-        <a className="transition hover:text-ink-950" href="#integrations">
+        <a className="transition hover:text-ink-950 dark:hover:text-white" href="#integrations">
           Integrations
         </a>
       </nav>
       <div className="flex items-center gap-2">
         <ThemeToggle />
         <a
-          className="hidden h-10 items-center px-3 text-sm font-medium text-ink-700 transition hover:text-ink-950 sm:inline-flex"
+          className="hidden h-10 items-center px-3 text-sm font-medium text-ink-700 dark:text-ink-300 transition hover:text-ink-950 dark:hover:text-white sm:inline-flex"
           href="/login"
         >
           Sign in

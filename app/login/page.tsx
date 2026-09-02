@@ -86,7 +86,7 @@ export default function LoginPage() {
       <label className="block">
         <span className="mb-1.5 flex items-center justify-between gap-3 text-xs font-medium text-ink-700">
           Password
-          <a className="font-medium text-ink-700 underline-offset-4 hover:text-ink-950 hover:underline" href="/forgot-password">
+          <a className="font-medium text-ink-700 underline-offset-4 hover:text-ink-950 hover:underline dark:text-ink-300 dark:hover:text-white" href="/forgot-password">
             Forgot password?
           </a>
         </span>
