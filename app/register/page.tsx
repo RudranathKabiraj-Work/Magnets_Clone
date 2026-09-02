@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import AuthShell from "@/components/auth-shell";
 import Button from "@/components/ui/button";
 import Input, { FieldLabel } from "@/components/ui/input";
@@ -13,7 +14,9 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState<"idle" | "creating" | "opening">("idle");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,6 +27,7 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
+    setLoadingStatus("creating");
     setError("");
 
     try {
@@ -39,6 +43,7 @@ export default function RegisterPage() {
         if (checkData.exists) {
           setError("An account already exists for that email. Sign in instead.");
           setLoading(false);
+          setLoadingStatus("idle");
           return;
         }
       }
@@ -61,8 +66,12 @@ export default function RegisterPage() {
       if (!saveRes.success) {
         setError(saveRes.error || "Failed to create account. Please try again.");
         setLoading(false);
+        setLoadingStatus("idle");
         return;
       }
+
+      // Transition button text to Opening dashboard...
+      setLoadingStatus("opening");
 
       // Fire verification email in background — never blocks registration flow
       // (Resend sandbox only delivers to rudranath@bda.co.in; all other emails silently skip)
@@ -73,12 +82,14 @@ export default function RegisterPage() {
       }).catch(() => { /* silently ignore if Resend sandbox blocks delivery */ });
 
       // Always go straight to onboarding — no email verification gate
-      router.push(`/register/onboarding?email=${encodeURIComponent(email.trim())}`);
+      setTimeout(() => {
+        router.push(`/register/onboarding?email=${encodeURIComponent(email.trim())}`);
+      }, 600);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to create account. Please try again.");
-    } finally {
       setLoading(false);
+      setLoadingStatus("idle");
     }
   };
 
@@ -150,7 +161,13 @@ export default function RegisterPage() {
         />
       </label>
       <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-ink-200 bg-ink-50 p-3 text-xs leading-5 text-ink-700">
-        <input required type="checkbox" className="mt-0.5 h-4 w-4 shrink-0 rounded border-ink-300 text-ink-950 accent-ink-950" />
+        <input
+          required
+          type="checkbox"
+          checked={acceptedTerms}
+          onChange={(e) => setAcceptedTerms(e.target.checked)}
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-ink-300 text-ink-950 accent-ink-950"
+        />
         <span>
           I accept the{" "}
           <a className="font-medium text-ink-950 underline-offset-4 hover:underline" href="/terms" rel="noreferrer" target="_blank">
@@ -169,8 +186,24 @@ export default function RegisterPage() {
           Email me occasional product updates and practical lead-magnet tips. Optional, and I can unsubscribe at any time.
         </span>
       </label>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Creating account..." : "Create account"}
+      <Button
+        type="submit"
+        className="w-full font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-brand-orange/40 cursor-pointer disabled:cursor-not-allowed disabled:hover:shadow-none"
+        disabled={loading || !acceptedTerms}
+      >
+        {loadingStatus === "creating" && (
+          <span className="inline-flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Creating account...
+          </span>
+        )}
+        {loadingStatus === "opening" && (
+          <span className="inline-flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Opening dashboard...
+          </span>
+        )}
+        {loadingStatus === "idle" && "Create account"}
       </Button>
     </AuthShell>
   );
