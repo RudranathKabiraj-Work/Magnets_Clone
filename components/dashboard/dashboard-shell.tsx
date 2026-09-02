@@ -143,7 +143,7 @@ export default function DashboardShell({
 
       <aside className="shadow-sm hidden h-screen w-[14.5rem] shrink-0 flex-col border-r border-[#e4e4e7] bg-white text-zinc-600 sticky top-0 md:flex z-40 dark:border-white/10 dark:bg-[#18181B] dark:text-[#9B9085]">
         <div className="flex h-12 shrink-0 items-center border-b border-[#e4e4e7] px-4 dark:border-white/10">
-          <Link href="/" aria-label="Magnets home">
+          <Link href="/dashboard/setup" aria-label="Workspace setup">
             <BrandLogo height="h-5" width="w-[7.5rem]" />
           </Link>
         </div>
@@ -252,7 +252,9 @@ export default function DashboardShell({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
-              <BrandLogo height="h-6" width="w-[8.5rem]" />
+              <Link href="/dashboard/setup" aria-label="Workspace setup" onClick={() => setMenuOpen(false)}>
+                <BrandLogo height="h-6" width="w-[8.5rem]" />
+              </Link>
               <button
                 aria-label="Close menu"
                 className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 text-[#9B9085] hover:bg-[#1C1613] hover:text-white transition"
