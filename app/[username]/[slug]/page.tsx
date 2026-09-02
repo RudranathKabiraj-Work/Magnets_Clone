@@ -129,7 +129,12 @@ export default async function MagnetPageRoute({
             ? "bg-[#121214]/80 border-[#252529] text-white"
             : "bg-white/80 border-[#e4e4e7] text-zinc-900"
             }`}
-          style={{ borderColor: themeMode === "light" ? `${brandColor}20` : undefined }}
+          style={{
+            borderColor: `${brandColor}${Math.round((0.1 + (highlightIntensity / 100) * 0.55) * 255).toString(16).padStart(2, '0')}`,
+            boxShadow: highlightIntensity > 15
+              ? `0 16px 40px -10px ${brandColor}${Math.round((highlightIntensity / 100) * 0.4 * 255).toString(16).padStart(2, '0')}`
+              : undefined
+          }}
         >
           {/* Grid structure */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
@@ -162,10 +167,11 @@ export default async function MagnetPageRoute({
                   ].map((line, idx) => (
                     <li key={idx} className="flex items-start gap-2.5 text-sm">
                       <span
-                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 shadow-sm"
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 shadow-sm transition-all duration-300"
                         style={{
                           backgroundColor: brandColor,
-                          opacity: highlightIntensity / 100
+                          opacity: 0.4 + (highlightIntensity / 100) * 0.6,
+                          boxShadow: highlightIntensity > 30 ? `0 0 ${Math.round(12 * (highlightIntensity / 100))}px ${brandColor}${Math.round((highlightIntensity / 100) * 0.7 * 255).toString(16).padStart(2, '0')}` : 'none'
                         }}
                       >
                         <CheckIcon className="h-3 w-3 text-white" />

@@ -330,8 +330,8 @@ export default function BrandPage() {
                     }`}
                   style={{
                     backgroundImage: themeMode === "light"
-                      ? `radial-gradient(circle at 0% 0%, ${brandColor}22 0%, transparent 50%), radial-gradient(circle at 100% 100%, ${brandColor}1b 0%, transparent 50%)`
-                      : `radial-gradient(circle at 0% 0%, ${brandColor}28 0%, transparent 50%), radial-gradient(circle at 100% 100%, ${brandColor}1f 0%, transparent 50%)`
+                      ? `radial-gradient(circle at 0% 0%, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.4) * 255).toString(16).padStart(2, '0')} 0%, transparent 50%), radial-gradient(circle at 100% 100%, ${brandColor}${Math.round((0.03 + (highlightIntensity / 100) * 0.35) * 255).toString(16).padStart(2, '0')} 0%, transparent 50%)`
+                      : `radial-gradient(circle at 0% 0%, ${brandColor}${Math.round((0.08 + (highlightIntensity / 100) * 0.45) * 255).toString(16).padStart(2, '0')} 0%, transparent 50%), radial-gradient(circle at 100% 100%, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.4) * 255).toString(16).padStart(2, '0')} 0%, transparent 50%)`
                   }}
                 >
                   {/* Mock page container */}
@@ -352,15 +352,18 @@ export default function BrandPage() {
 
                     {/* Main Card Wrapper */}
                     <div
-                      className={`rounded-2xl border py-4 px-6 shadow-2xl transition-all duration-300 backdrop-blur-md ${themeMode === "dark"
+                      className={`rounded-2xl border py-4 px-6 transition-all duration-300 backdrop-blur-md ${themeMode === "dark"
                         ? "text-white"
                         : "text-zinc-900"
                         }`}
                       style={{
-                        borderColor: `${brandColor}45`,
+                        borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.65) * 255).toString(16).padStart(2, '0')}`,
+                        boxShadow: (highlightIntensity > 10)
+                          ? `0 12px 32px -8px ${brandColor}${Math.round((highlightIntensity / 100) * 0.45 * 255).toString(16).padStart(2, '0')}`
+                          : "0 4px 12px rgba(0,0,0,0.05)",
                         background: themeMode === "light"
-                          ? `linear-gradient(135deg, ${brandColor}0d 0%, rgba(255, 255, 255, 0.8) 50%)`
-                          : `linear-gradient(135deg, ${brandColor}15 0%, rgba(18, 18, 20, 0.8) 50%)`
+                          ? `linear-gradient(135deg, ${brandColor}${Math.round((0.02 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')} 0%, rgba(255, 255, 255, 0.85) 50%)`
+                          : `linear-gradient(135deg, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(18, 18, 20, 0.85) 50%)`
                       }}
                     >
                       {/* Main Grid Content */}
@@ -396,7 +399,9 @@ export default function BrandPage() {
                                   <span
                                     className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 transition-all duration-300"
                                     style={{
-                                      backgroundColor: brandColor
+                                      backgroundColor: brandColor,
+                                      opacity: 0.5 + (highlightIntensity / 100) * 0.5,
+                                      boxShadow: highlightIntensity > 30 ? `0 0 ${Math.round(14 * (highlightIntensity / 100))}px ${brandColor}${Math.round((highlightIntensity / 100) * 0.8 * 255).toString(16).padStart(2, '0')}` : 'none'
                                     }}
                                   >
                                     <Check className="h-3 w-3 text-white stroke-[3px]" />
@@ -414,24 +419,25 @@ export default function BrandPage() {
                         <div className="md:col-span-5 space-y-3">
                           {/* Media Placeholder Card */}
                           <div
-                            className="rounded-xl border aspect-[16/11] w-full flex items-center justify-center transition-colors duration-300"
+                            className="rounded-xl border aspect-[16/11] w-full flex items-center justify-center transition-all duration-300"
                             style={{
-                              borderColor: `${brandColor}35`,
-                              backgroundColor: `${brandColor}18`
+                              borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.5) * 255).toString(16).padStart(2, '0')}`,
+                              backgroundColor: `${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')}`
                             }}
                           />
 
                           {/* Signup Card */}
                           <div
-                            className={`rounded-xl border p-4 shadow-lg transition-all duration-300 backdrop-blur-sm aspect-[16/11] flex flex-col justify-center ${themeMode === "dark"
+                            className={`rounded-xl border p-4 transition-all duration-300 backdrop-blur-sm aspect-[16/11] flex flex-col justify-center ${themeMode === "dark"
                               ? "text-white"
                               : "text-zinc-900"
                               }`}
                             style={{
-                              borderColor: `${brandColor}35`,
+                              borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.55) * 255).toString(16).padStart(2, '0')}`,
+                              boxShadow: highlightIntensity > 20 ? `0 8px 24px -4px ${brandColor}${Math.round((highlightIntensity / 100) * 0.35 * 255).toString(16).padStart(2, '0')}` : "0 2px 8px rgba(0,0,0,0.05)",
                               background: themeMode === "light"
-                                ? `linear-gradient(135deg, ${brandColor}18 0%, rgba(255, 255, 255, 0.95) 60%)`
-                                : `linear-gradient(135deg, ${brandColor}2b 0%, rgba(22, 22, 25, 0.95) 60%)`
+                                ? `linear-gradient(135deg, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')} 0%, rgba(255, 255, 255, 0.95) 60%)`
+                                : `linear-gradient(135deg, ${brandColor}${Math.round((0.08 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(22, 22, 25, 0.95) 60%)`
                             }}
                           >
                             <p className="text-lg font-semibold text-center">Download for free now</p>
