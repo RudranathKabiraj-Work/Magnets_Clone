@@ -193,17 +193,7 @@ export async function syncWithDatabase(): Promise<{
       if (data.account) localStorage.setItem("currentUserAccount", JSON.stringify(data.account));
 
       if (data.pages && Array.isArray(data.pages)) {
-        const localCached = localStorage.getItem("currentUserPages");
-        let localList: MagnetPage[] = [];
-        if (localCached) {
-          try { localList = JSON.parse(localCached); } catch (e) {}
-        }
-        const map = new Map<string, MagnetPage>();
-        data.pages.forEach((p: MagnetPage) => map.set(p.id, p));
-        localList.forEach((p: MagnetPage) => map.set(p.id, p));
-        const mergedPages = Array.from(map.values());
-        localStorage.setItem("currentUserPages", JSON.stringify(mergedPages));
-        data.pages = mergedPages;
+        localStorage.setItem("currentUserPages", JSON.stringify(data.pages));
       }
 
       if (data.sequences) localStorage.setItem("currentUserSequences", JSON.stringify(data.sequences));

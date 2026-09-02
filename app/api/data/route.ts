@@ -8,10 +8,11 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const email = searchParams.get("email");
+    const normEmail = email ? email.trim().toLowerCase() : null;
 
     let account;
-    if (email) {
-      account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
+    if (normEmail) {
+      account = await AccountModel.findOne({ email: normEmail });
     }
 
     if (!account) {
@@ -20,22 +21,39 @@ export async function GET(req: Request) {
       if (!anyAccount) {
         // Seed
         await AccountModel.create(seedAccount);
-        await MagnetPageModel.insertMany(seedPages);
+        const seededPages = seedPages.map((p) => ({ ...p, userEmail: seedAccount.email.toLowerCase() }));
+        await MagnetPageModel.insertMany(seededPages);
         await LeadModel.insertMany(seedLeads);
         await SequenceModel.insertMany(seedSequences);
         await IntegrationModel.insertMany(seedIntegrations);
       }
 
-      if (email) {
-        account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
+      if (normEmail) {
+        account = await AccountModel.findOne({ email: normEmail });
       }
       if (!account) {
         account = await AccountModel.findOne();
       }
     }
 
-    const [pages, leads, sequences, integrations, resources] = await Promise.all([
-      MagnetPageModel.find().lean(),
+    if (normEmail) {
+      await MagnetPageModel.updateMany(
+        { $or: [{ userEmail: { $exists: false } }, { userEmail: null }] },
+        { $set: { userEmail: normEmail } }
+      );
+    }
+
+    const pageFilter = normEmail ? { userEmail: normEmail } : {};
+    let pages = await MagnetPageModel.find(pageFilter).lean();
+
+    // If a specific logged in user has no pages in MongoDB yet, seed their initial pages if default account or return empty array
+    if (normEmail && pages.length === 0 && account && account.email.toLowerCase() === seedAccount.email.toLowerCase()) {
+      const seededPages = seedPages.map((p) => ({ ...p, userEmail: normEmail }));
+      await MagnetPageModel.insertMany(seededPages);
+      pages = await MagnetPageModel.find({ userEmail: normEmail }).lean();
+    }
+
+    const [leads, sequences, integrations, resources] = await Promise.all([
       LeadModel.find().lean(),
       SequenceModel.find().lean(),
       IntegrationModel.find().lean(),
@@ -59,18 +77,28 @@ export async function POST(req: Request) {
   try {
     await dbConnect();
     const body = await req.json();
-    const { action, data } = body;
+    const { action, data, email } = body;
+    const normEmail = email ? email.trim().toLowerCase() : (body.userEmail || "").trim().toLowerCase();
 
     if (action === "savePages") {
-      await MagnetPageModel.deleteMany({});
-      if (Array.isArray(data) && data.length > 0) {
-        await MagnetPageModel.insertMany(data);
+      if (normEmail) {
+        await MagnetPageModel.deleteMany({ userEmail: normEmail });
+        if (Array.isArray(data) && data.length > 0) {
+          const items = data.map((p: any) => ({ ...p, userEmail: normEmail }));
+          await MagnetPageModel.insertMany(items);
+        }
+      } else {
+        await MagnetPageModel.deleteMany({});
+        if (Array.isArray(data) && data.length > 0) {
+          await MagnetPageModel.insertMany(data);
+        }
       }
       return NextResponse.json({ success: true });
     }
 
     if (action === "addPage") {
-      await MagnetPageModel.create(data);
+      const pageToInsert = normEmail ? { ...data, userEmail: normEmail } : data;
+      await MagnetPageModel.create(pageToInsert);
       return NextResponse.json({ success: true });
     }
 
