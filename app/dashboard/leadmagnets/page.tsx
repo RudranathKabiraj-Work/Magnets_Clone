@@ -269,7 +269,7 @@ export default function PagesPage() {
       {/* 'Create a magnet' Modal Overlay matching exact user screenshot */}
       {showCreateModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-all duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-all duration-200"
           onClick={() => setShowCreateModal(false)}
         >
           <div
