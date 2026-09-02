@@ -16,6 +16,9 @@ export interface MagnetPage {
   publishedAt: string | null;
   template: "classic" | "video" | "quiz";
   accent: string;
+  imageUrl?: string | null;
+  pitch?: string;
+  bullets?: string[];
 }
 
 export interface Lead {

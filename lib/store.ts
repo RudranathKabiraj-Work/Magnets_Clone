@@ -20,12 +20,13 @@ export function loadPages(): MagnetPage[] {
 export function savePages(pages: MagnetPage[]) {
   if (typeof window !== "undefined") {
     localStorage.setItem("currentUserPages", JSON.stringify(pages));
+    const email = localStorage.getItem("currentUserEmail");
+    fetch("/api/data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "savePages", data: pages, email }),
+    }).catch(console.error);
   }
-  fetch("/api/data", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "savePages", data: pages }),
-  }).catch(console.error);
 }
 
 export function resetPages() {
@@ -78,30 +79,22 @@ export function loadAccount(): Account | null {
 }
 
 export async function saveAccount(account: Account): Promise<{ success: boolean; account?: Account; error?: string }> {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("currentUserAccount", JSON.stringify(account));
+    if (account.email) localStorage.setItem("currentUserEmail", account.email);
+  }
   try {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("currentUserAccount", JSON.stringify(account));
-    }
     const res = await fetch("/api/data", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "saveAccount", data: account }),
     });
-    if (res.ok) {
-      const resData = await res.json();
-      if (resData.success && resData.account) {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("currentUserAccount", JSON.stringify(resData.account));
-          localStorage.setItem("currentUserEmail", resData.account.email);
-        }
-        return { success: true, account: resData.account };
-      }
-      return { success: false, error: resData.error || "Failed to save account" };
+    const data = await res.json();
+    if (!res.ok) {
+      return { success: false, error: data.error || "Failed to save account" };
     }
-    const errData = await res.json();
-    return { success: false, error: errData.error || "Failed to save account" };
+    return { success: true, account: data.account || account };
   } catch (error: any) {
-    console.error("Error saving account:", error);
     return { success: false, error: error.message || "Failed to save account" };
   }
 }
@@ -198,7 +191,21 @@ export async function syncWithDatabase(): Promise<{
     const data = await res.json();
     if (data && typeof window !== "undefined") {
       if (data.account) localStorage.setItem("currentUserAccount", JSON.stringify(data.account));
-      if (data.pages) localStorage.setItem("currentUserPages", JSON.stringify(data.pages));
+
+      if (data.pages && Array.isArray(data.pages)) {
+        const localCached = localStorage.getItem("currentUserPages");
+        let localList: MagnetPage[] = [];
+        if (localCached) {
+          try { localList = JSON.parse(localCached); } catch (e) {}
+        }
+        const map = new Map<string, MagnetPage>();
+        data.pages.forEach((p: MagnetPage) => map.set(p.id, p));
+        localList.forEach((p: MagnetPage) => map.set(p.id, p));
+        const mergedPages = Array.from(map.values());
+        localStorage.setItem("currentUserPages", JSON.stringify(mergedPages));
+        data.pages = mergedPages;
+      }
+
       if (data.sequences) localStorage.setItem("currentUserSequences", JSON.stringify(data.sequences));
       if (data.leads) localStorage.setItem("currentUserLeads", JSON.stringify(data.leads));
       if (data.integrations) localStorage.setItem("currentUserIntegrations", JSON.stringify(data.integrations));

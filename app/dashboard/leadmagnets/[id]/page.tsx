@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Check,
@@ -24,6 +24,7 @@ import {
   ExternalLink,
   MoreHorizontal,
   BarChart2,
+  QrCode,
   Play,
   Plus,
   Trash2,
@@ -82,8 +83,25 @@ function compressImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 
 
 export default function EditLeadMagnetPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [account, setAccount] = useState(() => loadAccount());
   const [page, setPage] = useState<MagnetPage | undefined>(() => loadPages().find((p) => p.id === params.id));
+
+  // Overflow Menu State
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
 
   // Tab Navigation State
   const [activeTab, setActiveTab] = useState<"landing" | "email" | "sequence" | "after">("landing");
@@ -225,6 +243,9 @@ export default function EditLeadMagnetPage() {
             const cleanHeadline = found.headline && found.headline !== "hi" ? found.headline : (found.name || "");
             setHeadline(cleanHeadline);
             setSubheadline(cleanSubheadline);
+            if (found.pitch) setPitch(found.pitch);
+            if (found.bullets) setBullets(found.bullets);
+            if (found.imageUrl !== undefined) setImageUrl(found.imageUrl);
           }
         }
         if (data.account) setAccount(data.account);
@@ -238,6 +259,9 @@ export default function EditLeadMagnetPage() {
       const cleanHeadline = page.headline && page.headline !== "hi" ? page.headline : (page.name || "");
       setHeadline(cleanHeadline);
       setSubheadline(cleanSubheadline);
+      if (page.pitch) setPitch(page.pitch);
+      if (page.bullets) setBullets(page.bullets);
+      if (page.imageUrl !== undefined) setImageUrl(page.imageUrl);
     }
   }, [page]);
 
@@ -325,7 +349,7 @@ export default function EditLeadMagnetPage() {
     setSaveStatus("saving");
     const timer = setTimeout(() => {
       if (page) {
-        const next = { ...page, headline, subheadline, updatedAt: "Just now" };
+        const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, updatedAt: "Just now" };
         setPage(next);
         const all = loadPages().map((p) => (p.id === next.id ? next : p));
         savePages(all);
@@ -338,7 +362,7 @@ export default function EditLeadMagnetPage() {
 
   const handleGoBack = () => {
     if (page) {
-      const next = { ...page, headline, subheadline, updatedAt: "Just now" };
+      const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, updatedAt: "Just now" };
       const all = loadPages().map((p) => (p.id === next.id ? next : p));
       savePages(all);
     }
@@ -367,7 +391,7 @@ export default function EditLeadMagnetPage() {
 
   function update(patch: Partial<MagnetPage>) {
     if (!page) return;
-    const next = { ...page, ...patch };
+    const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, ...patch };
     setPage(next);
     const all = loadPages().map((p) => (p.id === next.id ? next : p));
     savePages(all);
@@ -377,7 +401,7 @@ export default function EditLeadMagnetPage() {
     setSaving(true);
     window.setTimeout(() => {
       if (!page) return;
-      const next = { ...page, headline, subheadline, updatedAt: "Just now" };
+      const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, updatedAt: "Just now" };
       setPage(next);
       const all = loadPages().map((p) => (p.id === next.id ? next : p));
       savePages(all);
@@ -390,6 +414,33 @@ export default function EditLeadMagnetPage() {
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
   }
+
+  const handleAnalytics = () => {
+    setShowMenu(false);
+    router.push(`/dashboard/leadmagnets/${params.id}/analytics`);
+  };
+
+  const handleDownloadQR = () => {
+    setShowMenu(false);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`;
+    const a = document.createElement("a");
+    a.href = qrUrl;
+    a.download = `${page.slug || "lead-magnet"}-qr.png`;
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handleDeletePage = () => {
+    setShowMenu(false);
+    if (!page) return;
+    if (confirm(`Are you sure you want to delete "${page.name}"?`)) {
+      const all = loadPages().filter((p) => p.id !== page.id);
+      savePages(all);
+      router.push("/dashboard/leadmagnets");
+    }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputTarget = e.target;
@@ -501,23 +552,56 @@ export default function EditLeadMagnetPage() {
                 </button>
 
                 {/* Overflow menu */}
-                <button
-                  className="p-1.5 rounded-lg text-zinc-400 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-100 transition"
-                  title="More actions"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
+                <div className="relative" ref={menuRef}>
+                  <button
+                    onClick={() => setShowMenu(!showMenu)}
+                    className="p-1.5 rounded-lg text-zinc-400 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-100 transition cursor-pointer"
+                    title="More actions"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+
+                  {showMenu && (
+                    <div className="absolute right-0 top-9 w-48 rounded-2xl border border-zinc-200/90 dark:border-zinc-200/90 bg-white dark:bg-white p-1.5 shadow-xl z-50 text-zinc-800 dark:text-zinc-800 animate-in fade-in slide-in-from-top-2 duration-150">
+                      <button
+                        onClick={handleAnalytics}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-100 transition cursor-pointer"
+                      >
+                        <BarChart2 className="h-4 w-4 text-zinc-600" />
+                        <span>Analytics</span>
+                      </button>
+
+                      <button
+                        onClick={handleDownloadQR}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-100 transition cursor-pointer"
+                      >
+                        <QrCode className="h-4 w-4 text-zinc-600" />
+                        <span>Download QR code</span>
+                      </button>
+
+                      <div className="my-1 h-px bg-zinc-100 dark:bg-zinc-100" />
+
+                      <button
+                        onClick={handleDeletePage}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-50 transition cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                        <span>Delete lead magnet</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 {/* Status Pill */}
                 <button
-                  onClick={() => update({ status: live ? "paused" : "live", publishedAt: live ? page.publishedAt : new Date().toISOString() })}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition cursor-pointer ${live
-                    ? "bg-emerald-50 dark:bg-emerald-50 text-emerald-700 dark:text-emerald-700 border border-emerald-300 dark:border-emerald-300"
-                    : "bg-zinc-100 dark:bg-zinc-100 text-zinc-600 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-200"
+                  onClick={() => update({ status: live ? "draft" : "live", publishedAt: live ? page.publishedAt : new Date().toISOString() })}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer shadow-xs ${live
+                    ? "bg-[#1C1A19] text-[#10B981] border border-[#2E2A28]"
+                    : "bg-zinc-100 dark:bg-zinc-100 text-zinc-600 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-200 hover:bg-zinc-200"
                     }`}
                 >
-                  <span className={`h-2 w-2 rounded-full ${live ? "bg-emerald-500" : "bg-zinc-400"}`} />
-                  <span>{live ? "Live" : "Draft"}</span>
+                  <span className={`h-2 w-2 rounded-full ${live ? "bg-[#10B981]" : "bg-zinc-400"}`} />
+                  <span>{live ? "Published" : "Draft"}</span>
                 </button>
               </div>
             </div>

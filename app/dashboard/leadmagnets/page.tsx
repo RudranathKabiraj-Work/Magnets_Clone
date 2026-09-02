@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, Eye, MousePointerClick, Pencil, Plus, Rocket, Search, Sparkles, Trash2, X } from "lucide-react";
+import { ExternalLink, Eye, MousePointerClick, Pencil, Plus, Rocket, Search, Sparkles, Trash2, X, BarChart2, Image as ImageIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import StatusBadge from "@/components/dashboard/status-badge";
@@ -158,126 +158,102 @@ export default function PagesPage() {
           </div>
 
           {/* Pages list or empty state */}
-          <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-sm overflow-hidden dark:border-[#2e2e38] dark:bg-[#0E0E10]">
-            {filtered.length === 0 && pages.length === 0 ? (
-              /* Empty state */
-              <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF0EA] text-[#FE6F34] mb-5 dark:bg-[#2a1a08]">
-                  <Sparkles className="h-7 w-7 text-[#FE6F34]" />
-                </div>
-                <p className="text-lg font-semibold text-zinc-950 dark:text-white mb-2">Create your first lead magnet</p>
-                <p className="text-xs text-zinc-500 dark:text-[#9B9085] max-w-xs mb-6 leading-relaxed">
-                  Build the landing page, resource email, and follow-up sequence in one guided flow.
-                </p>
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="flex items-center gap-2 rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition dark:bg-[#FE6F34] dark:hover:bg-[#e55e28] cursor-pointer"
+          {filtered.length === 0 && pages.length === 0 ? (
+            /* Empty state */
+            <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-sm overflow-hidden dark:border-[#2e2e38] dark:bg-[#0E0E10] flex flex-col items-center justify-center py-12 px-6 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF0EA] text-[#FE6F34] mb-5 dark:bg-[#2a1a08]">
+                <Sparkles className="h-7 w-7 text-[#FE6F34]" />
+              </div>
+              <p className="text-lg font-semibold text-zinc-950 dark:text-white mb-2">Create your first lead magnet</p>
+              <p className="text-xs text-zinc-500 dark:text-[#9B9085] max-w-xs mb-6 leading-relaxed">
+                Build the landing page, resource email, and follow-up sequence in one guided flow.
+              </p>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition dark:bg-[#FE6F34] dark:hover:bg-[#e55e28] cursor-pointer"
+              >
+                <Plus className="h-4 w-4" />
+                Create lead magnet
+              </button>
+            </div>
+          ) : filtered.length === 0 ? (
+            /* No search results */
+            <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-sm overflow-hidden dark:border-[#2e2e38] dark:bg-[#0E0E10] flex flex-col items-center justify-center py-16 px-6 text-center">
+              <p className="text-sm font-medium text-zinc-950 dark:text-white mb-1">No results found</p>
+              <p className="text-xs text-zinc-500 dark:text-[#9B9085]">Try a different title or URI.</p>
+            </div>
+          ) : (
+            /* Card Grid View */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filtered.map((page) => (
+                <div
+                  key={page.id}
+                  className="group rounded-2xl border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#18181C] overflow-hidden shadow-sm hover:shadow-md transition flex flex-col"
                 >
-                  <Plus className="h-4 w-4" />
-                  Create lead magnet
-                </button>
-              </div>
-            ) : filtered.length === 0 ? (
-              /* No search results */
-              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                <p className="text-sm font-medium text-zinc-950 dark:text-white mb-1">No results found</p>
-                <p className="text-xs text-zinc-500 dark:text-[#9B9085]">Try a different title or URI.</p>
-              </div>
-            ) : (
-              /* Pages list */
-              <div className="divide-y divide-zinc-200/80 dark:divide-[#252529]">
-                {filtered.map((page) => (
-                  <div
-                    key={page.id}
-                    className="flex flex-col gap-4 p-4 transition hover:bg-zinc-50/80 sm:flex-row sm:items-center sm:px-5 dark:hover:bg-[#252529]/40"
-                  >
-                    {/* Color preview thumbnail */}
-                    <div
-                      className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-zinc-200 dark:border-[#2e2e38]"
-                      style={{ backgroundColor: page.accent }}
-                    >
-                      <div className="absolute inset-x-2 top-2 h-1 rounded-full bg-white/80" />
-                      <div className="absolute inset-x-2 top-4 h-0.5 rounded-full bg-white/30" />
-                      <div className="absolute inset-x-2 top-5.5 h-0.5 rounded-full bg-white/30" />
-                      <div className="absolute bottom-2 left-2 right-2 flex h-5 items-center justify-center rounded bg-white/90">
-                        <span className="truncate px-1 text-[5px] font-bold text-black">{page.headline}</span>
-                      </div>
+                  {/* Top Media Area with Status Badge */}
+                  <div className="relative h-48 sm:h-52 w-full bg-[#121214] flex items-center justify-center border-b border-zinc-100 dark:border-[#282830] overflow-hidden">
+                    {/* Status Badge Top-Left */}
+                    <div className="absolute top-3 left-3 z-10">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-black/80 dark:bg-black/80 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-white uppercase tracking-wider shadow-sm">
+                        <span className={`h-2 w-2 rounded-full ${page.status === "live" ? "bg-[#10B981]" : "bg-zinc-400"}`} />
+                        <span>{page.status === "live" ? "Published" : "Draft"}</span>
+                      </span>
                     </div>
 
-                    {/* Name + slug */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
+                    {page.imageUrl && page.imageUrl.trim() !== "" ? (
+                      <img
+                        src={page.imageUrl}
+                        alt={page.name}
+                        className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-zinc-500">
+                        <ImageIcon className="h-8 w-8 mb-1 stroke-[1.5px]" />
+                        <span className="text-xs font-medium">No image</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom Content Section */}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="space-y-1.5">
+                      <h4 className="text-base font-extrabold text-zinc-950 dark:text-white group-hover:text-[#FE6F34] transition">
+                        {page.headline || page.name}
+                      </h4>
+                      <p className="text-xs text-zinc-500 dark:text-[#9E968F] line-clamp-2">
+                        {page.subheadline || "Add a compelling subheadline in the editor."}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-zinc-100 dark:border-[#282830] flex items-center justify-between gap-2">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium text-zinc-400 dark:text-[#7B7B86]">/{page.slug}</span>
+                        <span className="text-[10px] text-zinc-400 dark:text-[#7B7B86]">Updated {page.updatedAt || "recently"}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/dashboard/leadmagnets/${page.id}/analytics`}
+                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#202024] text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                          title="Analytics"
+                        >
+                          <BarChart2 className="h-4 w-4" />
+                        </Link>
+
                         <Link
                           href={`/dashboard/leadmagnets/${page.id}`}
-                          className="truncate text-sm font-semibold text-zinc-950 hover:text-[#FE6F34] transition dark:text-white dark:hover:text-[#FE6F34]"
+                          className="flex items-center gap-1.5 rounded-xl bg-black dark:bg-[#FE6F34] px-4 py-2 text-xs font-bold text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-[#ff7d47] transition shadow-xs cursor-pointer"
                         >
-                          {page.name}
+                          <Pencil className="h-3.5 w-3.5" />
+                          <span>Edit</span>
                         </Link>
-                        <StatusBadge status={page.status} />
                       </div>
-                      <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500 dark:text-[#9B9085] flex-wrap">
-                        <span className="inline-flex items-center gap-1">
-                          <Rocket className="h-3 w-3" />
-                          /{account?.username || ""}/{page.slug}
-                        </span>
-                        {page.status === "live" && (
-                          <a
-                            href={`https://magnets.so/${account?.username || ""}/${page.slug}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 hover:text-zinc-950 transition dark:hover:text-white"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            View
-                          </a>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-6 text-right shrink-0">
-                      <div>
-                        <p className="text-sm font-semibold text-zinc-950 dark:text-white">{page.views.toLocaleString()}</p>
-                        <p className="flex items-center justify-end gap-1 text-[11px] text-zinc-500 dark:text-[#9B9085]">
-                          <Eye className="h-3 w-3" /> views
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-zinc-950 dark:text-white">{page.signups.toLocaleString()}</p>
-                        <p className="text-[11px] text-zinc-500 dark:text-[#9B9085]">signups</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-zinc-950 dark:text-white">
-                          {page.conversionRate ? `${page.conversionRate.toFixed(1)}%` : "—"}
-                        </p>
-                        <p className="flex items-center justify-end gap-1 text-[11px] text-zinc-500 dark:text-[#9B9085]">
-                          <MousePointerClick className="h-3 w-3" /> conv.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <Link
-                        href={`/dashboard/leadmagnets/${page.id}`}
-                        aria-label={`Edit ${page.name}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 transition dark:border-[#2e2e38] dark:bg-transparent dark:text-[#9B9085] dark:hover:border-[#3a3a3f] dark:hover:text-white"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Link>
-                      <button
-                        aria-label={`Delete ${page.name}`}
-                        onClick={() => removePage(page.id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 hover:border-red-600 hover:text-red-600 transition dark:border-[#2e2e38] dark:bg-transparent dark:text-[#9B9085] dark:hover:border-red-800 dark:hover:text-red-400"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
