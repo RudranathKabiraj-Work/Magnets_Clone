@@ -14,6 +14,11 @@ export async function GET(
     await dbConnect();
     let resource = await ResourceModel.findOne({ id: resourceId }).lean();
 
+    // 1. If stored in Vercel Blob Cloud, redirect directly to cloud URL
+    if (resource && resource.fileUrl && resource.fileUrl.startsWith("http") && !resource.fileUrl.includes("/uploads/")) {
+      return NextResponse.redirect(resource.fileUrl);
+    }
+
     const isVercel = Boolean(process.env.VERCEL);
     const uploadsDir = isVercel ? "/tmp" : path.join(process.cwd(), "public", "uploads");
     const filesOnDisk = await fs.readdir(uploadsDir).catch(() => []);
