@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import { MagnetsMark } from "@/components/brand";
+import { safeSetItem } from "@/lib/store";
 import { Gift, Monitor, Rocket, BookOpen, CheckSquare, FileText, PlayCircle, GraduationCap, Tag, ShieldAlert, PlusCircle, ArrowLeft, ArrowRight, CheckCircle2, X } from "lucide-react";
 
 function OnboardingContent() {
@@ -40,9 +41,10 @@ function OnboardingContent() {
             const firstName = data.account.name.split(" ")[0];
             setUserName(firstName);
             setUserSlug(data.account.username || "your-workspace");
+
             if (typeof window !== "undefined") {
-              localStorage.setItem("currentUserEmail", email.trim().toLowerCase());
-              localStorage.setItem("currentUserAccount", JSON.stringify(data.account));
+              safeSetItem("currentUserEmail", email.trim().toLowerCase());
+              safeSetItem("currentUserAccount", JSON.stringify(data.account));
             }
           }
           setLoadingProfile(false);

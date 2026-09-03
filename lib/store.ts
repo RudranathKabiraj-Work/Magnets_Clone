@@ -2,12 +2,23 @@
 
 import { pages as seedPages, sequences as seedSequences, type MagnetPage, type Sequence, type Account, type Lead, type Integration, account as seedAccount, leads as seedLeads, integrations as seedIntegrations } from "@/lib/data";
 
-function safeSetItem(key: string, value: string) {
+export function safeSetItem(key: string, value: string) {
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(key, value);
     } catch (e) {
-      console.warn(`localStorage quota exceeded for ${key}, falling back to memory/database`, e);
+      console.warn(`localStorage quota exceeded for ${key}`, e);
+      try {
+        if (key === "currentUserAccount") {
+          const parsed = JSON.parse(value);
+          if (parsed.logo && parsed.logo.length > 20000) {
+            delete parsed.logo;
+            localStorage.setItem(key, JSON.stringify(parsed));
+          }
+        }
+      } catch (fallbackErr) {
+        console.error("Could not write to localStorage fallback:", fallbackErr);
+      }
     }
   }
 }

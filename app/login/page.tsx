@@ -7,6 +7,8 @@ import Button from "@/components/ui/button";
 import Input, { FieldLabel } from "@/components/ui/input";
 import { Loader2, Sparkles, ArrowRight } from "lucide-react";
 
+import { safeSetItem } from "@/lib/store";
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -37,9 +39,9 @@ export default function LoginPage() {
 
       if (res.ok && data?.success) {
         if (typeof window !== "undefined") {
-          localStorage.setItem("currentUserEmail", email.trim().toLowerCase());
+          safeSetItem("currentUserEmail", email.trim().toLowerCase());
           if (data.account) {
-            localStorage.setItem("currentUserAccount", JSON.stringify(data.account));
+            safeSetItem("currentUserAccount", JSON.stringify(data.account));
           }
         }
         setStatus("opening_dashboard");
