@@ -50,7 +50,7 @@ const LeadSchema = new Schema({
   page: { type: String, required: true },
   pageId: { type: String, required: true },
   status: { type: String, enum: ["new", "delivered", "opened", "replied", "stopped"], default: "new" },
-  source: { type: String, enum: ["magnets", "custom-domain", "integration"], default: "magnets" },
+  source: { type: String, enum: ["leadmagnets", "magnets", "custom-domain", "integration"], default: "leadmagnets" },
   signedUpAt: { type: String, required: true },
   sequence: { type: String },
   sequenceStep: { type: String },
