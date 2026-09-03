@@ -54,7 +54,7 @@ export default function BrandPage() {
     const currentUserEmail = (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null) || account?.email || "rudranath@bda.co.in";
 
     const updatedAccount: Account = {
-      ...(account || { id: "a1", username: "rudranathkabira" }),
+      ...(account || { username: "rudranathkabira", plan: "Free" as const, joinedAt: "Just now" }),
       email: currentUserEmail,
       name: businessName.trim(),
       brandColor: brandColor.trim(),
