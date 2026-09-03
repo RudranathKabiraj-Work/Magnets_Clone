@@ -19,10 +19,8 @@ export async function GET(req: Request) {
       // Check if any account exists, otherwise seed everything
       const anyAccount = await AccountModel.findOne();
       if (!anyAccount) {
-        // Seed
+        // Seed initial default account without sample pages
         await AccountModel.create(seedAccount);
-        const seededPages = seedPages.map((p) => ({ ...p, userEmail: seedAccount.email.toLowerCase() }));
-        await MagnetPageModel.insertMany(seededPages);
         await LeadModel.insertMany(seedLeads);
         await SequenceModel.insertMany(seedSequences);
         await IntegrationModel.insertMany(seedIntegrations);
@@ -36,22 +34,8 @@ export async function GET(req: Request) {
       }
     }
 
-    if (normEmail) {
-      await MagnetPageModel.updateMany(
-        { $or: [{ userEmail: { $exists: false } }, { userEmail: null }] },
-        { $set: { userEmail: normEmail } }
-      );
-    }
-
     const pageFilter = normEmail ? { userEmail: normEmail } : {};
     let pages = await MagnetPageModel.find(pageFilter).lean();
-
-    // If a specific logged in user has no pages in MongoDB yet, seed their initial pages if default account or return empty array
-    if (normEmail && pages.length === 0 && account && account.email.toLowerCase() === seedAccount.email.toLowerCase()) {
-      const seededPages = seedPages.map((p) => ({ ...p, userEmail: normEmail }));
-      await MagnetPageModel.insertMany(seededPages);
-      pages = await MagnetPageModel.find({ userEmail: normEmail }).lean();
-    }
 
     const [leads, sequences, integrations, resources] = await Promise.all([
       LeadModel.find().lean(),
@@ -81,31 +65,44 @@ export async function POST(req: Request) {
     const normEmail = email ? email.trim().toLowerCase() : (body.userEmail || "").trim().toLowerCase();
 
     if (action === "savePages") {
-      if (normEmail) {
-        await MagnetPageModel.deleteMany({ userEmail: normEmail });
-        if (Array.isArray(data) && data.length > 0) {
-          const items = data.map((p: any) => ({ ...p, userEmail: normEmail }));
-          await MagnetPageModel.insertMany(items);
-        }
-      } else {
-        await MagnetPageModel.deleteMany({});
-        if (Array.isArray(data) && data.length > 0) {
-          await MagnetPageModel.insertMany(data);
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          const itemEmail = normEmail || item.userEmail || "";
+          await MagnetPageModel.findOneAndUpdate(
+            { id: item.id },
+            { ...item, userEmail: itemEmail },
+            { upsert: true, new: true }
+          );
         }
       }
       return NextResponse.json({ success: true });
     }
 
+    if (action === "deletePage") {
+      const { id } = data;
+      await MagnetPageModel.deleteOne({ id });
+      return NextResponse.json({ success: true });
+    }
+
     if (action === "addPage") {
       const pageToInsert = normEmail ? { ...data, userEmail: normEmail } : data;
-      await MagnetPageModel.create(pageToInsert);
+      await MagnetPageModel.findOneAndUpdate(
+        { id: data.id },
+        pageToInsert,
+        { upsert: true, new: true }
+      );
       return NextResponse.json({ success: true });
     }
 
     if (action === "saveSequences") {
-      await SequenceModel.deleteMany({});
-      if (Array.isArray(data) && data.length > 0) {
-        await SequenceModel.insertMany(data);
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          await SequenceModel.findOneAndUpdate(
+            { id: item.id },
+            item,
+            { upsert: true, new: true }
+          );
+        }
       }
       return NextResponse.json({ success: true });
     }
@@ -278,7 +275,7 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           from: "onboarding@resend.dev",
           to: [email.trim()],
-          subject: "Reset your Magnets password",
+          subject: "Reset your LeadMagnets password",
           html: `
             <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
               <h2 style="color: #FE6F34; text-align: center;">Reset your password</h2>
@@ -316,16 +313,16 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           from: "onboarding@resend.dev",
           to: [email.trim()],
-          subject: "Verify your Magnets email",
+          subject: "Verify your LeadMagnets email",
           html: `
             <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #fafafa;">
               <div style="background-color: white; padding: 24px; border-radius: 8px; border: 1px solid #eaeaea; text-align: center;">
                 <h2 style="color: #0E0E10; margin-top: 0; font-size: 20px; font-weight: bold;">Verify your email</h2>
-                <p style="color: #4a4a4a; font-size: 13px; margin-bottom: 24px;">Confirm this email address to finish creating your Magnets account.</p>
+                <p style="color: #4a4a4a; font-size: 13px; margin-bottom: 24px;">Confirm this email address to finish creating your LeadMagnets account.</p>
                 <div style="margin: 24px 0;">
                   <a href="${req.headers.get("origin") || "http://localhost:3000"}/register/confirm?email=${encodeURIComponent(email.trim())}" style="background-color: #0E0E10; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px; display: inline-block;">Verify email address</a>
                 </div>
-                <p style="font-size: 11px; color: #888; margin-top: 24px; line-height: 1.5;">This link expires in 24 hours. If you did not create a Magnets account, you can ignore this email.</p>
+                <p style="font-size: 11px; color: #888; margin-top: 24px; line-height: 1.5;">This link expires in 24 hours. If you did not create a LeadMagnets account, you can ignore this email.</p>
               </div>
             </div>
           `,

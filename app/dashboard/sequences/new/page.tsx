@@ -114,7 +114,7 @@ export default function NewSequence() {
             </div>
           )}
           <div className="flex items-center justify-between gap-3 pt-1">
-            <p className="text-xs text-ink-500 dark:text-ink-400">Email delivery is handled by Magnets from a verified sender.</p>
+            <p className="text-xs text-ink-500 dark:text-ink-400">Email delivery is handled by LeadMagnets from a verified sender.</p>
             <Button type="submit">
               Create sequence <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Button>

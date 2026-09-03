@@ -87,7 +87,7 @@ function OnboardingContent() {
       subheadline: "Enter your email address below to receive the resource directly in your inbox.",
       buttonText: "Receive Resource",
       emailSubject: `Your ${pageName.trim()} download link`,
-      emailBody: `Hi there,\n\nThank you for requesting the ${pageName.trim()} resource. You can access it immediately by clicking the link below:\n\n[Download Resource]\n\nBest regards,\nThe Magnets Team`,
+      emailBody: `Hi there,\n\nThank you for requesting the ${pageName.trim()} resource. You can access it immediately by clicking the link below:\n\n[Download Resource]\n\nBest regards,\nThe LeadMagnets Team`,
       accentColor: "#FE6F34",
       socialSharingImage: null,
       checkEmailUnique: false,
@@ -205,7 +205,7 @@ function OnboardingContent() {
               </div>
 
               <div className="rounded-2xl border border-emerald-950/20 bg-emerald-950/10 p-3 text-emerald-400 text-[11px] leading-relaxed">
-                <strong>You can launch without a custom domain.</strong> Magnets gives you a working link immediately, and you can connect your own domain later.
+                <strong>You can launch without a custom domain.</strong> LeadMagnets gives you a working link immediately, and you can connect your own domain later.
               </div>
             </div>
           )}
@@ -334,13 +334,13 @@ function OnboardingContent() {
                 <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">Your workspace is ready</span>
                 <h3 className="mt-2 text-xl font-extrabold text-white">Let's make your first lead magnet</h3>
                 <p className="mt-2 text-xs text-ink-400 leading-relaxed max-w-md mx-auto">
-                  Start with one useful outcome. Magnets will guide you through the page, resource email, follow-up, and publishing.
+                  Start with one useful outcome. LeadMagnets will guide you through the page, resource email, follow-up, and publishing.
                 </p>
               </div>
 
               <div className="w-full max-w-md rounded-2xl border border-[#1C1C20] bg-[#0E0E10]/80 p-4 text-left">
                 <span className="text-[9px] font-bold text-[#9B9085] uppercase tracking-widest block">Your free publishing address</span>
-                <span className="mt-1 block text-xs font-mono text-white/95">magnets.so/{userSlug}/...</span>
+                <span className="mt-1 block text-xs font-mono text-white/95">leadmagnets.so/{userSlug}/...</span>
               </div>
 
               <div className="w-full max-w-sm text-left space-y-3.5 pt-2">

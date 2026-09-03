@@ -133,7 +133,7 @@ export default function HelpPage() {
 
         {/* Footer */}
         <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
-          <span>Magnets</span>
+          <span>LeadMagnets</span>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-white transition">Privacy</a>
             <a href="#" className="hover:text-white transition">Terms</a>

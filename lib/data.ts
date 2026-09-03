@@ -19,6 +19,28 @@ export interface MagnetPage {
   imageUrl?: string | null;
   pitch?: string;
   bullets?: string[];
+  emailSubject?: string;
+  emailPreviewText?: string;
+  emailBody?: string;
+  sequenceEnabled?: boolean;
+  stopOnCall?: boolean;
+  sequenceEmails?: { id: string; subject: string; delayDays: number; body: string }[];
+  afterSignupOption?: "standard" | "elsewhere" | "custom";
+  destinationUrl?: string;
+  customHeading?: string;
+  customMessage?: string;
+  videoUrl?: string;
+  buttonLabel?: string;
+  buttonUrl?: string;
+  quizFunnelEnabled?: boolean;
+  hasVariantB?: boolean;
+  testStarted?: boolean;
+  variantBImage?: string | null;
+  variantBTitle?: string;
+  // Feature 2: Smart Auto-Personalized Deliverable Settings
+  customPromptQuestion?: string; // e.g. "What is your main business goal or bottleneck?"
+  customPromptPlaceholder?: string;
+  enableAiPersonalizedDeliverable?: boolean;
 }
 
 export interface Lead {
@@ -28,11 +50,12 @@ export interface Lead {
   page: string;
   pageId: string;
   status: "new" | "delivered" | "opened" | "replied" | "stopped";
-  source: "magnets" | "custom-domain" | "integration";
+  source: "leadmagnets" | "custom-domain" | "integration";
   signedUpAt: string;
   sequence?: string;
   sequenceStep?: string;
   tags: string[];
+  customAnswer?: string;
 }
 
 export interface SequenceEmail {
@@ -90,59 +113,7 @@ export const account: Account = {
   joinedAt: "June 2026",
 };
 
-export const pages: MagnetPage[] = [
-  {
-    id: "p1",
-    name: "The 5-Minute Content Engine",
-    slug: "content-engine",
-    status: "live",
-    views: 14233,
-    signups: 962,
-    conversionRate: 6.8,
-    headline: "Turn one idea into a week of content",
-    subheadline: "A simple system for repurposing a single post into thirty pieces that actually get seen.",
-    cta: "Get the free guide",
-    deliverable: "A 24-page PDF guide",
-    updatedAt: "2 hours ago",
-    publishedAt: "2026-07-12",
-    template: "classic",
-    accent: "#FE6F34",
-  },
-  {
-    id: "p2",
-    name: "Landing on Your Feet After a Layoff",
-    slug: "layoff-playbook",
-    status: "live",
-    views: 8402,
-    signups: 611,
-    conversionRate: 7.3,
-    headline: "A 30-day job-hunt playbook that actually works",
-    subheadline: "The exact steps to rebuild your routine, network, and applications after a layoff.",
-    cta: "Send me the playbook",
-    deliverable: "A 30-day checklist",
-    updatedAt: "Yesterday",
-    publishedAt: "2026-07-28",
-    template: "video",
-    accent: "#FE504F",
-  },
-  {
-    id: "p3",
-    name: "What's Your Lead Magnet Score?",
-    slug: "lead-score",
-    status: "draft",
-    views: 0,
-    signups: 0,
-    conversionRate: 0,
-    headline: "Score your current lead magnet in 60 seconds",
-    subheadline: "Answer five quick questions and get a personalised score with the gaps holding you back.",
-    cta: "See my score",
-    deliverable: "A personalised score report",
-    updatedAt: "3 days ago",
-    publishedAt: null,
-    template: "quiz",
-    accent: "#127f88",
-  },
-];
+export const pages: MagnetPage[] = [];
 
 export const leads: Lead[] = [
   {
@@ -152,7 +123,7 @@ export const leads: Lead[] = [
     page: "The 5-Minute Content Engine",
     pageId: "p1",
     status: "opened",
-    source: "magnets",
+    source: "leadmagnets",
     signedUpAt: "Aug 28, 2026",
     sequence: "Welcome sequence",
     sequenceStep: "Email 2 · 2 days later",
@@ -178,7 +149,7 @@ export const leads: Lead[] = [
     page: "The 5-Minute Content Engine",
     pageId: "p1",
     status: "delivered",
-    source: "magnets",
+    source: "leadmagnets",
     signedUpAt: "Aug 27, 2026",
     sequence: "Welcome sequence",
     sequenceStep: "Email 1 · delivered",
@@ -204,7 +175,7 @@ export const leads: Lead[] = [
     page: "The 5-Minute Content Engine",
     pageId: "p1",
     status: "stopped",
-    source: "magnets",
+    source: "leadmagnets",
     signedUpAt: "Aug 26, 2026",
     sequence: "Welcome sequence",
     sequenceStep: "Stopped · booked a call",
@@ -217,7 +188,7 @@ export const leads: Lead[] = [
     page: "Landing on Your Feet After a Layoff",
     pageId: "p2",
     status: "opened",
-    source: "magnets",
+    source: "leadmagnets",
     signedUpAt: "Aug 25, 2026",
     sequence: "Interview warm-up",
     sequenceStep: "Email 2 · 1 day later",

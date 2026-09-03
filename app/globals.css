@@ -6,6 +6,21 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(247, 245, 241, 0)), #f7f5f1;
 }
 
+@keyframes cardPopIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-card-pop-in {
+  animation: cardPopIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 .conversion-banner-bg {
   background: linear-gradient(90deg, #3C2219 0%, #2A1913 25%, #181617 50%, #131315 75%);
 }
@@ -851,18 +866,18 @@ textarea {
   border-color: #343439 !important;
 }
 
-.prose-magnets {
+.prose-leadmagnets {
   max-width: none;
 }
 
-.prose-magnets h1,
-.prose-magnets h2,
-.prose-magnets h3 {
+.prose-leadmagnets h1,
+.prose-leadmagnets h2,
+.prose-leadmagnets h3 {
   margin-top: 2rem;
 }
 
-.prose-magnets p:first-child,
-.prose-magnets > :first-child {
+.prose-leadmagnets p:first-child,
+.prose-leadmagnets > :first-child {
   margin-top: 0;
 }
 

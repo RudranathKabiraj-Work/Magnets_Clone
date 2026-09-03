@@ -28,7 +28,7 @@ function ConfirmPageContent() {
   return (
     <AuthShell
       title="Confirm your email"
-      subtitle="One last step. Confirm this address to activate your Magnets account."
+      subtitle="One last step. Confirm this address to activate your LeadMagnets account."
       footer={
         <a className="text-xs font-semibold text-ink-500 hover:text-ink-950 transition" href={`/register/verify?email=${encodeURIComponent(email)}`}>
           Request a new link

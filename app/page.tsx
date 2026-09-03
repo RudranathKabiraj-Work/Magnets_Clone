@@ -20,38 +20,38 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://magnets.so/#organization",
-      name: "Magnets",
-      url: "https://magnets.so",
-      logo: { "@type": "ImageObject", url: "https://magnets.so/brand/magnets-mark-dark.png" },
+      "@id": "https://leadmagnets.so/#organization",
+      name: "LeadMagnets",
+      url: "https://leadmagnets.so",
+      logo: { "@type": "ImageObject", url: "https://leadmagnets.so/brand/magnets-mark-dark.png" },
     },
     {
       "@type": "WebSite",
-      "@id": "https://magnets.so/#website",
-      name: "Magnets",
-      url: "https://magnets.so",
-      publisher: { "@id": "https://magnets.so/#organization" },
+      "@id": "https://leadmagnets.so/#website",
+      name: "LeadMagnets",
+      url: "https://leadmagnets.so",
+      publisher: { "@id": "https://leadmagnets.so/#organization" },
       inLanguage: "en",
     },
     {
       "@type": "WebPage",
-      "@id": "https://magnets.so/#webpage",
+      "@id": "https://leadmagnets.so/#webpage",
       name: "Lead Magnet Builder for Landing Pages and Email Capture",
       description: "Create lead magnet landing pages, capture emails, deliver resources instantly, and follow up automatically.",
-      url: "https://magnets.so",
-      isPartOf: { "@id": "https://magnets.so/#website" },
-      about: { "@id": "https://magnets.so/#software" },
+      url: "https://leadmagnets.so",
+      isPartOf: { "@id": "https://leadmagnets.so/#website" },
+      about: { "@id": "https://leadmagnets.so/#software" },
       inLanguage: "en",
     },
     {
       "@type": "SoftwareApplication",
-      "@id": "https://magnets.so/#software",
-      name: "Magnets",
+      "@id": "https://leadmagnets.so/#software",
+      name: "LeadMagnets",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
-      url: "https://magnets.so",
+      url: "https://leadmagnets.so",
       description: "A lead magnet builder for landing pages, email capture, resource delivery, and follow-up email sequences.",
-      provider: { "@id": "https://magnets.so/#organization" },
+      provider: { "@id": "https://leadmagnets.so/#organization" },
       featureList: [
         "Lead magnet landing pages",
         "Email capture forms",
@@ -68,12 +68,12 @@ const jsonLd = {
         {
           "@type": "Question",
           name: "Can I publish before I have a domain?",
-          acceptedAnswer: { "@type": "Answer", text: "Yes. Choose a Magnets username and publish on your Magnets URL. A custom domain is optional." },
+          acceptedAnswer: { "@type": "Answer", text: "Yes. Choose a LeadMagnets username and publish on your LeadMagnets URL. A custom domain is optional." },
         },
         {
           "@type": "Question",
-          name: "Will Magnets send the resource email for me?",
-          acceptedAnswer: { "@type": "Answer", text: "Yes. Magnets can send the resource email from its verified sender address. You can add your own sender domain later." },
+          name: "Will LeadMagnets send the resource email for me?",
+          acceptedAnswer: { "@type": "Answer", text: "Yes. LeadMagnets can send the resource email from its verified sender address. You can add your own sender domain later." },
         },
         {
           "@type": "Question",
@@ -104,18 +104,18 @@ const features = [
   {
     icon: UsersIcon,
     title: "Send leads where work happens",
-    body: "Keep signups in Magnets or send them to Beehiiv, Kit, Slack, Pipedrive, Zapier, and your existing workflow.",
+    body: "Keep signups in LeadMagnets or send them to Beehiiv, Kit, Slack, Pipedrive, Zapier, and your existing workflow.",
   },
 ];
 
 const steps = [
   { number: "01", title: "Make the offer", body: "Show the problem, the promise, and exactly what people get." },
-  { number: "02", title: "Share one link", body: "Publish on Magnets now. Connect your own domain when it is worth doing." },
+  { number: "02", title: "Share one link", body: "Publish on LeadMagnets now. Connect your own domain when it is worth doing." },
   { number: "03", title: "Turn interest into action", body: "Deliver the resource, follow up, and route each lead into your stack." },
 ];
 
 const pipeline = [
-  "Magnets page",
+  "LeadMagnets page",
   "Instant delivery",
   "Follow-up sequence",
   "Beehiiv, Kit, Slack, Pipedrive, or Zapier",
@@ -124,11 +124,11 @@ const pipeline = [
 const faqs = [
   {
     question: "Can I publish before I have a domain?",
-    answer: "Yes. Choose a Magnets username and publish on your Magnets URL. A custom domain is optional.",
+    answer: "Yes. Choose a LeadMagnets username and publish on your LeadMagnets URL. A custom domain is optional.",
   },
   {
-    question: "Will Magnets send the resource email for me?",
-    answer: "Yes. Magnets can send the resource email from its verified sender address. You can add your own sender domain later.",
+    question: "Will LeadMagnets send the resource email for me?",
+    answer: "Yes. LeadMagnets can send the resource email from its verified sender address. You can add your own sender domain later.",
   },
   {
     question: "Can I follow up with new signups?",
@@ -186,7 +186,7 @@ export default function Home() {
                 A lead magnet is only useful if it creates the next conversation.
               </h2>
               <p className="mt-5 max-w-md text-lg leading-8 text-ink-600">
-                Magnets handles the boring handoff between interest and action, so you can focus on making an offer worth taking.
+                LeadMagnets handles the boring handoff between interest and action, so you can focus on making an offer worth taking.
               </p>
             </Reveal>
             <div className="grid gap-x-10 gap-y-10 sm:grid-cols-2">
@@ -242,16 +242,16 @@ export default function Home() {
               Start with a page. Add complexity only when it earns its place.
             </h2>
             <p className="mt-5 max-w-xl text-lg leading-8 text-ink-600">
-              Get live on Magnets first. Add your domain, calendar, newsletter, Slack, or CRM only when it helps you close the loop.
+              Get live on LeadMagnets first. Add your domain, calendar, newsletter, Slack, or CRM only when it helps you close the loop.
             </p>
             <div className="mt-8 grid gap-3">
               <div className="flex gap-3 text-sm leading-6 text-ink-700">
                 <CircleCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-brand-orange" />
-                <span>Publish on a Magnets URL before you buy, connect, or configure anything else.</span>
+                <span>Publish on a LeadMagnets URL before you buy, connect, or configure anything else.</span>
               </div>
               <div className="flex gap-3 text-sm leading-6 text-ink-700">
                 <CircleCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-brand-orange" />
-                <span>Send the resource immediately from Magnets, then switch to your own verified sender when you want to.</span>
+                <span>Send the resource immediately from LeadMagnets, then switch to your own verified sender when you want to.</span>
               </div>
               <div className="flex gap-3 text-sm leading-6 text-ink-700">
                 <CircleCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-brand-orange" />
@@ -308,7 +308,7 @@ export default function Home() {
             Make the thing people are happy to give their email for
           </h2>
           <p className="mt-4 max-w-xl text-lg leading-8 text-ink-600">
-            Build the page, share the link, and let Magnets handle the first response every time someone opts in.
+            Build the page, share the link, and let LeadMagnets handle the first response every time someone opts in.
           </p>
           <a
             className="mt-8 inline-flex h-12 items-center gap-2 rounded-md bg-ink-950 px-5 text-base font-semibold text-white transition hover:bg-brand-orange hover:text-ink-950"

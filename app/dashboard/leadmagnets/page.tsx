@@ -238,10 +238,10 @@ export default function PagesPage() {
                   {/* Bottom Content Section */}
                   <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                     <div className="space-y-1.5">
-                      <h4 className="text-base font-extrabold text-zinc-950 dark:text-white group-hover:text-[#FE6F34] transition">
+                      <h4 className="text-base font-extrabold text-zinc-950 dark:text-white group-hover:text-[#FE6F34] transition leading-snug pb-0.5">
                         {page.headline || page.name}
                       </h4>
-                      <p className="text-xs text-zinc-500 dark:text-[#9E968F] line-clamp-2">
+                      <p className="text-xs text-zinc-500 dark:text-[#9E968F] line-clamp-2 leading-relaxed pb-0.5">
                         {page.subheadline || "Add a compelling subheadline in the editor."}
                       </p>
                     </div>
@@ -279,7 +279,7 @@ export default function PagesPage() {
 
         {/* Footer */}
         <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
-          <span>Magnets</span>
+          <span>LeadMagnets</span>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-white transition">Privacy</a>
             <a href="#" className="hover:text-white transition">Terms</a>

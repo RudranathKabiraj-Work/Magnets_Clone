@@ -5,7 +5,7 @@ import ThemeToggle from "@/components/theme-toggle";
 export default function SiteHeader() {
   return (
     <header className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10">
-      <a aria-label="Magnets home" href="/">
+      <a aria-label="LeadMagnets home" href="/">
         <BrandLogo />
       </a>
       <nav aria-label="Main navigation" className="hidden items-center gap-7 text-sm text-ink-600 dark:text-ink-300 md:flex">

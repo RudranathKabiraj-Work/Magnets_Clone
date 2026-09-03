@@ -37,6 +37,9 @@ const MagnetPageSchema = new Schema({
   publishedAt: { type: String, default: null },
   template: { type: String, enum: ["classic", "video", "quiz"], default: "classic" },
   accent: { type: String, default: "#FE6F34" },
+  customPromptQuestion: { type: String, default: "" },
+  customPromptPlaceholder: { type: String, default: "" },
+  enableAiPersonalizedDeliverable: { type: Boolean, default: false },
 });
 
 // Lead Schema
@@ -52,6 +55,7 @@ const LeadSchema = new Schema({
   sequence: { type: String },
   sequenceStep: { type: String },
   tags: { type: [String], default: [] },
+  customAnswer: { type: String, default: "" },
 });
 
 // Sequence Email Schema

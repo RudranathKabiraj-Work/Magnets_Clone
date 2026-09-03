@@ -51,7 +51,7 @@ export default function HeroDashboard() {
             <span className="h-2.5 w-2.5 rounded-full bg-brand-yellow" />
             <span className="h-2.5 w-2.5 rounded-full bg-brand-aqua" />
             <span className="ml-3 hidden rounded bg-ink-50 px-2 py-1 font-mono text-[10px] text-ink-400 sm:block">
-              Magnets platform walkthrough
+              LeadMagnets platform walkthrough
             </span>
           </div>
           <div className="relative mt-2 aspect-video w-full overflow-hidden rounded-md border border-ink-100 bg-ink-950">
@@ -61,7 +61,7 @@ export default function HeroDashboard() {
               className="absolute inset-0 h-full w-full border-0"
               loading="lazy"
               src="https://www.loom.com/embed/ebb8dded5142439d8a97e338a49cb104?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true"
-              title="Magnets platform walkthrough"
+              title="LeadMagnets platform walkthrough"
             />
           </div>
         </div>

@@ -22,7 +22,7 @@ export default function AuthShell({
     <main className="brand-soft-bg relative flex min-h-screen flex-col px-4 py-6 text-ink-900 dark:bg-[#0E0E10] dark:text-white">
       {/* Top Left Logo Link to Landing Page */}
       <div className="mx-auto w-full max-w-6xl px-2 sm:px-4 py-2">
-        <Link href="/" aria-label="Magnets home" className="inline-flex items-center transition hover:opacity-80">
+        <Link href="/" aria-label="LeadMagnets home" className="inline-flex items-center transition hover:opacity-80">
           <BrandLogo height="h-8" width="w-[8.5rem]" />
         </Link>
       </div>

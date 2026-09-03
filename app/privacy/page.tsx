@@ -3,9 +3,9 @@ import { LegalFooter, LegalHeader } from "@/layout/legal";
 
 export const metadata: Metadata = {
   title: "Privacy",
-  description: "Magnets Privacy Policy.",
+  description: "LeadMagnets Privacy Policy.",
   robots: { index: true, follow: true },
-  alternates: { canonical: "https://magnets.so/privacy" },
+  alternates: { canonical: "https://leadmagnets.so/privacy" },
 };
 
 export default function PrivacyPage() {
@@ -16,24 +16,24 @@ export default function PrivacyPage() {
         <p className="text-xs font-bold uppercase text-ink-500">Legal</p>
         <h1 className="mt-2 text-3xl font-black text-ink-950 sm:text-4xl">Privacy Policy</h1>
         <p className="mt-2 text-sm text-ink-500">Effective July 20, 2026</p>
-        <article className="prose-magnets mt-10 space-y-8 text-[15px] leading-7 text-ink-700">
+        <article className="prose-leadmagnets mt-10 space-y-8 text-[15px] leading-7 text-ink-700">
           <p>
-            This Policy explains how Magnets handles personal data when you use our service. It applies to Magnets account holders
-            and to people who submit a form on a page created with Magnets.
+            This Policy explains how LeadMagnets handles personal data when you use our service. It applies to LeadMagnets account holders
+            and to people who submit a form on a page created with LeadMagnets.
           </p>
           <LegalSection title="1. The short version">
             <ul className="list-disc space-y-1.5 pl-5">
               <li>We collect the information needed to host pages, deliver emails, run selected integrations, and keep the service secure.</li>
               <li>We do not sell personal data, use it for advertising, or use it to train AI models.</li>
               <li>Signup data belongs to the account holder whose page collected it.</li>
-              <li>Secrets such as API keys and webhook URLs are encrypted at rest when stored by Magnets.</li>
-              <li>Custom domains and custom sender domains are optional. A page can be hosted and sent from Magnets by default.</li>
+              <li>Secrets such as API keys and webhook URLs are encrypted at rest when stored by LeadMagnets.</li>
+              <li>Custom domains and custom sender domains are optional. A page can be hosted and sent from LeadMagnets by default.</li>
             </ul>
           </LegalSection>
           <LegalSection title="2. Your role and our role">
             <p>
-              For account data, Magnets is the controller. For signup data collected through a page created by an account holder,
-              the account holder is normally the controller and Magnets acts as a processor on that account holder&apos;s behalf.
+              For account data, LeadMagnets is the controller. For signup data collected through a page created by an account holder,
+              the account holder is normally the controller and LeadMagnets acts as a processor on that account holder&apos;s behalf.
               The account holder is responsible for their privacy notice, lawful basis, permissions, and the content of messages
               they send to their audience.
             </p>
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
             <p>When you create or use an account, we may process:</p>
             <ul className="list-disc space-y-1 pl-5">
               <li>Your name, email address, authentication details, and account timestamps. Passwords are stored as hashes, not plaintext.</li>
-              <li>Your chosen Magnets username, custom-domain settings, brand settings, sender settings, and page configuration.</li>
+              <li>Your chosen LeadMagnets username, custom-domain settings, brand settings, sender settings, and page configuration.</li>
               <li>The copy, images, resource links, email content, and follow-up sequences you create.</li>
               <li>
                 Integration settings and credentials you choose to add, including email, newsletter, calendar, Slack, Pipedrive, and
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
           </LegalSection>
           <LegalSection title="4. Information collected from page visitors and subscribers">
             <p>
-              When a person submits a Magnets form, we process the name and email address they provide, the page they signed up on,
+              When a person submits a LeadMagnets form, we process the name and email address they provide, the page they signed up on,
               and the submission time. When a follow-up sequence is enabled, we also keep the information needed to track whether
               that sequence is active, completed, stopped, or failed for that email address.
             </p>
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
               provide aggregate performance reporting to the account holder.
             </p>
             <p>
-              Forms can appear on a Magnets-hosted URL or an account holder&apos;s custom domain. The host does not change which
+              Forms can appear on a LeadMagnets-hosted URL or an account holder&apos;s custom domain. The host does not change which
               account owns the signup data.
             </p>
           </LegalSection>
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
           </LegalSection>
           <LegalSection title="6. Email delivery and integrations">
             <p>
-              Magnets can deliver resource emails from a Magnets-managed sender address. An account holder may instead use a sender
+              LeadMagnets can deliver resource emails from a LeadMagnets-managed sender address. An account holder may instead use a sender
               address on a domain they have verified. Email delivery is provided through Resend. We only use an account
               holder&apos;s own sender address after its domain has been verified for that account&apos;s sending setup.
             </p>
@@ -103,7 +103,7 @@ export default function PrivacyPage() {
             </p>
           </LegalSection>
           <LegalSection title="7. Service providers and disclosures">
-            <p>We use service providers to operate Magnets. Depending on which features are used, these include:</p>
+            <p>We use service providers to operate LeadMagnets. Depending on which features are used, these include:</p>
             <ul className="list-disc space-y-1 pl-5">
               <li><strong>Vercel</strong> for application hosting, content delivery, and file storage.</li>
               <li><strong>Neon</strong> for hosted database and authentication infrastructure.</li>
@@ -114,14 +114,14 @@ export default function PrivacyPage() {
               </li>
             </ul>
             <p>
-              We may also disclose information where required by law, to protect the rights and safety of Magnets and others, or in
+              We may also disclose information where required by law, to protect the rights and safety of LeadMagnets and others, or in
               connection with a reorganisation, merger, or sale of the service.
             </p>
           </LegalSection>
           <LegalSection title="8. Retention and deletion">
             <p>
               We retain account data while an account is active. Deleting an account removes the active account record and its
-              associated Magnets pages, signup records, and follow-up records from our application database. Copies may remain in
+              associated LeadMagnets pages, signup records, and follow-up records from our application database. Copies may remain in
               provider backups for a limited period under their normal backup-retention processes. We may retain limited information
               where necessary for legal obligations, security, dispute resolution, or enforcement.
             </p>
@@ -138,8 +138,8 @@ export default function PrivacyPage() {
               Depending on where you live, you may have rights to access, correct, delete, restrict, object to, or receive a copy of
               your personal data. Account holders can update much of their account information in the dashboard. To make a request,
               email{" "}
-              <a className="text-ink-900 underline-offset-4 hover:underline" href="mailto:hello@magnets.so">
-                hello@magnets.so
+              <a className="text-ink-900 underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">
+                hello@leadmagnets.so
               </a>
               .
             </p>
@@ -151,22 +151,22 @@ export default function PrivacyPage() {
           </LegalSection>
           <LegalSection title="11. International transfers">
             <p>
-              Magnets and our providers may process information in countries other than your own, including the United States. Where
+              LeadMagnets and our providers may process information in countries other than your own, including the United States. Where
               required, we rely on appropriate safeguards for international transfers.
             </p>
           </LegalSection>
           <LegalSection title="12. Children">
             <p>
-              Magnets is not intended for children under 16, and we do not knowingly collect personal information from children
+              LeadMagnets is not intended for children under 16, and we do not knowingly collect personal information from children
               under 16. Contact us if you believe this has happened.
             </p>
           </LegalSection>
           <LegalSection title="13. Changes and contact">
             <p>
-              We may update this Policy as Magnets changes. For material changes, we will provide reasonable notice before they take
+              We may update this Policy as LeadMagnets changes. For material changes, we will provide reasonable notice before they take
               effect. Questions can be sent to{" "}
-              <a className="text-ink-900 underline-offset-4 hover:underline" href="mailto:hello@magnets.so">
-                hello@magnets.so
+              <a className="text-ink-900 underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">
+                hello@leadmagnets.so
               </a>
               .
             </p>
@@ -175,8 +175,8 @@ export default function PrivacyPage() {
         <div className="mt-12 border-t border-ink-200 pt-6 text-sm text-ink-500">
           <p>
             Questions? Email{" "}
-            <a className="text-ink-900 underline-offset-4 hover:underline" href="mailto:hello@magnets.so">
-              hello@magnets.so
+            <a className="text-ink-900 underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">
+              hello@leadmagnets.so
             </a>
             .
           </p>

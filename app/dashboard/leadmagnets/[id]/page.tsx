@@ -35,11 +35,14 @@ import {
   CheckCircle2,
   Pencil,
   AlertTriangle,
+  Sparkles,
 } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { type MagnetPage } from "@/lib/data";
-import { loadPages, savePages, loadAccount, syncWithDatabase } from "@/lib/store";
+import { loadPages, savePages, deletePage, loadAccount, syncWithDatabase } from "@/lib/store";
+import AIMagnetModal from "@/components/leadmagnets/ai-magnet-modal";
+import SocialCardModal from "@/components/leadmagnets/social-card-modal";
 
 function compressImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -88,10 +91,12 @@ export default function EditLeadMagnetPage() {
   const [account, setAccount] = useState(() => loadAccount());
   const [page, setPage] = useState<MagnetPage | undefined>(() => loadPages().find((p) => p.id === params.id));
 
-  // Overflow Menu State
+  // Modal & Menu States
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [showSocialModal, setShowSocialModal] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -108,73 +113,179 @@ export default function EditLeadMagnetPage() {
   // Tab Navigation State
   const [activeTab, setActiveTab] = useState<"landing" | "email" | "sequence" | "after">("landing");
 
-  // Page Content State
-  const [headline, setHeadline] = useState("");
-  const [subheadline, setSubheadline] = useState("");
-  const [pitch, setPitch] = useState("");
-  const [bullets, setBullets] = useState<string[]>([]);
+  // Page Content Initial Values
+  const initialHeadline = page ? (page.headline && page.headline !== "hi" ? page.headline : (page.name || "")) : "";
+  const initialSubheadline = page ? (page.subheadline && page.subheadline !== "Enter your email to get instant access." ? page.subheadline : "") : "";
+  const initialPitch = page?.pitch || "";
+  const initialBullets = page?.bullets || [];
+  const initialImage = page?.imageUrl !== undefined ? page.imageUrl : null;
+  const initialEmailSubject = page?.emailSubject || "Here is your requested resource";
+  const initialEmailPreviewText = page?.emailPreviewText || "Click below to access your free download.";
+  const initialEmailBody = page?.emailBody || "Hey {name},\n\nThank you for requesting this resource! Click the link below to get instant access.\n\nEnjoy!";
+
+  // Page Content State (Tab 1: Landing)
+  const [headline, setHeadline] = useState(initialHeadline);
+  const [subheadline, setSubheadline] = useState(initialSubheadline);
+  const [pitch, setPitch] = useState(initialPitch);
+  const [bullets, setBullets] = useState<string[]>(initialBullets);
+  const [imageUrl, setImageUrl] = useState<string | null>(initialImage);
   const [newBulletText, setNewBulletText] = useState("");
   const [showAddBullet, setShowAddBullet] = useState(false);
 
-  // Undo/Redo History State
+  // Delivery Email State (Tab 2: Delivery Email)
+  const [emailSubject, setEmailSubject] = useState(initialEmailSubject);
+  const [emailPreviewText, setEmailPreviewText] = useState(initialEmailPreviewText);
+  const [emailBody, setEmailBody] = useState(initialEmailBody);
+
+  // Sequence State (Tab 3: Sequence)
+  const [sequenceEnabled, setSequenceEnabled] = useState(page?.sequenceEnabled || false);
+  const [stopOnCall, setStopOnCall] = useState(page?.stopOnCall !== undefined ? page.stopOnCall : true);
+  const [sequenceEmails, setSequenceEmails] = useState<{ id: string; subject: string; delayDays: number; body: string }[]>(page?.sequenceEmails || []);
+
+  // Feature 2: Smart Auto-Personalized Deliverable State
+  const [customPromptQuestion, setCustomPromptQuestion] = useState(page?.customPromptQuestion || "What is your main goal or bottleneck?");
+  const [customPromptPlaceholder, setCustomPromptPlaceholder] = useState(page?.customPromptPlaceholder || "e.g. Scaling outreach, Lead generation");
+  const [enableAiPersonalizedDeliverable, setEnableAiPersonalizedDeliverable] = useState(page?.enableAiPersonalizedDeliverable || false);
+
+  // After Signup State (Tab 4: After Signup)
+  const [afterSignupOption, setAfterSignupOption] = useState<"standard" | "elsewhere" | "custom">(page?.afterSignupOption || "standard");
+  const [destinationUrl, setDestinationUrl] = useState(page?.destinationUrl || "");
+  const [customHeading, setCustomHeading] = useState(page?.customHeading || "");
+  const [customMessage, setCustomMessage] = useState(page?.customMessage || "");
+  const [videoUrl, setVideoUrl] = useState(page?.videoUrl || "");
+  const [buttonLabel, setButtonLabel] = useState(page?.buttonLabel || "");
+  const [buttonUrl, setButtonUrl] = useState(page?.buttonUrl || "");
+  const [quizFunnelEnabled, setQuizFunnelEnabled] = useState(page?.quizFunnelEnabled || false);
+
+  // Comprehensive Undo/Redo History State across All 4 Tabs
   const [history, setHistory] = useState<{
     headline: string;
     subheadline: string;
     pitch: string;
     bullets: string[];
     imageUrl: string | null;
-  }[]>([]);
-  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+    emailSubject: string;
+    emailPreviewText: string;
+    emailBody: string;
+    sequenceEnabled: boolean;
+    stopOnCall: boolean;
+    sequenceEmails: { id: string; subject: string; delayDays: number; body: string }[];
+    afterSignupOption: "standard" | "elsewhere" | "custom";
+    destinationUrl: string;
+    customHeading: string;
+    customMessage: string;
+    videoUrl: string;
+    buttonLabel: string;
+    buttonUrl: string;
+    quizFunnelEnabled: boolean;
+  }[]>(() => [
+    {
+      headline: initialHeadline,
+      subheadline: initialSubheadline,
+      pitch: initialPitch,
+      bullets: initialBullets,
+      imageUrl: initialImage,
+      emailSubject: initialEmailSubject,
+      emailPreviewText: initialEmailPreviewText,
+      emailBody: initialEmailBody,
+      sequenceEnabled: page?.sequenceEnabled || false,
+      stopOnCall: page?.stopOnCall !== undefined ? page.stopOnCall : true,
+      sequenceEmails: page?.sequenceEmails || [],
+      afterSignupOption: page?.afterSignupOption || "standard",
+      destinationUrl: page?.destinationUrl || "",
+      customHeading: page?.customHeading || "",
+      customMessage: page?.customMessage || "",
+      videoUrl: page?.videoUrl || "",
+      buttonLabel: page?.buttonLabel || "",
+      buttonUrl: page?.buttonUrl || "",
+      quizFunnelEnabled: page?.quizFunnelEnabled || false,
+    }
+  ]);
+  const [historyIndex, setHistoryIndex] = useState<number>(0);
   const isUndoRedoRef = useRef(false);
+  const historyDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Autosave Status State
   const [saveStatus, setSaveStatus] = useState<"autosaved" | "saving">("autosaved");
   const isInitialMount = useRef(true);
 
   // Media & Input Refs
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const headlineRef = useRef<HTMLTextAreaElement>(null);
   const subheadlineRef = useRef<HTMLTextAreaElement>(null);
   const pitchRef = useRef<HTMLTextAreaElement>(null);
 
-  // Undo / Redo Actions
+  // Undo / Redo Actions & Conditions
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex >= 0 && historyIndex < history.length - 1;
 
-  const handleUndo = () => {
-    if (historyIndex <= 0) return;
+  const handleUndo = useCallback(() => {
+    if (historyIndex <= 0 || !history[historyIndex - 1]) return;
     const prevIndex = historyIndex - 1;
     const target = history[prevIndex];
-    if (!target) return;
     isUndoRedoRef.current = true;
     setHeadline(target.headline);
     setSubheadline(target.subheadline);
     setPitch(target.pitch);
     setBullets([...target.bullets]);
     setImageUrl(target.imageUrl);
-    setHistoryIndex(prevIndex);
-  };
 
-  const handleRedo = () => {
-    if (historyIndex < 0 || historyIndex >= history.length - 1) return;
+    setEmailSubject(target.emailSubject);
+    setEmailPreviewText(target.emailPreviewText);
+    setEmailBody(target.emailBody);
+
+    setSequenceEnabled(target.sequenceEnabled);
+    setStopOnCall(target.stopOnCall);
+    setSequenceEmails([...target.sequenceEmails]);
+
+    setAfterSignupOption(target.afterSignupOption);
+    setDestinationUrl(target.destinationUrl);
+    setCustomHeading(target.customHeading);
+    setCustomMessage(target.customMessage);
+    setVideoUrl(target.videoUrl);
+    setButtonLabel(target.buttonLabel);
+    setButtonUrl(target.buttonUrl);
+    setQuizFunnelEnabled(target.quizFunnelEnabled);
+
+    setHistoryIndex(prevIndex);
+  }, [historyIndex, history]);
+
+  const handleRedo = useCallback(() => {
+    if (historyIndex < 0 || historyIndex >= history.length - 1 || !history[historyIndex + 1]) return;
     const nextIndex = historyIndex + 1;
     const target = history[nextIndex];
-    if (!target) return;
     isUndoRedoRef.current = true;
     setHeadline(target.headline);
     setSubheadline(target.subheadline);
     setPitch(target.pitch);
     setBullets([...target.bullets]);
     setImageUrl(target.imageUrl);
+
+    setEmailSubject(target.emailSubject);
+    setEmailPreviewText(target.emailPreviewText);
+    setEmailBody(target.emailBody);
+
+    setSequenceEnabled(target.sequenceEnabled);
+    setStopOnCall(target.stopOnCall);
+    setSequenceEmails([...target.sequenceEmails]);
+
+    setAfterSignupOption(target.afterSignupOption);
+    setDestinationUrl(target.destinationUrl);
+    setCustomHeading(target.customHeading);
+    setCustomMessage(target.customMessage);
+    setVideoUrl(target.videoUrl);
+    setButtonLabel(target.buttonLabel);
+    setButtonUrl(target.buttonUrl);
+    setQuizFunnelEnabled(target.quizFunnelEnabled);
+
     setHistoryIndex(nextIndex);
-  };
+  }, [historyIndex, history]);
 
   // A/B Testing State
-  const [hasVariantB, setHasVariantB] = useState(false);
-  const [testStarted, setTestStarted] = useState(false);
-  const [variantBImage, setVariantBImage] = useState<string | null>(null);
-  const [variantBTitle, setVariantBTitle] = useState("");
+  const [hasVariantB, setHasVariantB] = useState(page?.hasVariantB || false);
+  const [testStarted, setTestStarted] = useState(page?.testStarted || false);
+  const [variantBImage, setVariantBImage] = useState<string | null>(page?.variantBImage !== undefined ? page.variantBImage : null);
+  const [variantBTitle, setVariantBTitle] = useState(page?.variantBTitle || "");
   const variantBFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleVariantBImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,20 +302,7 @@ export default function EditLeadMagnetPage() {
     }
   };
 
-  // Sequence State
-  const [sequenceEnabled, setSequenceEnabled] = useState(false);
-  const [stopOnCall, setStopOnCall] = useState(true);
-  const [sequenceEmails, setSequenceEmails] = useState<{ id: string; subject: string; delayDays: number; body: string }[]>([]);
 
-  // After Signup State
-  const [afterSignupOption, setAfterSignupOption] = useState<"standard" | "elsewhere" | "custom">("standard");
-  const [destinationUrl, setDestinationUrl] = useState("");
-  const [customHeading, setCustomHeading] = useState("");
-  const [customMessage, setCustomMessage] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [buttonLabel, setButtonLabel] = useState("");
-  const [buttonUrl, setButtonUrl] = useState("");
-  const [quizFunnelEnabled, setQuizFunnelEnabled] = useState(false);
 
   const addSequenceEmail = () => {
     setSequenceEmails([
@@ -267,58 +365,88 @@ export default function EditLeadMagnetPage() {
     }
   }, [page]);
 
-  useEffect(() => {
-    if (headlineRef.current) {
-      headlineRef.current.style.height = "auto";
-      headlineRef.current.style.height = `${headlineRef.current.scrollHeight}px`;
-    }
-  }, [headline]);
+  const adjustTextareaHeights = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (headlineRef.current) {
+        headlineRef.current.style.height = "auto";
+        headlineRef.current.style.height = `${Math.max(headlineRef.current.scrollHeight + 16, 60)}px`;
+      }
+      if (subheadlineRef.current) {
+        subheadlineRef.current.style.height = "auto";
+        subheadlineRef.current.style.height = `${Math.max(subheadlineRef.current.scrollHeight + 16, 40)}px`;
+      }
+      if (pitchRef.current) {
+        pitchRef.current.style.height = "auto";
+        pitchRef.current.style.height = `${Math.max(pitchRef.current.scrollHeight + 16, 40)}px`;
+      }
+    });
+  }, []);
 
   useEffect(() => {
-    if (subheadlineRef.current) {
-      subheadlineRef.current.style.height = "auto";
-      subheadlineRef.current.style.height = `${subheadlineRef.current.scrollHeight}px`;
-    }
-  }, [subheadline]);
+    adjustTextareaHeights();
+    const timer = setTimeout(adjustTextareaHeights, 50);
+    return () => clearTimeout(timer);
+  }, [headline, subheadline, pitch, activeTab, adjustTextareaHeights]);
 
-  useEffect(() => {
-    if (pitchRef.current) {
-      pitchRef.current.style.height = "auto";
-      pitchRef.current.style.height = `${pitchRef.current.scrollHeight}px`;
-    }
-  }, [pitch]);
-
-  // History tracking effect
+  // Debounced History Tracking Effect for User Edits across All 4 Tabs
   useEffect(() => {
     if (isUndoRedoRef.current) {
       isUndoRedoRef.current = false;
       return;
     }
 
-    const currentSnapshot = {
-      headline,
-      subheadline,
-      pitch,
-      bullets,
-      imageUrl,
-    };
-
-    const lastSnapshot = history[historyIndex];
-
-    if (
-      !lastSnapshot ||
-      lastSnapshot.headline !== headline ||
-      lastSnapshot.subheadline !== subheadline ||
-      lastSnapshot.pitch !== pitch ||
-      JSON.stringify(lastSnapshot.bullets) !== JSON.stringify(bullets) ||
-      lastSnapshot.imageUrl !== imageUrl
-    ) {
-      const updatedHistory = history.slice(0, historyIndex + 1);
-      updatedHistory.push(currentSnapshot);
-      setHistory(updatedHistory);
-      setHistoryIndex(updatedHistory.length - 1);
+    if (historyDebounceRef.current) {
+      clearTimeout(historyDebounceRef.current);
     }
-  }, [headline, subheadline, pitch, bullets, imageUrl]);
+
+    historyDebounceRef.current = setTimeout(() => {
+      const currentSnapshot = {
+        headline,
+        subheadline,
+        pitch,
+        bullets,
+        imageUrl,
+        emailSubject,
+        emailPreviewText,
+        emailBody,
+        sequenceEnabled,
+        stopOnCall,
+        sequenceEmails,
+        afterSignupOption,
+        destinationUrl,
+        customHeading,
+        customMessage,
+        videoUrl,
+        buttonLabel,
+        buttonUrl,
+        quizFunnelEnabled,
+      };
+
+      const lastSnapshot = history[historyIndex];
+
+      if (
+        !lastSnapshot ||
+        JSON.stringify(lastSnapshot) !== JSON.stringify(currentSnapshot)
+      ) {
+        const updatedHistory = history.slice(0, historyIndex + 1);
+        updatedHistory.push(currentSnapshot);
+        setHistory(updatedHistory);
+        setHistoryIndex(updatedHistory.length - 1);
+      }
+    }, 250);
+
+    return () => {
+      if (historyDebounceRef.current) {
+        clearTimeout(historyDebounceRef.current);
+      }
+    };
+  }, [
+    headline, subheadline, pitch, bullets, imageUrl,
+    emailSubject, emailPreviewText, emailBody,
+    sequenceEnabled, stopOnCall, sequenceEmails,
+    afterSignupOption, destinationUrl, customHeading, customMessage, videoUrl, buttonLabel, buttonUrl, quizFunnelEnabled,
+    historyIndex, history
+  ]);
 
   // Keyboard Shortcuts (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
   useEffect(() => {
@@ -339,9 +467,9 @@ export default function EditLeadMagnetPage() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [canUndo, canRedo, historyIndex, history]);
+  }, [handleUndo, handleRedo]);
 
-  // Dynamic Autosave Effect
+  // Dynamic Autosave Effect across All 4 Tabs
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -351,7 +479,36 @@ export default function EditLeadMagnetPage() {
     setSaveStatus("saving");
     const timer = setTimeout(() => {
       if (page) {
-        const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, updatedAt: "Just now" };
+        const next = {
+          ...page,
+          headline,
+          subheadline,
+          pitch,
+          bullets,
+          imageUrl,
+          emailSubject,
+          emailPreviewText,
+          emailBody,
+          sequenceEnabled,
+          stopOnCall,
+          sequenceEmails,
+          afterSignupOption,
+          destinationUrl,
+          customHeading,
+          customMessage,
+          videoUrl,
+          buttonLabel,
+          buttonUrl,
+          quizFunnelEnabled,
+          hasVariantB,
+          testStarted,
+          variantBImage,
+          variantBTitle,
+          customPromptQuestion,
+          customPromptPlaceholder,
+          enableAiPersonalizedDeliverable,
+          updatedAt: "Just now"
+        };
         setPage(next);
         const all = loadPages().map((p) => (p.id === next.id ? next : p));
         savePages(all);
@@ -360,11 +517,44 @@ export default function EditLeadMagnetPage() {
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [headline, subheadline, pitch, bullets, imageUrl]);
+  }, [
+    headline, subheadline, pitch, bullets, imageUrl,
+    emailSubject, emailPreviewText, emailBody,
+    sequenceEnabled, stopOnCall, sequenceEmails,
+    afterSignupOption, destinationUrl, customHeading, customMessage, videoUrl, buttonLabel, buttonUrl, quizFunnelEnabled,
+    hasVariantB, testStarted, variantBImage, variantBTitle,
+    customPromptQuestion, customPromptPlaceholder, enableAiPersonalizedDeliverable
+  ]);
 
   const handleGoBack = () => {
     if (page) {
-      const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, updatedAt: "Just now" };
+      const next = {
+        ...page,
+        headline,
+        subheadline,
+        pitch,
+        bullets,
+        imageUrl,
+        emailSubject,
+        emailPreviewText,
+        emailBody,
+        sequenceEnabled,
+        stopOnCall,
+        sequenceEmails,
+        afterSignupOption,
+        destinationUrl,
+        customHeading,
+        customMessage,
+        videoUrl,
+        buttonLabel,
+        buttonUrl,
+        quizFunnelEnabled,
+        hasVariantB,
+        testStarted,
+        variantBImage,
+        variantBTitle,
+        updatedAt: "Just now"
+      };
       const all = loadPages().map((p) => (p.id === next.id ? next : p));
       savePages(all);
     }
@@ -388,7 +578,7 @@ export default function EditLeadMagnetPage() {
     );
   }
 
-  const url = `https://magnets.so/${account?.username || ""}/${page.slug}`;
+  const url = `https://leadmagnets.so/${account?.username || ""}/${page.slug}`;
   const live = page.status === "live";
 
   function update(patch: Partial<MagnetPage>) {
@@ -442,8 +632,7 @@ export default function EditLeadMagnetPage() {
   const handleConfirmDelete = () => {
     setShowDeleteModal(false);
     if (!page) return;
-    const all = loadPages().filter((p) => p.id !== page.id);
-    savePages(all);
+    deletePage(page.id);
     router.push("/dashboard/leadmagnets");
   };
 
@@ -519,6 +708,25 @@ export default function EditLeadMagnetPage() {
                   {saveStatus === "saving" ? "Waiting to autosave..." : "Autosaved"}
                 </span>
 
+                {/* AI Co-pilot & Social Studio */}
+                <button
+                  onClick={() => setShowAIModal(true)}
+                  className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-brand-orange to-amber-500 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition hover:opacity-90"
+                  title="AI Co-pilot: Regenerate headlines & copy"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>AI Co-pilot</span>
+                </button>
+
+                <button
+                  onClick={() => setShowSocialModal(true)}
+                  className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-bold text-zinc-800 hover:bg-zinc-100 transition shadow-xs"
+                  title="Generate Social Media Graphic Cards"
+                >
+                  <ImageIcon className="h-3.5 w-3.5 text-brand-orange" />
+                  <span>Social Cards</span>
+                </button>
+
                 <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-200 mx-1" />
 
                 {/* Undo / Redo */}
@@ -526,8 +734,8 @@ export default function EditLeadMagnetPage() {
                   onClick={handleUndo}
                   disabled={!canUndo}
                   className={`p-1.5 rounded-lg transition ${canUndo
-                      ? "text-zinc-700 dark:text-zinc-700 hover:text-zinc-950 dark:hover:text-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-100 cursor-pointer"
-                      : "text-zinc-300 dark:text-zinc-300 cursor-not-allowed opacity-40"
+                    ? "text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 cursor-pointer"
+                    : "text-zinc-300 cursor-not-allowed opacity-40"
                     }`}
                   title={canUndo ? "Undo (Ctrl+Z)" : "Nothing to undo"}
                 >
@@ -537,22 +745,24 @@ export default function EditLeadMagnetPage() {
                   onClick={handleRedo}
                   disabled={!canRedo}
                   className={`p-1.5 rounded-lg transition ${canRedo
-                      ? "text-zinc-700 dark:text-zinc-700 hover:text-zinc-950 dark:hover:text-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-100 cursor-pointer"
-                      : "text-zinc-300 dark:text-zinc-300 cursor-not-allowed opacity-40"
+                    ? "text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 cursor-pointer"
+                    : "text-zinc-300 cursor-not-allowed opacity-40"
                     }`}
                   title={canRedo ? "Redo (Ctrl+Y)" : "Nothing to redo"}
                 >
                   <Redo2 className="h-4 w-4" />
                 </button>
 
-                {/* Copy Link / Preview */}
-                <button
-                  onClick={copyUrl}
-                  className="p-1.5 rounded-lg text-zinc-400 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-100 transition"
-                  title={copied ? "Copied URL!" : "Copy URL"}
+                {/* Copy Link / Open Preview */}
+                <a
+                  href={`/${account?.username || ""}/${page.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-100 transition cursor-pointer"
+                  title="Open live page in new tab"
                 >
                   <ExternalLink className="h-4 w-4" />
-                </button>
+                </a>
 
                 {/* Overflow menu */}
                 <div className="relative" ref={menuRef}>
@@ -705,10 +915,10 @@ export default function EditLeadMagnetPage() {
                               onChange={(e) => {
                                 setHeadline(e.target.value);
                                 e.target.style.height = "auto";
-                                e.target.style.height = `${e.target.scrollHeight}px`;
+                                e.target.style.height = `${e.target.scrollHeight + 24}px`;
                               }}
                               placeholder="BDA"
-                              className="w-full text-3xl sm:text-5xl font-black text-black dark:text-black bg-transparent dark:bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-1.5 cursor-text hover:bg-[#F8F6F2] dark:hover:bg-[#F8F6F2] focus:border focus:border-zinc-300 focus:!bg-white focus:!text-black focus:shadow-2xs focus:ring-1 focus:ring-zinc-400 transition-all duration-150 resize-none overflow-hidden leading-tight"
+                              className="w-full text-3xl sm:text-5xl font-black text-black dark:text-black bg-transparent dark:bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text hover:bg-[#F8F6F2] dark:hover:bg-[#F8F6F2] focus:border focus:border-zinc-300 focus:!bg-white focus:!text-black focus:shadow-2xs focus:ring-1 focus:ring-zinc-400 transition-all duration-150 resize-none overflow-hidden leading-snug"
                             />
                           </div>
 
@@ -721,10 +931,10 @@ export default function EditLeadMagnetPage() {
                               onChange={(e) => {
                                 setSubheadline(e.target.value);
                                 e.target.style.height = "auto";
-                                e.target.style.height = `${e.target.scrollHeight}px`;
+                                e.target.style.height = `${e.target.scrollHeight + 24}px`;
                               }}
                               placeholder="Short subhead. say what they will get"
-                              className="w-full text-sm sm:text-base font-semibold text-zinc-600 dark:text-zinc-600 bg-transparent dark:bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-1.5 cursor-text hover:bg-[#F8F6F2] dark:hover:bg-[#F8F6F2] focus:border focus:border-zinc-300 focus:!bg-white focus:!text-zinc-900 focus:shadow-2xs focus:ring-1 focus:ring-zinc-400 transition-all duration-150 resize-none overflow-hidden leading-snug"
+                              className="w-full text-sm sm:text-base font-semibold text-zinc-600 dark:text-zinc-600 bg-transparent dark:bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text hover:bg-[#F8F6F2] dark:hover:bg-[#F8F6F2] focus:border focus:border-zinc-300 focus:!bg-white focus:!text-zinc-900 focus:shadow-2xs focus:ring-1 focus:ring-zinc-400 transition-all duration-150 resize-none overflow-hidden leading-relaxed"
                             />
                           </div>
 
@@ -737,10 +947,10 @@ export default function EditLeadMagnetPage() {
                               onChange={(e) => {
                                 setPitch(e.target.value);
                                 e.target.style.height = "auto";
-                                e.target.style.height = `${e.target.scrollHeight}px`;
+                                e.target.style.height = `${e.target.scrollHeight + 24}px`;
                               }}
                               placeholder="Write a short pitch. Press Enter twice to start a new paragraph."
-                              className="w-full text-xs sm:text-sm text-zinc-500 dark:text-zinc-500 bg-transparent dark:bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-1.5 cursor-text hover:bg-[#F8F6F2] dark:hover:bg-[#F8F6F2] focus:border focus:border-zinc-300 focus:!bg-white focus:!text-zinc-900 focus:shadow-2xs focus:ring-1 focus:ring-zinc-400 transition-all duration-150 resize-none overflow-hidden leading-snug"
+                              className="w-full text-xs sm:text-sm text-zinc-500 dark:text-zinc-500 bg-transparent dark:bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text hover:bg-[#F8F6F2] dark:hover:bg-[#F8F6F2] focus:border focus:border-zinc-300 focus:!bg-white focus:!text-zinc-900 focus:shadow-2xs focus:ring-1 focus:ring-zinc-400 transition-all duration-150 resize-none overflow-hidden leading-relaxed"
                             />
                           </div>
 
@@ -931,7 +1141,7 @@ export default function EditLeadMagnetPage() {
                             </h4>
                           </div>
                           <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-2">
-                            Magnets splits new visitors evenly and keeps each person on the same version for an accurate result.
+                            LeadMagnets splits new visitors evenly and keeps each person on the same version for an accurate result.
                           </p>
                         </div>
 
@@ -993,7 +1203,7 @@ export default function EditLeadMagnetPage() {
 
                       {/* Variant B Card if created */}
                       {hasVariantB && (
-                        <div className="group rounded-2xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white overflow-hidden shadow-xs hover:border-zinc-300 transition">
+                        <div className="group animate-card-pop-in rounded-2xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white overflow-hidden shadow-xs hover:border-zinc-300 transition-all duration-300">
                           {/* Top Gray Media Area - Flush to top/left/right */}
                           <div className="relative h-64 sm:h-72 w-full bg-[#F8F9FA] dark:bg-[#F8F9FA] flex flex-col items-center justify-center border-b border-zinc-100 dark:border-zinc-100">
                             <div className="absolute top-4 left-4 z-10">
@@ -1035,7 +1245,7 @@ export default function EditLeadMagnetPage() {
                                   e.stopPropagation();
                                   variantBFileInputRef.current?.click();
                                 }}
-                                className="flex items-center gap-1.5 rounded-xl bg-white dark:bg-white hover:bg-zinc-50 px-3.5 py-2 text-xs font-bold text-zinc-800 dark:text-zinc-800 shadow-md border border-zinc-200/80 transition cursor-pointer pointer-events-auto"
+                                className="flex items-center gap-1.5 rounded-xl bg-white dark:bg-white hover:bg-zinc-50 px-3.5 py-2 text-xs font-bold text-zinc-800 dark:text-zinc-800 shadow-md border border-zinc-200/80 transition cursor-pointer pointer-events-auto active:scale-95"
                               >
                                 <ImageIcon className="h-4 w-4 text-zinc-600" />
                                 <span>Replace</span>
@@ -1044,13 +1254,12 @@ export default function EditLeadMagnetPage() {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (variantBImage) {
-                                    setVariantBImage(null);
-                                  } else {
-                                    setHasVariantB(false);
-                                  }
+                                  setHasVariantB(false);
+                                  setVariantBImage(null);
+                                  setVariantBTitle("");
                                 }}
-                                className="flex items-center gap-1.5 rounded-xl bg-white dark:bg-white hover:bg-red-50 px-3.5 py-2 text-xs font-bold text-red-500 dark:text-red-500 shadow-md border border-zinc-200/80 transition cursor-pointer pointer-events-auto"
+                                className="flex items-center gap-1.5 rounded-xl bg-white dark:bg-white hover:bg-red-50 px-3.5 py-2 text-xs font-bold text-red-500 dark:text-red-500 shadow-md border border-zinc-200/80 transition cursor-pointer pointer-events-auto active:scale-95"
+                                title="Remove Version B split test"
                               >
                                 <Trash2 className="h-4 w-4 text-red-400" />
                                 <span>Remove</span>
@@ -1086,9 +1295,9 @@ export default function EditLeadMagnetPage() {
                     {!hasVariantB && (
                       <button
                         onClick={() => setHasVariantB(true)}
-                        className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-300 bg-[#F9FAFB] dark:bg-[#F9FAFB] hover:bg-zinc-100 dark:hover:bg-zinc-100 p-3 text-xs font-bold text-zinc-700 dark:text-zinc-700 transition cursor-pointer"
+                        className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-300 bg-[#F9FAFB] dark:bg-[#F9FAFB] hover:bg-zinc-100 dark:hover:bg-zinc-100 hover:border-zinc-400 p-3.5 text-xs font-bold text-zinc-700 dark:text-zinc-700 transition-all duration-200 active:scale-[0.99] cursor-pointer shadow-2xs"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-4 w-4 text-zinc-600 transition-transform duration-200 group-hover:scale-110" />
                         <span>Create version B</span>
                       </button>
                     )}
@@ -1115,7 +1324,7 @@ export default function EditLeadMagnetPage() {
 
                         <div className="flex items-center gap-3">
                           <span className="text-xs text-zinc-400 dark:text-zinc-400 font-mono">
-                            Magnets &lt;hello@mail.magnets.so&gt;
+                            LeadMagnets &lt;hello@mail.leadmagnets.so&gt;
                           </span>
                           <button
                             onClick={() => alert("Previewing email as subscriber...")}
@@ -1132,7 +1341,8 @@ export default function EditLeadMagnetPage() {
                         <label className="text-xs font-bold text-zinc-500 dark:text-zinc-500 block">Subject</label>
                         <input
                           type="text"
-                          defaultValue=""
+                          value={emailSubject}
+                          onChange={(e) => setEmailSubject(e.target.value)}
                           placeholder="What people see in the inbox"
                           className="w-full text-2xl sm:text-3xl font-extrabold text-zinc-800 dark:text-zinc-800 placeholder:text-zinc-300 dark:placeholder:text-zinc-300 bg-transparent outline-none border-b border-transparent focus:border-[#FE6F34] transition py-1"
                         />
@@ -1143,7 +1353,8 @@ export default function EditLeadMagnetPage() {
                         <label className="text-xs font-bold text-zinc-500 dark:text-zinc-500 block">Preview text</label>
                         <input
                           type="text"
-                          defaultValue=""
+                          value={emailPreviewText}
+                          onChange={(e) => setEmailPreviewText(e.target.value)}
                           placeholder="A short teaser shown after the subject"
                           className="w-full text-sm font-medium text-zinc-600 dark:text-zinc-600 placeholder:text-zinc-300 dark:placeholder:text-zinc-300 bg-transparent outline-none border-b border-transparent focus:border-[#FE6F34] transition py-1"
                         />
@@ -1160,30 +1371,98 @@ export default function EditLeadMagnetPage() {
                         <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-200/90 bg-white dark:bg-white overflow-hidden shadow-xs">
                           {/* Toolbar */}
                           <div className="flex flex-wrap items-center gap-3 border-b border-zinc-200 dark:border-zinc-200 bg-[#F9F9FB] dark:bg-[#F9F9FB] px-4 py-2.5 text-xs font-semibold text-zinc-600 dark:text-zinc-600">
-                            <button title="Undo" className="hover:text-zinc-900 transition p-1"><Undo2 className="h-3.5 w-3.5" /></button>
-                            <button title="Redo" className="hover:text-zinc-900 transition p-1"><Redo2 className="h-3.5 w-3.5" /></button>
+                            <button
+                              type="button"
+                              onClick={handleUndo}
+                              disabled={!canUndo}
+                              title={canUndo ? "Undo (Ctrl+Z)" : "Nothing to undo"}
+                              className={`p-1 transition ${canUndo ? "hover:text-zinc-900 cursor-pointer" : "opacity-30 cursor-not-allowed"}`}
+                            >
+                              <Undo2 className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleRedo}
+                              disabled={!canRedo}
+                              title={canRedo ? "Redo (Ctrl+Y)" : "Nothing to redo"}
+                              className={`p-1 transition ${canRedo ? "hover:text-zinc-900 cursor-pointer" : "opacity-30 cursor-not-allowed"}`}
+                            >
+                              <Redo2 className="h-3.5 w-3.5" />
+                            </button>
                             <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-300 mx-0.5" />
-                            <button title="Text Size" className="hover:text-zinc-900 font-serif font-bold transition px-1">Aa</button>
+                            <button type="button" title="Text Size" className="hover:text-zinc-900 font-serif font-bold transition px-1">Aa</button>
                             <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-300 mx-0.5" />
-                            <button title="Bold" className="hover:text-zinc-900 font-black transition px-1">B</button>
-                            <button title="Italic" className="hover:text-zinc-900 italic transition px-1">I</button>
-                            <button title="Quote" className="hover:text-zinc-900 font-serif transition px-1">”</button>
-                            <button title="List" className="hover:text-zinc-900 transition px-1">⋮=</button>
-                            <button title="Line" className="hover:text-zinc-900 transition px-1">—</button>
+                            <button type="button" title="Bold" className="hover:text-zinc-900 font-black transition px-1">B</button>
+                            <button type="button" title="Italic" className="hover:text-zinc-900 italic transition px-1">I</button>
+                            <button type="button" title="Quote" className="hover:text-zinc-900 font-serif transition px-1">”</button>
+                            <button type="button" title="List" className="hover:text-zinc-900 transition px-1">⋮=</button>
+                            <button type="button" title="Line" className="hover:text-zinc-900 transition px-1">—</button>
                             <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-300 mx-0.5" />
-                            <button className="hover:text-zinc-900 transition px-1 flex items-center gap-1">
+                            <button type="button" className="hover:text-zinc-900 transition px-1 flex items-center gap-1">
                               <span>+ Insert</span>
                             </button>
-                            <button title="Link" className="hover:text-zinc-900 transition px-1">🔗</button>
+                            <button type="button" title="Link" className="hover:text-zinc-900 transition px-1">🔗</button>
                           </div>
 
                           {/* Editor Textarea */}
                           <textarea
                             rows={8}
+                            value={emailBody}
+                            onChange={(e) => setEmailBody(e.target.value)}
                             placeholder="Start writing, or press / for blocks. Use {name} for the recipient."
                             className="w-full min-h-[200px] p-5 text-xs sm:text-sm text-zinc-700 dark:text-zinc-700 placeholder:text-zinc-400 dark:placeholder:text-zinc-400 bg-white dark:bg-white outline-none resize-none"
                           />
                         </div>
+                      </div>
+
+                      {/* Feature 2: Smart Auto-Personalized Deliverable Config Card */}
+                      <div className="rounded-2xl border border-brand-orange/30 bg-gradient-to-br from-brand-soft to-white p-6 shadow-sm space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-orange text-white shadow-xs">
+                              <Sparkles className="h-4 w-4" />
+                            </span>
+                            <div>
+                              <h4 className="text-sm font-bold text-zinc-900">AI Personalization Engine (Feature 2)</h4>
+                              <p className="text-xs text-zinc-500">Ask leads a question during signup & generate custom AI action plans automatically.</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setEnableAiPersonalizedDeliverable(!enableAiPersonalizedDeliverable)}
+                            className={`flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-bold transition cursor-pointer border ${enableAiPersonalizedDeliverable
+                              ? "bg-brand-orange text-white border-brand-orange"
+                              : "bg-zinc-100 text-zinc-600 border-zinc-200"
+                              }`}
+                          >
+                            <span>{enableAiPersonalizedDeliverable ? "Active" : "Disabled"}</span>
+                          </button>
+                        </div>
+
+                        {enableAiPersonalizedDeliverable && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-brand-orange/20 animate-in fade-in duration-200">
+                            <div>
+                              <label className="text-xs font-semibold text-zinc-700 block mb-1">Signup Form Question</label>
+                              <input
+                                type="text"
+                                value={customPromptQuestion}
+                                onChange={(e) => setCustomPromptQuestion(e.target.value)}
+                                placeholder="e.g. What is your main goal or bottleneck?"
+                                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-brand-orange"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-semibold text-zinc-700 block mb-1">Input Placeholder</label>
+                              <input
+                                type="text"
+                                value={customPromptPlaceholder}
+                                onChange={(e) => setCustomPromptPlaceholder(e.target.value)}
+                                placeholder="e.g. Scaling outreach, Lead generation"
+                                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-brand-orange"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                     </div>
@@ -1192,7 +1471,7 @@ export default function EditLeadMagnetPage() {
                     <div className="mt-6 mx-auto max-w-4xl rounded-2xl bg-[#080B12] dark:bg-[#080B12] p-6 flex items-center justify-center shadow-lg">
                       <button className="flex items-center gap-2 rounded-xl bg-white dark:bg-white px-4 py-2.5 text-xs font-bold text-zinc-900 dark:text-zinc-900 shadow-md hover:bg-zinc-100 transition cursor-pointer">
                         <span className="flex h-5 w-5 items-center justify-center rounded bg-[#FE6F34] text-black font-extrabold text-[10px]">🧲</span>
-                        <span>Build yours free with Magnets</span>
+                        <span>Build yours free with LeadMagnets</span>
                       </button>
                     </div>
 
@@ -1216,7 +1495,7 @@ export default function EditLeadMagnetPage() {
                               Send extra emails after the lead magnet email. Delays are counted from the previous email or from signup for the first one.
                             </p>
                             <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-                              Magnets creates the events, templates, and automation for this sequence after your sender domain is ready.
+                              LeadMagnets creates the events, templates, and automation for this sequence after your sender domain is ready.
                             </p>
                           </div>
 
@@ -1606,6 +1885,32 @@ export default function EditLeadMagnetPage() {
             </div>
           </div>
         </div>
+      )}
+
+      <AIMagnetModal
+        isOpen={showAIModal}
+        onClose={() => setShowAIModal(false)}
+        onGenerated={(data) => {
+          setHeadline(data.headline);
+          setSubheadline(data.subheadline);
+          if (data.pitch) setPitch(data.pitch);
+          if (data.bullets) setBullets(data.bullets);
+          update({
+            headline: data.headline,
+            subheadline: data.subheadline,
+            pitch: data.pitch,
+            bullets: data.bullets,
+          });
+        }}
+      />
+
+      {page && (
+        <SocialCardModal
+          isOpen={showSocialModal}
+          onClose={() => setShowSocialModal(false)}
+          page={{ ...page, headline, subheadline }}
+          account={account}
+        />
       )}
     </DashboardShell>
   );

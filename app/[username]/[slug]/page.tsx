@@ -68,12 +68,15 @@ export default async function MagnetPageRoute({
 }) {
   await dbConnect();
 
-  const [pageDoc, accountDoc] = await Promise.all([
-    MagnetPageModel.findOne({ slug: params.slug, status: "live" }),
-    AccountModel.findOne({ username: params.username })
-  ]);
-
+  const pageDoc = await MagnetPageModel.findOne({ slug: params.slug });
   if (!pageDoc) notFound();
+
+  const accountDoc = await AccountModel.findOne({
+    $or: [
+      { username: { $regex: new RegExp(`^${params.username}$`, "i") } },
+      { email: pageDoc.userEmail ? pageDoc.userEmail.toLowerCase() : "" }
+    ]
+  });
 
   // Increment views
   pageDoc.views = (pageDoc.views || 0) + 1;
@@ -126,14 +129,17 @@ export default async function MagnetPageRoute({
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-4 pb-16 pt-4 sm:px-6">
         <div
           className={`rounded-2xl border p-6 md:p-8 shadow-2xl transition-all duration-300 backdrop-blur-md ${themeMode === "dark"
-            ? "bg-[#121214]/80 border-[#252529] text-white"
-            : "bg-white/80 border-[#e4e4e7] text-zinc-900"
+            ? "text-white"
+            : "text-zinc-900"
             }`}
           style={{
-            borderColor: `${brandColor}${Math.round((0.1 + (highlightIntensity / 100) * 0.55) * 255).toString(16).padStart(2, '0')}`,
-            boxShadow: highlightIntensity > 15
-              ? `0 16px 40px -10px ${brandColor}${Math.round((highlightIntensity / 100) * 0.4 * 255).toString(16).padStart(2, '0')}`
-              : undefined
+            borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.65) * 255).toString(16).padStart(2, '0')}`,
+            boxShadow: (highlightIntensity > 10)
+              ? `0 16px 40px -10px ${brandColor}${Math.round((highlightIntensity / 100) * 0.45 * 255).toString(16).padStart(2, '0')}`
+              : "0 4px 12px rgba(0,0,0,0.05)",
+            background: themeMode === "light"
+              ? `linear-gradient(135deg, ${brandColor}${Math.round((0.02 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')} 0%, rgba(255, 255, 255, 0.95) 50%)`
+              : `linear-gradient(135deg, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(18, 18, 20, 0.95) 50%)`
           }}
         >
           {/* Grid structure */}
@@ -189,13 +195,17 @@ export default async function MagnetPageRoute({
             <div className="md:col-span-6 space-y-4">
               {/* Media Placeholder */}
               <div
-                className={`rounded-xl border border-dashed aspect-[4/3] w-full flex items-center justify-center transition-colors duration-300 ${themeMode === "dark"
-                  ? "bg-[#161619]/40"
-                  : "bg-zinc-50/40"
-                  }`}
-                style={{ borderColor: `${brandColor}40` }}
+                className="rounded-xl border aspect-[16/11] w-full flex items-center justify-center transition-all duration-300 relative overflow-hidden"
+                style={{
+                  borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.5) * 255).toString(16).padStart(2, '0')}`,
+                  backgroundColor: `${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')}`
+                }}
               >
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#9B9085]/60">Media Placeholder</span>
+                {page.imageUrl ? (
+                  <img src={page.imageUrl} alt="Resource" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#9B9085]/60">Media Placeholder</span>
+                )}
               </div>
 
               {/* Form Card */}
@@ -209,6 +219,9 @@ export default async function MagnetPageRoute({
                   brandColor={brandColor}
                   highlightIntensity={highlightIntensity}
                   themeMode={themeMode}
+                  customPromptQuestion={page.customPromptQuestion}
+                  customPromptPlaceholder={page.customPromptPlaceholder}
+                  enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
                 />
                 <p className={`mt-3 flex items-center justify-center gap-1.5 text-xs ${themeMode === "dark" ? "text-zinc-500" : "text-ink-500"
                   }`}>
@@ -223,7 +236,7 @@ export default async function MagnetPageRoute({
 
       <p className="mx-auto pb-8 text-center text-[11px] text-[#5c5650]">
         <a href="/" className="inline-flex items-center gap-1 font-medium hover:text-[#FE6F34]">
-          Powered by Magnets <MoveRightIcon className="h-3 w-3" />
+          Powered by LeadMagnets <MoveRightIcon className="h-3 w-3" />
         </a>
       </p>
     </main>

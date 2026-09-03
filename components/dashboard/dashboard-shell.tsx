@@ -73,7 +73,7 @@ export default function DashboardShell({
     document.documentElement.dataset.theme = next ? "dark" : "light";
     document.documentElement.style.colorScheme = next ? "dark" : "light";
     try {
-      localStorage.setItem("magnets-theme", next ? "dark" : "light");
+      localStorage.setItem("leadmagnets-theme", next ? "dark" : "light");
     } catch (_) { }
   };
 
@@ -224,14 +224,14 @@ export default function DashboardShell({
                   )}
                 </button>
                 <a
-                  href="mailto:hello@magnets.so?subject=Bug%20Report"
+                  href="mailto:hello@leadmagnets.so?subject=Bug%20Report"
                   onClick={() => setShowProfileMenu(false)}
                   className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-black transition w-full dark:text-ink-300 dark:hover:bg-[#26262B] dark:hover:text-white"
                 >
                   <Bug className="h-4 w-4 text-[#888888] dark:text-[#9B9085]" /> Report a bug
                 </a>
                 <a
-                  href="mailto:hello@magnets.so?subject=Feature%20Request"
+                  href="mailto:hello@leadmagnets.so?subject=Feature%20Request"
                   onClick={() => setShowProfileMenu(false)}
                   className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-black transition w-full dark:text-ink-300 dark:hover:bg-[#26262B] dark:hover:text-white"
                 >
@@ -367,14 +367,14 @@ export default function DashboardShell({
                     )}
                   </button>
                   <a
-                    href="mailto:hello@magnets.so?subject=Bug%20Report"
+                    href="mailto:hello@leadmagnets.so?subject=Bug%20Report"
                     onClick={() => setShowProfileMenu(false)}
                     className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#26262B] hover:text-white transition w-full"
                   >
                     <Bug className="h-4 w-4 text-[#9B9085]" /> Report a bug
                   </a>
                   <a
-                    href="mailto:hello@magnets.so?subject=Feature%20Request"
+                    href="mailto:hello@leadmagnets.so?subject=Feature%20Request"
                     onClick={() => setShowProfileMenu(false)}
                     className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#26262B] hover:text-white transition w-full"
                   >
@@ -533,7 +533,7 @@ export default function DashboardShell({
                     <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-2.5 text-left">
                       <h4 className="text-base font-bold text-white">Your name</h4>
                       <p className="text-sm text-[#9B9085] leading-relaxed">
-                        Update the name shown on your Magnets account. Your sign-in email is read-only here.
+                        Update the name shown on your LeadMagnets account. Your sign-in email is read-only here.
                       </p>
                     </div>
 
@@ -550,7 +550,7 @@ export default function DashboardShell({
                   <div className="rounded-2xl border border-[#452b23] bg-[#221a18] px-5 py-4 text-left space-y-1.5">
                     <h4 className="text-sm font-bold text-[#f87171]">Account deletion is permanent</h4>
                     <p className="text-xs text-[#9B9085] leading-relaxed">
-                      Deleting the account removes its lead magnets, signups, integrations, and attached custom domains. There is no recovery. Magnets asks for your password and the word DELETE before it can continue.
+                      Deleting the account removes its lead magnets, signups, integrations, and attached custom domains. There is no recovery. LeadMagnets asks for your password and the word DELETE before it can continue.
                     </p>
                   </div>
 
@@ -595,7 +595,7 @@ export default function DashboardShell({
                     <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-5 space-y-3 text-left">
                       <h4 className="text-base font-bold text-white">A/B testing</h4>
                       <p className="text-sm text-[#9B9085] leading-relaxed">
-                        Test a different title or image against the current page. Magnets splits new visitors between the versions and keeps each visitor on the same version.
+                        Test a different title or image against the current page. LeadMagnets splits new visitors between the versions and keeps each visitor on the same version.
                       </p>
                     </div>
                   </div>
@@ -649,7 +649,7 @@ export default function DashboardShell({
                       <div className="space-y-1">
                         <h4 className="text-sm font-bold text-white">Use the winner</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          After 7 days, once every version has at least 25 visitors, Magnets selects by conversion rate and applies the winner automatically.
+                          After 7 days, once every version has at least 25 visitors, LeadMagnets selects by conversion rate and applies the winner automatically.
                         </p>
                       </div>
                     </div>
@@ -748,7 +748,7 @@ export default function DashboardShell({
                     </div>
 
                     <p className="text-sm text-[#d4c8bc] leading-relaxed">
-                      Stop sending sales follow-up after a lead has already booked. Magnets can stop an eligible sequence when the booking email matches the signup and that lead magnet has the option enabled. Your sender setup must be ready first.
+                      Stop sending sales follow-up after a lead has already booked. LeadMagnets can stop an eligible sequence when the booking email matches the signup and that lead magnet has the option enabled. Your sender setup must be ready first.
                     </p>
                   </div>
 
@@ -788,7 +788,7 @@ export default function DashboardShell({
                       <div className="space-y-1">
                         <h4 className="text-sm font-bold text-white">Finish the connection</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          Connect the account. Calendly requires a paid plan that supports webhooks. Magnets configures the booking webhook for you.
+                          Connect the account. Calendly requires a paid plan that supports webhooks. LeadMagnets configures the booking webhook for you.
                         </p>
                       </div>
                     </div>
@@ -876,9 +876,9 @@ export default function DashboardShell({
                         3
                       </span>
                       <div className="space-y-1">
-                        <h4 className="text-sm font-bold text-white">Add it to Magnets</h4>
+                        <h4 className="text-sm font-bold text-white">Add it to LeadMagnets</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          Open Workspace setup, Optional connections, then Zapier. Paste the URL into Magnets.
+                          Open Workspace setup, Optional connections, then Zapier. Paste the URL into LeadMagnets.
                         </p>
                       </div>
                     </div>
@@ -891,7 +891,7 @@ export default function DashboardShell({
                       <div className="space-y-1">
                         <h4 className="text-sm font-bold text-white">Test and map the fields</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          Choose Send test in Magnets. Return to Zapier, choose Test trigger, then map the sample fields into your next action.
+                          Choose Send test in LeadMagnets. Return to Zapier, choose Test trigger, then map the sample fields into your next action.
                         </p>
                       </div>
                     </div>
@@ -938,7 +938,7 @@ export default function DashboardShell({
                       <div className="space-y-1">
                         <h4 className="text-sm font-bold text-white">Start the connection</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          Choose Connect Kit. Magnets sends you to Kit's secure authorization screen.
+                          Choose Connect Kit. LeadMagnets sends you to Kit's secure authorization screen.
                         </p>
                       </div>
                     </div>
@@ -964,7 +964,7 @@ export default function DashboardShell({
                       <div className="space-y-1">
                         <h4 className="text-sm font-bold text-white">Check the connection</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          Return to Magnets and confirm that the connected account name is shown.
+                          Return to LeadMagnets and confirm that the connected account name is shown.
                         </p>
                       </div>
                     </div>
@@ -1042,9 +1042,9 @@ export default function DashboardShell({
                         3
                       </span>
                       <div className="space-y-1">
-                        <h4 className="text-sm font-bold text-white">Add it to Magnets</h4>
+                        <h4 className="text-sm font-bold text-white">Add it to LeadMagnets</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          In Magnets, open Workspace setup, Optional connections, then Pipedrive. Paste the token.
+                          In LeadMagnets, open Workspace setup, Optional connections, then Pipedrive. Paste the token.
                         </p>
                       </div>
                     </div>
@@ -1135,9 +1135,9 @@ export default function DashboardShell({
                         3
                       </span>
                       <div className="space-y-1">
-                        <h4 className="text-sm font-bold text-white">Paste it into Magnets</h4>
+                        <h4 className="text-sm font-bold text-white">Paste it into LeadMagnets</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          In Magnets, open Workspace setup, Optional connections, then Slack. Paste the URL into the webhook field.
+                          In LeadMagnets, open Workspace setup, Optional connections, then Slack. Paste the URL into the webhook field.
                         </p>
                       </div>
                     </div>
@@ -1194,7 +1194,7 @@ export default function DashboardShell({
                     </p>
 
                     <p className="text-sm text-[#d4c8bc] leading-relaxed">
-                      Every signup remains saved in Magnets. Make it clear on the signup page if requesting the resource also adds someone to your newsletter.
+                      Every signup remains saved in LeadMagnets. Make it clear on the signup page if requesting the resource also adds someone to your newsletter.
                     </p>
                   </div>
 
@@ -1214,7 +1214,7 @@ export default function DashboardShell({
                           <strong className="text-white font-bold">3.</strong> Create an API key and copy it when shown. Beehiiv only shows the key once.
                         </li>
                         <li>
-                          <strong className="text-white font-bold">4.</strong> Paste both values into Magnets. They save when you leave each field.
+                          <strong className="text-white font-bold">4.</strong> Paste both values into LeadMagnets. They save when you leave each field.
                         </li>
                       </ol>
                       <p className="text-xs text-[#666675] leading-relaxed pt-1">
@@ -1329,9 +1329,9 @@ export default function DashboardShell({
                       </div>
                     </div>
 
-                    {/* Dark Yellowish-Brown Warning Card: Magnets does not write these policies for you */}
+                    {/* Dark Yellowish-Brown Warning Card: LeadMagnets does not write these policies for you */}
                     <div className="rounded-2xl border border-[#4d4022] bg-[#221e16] p-5 text-left space-y-1.5">
-                      <h4 className="text-sm font-bold text-[#fbbf24]">Magnets does not write these policies for you</h4>
+                      <h4 className="text-sm font-bold text-[#fbbf24]">LeadMagnets does not write these policies for you</h4>
                       <p className="text-xs text-[#9B9085] leading-relaxed">
                         The right wording depends on your business, location, audience, and the services you use. Get appropriate legal advice if you are unsure what your policies need to cover. Leaving a field blank hides that custom link.
                       </p>
@@ -1371,7 +1371,7 @@ export default function DashboardShell({
                       This is optional
                     </h3>
                     <p className="text-sm text-[#9B9085] leading-relaxed">
-                      If Magnets sending is already connected, you can publish and deliver a resource without setting up your own sender domain. Using a recognisable From address can make the email feel more consistent with your brand.
+                      If LeadMagnets sending is already connected, you can publish and deliver a resource without setting up your own sender domain. Using a recognisable From address can make the email feel more consistent with your brand.
                     </p>
                   </div>
 
@@ -1411,7 +1411,7 @@ export default function DashboardShell({
                       <div className="space-y-1">
                         <h4 className="text-sm font-bold text-white">Add the sending records</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          Add the exact DNS records shown by Magnets wherever your domain's DNS is managed.
+                          Add the exact DNS records shown by LeadMagnets wherever your domain's DNS is managed.
                         </p>
                       </div>
                     </div>
@@ -1424,7 +1424,7 @@ export default function DashboardShell({
                       <div className="space-y-1">
                         <h4 className="text-sm font-bold text-white">Verify the sender</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          Return to Magnets and run the verification check. Use the address only after it shows as verified.
+                          Return to LeadMagnets and run the verification check. Use the address only after it shows as verified.
                         </p>
                       </div>
                     </div>
@@ -1432,7 +1432,7 @@ export default function DashboardShell({
                     {/* Dark Info Card */}
                     <div className="rounded-2xl border border-[#2e2e38] bg-[#1c1c22] p-5 text-left">
                       <p className="text-xs text-[#9B9085] leading-relaxed">
-                        Magnets uses a sending subdomain so its email reputation is separated from your main website. Copy every DNS record exactly as shown. Verification is often quick, but DNS changes can take up to 72 hours to appear.
+                        LeadMagnets uses a sending subdomain so its email reputation is separated from your main website. Copy every DNS record exactly as shown. Verification is often quick, but DNS changes can take up to 72 hours to appear.
                       </p>
                     </div>
 
@@ -1470,7 +1470,7 @@ export default function DashboardShell({
                       You can skip this completely.
                     </h3>
                     <p className="text-sm text-[#9B9085] leading-relaxed">
-                      Every published lead magnet can use its included magnets.so link. A custom domain gives you a recognisable branded address, but it is not required to create, publish, deliver, or collect signups.
+                      Every published lead magnet can use its included leadmagnets.so link. A custom domain gives you a recognisable branded address, but it is not required to create, publish, deliver, or collect signups.
                     </p>
                   </div>
 
@@ -1497,7 +1497,7 @@ export default function DashboardShell({
                       <div className="space-y-1">
                         <h4 className="text-sm font-bold text-white">Prove you own the domain</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          Magnets gives you a TXT record. Add it wherever your DNS is managed, then click Check ownership.
+                          LeadMagnets gives you a TXT record. Add it wherever your DNS is managed, then click Check ownership.
                         </p>
                       </div>
                     </div>
@@ -1508,9 +1508,9 @@ export default function DashboardShell({
                         3
                       </span>
                       <div className="space-y-1">
-                        <h4 className="text-sm font-bold text-white">Point the subdomain to Magnets</h4>
+                        <h4 className="text-sm font-bold text-white">Point the subdomain to LeadMagnets</h4>
                         <p className="text-xs text-[#9B9085] leading-relaxed">
-                          Add the CNAME record shown in Magnets and connect the subdomain. DNS changes can take a little while to appear.
+                          Add the CNAME record shown in LeadMagnets and connect the subdomain. DNS changes can take a little while to appear.
                         </p>
                       </div>
                     </div>
@@ -1549,11 +1549,11 @@ export default function DashboardShell({
 
                   {/* 5 Cards Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-                    {/* Magnets URL */}
+                    {/* LeadMagnets URL */}
                     <div className="rounded-2xl border border-[#33333e] bg-[#201f24] p-4 space-y-1.5 text-left">
-                      <h4 className="text-base font-bold text-white">Magnets URL</h4>
+                      <h4 className="text-base font-bold text-white">LeadMagnets URL</h4>
                       <p className="text-sm text-[#9B9085] leading-relaxed">
-                        Choose the included magnets.so address used by your published pages.
+                        Choose the included leadmagnets.so address used by your published pages.
                       </p>
                     </div>
 
@@ -1593,7 +1593,7 @@ export default function DashboardShell({
                   {/* Warm Reddish-Chocolate Tip Card */}
                   <div className="rounded-2xl border border-[#452b23] bg-[#221a18] px-5 py-4 text-left">
                     <p className="text-sm text-[#9B9085] leading-relaxed">
-                      Start with your Magnets URL. Add a custom domain and integrations only when they support the way you want to publish, deliver, or follow up.
+                      Start with your LeadMagnets URL. Add a custom domain and integrations only when they support the way you want to publish, deliver, or follow up.
                     </p>
                   </div>
 
@@ -1634,7 +1634,7 @@ export default function DashboardShell({
                       Bring your own resource link
                     </h3>
                     <p className="text-sm text-[#9B9085] leading-relaxed text-left">
-                      Create the resource yourself, then paste its full download or access link into this email. For files, you can upload the resource under Hosted resources and use the unique link Magnets gives you.
+                      Create the resource yourself, then paste its full download or access link into this email. For files, you can upload the resource under Hosted resources and use the unique link LeadMagnets gives you.
                     </p>
                   </div>
 
@@ -2022,7 +2022,7 @@ export default function DashboardShell({
                     </h2>
 
                     <p className="text-sm text-[#9B9085] leading-relaxed">
-                      Magnets builds the signup, delivery, and follow-up journey. You create the actual resource people receive, then add its download or access link to the Delivery email.
+                      LeadMagnets builds the signup, delivery, and follow-up journey. You create the actual resource people receive, then add its download or access link to the Delivery email.
                     </p>
                   </div>
 
@@ -2032,7 +2032,7 @@ export default function DashboardShell({
                       Create the resource before you publish
                     </h3>
                     <p className="text-sm text-[#9B9085] leading-relaxed">
-                      Make the PDF, template, video, email course, AI tool, or other useful resource yourself. Magnets does not generate the finished resource for you. It gives that resource a page, captures the signup, emails the link, and manages what happens next.
+                      Make the PDF, template, video, email course, AI tool, or other useful resource yourself. LeadMagnets does not generate the finished resource for you. It gives that resource a page, captures the signup, emails the link, and manages what happens next.
                     </p>
                   </div>
 
@@ -2313,7 +2313,7 @@ export default function DashboardShell({
                       <div>
                         <h4 className="text-sm font-bold text-white">Add it to the journey</h4>
                         <p className="text-sm text-[#9B9085] leading-relaxed mt-0.5">
-                          Give the resource an accessible link and paste that link into the Delivery email in Magnets.
+                          Give the resource an accessible link and paste that link into the Delivery email in LeadMagnets.
                         </p>
                       </div>
                     </div>
@@ -2352,7 +2352,7 @@ export default function DashboardShell({
                       <div>
                         <h4 className="text-sm font-bold text-white">They get the promised value</h4>
                         <p className="text-sm text-[#9B9085] leading-relaxed mt-0.5">
-                          Magnets emails the resource link immediately and records the signup for you.
+                          LeadMagnets emails the resource link immediately and records the signup for you.
                         </p>
                       </div>
                     </div>

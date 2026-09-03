@@ -10,7 +10,7 @@ export default function BrandLogo({
   return (
     <span className={`relative inline-flex ${width} shrink-0 items-center ${height}`}>
       <Image
-        alt="Magnets"
+        alt="LeadMagnets"
         priority
         decoding="async"
         fill
@@ -19,7 +19,7 @@ export default function BrandLogo({
         src="/brand/magnets-logo-dark.png"
       />
       <Image
-        alt="Magnets"
+        alt="LeadMagnets"
         priority
         decoding="async"
         fill

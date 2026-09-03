@@ -12,7 +12,6 @@ export function loadPages(): MagnetPage[] {
         return JSON.parse(cached);
       } catch (e) {}
     }
-    return seedPages;
   }
   return [];
 }
@@ -25,6 +24,19 @@ export function savePages(pages: MagnetPage[]) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "savePages", data: pages, email }),
+    }).catch(console.error);
+  }
+}
+
+export function deletePage(id: string) {
+  if (typeof window !== "undefined") {
+    const current = loadPages().filter((p) => p.id !== id);
+    localStorage.setItem("currentUserPages", JSON.stringify(current));
+    const email = localStorage.getItem("currentUserEmail");
+    fetch("/api/data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "deletePage", data: { id }, email }),
     }).catch(console.error);
   }
 }

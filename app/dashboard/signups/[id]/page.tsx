@@ -21,7 +21,7 @@ function SourceLabel({ source }: { source: Lead["source"] }) {
   if (source === "magnets")
     return (
       <span className="inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white px-2 py-0.5 text-[11px] font-medium text-ink-600 dark:border-ink-700 dark:bg-ink-950 dark:text-ink-300">
-        <Inbox className="h-3 w-3" aria-hidden="true" /> Magnets URL
+        <Inbox className="h-3 w-3" aria-hidden="true" /> LeadMagnets URL
       </span>
     );
   if (source === "custom-domain")
@@ -39,7 +39,7 @@ function SourceLabel({ source }: { source: Lead["source"] }) {
 
 export default async function LeadDetail({ params }: { params: { id: string } }) {
   await dbConnect();
-  
+
   const [accountRaw, leadRaw] = await Promise.all([
     AccountModel.findOne().lean(),
     LeadModel.findOne({ id: params.id }).lean()

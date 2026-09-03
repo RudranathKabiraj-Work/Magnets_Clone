@@ -17,7 +17,7 @@ export default function ThemeToggle() {
     document.documentElement.dataset.theme = next ? "dark" : "light";
     document.documentElement.style.colorScheme = next ? "dark" : "light";
     try {
-      localStorage.setItem("magnets-theme", next ? "dark" : "light");
+      localStorage.setItem("leadmagnets-theme", next ? "dark" : "light");
     } catch (_) {}
   }
 

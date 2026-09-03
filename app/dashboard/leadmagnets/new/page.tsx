@@ -1,14 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, ArrowRight, SlidersHorizontal, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import Button from "@/components/ui/button";
 import Input, { FieldLabel } from "@/components/ui/input";
-import { type MagnetPage } from "@/lib/data";
-import { loadPages, savePages, loadAccount, syncWithDatabase } from "@/lib/store";
+import { type MagnetPage, type Sequence } from "@/lib/data";
+import { loadPages, savePages, loadSequences, saveSequences, loadAccount, syncWithDatabase } from "@/lib/store";
+import AIMagnetModal from "@/components/leadmagnets/ai-magnet-modal";
 
 function slugify(input: string) {
   return (
@@ -25,6 +26,7 @@ export default function NewPage() {
   const router = useRouter();
   const [account, setAccount] = useState(() => loadAccount());
   const [name, setName] = useState("");
+  const [showAIModal, setShowAIModal] = useState(false);
   const slug = slugify(name);
 
   useEffect(() => {
@@ -38,9 +40,49 @@ export default function NewPage() {
     });
   }, []);
 
+  function handleAIGenerated(data: any) {
+    const page: MagnetPage = {
+      id: `p_${Date.now()}`,
+      name: data.name,
+      slug: slugify(data.name),
+      status: "draft",
+      views: 0,
+      signups: 0,
+      conversionRate: 0,
+      headline: data.headline,
+      subheadline: data.subheadline,
+      cta: data.cta,
+      deliverable: data.deliverable,
+      pitch: data.pitch,
+      bullets: data.bullets,
+      updatedAt: "Just now",
+      publishedAt: null,
+      template: data.template || "classic",
+      accent: data.accent || "#FE6F34",
+    };
+
+    const nextPages = [page, ...loadPages()];
+    savePages(nextPages);
+
+    // Save generated email sequence if returned
+    if (data.emails && data.emails.length > 0) {
+      const seq: Sequence = {
+        id: `s_${Date.now()}`,
+        name: `${data.name} Follow-up Sequence`,
+        pageId: page.id,
+        status: "live",
+        emails: data.emails,
+        stopOnBooking: true,
+        stats: { signedUp: 0, delivered: 0, opened: 0, replied: 0, stopped: 0 },
+      };
+      saveSequences([seq, ...loadSequences()]);
+    }
+
+    router.push(`/dashboard/leadmagnets/${page.id}`);
+  }
+
   function create(e: React.FormEvent) {
     e.preventDefault();
-    const now = new Date().toISOString();
     const page: MagnetPage = {
       id: `p_${Date.now()}`,
       name: name.trim() || "Untitled page",
@@ -73,14 +115,24 @@ export default function NewPage() {
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           Back to pages
         </Link>
-        <div className="mt-6 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-brand-soft text-brand-orange dark:bg-ink-950">
-            <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <div>
-            <h2 className="text-lg font-semibold text-ink-950 dark:text-white">Create a new page</h2>
-            <p className="text-sm text-ink-500 dark:text-ink-400">Name your lead magnet. You can change everything later.</p>
+        <div className="mt-6 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-brand-soft text-brand-orange dark:bg-ink-950">
+              <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold text-ink-950 dark:text-white">Create a new page</h2>
+              <p className="text-sm text-ink-500 dark:text-ink-400">Name your lead magnet or generate with AI.</p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setShowAIModal(true)}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-orange to-amber-500 px-4 py-2 text-xs font-bold text-white shadow-md transition hover:opacity-95"
+          >
+            <Sparkles className="h-4 w-4" /> 1-Click AI Create
+          </button>
         </div>
 
         <form onSubmit={create} className="mt-8 space-y-6 rounded-2xl border border-ink-200 bg-white p-6 shadow-card dark:border-ink-700 dark:bg-ink-900/95">
@@ -97,9 +149,9 @@ export default function NewPage() {
             />
           </label>
           <div>
-            <FieldLabel>Your Magnets URL</FieldLabel>
+            <FieldLabel>Your LeadMagnets URL</FieldLabel>
             <div className="flex h-9 items-center gap-1 overflow-hidden rounded-md border border-ink-200 bg-ink-50 px-3 text-sm text-ink-700 dark:border-ink-700 dark:bg-ink-950 dark:text-ink-300">
-              <span className="text-ink-500 dark:text-ink-400">magnets.so/{account?.username || ""}/</span>
+              <span className="text-ink-500 dark:text-ink-400">leadmagnets.so/{account?.username || ""}/</span>
               <span className="truncate font-medium">{slug}</span>
             </div>
             <p className="mt-1.5 text-xs text-ink-500 dark:text-ink-400">
@@ -113,6 +165,12 @@ export default function NewPage() {
             </Button>
           </div>
         </form>
+
+        <AIMagnetModal
+          isOpen={showAIModal}
+          onClose={() => setShowAIModal(false)}
+          onGenerated={handleAIGenerated}
+        />
       </div>
     </DashboardShell>
   );

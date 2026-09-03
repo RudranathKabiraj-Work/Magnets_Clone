@@ -121,7 +121,7 @@ export default function WorkspaceSetupPage() {
                   Set up once, then get back to creating
                 </h3>
                 <p className="text-sm text-zinc-600 dark:text-[#9B9085]/90 leading-relaxed">
-                  Your Magnets URL is the only required setting. Domains and integrations stay out
+                  Your LeadMagnets URL is the only required setting. Domains and integrations stay out
                   of the way until you need them.
                 </p>
               </div>
@@ -131,7 +131,7 @@ export default function WorkspaceSetupPage() {
                 <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
                 <div>
                   <p className="text-xs font-semibold text-zinc-900 dark:text-white">Public URL ready</p>
-                  <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5">magnets.so/{username}</p>
+                  <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5">leadmagnets.so/{username}</p>
                 </div>
               </div>
             </div>
@@ -155,15 +155,15 @@ export default function WorkspaceSetupPage() {
                 </div>
               </div>
 
-              {/* Magnets URL field + share card */}
+              {/* LeadMagnets URL field + share card */}
               <div className="mb-4">
-                <label className={labelClass}>Magnets URL</label>
+                <label className={labelClass}>LeadMagnets URL</label>
                 <div className="flex flex-col gap-3 md:flex-row md:items-start">
                   {/* Input */}
                   <div className="flex-1">
                     <div className="flex rounded-xl border border-[#E5E3DD] bg-white dark:border-[#2e2e38] dark:bg-[#0E0E10] focus-within:border-[#FE6F34] transition overflow-hidden">
                       <span className="flex items-center select-none border-r border-[#E5E3DD] bg-[#F5F3EE] px-3.5 py-2.5 text-xs font-mono text-[#8C827A] dark:border-[#2e2e38] dark:bg-[#18181C] dark:text-[#9B9085] whitespace-nowrap">
-                        magnets.so/
+                        leadmagnets.so/
                       </span>
                       <input
                         type="text"
@@ -179,7 +179,7 @@ export default function WorkspaceSetupPage() {
                   {/* Share this link card */}
                   <div className="rounded-xl border border-[#EBE7DF] bg-[#F7F5F0] p-4 shrink-0 md:w-64 dark:border-[#2e2e38] dark:bg-[#0E0E10]">
                     <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#9E8B7A] dark:text-[#9B9085] mb-2">SHARE THIS LINK</p>
-                    <p className="text-xs font-mono font-semibold text-zinc-900 dark:text-white">magnets.so/{username}</p>
+                    <p className="text-xs font-mono font-semibold text-zinc-900 dark:text-white">leadmagnets.so/{username}</p>
                   </div>
                 </div>
               </div>
@@ -196,7 +196,7 @@ export default function WorkspaceSetupPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-zinc-900 dark:text-white">Custom domain</p>
-                      <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">Use your own domain whenever you are ready. Your Magnets link already works.</p>
+                      <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">Use your own domain whenever you are ready. Your LeadMagnets link already works.</p>
                     </div>
                   </div>
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#E5E3DD] bg-white text-zinc-500 shadow-sm dark:border-[#2e2e38] dark:bg-[#18181B] dark:text-[#9B9085]">
@@ -265,7 +265,7 @@ export default function WorkspaceSetupPage() {
                           </div>
                           <div>
                             <h5 className="text-xs font-bold text-zinc-900 dark:text-white">Your sender domain</h5>
-                            <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">Send from your own address instead of Magnets.</p>
+                            <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">Send from your own address instead of LeadMagnets.</p>
                           </div>
                         </div>
                         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#E5E3DD] bg-white text-zinc-500 shadow-sm dark:border-[#2e2e38] dark:bg-[#18181B]">
@@ -303,7 +303,7 @@ export default function WorkspaceSetupPage() {
                       <div className="rounded-2xl border border-[#E5E3DD] bg-white p-4 dark:border-[#2e2e38] dark:bg-[#121214] flex items-center justify-between shadow-sm hover:bg-[#F7F5F0] dark:hover:bg-[#18181c] transition-colors cursor-pointer">
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F3E8FF] border border-[#E9D5FF] dark:bg-[#251838] overflow-hidden p-1.5">
-                            <img src="https://magnets.so/brand/slack.svg" alt="Slack" className="h-full w-full object-contain" />
+                            <img src="https://leadmagnets.so/brand/slack.svg" alt="Slack" className="h-full w-full object-contain" />
                           </div>
                           <div>
                             <h5 className="text-xs font-bold text-zinc-900 dark:text-white">Slack</h5>
@@ -335,7 +335,7 @@ export default function WorkspaceSetupPage() {
                       <div className="rounded-2xl border border-[#E5E3DD] bg-white p-4 dark:border-[#2e2e38] dark:bg-[#121214] flex items-center justify-between shadow-sm hover:bg-[#F7F5F0] dark:hover:bg-[#18181c] transition-colors cursor-pointer">
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#DCFCE7] border border-[#BBF7D0] dark:bg-[#0f2e1b] overflow-hidden p-1.5">
-                            <img src="https://magnets.so/brand/pipedrive.svg" alt="Pipedrive" className="h-full w-full object-contain" />
+                            <img src="https://leadmagnets.so/brand/pipedrive.svg" alt="Pipedrive" className="h-full w-full object-contain" />
                           </div>
                           <div>
                             <h5 className="text-xs font-bold text-zinc-900 dark:text-white">Pipedrive</h5>
@@ -385,7 +385,7 @@ export default function WorkspaceSetupPage() {
                           <div>
                             <h5 className="text-xs font-bold text-zinc-900 dark:text-white">Newsletter</h5>
                             <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
-                              Forward signups to Beehiiv or Substack. Connect Kit in Automations. Signups are always saved in Magnets too.
+                              Forward signups to Beehiiv or Substack. Connect Kit in Automations. Signups are always saved in LeadMagnets too.
                             </p>
                           </div>
                         </div>
@@ -497,7 +497,7 @@ export default function WorkspaceSetupPage() {
 
         {/* Footer */}
         <footer className="mt-auto border-t border-[#E5E3DD] dark:border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-zinc-500 dark:text-[#9B9085]">
-          <span>Magnets</span>
+          <span>LeadMagnets</span>
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Privacy</a>
             <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Terms</a>

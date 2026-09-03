@@ -16,19 +16,19 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-const SITE = "https://magnets.so";
+const SITE = "https://leadmagnets.so";
 
 export const metadata: Metadata = {
   title: {
     default: "Lead Magnet Builder for Landing Pages and Email Capture",
-    template: "%s. Magnets",
+    template: "%s. LeadMagnets",
   },
   description:
-    "Create lead magnet landing pages, capture emails, deliver resources instantly, and follow up automatically. Publish on Magnets or your own domain.",
-  applicationName: "Magnets",
-  authors: [{ name: "Magnets", url: SITE }],
-  creator: "Magnets",
-  publisher: "Magnets",
+    "Create lead magnet landing pages, capture emails, deliver resources instantly, and follow up automatically. Publish on LeadMagnets or your own domain.",
+  applicationName: "LeadMagnets",
+  authors: [{ name: "LeadMagnets", url: SITE }],
+  creator: "LeadMagnets",
+  publisher: "LeadMagnets",
   referrer: "origin-when-cross-origin",
   category: "productivity",
   formatDetection: { telephone: false, address: false, email: false },
@@ -38,17 +38,17 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   openGraph: {
     type: "website",
-    siteName: "Magnets",
+    siteName: "LeadMagnets",
     locale: "en_US",
     url: SITE,
-    title: "Magnets | Lead Magnet Builder",
+    title: "LeadMagnets | Lead Magnet Builder",
     description:
       "Create a lead magnet page, capture emails, deliver the resource, and follow up from one place.",
-    images: [{ url: "/landing-dashboard.png", width: 1280, height: 720, alt: "Magnets lead magnet builder dashboard" }],
+    images: [{ url: "/landing-dashboard.png", width: 1280, height: 720, alt: "LeadMagnets lead magnet builder dashboard" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Magnets | Lead Magnet Builder",
+    title: "LeadMagnets | Lead Magnet Builder",
     description:
       "Create a lead magnet page, capture emails, deliver the resource, and follow up from one place.",
     images: ["/landing-dashboard.png"],
@@ -69,7 +69,7 @@ export const viewport: Viewport = {
 
 const themeScript = `
   try {
-    var saved = localStorage.getItem('magnets-theme');
+    var saved = localStorage.getItem('leadmagnets-theme');
     var theme = saved === 'light' || saved === 'dark'
       ? saved
       : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');

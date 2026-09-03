@@ -5,7 +5,7 @@ export function LegalHeader() {
   return (
     <header className="border-b border-ink-200 bg-brand-soft">
       <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <a aria-label="Magnets home" href="/">
+        <a aria-label="LeadMagnets home" href="/">
           <BrandLogo height="h-8" />
         </a>
         <a
@@ -24,7 +24,7 @@ export function LegalFooter() {
   return (
     <footer className="border-t border-ink-200 bg-brand-soft px-4 py-6 text-xs text-ink-500 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <span>© 2026 Magnets</span>
+        <span>© 2026 LeadMagnets</span>
         <div className="flex gap-3">
           <a className="hover:text-ink-900" href="/">
             Home
