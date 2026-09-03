@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink, ListChecks } from "lucide-react";
+import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink, ListChecks, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
@@ -40,7 +40,17 @@ export default function DashboardShell({
   const [createMagnetName, setCreateMagnetName] = useState("");
 
   const [mounted, setMounted] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [navigatingTarget, setNavigatingTarget] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
+    if (typeof window !== "undefined") {
+      return !!localStorage.getItem("currentUserEmail");
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    setNavigatingTarget(null);
+  }, [pathname]);
 
   useEffect(() => {
     setMounted(true);
@@ -56,9 +66,13 @@ export default function DashboardShell({
         setIsAuthenticated(true);
       }
     }
-  }, [router]);
+  }, [pathname, router]);
 
-  if (isAuthenticated === null || isAuthenticated === false) {
+  if (mounted && isAuthenticated === false) {
+    return null;
+  }
+
+  if (isAuthenticated === null) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-[#18181B]">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#0066B2] border-t-transparent" />
@@ -156,7 +170,12 @@ export default function DashboardShell({
     : [];
 
   return (
-    <div className="dashboard-canvas flex min-h-screen">
+    <div className="dashboard-canvas flex min-h-screen relative">
+      {/* Top progress indicator bar */}
+      {navigatingTarget && (
+        <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-gradient-to-r from-[#0066B2] via-[#38BDF8] to-[#0066B2] animate-pulse" />
+      )}
+
       {/* Click outside to close profile menu */}
       {showProfileMenu && (
         <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
@@ -195,9 +214,20 @@ export default function DashboardShell({
 
             return (
               <div key={item.href}>
-                <Link href={item.href} className={linkClass}>
+                <Link
+                  href={item.href}
+                  className={linkClass}
+                  onClick={() => {
+                    if (pathname !== item.href) {
+                      setNavigatingTarget(item.href);
+                    }
+                  }}
+                >
                   <item.icon className={`h-4 w-4 shrink-0 transition-all duration-200 group-hover:scale-115 group-hover:-translate-y-0.5 ${active ? "text-white dark:text-white" : "text-zinc-500 group-hover:text-zinc-900 dark:text-[#9B9085] dark:group-hover:text-white"}`} aria-hidden="true" />
-                  {item.label}
+                  <span className="flex-1">{item.label}</span>
+                  {navigatingTarget === item.href && (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-current opacity-80" />
+                  )}
                 </Link>
                 {isDividerAfter && <div className="my-3 border-t border-[#E0EDFB] dark:border-white/10" />}
               </div>

@@ -5,18 +5,20 @@ import { useRouter } from "next/navigation";
 import AuthShell from "@/components/auth-shell";
 import Button from "@/components/ui/button";
 import Input, { FieldLabel } from "@/components/ui/input";
-import { syncWithDatabase } from "@/lib/store";
+import { Loader2, Sparkles, ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<"idle" | "authenticating" | "opening_dashboard">("idle");
   const [error, setError] = useState("");
+
+  const loading = status !== "idle";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setStatus("authenticating");
     setError("");
 
     try {
@@ -40,15 +42,16 @@ export default function LoginPage() {
             localStorage.setItem("currentUserAccount", JSON.stringify(data.account));
           }
         }
+        setStatus("opening_dashboard");
         router.push("/dashboard/leadmagnets");
       } else {
         setError(data?.error || (res.ok ? "Failed to login. Please check database connection." : "Incorrect password or account not found."));
+        setStatus("idle");
       }
     } catch (err: any) {
       console.error("Sign-in error:", err);
       setError(err?.message || "Failed to sign in. Please check your connection and try again.");
-    } finally {
-      setLoading(false);
+      setStatus("idle");
     }
   };
 
@@ -102,8 +105,30 @@ export default function LoginPage() {
           disabled={loading}
         />
       </label>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Signing in..." : "Sign in"}
+      <Button
+        type="submit"
+        className="w-full relative overflow-hidden transition-all duration-200"
+        disabled={loading}
+      >
+        {status === "authenticating" && (
+          <span className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-white/90" />
+            <span>Signing in...</span>
+          </span>
+        )}
+        {status === "opening_dashboard" && (
+          <span className="flex items-center gap-2 text-white">
+            <Sparkles className="h-4 w-4 animate-pulse text-amber-300" />
+            <span>Opening dashboard...</span>
+            <Loader2 className="h-3.5 w-3.5 animate-spin opacity-80" />
+          </span>
+        )}
+        {status === "idle" && (
+          <span className="flex items-center gap-1.5">
+            <span>Sign in</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </span>
+        )}
       </Button>
     </AuthShell>
   );

@@ -135,13 +135,7 @@ export default function AccountSettingsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#0E0E10]">
-        <div className="text-sm text-[#9B9085]">Loading account...</div>
-      </div>
-    );
-  }
+
 
   const inputClass =
     "w-full max-w-lg rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#9B9085] focus:border-[#0066B2] transition";

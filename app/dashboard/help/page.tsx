@@ -38,13 +38,7 @@ export default function HelpPage() {
     setSending(false);
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-ink-50 dark:bg-ink-950">
-        <div className="text-sm text-ink-500">Loading help center...</div>
-      </div>
-    );
-  }
+
 
   const guides = [
     {

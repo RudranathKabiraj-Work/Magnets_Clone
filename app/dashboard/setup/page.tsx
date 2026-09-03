@@ -72,13 +72,7 @@ export default function WorkspaceSetupPage() {
   const toggle = (key: string) =>
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#FAFAFA] dark:bg-[#0E0E10]">
-        <div className="text-sm text-zinc-500 dark:text-[#9B9085]">Loading settings...</div>
-      </div>
-    );
-  }
+
 
   const inputClass =
     "w-full border-0 bg-transparent py-2.5 pl-1 pr-3 text-sm text-zinc-900 dark:text-white outline-none focus:ring-0 placeholder:text-zinc-400 dark:placeholder:text-[#9B9085]";

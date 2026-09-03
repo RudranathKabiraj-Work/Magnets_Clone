@@ -116,14 +116,6 @@ export default function ResourcesPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-ink-50 dark:bg-ink-950">
-        <div className="text-sm text-ink-500">Loading resources...</div>
-      </div>
-    );
-  }
-
   return (
     <DashboardShell account={account} title="Hosted resource">
       <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">

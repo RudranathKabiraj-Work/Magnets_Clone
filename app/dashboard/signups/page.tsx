@@ -100,13 +100,7 @@ export default function SignupsPage() {
     alert("Add manually coming soon!");
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#0E0E10]">
-        <div className="text-sm text-[#9B9085]">Loading signups...</div>
-      </div>
-    );
-  } return (
+ return (
     <DashboardShell account={account} title="Signups">
       <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">
         <div className="flex-1 px-6 py-6 lg:px-8">

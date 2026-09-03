@@ -75,22 +75,13 @@ export default function PagesPage() {
     // Sync immediately on mount
     fetchLatest();
 
-    // 1. Auto-sync whenever user switches to or clicks this browser tab/window
+    // Sync on window focus and visibility change
     const handleFocus = () => fetchLatest();
     window.addEventListener("focus", handleFocus);
-    window.addEventListener("storage", handleFocus);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") fetchLatest();
-    });
-
-    // 2. Real-time background polling every 4 seconds
-    const interval = setInterval(fetchLatest, 4000);
 
     return () => {
       observer.disconnect();
       window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("storage", handleFocus);
-      clearInterval(interval);
     };
   }, []);
 
@@ -101,13 +92,7 @@ export default function PagesPage() {
     router.refresh();
   }
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#0E0E10]">
-        <div className="text-sm text-[#9B9085]">Loading pages...</div>
-      </div>
-    );
-  }
+
 
   return (
     <DashboardShell account={account} title="Lead magnets">

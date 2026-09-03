@@ -10,46 +10,34 @@ export async function GET(req: Request) {
     const email = searchParams.get("email");
     const normEmail = email ? email.trim().toLowerCase() : null;
 
-    let account;
-    if (normEmail) {
-      account = await AccountModel.findOne({ email: normEmail });
-    }
-
-    if (!account) {
-      // Check if any account exists, otherwise seed everything
-      const anyAccount = await AccountModel.findOne();
-      if (!anyAccount) {
-        // Seed initial default account without sample pages
-        await AccountModel.create(seedAccount);
-        await LeadModel.insertMany(seedLeads);
-        await SequenceModel.insertMany(seedSequences);
-        await IntegrationModel.insertMany(seedIntegrations);
-      }
-
-      if (normEmail) {
-        account = await AccountModel.findOne({ email: normEmail });
-      }
-      if (!account) {
-        account = await AccountModel.findOne();
-      }
-    }
-
     const pageFilter = normEmail ? { userEmail: normEmail } : {};
-    let pages = await MagnetPageModel.find(pageFilter).lean();
-
     const resourceFilter = normEmail
       ? { $or: [{ userEmail: normEmail }, { userEmail: { $exists: false } }, { userEmail: null }] }
       : {};
 
-    const [leads, sequences, integrations, resources] = await Promise.all([
+    const [account, pages, leads, sequences, integrations, resources] = await Promise.all([
+      normEmail ? AccountModel.findOne({ email: normEmail }).lean() : AccountModel.findOne().lean(),
+      MagnetPageModel.find(pageFilter).lean(),
       LeadModel.find().lean(),
       SequenceModel.find().lean(),
       IntegrationModel.find().lean(),
       ResourceModel.find(resourceFilter).lean(),
     ]);
 
+    let finalAccount = account;
+    if (!finalAccount) {
+      const anyAccount = await AccountModel.findOne();
+      if (!anyAccount) {
+        await AccountModel.create(seedAccount);
+        await LeadModel.insertMany(seedLeads);
+        await SequenceModel.insertMany(seedSequences);
+        await IntegrationModel.insertMany(seedIntegrations);
+      }
+      finalAccount = (normEmail ? await AccountModel.findOne({ email: normEmail }).lean() : null) || (await AccountModel.findOne().lean());
+    }
+
     return NextResponse.json({
-      account,
+      account: finalAccount,
       pages,
       leads,
       sequences,

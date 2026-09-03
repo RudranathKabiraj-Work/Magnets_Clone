@@ -108,13 +108,7 @@ export default function BrandPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#0E0E10]">
-        <div className="text-sm text-[#9B9085]">Loading brand settings...</div>
-      </div>
-    );
-  }
+
 
   const hasUnsavedChanges =
     businessName !== (account?.name || "") ||
