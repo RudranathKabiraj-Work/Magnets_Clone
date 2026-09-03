@@ -64,7 +64,13 @@ export default function ResourcesPage() {
 
       const json = await res.json();
       if (res.ok && json.data) {
-        setResources((prev) => [json.data, ...prev]);
+        setResources((prev) => {
+          const updated = [json.data, ...prev];
+          if (typeof window !== "undefined") {
+            localStorage.setItem("currentUserResources", JSON.stringify(updated));
+          }
+          return updated;
+        });
       } else {
         alert(json.error || "Failed to upload file");
       }
@@ -163,7 +169,7 @@ export default function ResourcesPage() {
               {uploading ? "Uploading file, please wait..." : "Drop resources here, or click to browse"}
             </p>
             <p className="mt-1 text-xs text-zinc-500 dark:text-[#9B9085]">
-              PDF, ZIP, Office documents, text files and images · 50 MB per file · 1 GB total
+              PDF, ZIP, DOCX, XLSX, PPTX, Images, MP4, MP3, Audio, Video & any file type · Up to 50 MB per file
             </p>
           </div>
 

@@ -39,8 +39,14 @@ export async function GET(
       else if (ext === ".jpg" || ext === ".jpeg") contentType = "image/jpeg";
       else if (ext === ".gif") contentType = "image/gif";
       else if (ext === ".webp") contentType = "image/webp";
-      else if (ext === ".txt") contentType = "text/plain";
-      else if (ext === ".zip") contentType = "application/zip";
+      else if (ext === ".svg") contentType = "image/svg+xml";
+      else if (ext === ".txt" || ext === ".csv") contentType = "text/plain";
+      else if (ext === ".zip" || ext === ".rar" || ext === ".7z" || ext === ".tar" || ext === ".gz") contentType = "application/zip";
+      else if (ext === ".doc" || ext === ".docx") contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      else if (ext === ".xls" || ext === ".xlsx") contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      else if (ext === ".ppt" || ext === ".pptx") contentType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+      else if (ext === ".mp3" || ext === ".wav" || ext === ".m4a") contentType = "audio/mpeg";
+      else if (ext === ".mp4" || ext === ".mov" || ext === ".avi" || ext === ".webm") contentType = "video/mp4";
 
       const downloadFilename = resource ? resource.name : matchingFile;
 

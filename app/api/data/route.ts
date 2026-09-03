@@ -243,10 +243,19 @@ export async function POST(req: Request) {
     }
 
     if (action === "saveResources") {
-      await ResourceModel.deleteMany({});
-      if (Array.isArray(data) && data.length > 0) {
-        await ResourceModel.insertMany(data);
+      if (normEmail) {
+        await ResourceModel.deleteMany({ userEmail: normEmail });
       }
+      if (Array.isArray(data) && data.length > 0) {
+        const docs = data.map((item) => ({ ...item, userEmail: normEmail || item.userEmail }));
+        await ResourceModel.insertMany(docs);
+      }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "deleteResource") {
+      const { id } = data;
+      await ResourceModel.deleteOne({ id });
       return NextResponse.json({ success: true });
     }
 
