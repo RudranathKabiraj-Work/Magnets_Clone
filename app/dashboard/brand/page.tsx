@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { Palette, Check, Upload, Sun, Moon, Trash2 } from "lucide-react";
+import { Palette, Check, Upload, Sun, Moon, Trash2, Loader2 } from "lucide-react";
 import { syncWithDatabase, saveAccount, loadAccount } from "@/lib/store";
 import type { Account } from "@/lib/data";
 
@@ -15,6 +15,7 @@ export default function BrandPage() {
   const [highlightIntensity, setHighlightIntensity] = useState<number>(100);
   const [logo, setLogo] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -86,18 +87,39 @@ export default function BrandPage() {
     }
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        alert("File size exceeds 10MB limit.");
-        return;
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File size exceeds 2MB limit.");
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (account?.email) {
+        formData.append("userEmail", account.email);
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogo(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (res.ok && result.data?.fileUrl) {
+        setLogo(result.data.fileUrl);
+      } else {
+        alert(result.error || "Failed to upload logo.");
+      }
+    } catch (err: any) {
+      console.error("Logo upload error:", err);
+      alert("Failed to upload logo image. Please try again.");
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
@@ -182,11 +204,21 @@ export default function BrandPage() {
                       />
                       <button
                         type="button"
+                        disabled={uploadingLogo}
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-1.5 rounded-md border border-[#E2E8F0] bg-zinc-50 dark:border-[#0066B2]/30 dark:bg-[#18181B] px-4 py-2 text-xs font-semibold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#252529] hover:border-[#0066B2] dark:hover:border-[#0066B2] transition cursor-pointer"
+                        className="flex items-center gap-1.5 rounded-md border border-[#E2E8F0] bg-zinc-50 dark:border-[#0066B2]/30 dark:bg-[#18181B] px-4 py-2 text-xs font-semibold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#252529] hover:border-[#0066B2] dark:hover:border-[#0066B2] transition cursor-pointer disabled:opacity-50"
                       >
-                        <Upload className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
-                        Choose logo
+                        {uploadingLogo ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2] dark:text-[#38BDF8]" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
+                            Choose logo
+                          </>
+                        )}
                       </button>
                       {logo ? (
                         <div className="flex items-center gap-2">
@@ -209,7 +241,7 @@ export default function BrandPage() {
                       )}
                     </div>
                     <p className="text-xs text-zinc-500 dark:text-[#71717a] mt-2 leading-relaxed">
-                      Optional when you use a business name. PNG, JPG, WebP, or GIF. 10 MB max.
+                      Optional when you use a business name. PNG, JPG, WebP, SVG, or GIF. 2 MB max.
                     </p>
                   </div>
 
