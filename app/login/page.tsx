@@ -26,26 +26,27 @@ export default function LoginPage() {
         body: JSON.stringify({ action: "login", data: { email: email.trim(), password } }),
       });
 
-      if (res.ok) {
-        const loginData = await res.json();
-        if (loginData.success) {
-          if (typeof window !== "undefined") {
-            localStorage.setItem("currentUserEmail", email.trim().toLowerCase());
-            if (loginData.account) {
-              localStorage.setItem("currentUserAccount", JSON.stringify(loginData.account));
-            }
-          }
-          router.push("/dashboard/leadmagnets");
-        } else {
-          setError("Failed to login. Please check database connection.");
-        }
-      } else {
-        const errData = await res.json();
-        setError(errData.error || "Incorrect password or account not found.");
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
       }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to sign in. Please try again.");
+
+      if (res.ok && data?.success) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("currentUserEmail", email.trim().toLowerCase());
+          if (data.account) {
+            localStorage.setItem("currentUserAccount", JSON.stringify(data.account));
+          }
+        }
+        router.push("/dashboard/leadmagnets");
+      } else {
+        setError(data?.error || (res.ok ? "Failed to login. Please check database connection." : "Incorrect password or account not found."));
+      }
+    } catch (err: any) {
+      console.error("Sign-in error:", err);
+      setError(err?.message || "Failed to sign in. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }

@@ -75,7 +75,7 @@ export async function POST(req: Request) {
           await MagnetPageModel.findOneAndUpdate(
             { id: item.id },
             { ...item, userEmail: itemEmail },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
           );
         }
       }
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
       await MagnetPageModel.findOneAndUpdate(
         { id: data.id },
         pageToInsert,
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
       return NextResponse.json({ success: true });
     }
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
           await SequenceModel.findOneAndUpdate(
             { id: item.id },
             item,
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
           );
         }
       }
