@@ -17,9 +17,10 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create uploads directory inside public if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await fs.mkdir(uploadsDir, { recursive: true });
+    // Determine writable directory (/tmp on Vercel, public/uploads on local)
+    const isVercel = Boolean(process.env.VERCEL);
+    const uploadsDir = isVercel ? "/tmp" : path.join(process.cwd(), "public", "uploads");
+    await fs.mkdir(uploadsDir, { recursive: true }).catch(() => {});
 
     // Generate unique safe filename
     const id = Math.random().toString(36).substring(2, 9);
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
     const safeFilename = `${id}${originalExt}`;
     const filePath = path.join(uploadsDir, safeFilename);
 
-    // Save actual file to disk
+    // Save actual file
     await fs.writeFile(filePath, buffer);
 
     const publicFileUrl = `${req.nextUrl.origin}/uploads/${safeFilename}`;

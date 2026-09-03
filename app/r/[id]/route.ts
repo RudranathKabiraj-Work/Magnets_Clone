@@ -14,12 +14,22 @@ export async function GET(
     await dbConnect();
     let resource = await ResourceModel.findOne({ id: resourceId }).lean();
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    const isVercel = Boolean(process.env.VERCEL);
+    const uploadsDir = isVercel ? "/tmp" : path.join(process.cwd(), "public", "uploads");
     const filesOnDisk = await fs.readdir(uploadsDir).catch(() => []);
-    const matchingFile = filesOnDisk.find((f) => f.startsWith(resourceId));
+    let matchingFile = filesOnDisk.find((f) => f.startsWith(resourceId));
+    let targetDir = uploadsDir;
+
+    if (!matchingFile && isVercel) {
+      // Check fallback public/uploads directory
+      const localPublic = path.join(process.cwd(), "public", "uploads");
+      const altFiles = await fs.readdir(localPublic).catch(() => []);
+      matchingFile = altFiles.find((f) => f.startsWith(resourceId));
+      if (matchingFile) targetDir = localPublic;
+    }
 
     if (matchingFile) {
-      const filePath = path.join(uploadsDir, matchingFile);
+      const filePath = path.join(targetDir, matchingFile);
       const fileBuffer = await fs.readFile(filePath);
       const ext = path.extname(matchingFile).toLowerCase();
 

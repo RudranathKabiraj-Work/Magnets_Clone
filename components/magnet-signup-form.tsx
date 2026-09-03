@@ -125,17 +125,6 @@ export default function MagnetSignupForm({
             <ArrowRight className="h-4 w-4" />
             <span>📥 Click Here to Download Resource Immediately</span>
           </a>
-
-          {personalizedOutput && (
-            <div className="mt-4 rounded-xl border border-brand-orange/30 bg-gradient-to-br from-brand-orange/10 to-amber-500/10 p-4 text-xs">
-              <div className="flex items-center gap-1.5 font-bold text-brand-orange mb-2">
-                ✨ Your AI-Personalized Action Plan:
-              </div>
-              <div className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed max-h-60 overflow-y-auto rounded-lg bg-black/5 dark:bg-white/5 p-3 text-ink-800 dark:text-zinc-200">
-                {personalizedOutput}
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         <div className={`rounded-xl border p-5 sm:p-6 text-left transition-all duration-300 backdrop-blur-sm ${themeMode === "dark"
