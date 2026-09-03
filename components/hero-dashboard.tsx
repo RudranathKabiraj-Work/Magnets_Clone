@@ -45,16 +45,16 @@ export default function HeroDashboard() {
             : { perspective: 1400, rotateX: 5, rotateZ: -1.2, scale: 0.94, y: 112 }
         }
       >
-        <div className="relative overflow-hidden rounded-2xl border border-ink-200 bg-white p-2 shadow-[0_32px_90px_-46px_rgba(17,17,17,0.5)] sm:p-3">
-          <div className="flex h-9 items-center gap-1.5 border-b border-ink-100 px-2 pb-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-brand-coral" />
-            <span className="h-2.5 w-2.5 rounded-full bg-brand-yellow" />
-            <span className="h-2.5 w-2.5 rounded-full bg-brand-aqua" />
-            <span className="ml-3 hidden rounded bg-ink-50 px-2 py-1 font-mono text-[10px] text-ink-400 sm:block">
+        <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#121824] p-2 shadow-2xl sm:p-3">
+          <div className="flex h-9 items-center gap-1.5 border-b border-zinc-100 dark:border-zinc-800 px-2 pb-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+            <span className="ml-3 hidden rounded bg-zinc-100 dark:bg-zinc-800 px-2 py-1 font-mono text-[10px] text-zinc-500 dark:text-zinc-400 sm:block">
               LeadMagnets platform walkthrough
             </span>
           </div>
-          <div className="relative mt-2 aspect-video w-full overflow-hidden rounded-md border border-ink-100 bg-ink-950">
+          <div className="relative mt-2 aspect-video w-full overflow-hidden rounded-xl border border-zinc-100 dark:border-zinc-800 bg-[#05080E]">
             <iframe
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
