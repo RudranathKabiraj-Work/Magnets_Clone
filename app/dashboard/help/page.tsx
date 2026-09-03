@@ -63,7 +63,7 @@ export default function HelpPage() {
 
   return (
     <DashboardShell account={account} title="Help">
-      <div className="flex flex-col min-h-[calc(100vh-3rem)]">
+      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">
       <div className="mx-auto max-w-6xl w-full px-4 py-8 sm:px-6 lg:px-10 flex-1">
         <div>
           <h2 className="flex items-center gap-1.5 text-lg font-semibold text-ink-950 dark:text-white">
@@ -78,22 +78,22 @@ export default function HelpPage() {
         <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Documentation Guides */}
           <div className="space-y-4">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-400 uppercase tracking-wider mb-2">
-              <BookOpen className="h-4 w-4 text-brand-orange" /> Common Guides
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8] uppercase tracking-wider mb-2">
+              <BookOpen className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" /> Common Guides
             </span>
 
             {guides.map((guide, idx) => (
               <div
                 key={idx}
-                className="group cursor-pointer rounded-2xl border border-ink-200 bg-white p-5 transition hover:border-brand-orange dark:border-ink-800 dark:bg-ink-900"
+                className="group cursor-pointer rounded-2xl border border-[#0066B2]/30 bg-white p-5 transition hover:border-[#0066B2] dark:border-[#0066B2]/35 dark:bg-[#18181B]"
               >
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-ink-950 group-hover:text-brand-orange dark:text-white">
+                  <h4 className="text-sm font-semibold text-zinc-900 group-hover:text-[#0066B2] dark:text-white dark:group-hover:text-[#38BDF8]">
                     {guide.title}
                   </h4>
-                  <ArrowRight className="h-4 w-4 text-ink-300 transition group-hover:translate-x-1 group-hover:text-brand-orange" />
+                  <ArrowRight className="h-4 w-4 text-zinc-400 transition group-hover:translate-x-1 group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8]" />
                 </div>
-                <p className="mt-1.5 text-xs text-ink-500 leading-relaxed dark:text-ink-400">
+                <p className="mt-1.5 text-xs text-zinc-500 leading-relaxed dark:text-[#9B9085]">
                   {guide.description}
                 </p>
               </div>
@@ -102,11 +102,11 @@ export default function HelpPage() {
 
           {/* Contact Support */}
           <div>
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-400 uppercase tracking-wider mb-4">
-              <MessageSquare className="h-4 w-4 text-brand-orange" /> Contact Support
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8] uppercase tracking-wider mb-4">
+              <MessageSquare className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" /> Contact Support
             </span>
 
-            <form onSubmit={handleSendMessage} className="rounded-2xl border border-ink-200 bg-white p-5 dark:border-ink-800 dark:bg-ink-900">
+            <form onSubmit={handleSendMessage} className="rounded-2xl border border-[#0066B2]/30 bg-white p-5 dark:border-[#0066B2]/35 dark:bg-[#18181B]">
               <div className="space-y-4">
                 <div>
                   <FieldLabel>Your Email</FieldLabel>
@@ -119,11 +119,11 @@ export default function HelpPage() {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Describe your issue or request..."
-                    className="w-full h-32 rounded-md border border-ink-300 bg-white p-3 text-xs text-ink-900 focus:border-ink-400 focus:outline-none focus:ring-1 focus:ring-ink-400 dark:border-ink-700 dark:bg-ink-950 dark:text-white"
+                    className="w-full h-32 rounded-md border border-[#E2E8F0] bg-white p-3 text-xs text-zinc-900 focus:border-[#0066B2] focus:outline-none focus:ring-1 focus:ring-[#0066B2] dark:border-[#2e2e38] dark:bg-[#121214] dark:text-white"
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full mt-4" disabled={sending}>
+              <Button type="submit" className="w-full mt-4 bg-[#0066B2] hover:bg-[#005799] text-white" disabled={sending}>
                 {sending ? "Sending..." : "Send Message"}
               </Button>
             </form>

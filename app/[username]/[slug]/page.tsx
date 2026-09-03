@@ -88,7 +88,7 @@ export default async function MagnetPageRoute({
   const page = JSON.parse(JSON.stringify(pageDoc)) as MagnetPage;
 
   const themeMode = accountDoc?.themeMode || "light";
-  const brandColor = accountDoc?.brandColor || "#FE6F34";
+  const brandColor = accountDoc?.brandColor || "#0066B2";
   const logo = accountDoc?.logo || null;
   const highlightIntensity = accountDoc?.highlightIntensity ?? 100;
   const businessName = accountDoc?.name || "BDA";

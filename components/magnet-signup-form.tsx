@@ -33,6 +33,7 @@ export default function MagnetSignupForm({
   const [email, setEmail] = useState("");
   const [customAnswer, setCustomAnswer] = useState("");
   const [personalizedOutput, setPersonalizedOutput] = useState<string | null>(null);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,6 +89,14 @@ export default function MagnetSignupForm({
 
       if (res.ok) {
         setDone(true);
+        fetch("/api/data")
+          .then((r) => r.json())
+          .then((data) => {
+            if (data && data.resources && data.resources.length > 0) {
+              setDownloadUrl(data.resources[0].url);
+            }
+          })
+          .catch(() => {});
       }
     } catch (err) {
       console.error("Failed to submit lead", err);
@@ -106,6 +115,16 @@ export default function MagnetSignupForm({
           <p className={`mt-1 text-xs leading-5 ${themeMode === "dark" ? "text-zinc-400" : "text-ink-600"}`}>
             Your resource is being delivered right now.
           </p>
+
+          <a
+            href={downloadUrl || "/dashboard/hostresources"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-[#0066B2] hover:bg-[#005799] px-4 py-3 text-xs font-bold text-white shadow-md transition-all active:scale-98 cursor-pointer w-full text-center"
+          >
+            <ArrowRight className="h-4 w-4" />
+            <span>📥 Click Here to Download Resource Immediately</span>
+          </a>
 
           {personalizedOutput && (
             <div className="mt-4 rounded-xl border border-brand-orange/30 bg-gradient-to-br from-brand-orange/10 to-amber-500/10 p-4 text-xs">
@@ -147,7 +166,7 @@ export default function MagnetSignupForm({
               placeholder="Name"
               className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${themeMode === "dark"
                 ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700"
-                : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#FE6F34]/50"
+                : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#0066B2]/50"
                 }`}
             />
             {enableAiPersonalizedDeliverable && (
@@ -164,7 +183,7 @@ export default function MagnetSignupForm({
                   placeholder={customPromptPlaceholder || "e.g. Scaling outreach, Lead generation"}
                   className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${themeMode === "dark"
                     ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700"
-                    : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#FE6F34]/50"
+                    : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#0066B2]/50"
                     }`}
                 />
               </div>
@@ -178,7 +197,7 @@ export default function MagnetSignupForm({
               placeholder="Email"
               className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${themeMode === "dark"
                 ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700"
-                : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#FE6F34]/50"
+                : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#0066B2]/50"
                 }`}
             />
             <button

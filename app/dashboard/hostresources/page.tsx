@@ -49,30 +49,24 @@ export default function ResourcesPage() {
 
     setUploading(true);
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    const id = Math.random().toString(36).substring(2, 9);
-    const newResource: Resource = {
-      id,
-      name: file.name,
-      size: file.size,
-      uploadedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-      url: `${window.location.origin}/r/${id}`,
-    };
-
     try {
-      const res = await fetch("/api/data", {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "addResource", data: newResource }),
+        body: formData,
       });
 
-      if (res.ok) {
-        setResources((prev) => [newResource, ...prev]);
+      const json = await res.json();
+      if (res.ok && json.data) {
+        setResources((prev) => [json.data, ...prev]);
+      } else {
+        alert(json.error || "Failed to upload file");
       }
     } catch (err) {
       console.error("Failed to upload resource", err);
+      alert("Error uploading file");
     } finally {
       setUploading(false);
     }
@@ -120,105 +114,109 @@ export default function ResourcesPage() {
 
   return (
     <DashboardShell account={account} title="Hosted resource">
-      <div className="flex flex-col min-h-[calc(100vh-3rem)]">
+      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">
         <div className="flex-1 px-6 py-6 lg:px-8">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
-              <h2 className="flex items-center gap-1.5 text-3xl font-bold text-ink-950 dark:text-white">
+              <h2 className="flex items-center gap-1.5 text-3xl font-bold text-zinc-900 dark:text-white">
                 Hosted resource
-                <span className="cursor-help rounded-full border border-ink-300 px-1.5 py-0 text-xs font-normal text-ink-500 hover:bg-ink-100 dark:border-ink-700 dark:text-ink-400">?</span>
+                <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-100 dark:hover:bg-[#18181B]">?</span>
               </h2>
-              <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">
+              <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
                 Upload files once, then copy their links into any lead magnet.
               </p>
             </div>
-            <div className="relative">
+            <div className="relative group">
               <input
                 type="file"
                 id="resource-upload"
-                className="absolute inset-0 cursor-pointer opacity-0"
+                className="absolute inset-0 w-full h-full cursor-pointer opacity-0 z-20"
                 onChange={handleSimulatedUpload}
                 disabled={uploading}
               />
-              <Button className="pointer-events-none">
+              <button
+                disabled={uploading}
+                className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] px-4 py-2.5 text-xs font-bold text-white group-hover:bg-[#005291] group-hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 transition-all shadow-sm cursor-pointer"
+              >
+                <UploadCloud className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
                 {uploading ? "Uploading..." : "+ Upload resource"}
-              </Button>
+              </button>
             </div>
           </div>
 
           {/* Drag & Drop area */}
-          <div className="relative mt-6 rounded-2xl border border-dashed border-ink-300 bg-white p-12 text-center transition hover:border-ink-400 dark:border-ink-700 dark:bg-ink-900">
+          <div className="relative mt-6 rounded-2xl border border-dashed border-[#0066B2]/40 bg-white p-12 text-center transition hover:border-[#0066B2] dark:border-[#0066B2]/35 dark:bg-[#18181B] dark:hover:border-[#0066B2]">
             <input
               type="file"
               className="absolute inset-0 cursor-pointer opacity-0"
               onChange={handleSimulatedUpload}
               disabled={uploading}
             />
-            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-ink-100 text-ink-600 dark:bg-ink-800 dark:text-ink-400">
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
               <UploadCloud className="h-5 w-5" />
             </div>
-            <p className="mt-4 text-sm font-medium text-ink-900 dark:text-white">
+            <p className="mt-4 text-sm font-medium text-zinc-900 dark:text-white">
               {uploading ? "Uploading file, please wait..." : "Drop resources here, or click to browse"}
             </p>
-            <p className="mt-1 text-xs text-ink-400">
+            <p className="mt-1 text-xs text-zinc-500 dark:text-[#9B9085]">
               PDF, ZIP, Office documents, text files and images · 50 MB per file · 1 GB total
             </p>
           </div>
 
           {/* Info Banner */}
-          <div className="mt-4 flex items-start gap-3 rounded-2xl border border-ink-200 bg-ink-50 p-3.5 text-xs text-ink-600 dark:border-ink-800 dark:bg-ink-900/60 dark:text-ink-400">
-            <Lock className="h-4 w-4 shrink-0 text-ink-500 mt-0.5" />
+          <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[#0066B2]/40 bg-[#EFF6FF] p-3.5 text-xs text-[#0066B2] dark:border-[#0066B2]/35 dark:bg-[#0066B2]/15 dark:text-[#38BDF8]">
+            <Lock className="h-4 w-4 shrink-0 text-[#0066B2] dark:text-[#38BDF8] mt-0.5" />
             <p>
               Files are private in storage and only you can manage them. Anyone you give a unique resource link to can{" "}
-              <span className="text-brand-orange underline cursor-pointer">download that file</span>.
+              <span className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline cursor-pointer">download that file</span>.
             </p>
           </div>
 
           {/* Resources list */}
           <div className="mt-4">
             {resources.length === 0 ? (
-              <div className="rounded-2xl border border-ink-100 bg-white py-16 text-center dark:border-ink-800 dark:bg-ink-900">
-                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-ink-50 text-ink-400 dark:bg-ink-800">
+              <div className="rounded-2xl border border-[#0066B2]/30 bg-white py-16 text-center dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
                   <FileText className="h-5 w-5" />
                 </div>
-                <p className="mt-4 text-sm font-medium text-ink-900 dark:text-white">No hosted resources yet</p>
-                <p className="mt-1 text-xs text-ink-400">Upload your first file to get a reusable download link.</p>
+                <p className="mt-4 text-sm font-medium text-zinc-900 dark:text-white">No hosted resources yet</p>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-[#9B9085]">Upload your first file to get a reusable download link.</p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-ink-200 bg-white dark:border-ink-800 dark:bg-ink-900">
-                <table className="min-w-full divide-y divide-ink-200 dark:divide-ink-800">
-                  <thead className="bg-ink-50 dark:bg-ink-950/40">
+              <div className="overflow-hidden rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm">
+                <table className="min-w-full divide-y divide-[#E2E8F0] dark:divide-[#2e2e38]">
+                  <thead className="bg-[#F8FBFF] dark:bg-[#151518]">
                     <tr>
-                      <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider text-ink-500 uppercase">File Name</th>
-                      <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider text-ink-500 uppercase">Size</th>
-                      <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider text-ink-500 uppercase">Uploaded</th>
+                      <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider text-zinc-500 dark:text-[#9B9085] uppercase">File Name</th>
+                      <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider text-zinc-500 dark:text-[#9B9085] uppercase">Size</th>
+                      <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider text-zinc-500 dark:text-[#9B9085] uppercase">Uploaded</th>
                       <th className="relative px-6 py-3">
                         <span className="sr-only">Actions</span>
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-ink-200 bg-white dark:divide-ink-800 dark:bg-ink-900">
+                  <tbody className="divide-y divide-[#E2E8F0]/60 bg-white dark:divide-[#1C1C20] dark:bg-[#18181B]">
                     {resources.map((resource) => (
-                      <tr key={resource.id}>
+                      <tr key={resource.id} className="hover:bg-[#EFF6FF]/50 dark:hover:bg-[#18181B]/40 transition">
                         <td className="whitespace-nowrap px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-ink-400" />
-                            <span className="text-sm font-medium text-ink-900 dark:text-white">{resource.name}</span>
+                            <FileText className="h-4 w-4 text-[#0066B2] dark:text-[#9B9085]" />
+                            <span className="text-sm font-medium text-zinc-900 dark:text-white">{resource.name}</span>
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-xs text-ink-500">{formatBytes(resource.size)}</td>
-                        <td className="whitespace-nowrap px-6 py-4 text-xs text-ink-500">{resource.uploadedAt}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-xs text-zinc-500 dark:text-[#9B9085]">{formatBytes(resource.size)}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-xs text-zinc-500 dark:text-[#9B9085]">{resource.uploadedAt}</td>
                         <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => copyToClipboard(resource.url)}
-                              className="flex items-center gap-1 rounded bg-brand-soft px-2.5 py-1 text-xs text-brand-orange hover:bg-brand-orange hover:text-white"
+                              className="flex items-center gap-1 rounded bg-[#EFF6FF] px-2.5 py-1 text-xs font-semibold text-[#0066B2] hover:bg-[#0066B2] hover:text-white transition"
                             >
                               <Link2 className="h-3 w-3" /> Copy link
                             </button>
                             <button
                               onClick={() => handleDelete(resource.id)}
-                              className="p-1 text-ink-400 hover:text-red-600"
+                              className="p-1 text-zinc-400 hover:text-red-600 transition"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -234,11 +232,11 @@ export default function ResourcesPage() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
+        <footer className="mt-auto border-t border-[#E2E8F0] dark:border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-zinc-500 dark:text-[#9B9085]">
           <span>LeadMagnets</span>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-white transition">Privacy</a>
-            <a href="#" className="hover:text-white transition">Terms</a>
+            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Privacy</a>
+            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Terms</a>
           </div>
         </footer>
       </div>

@@ -10,7 +10,7 @@ export default function BrandPage() {
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
   const [businessName, setBusinessName] = useState("");
-  const [brandColor, setBrandColor] = useState("#FE6F34");
+  const [brandColor, setBrandColor] = useState("#0066B2");
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   const [highlightIntensity, setHighlightIntensity] = useState<number>(100);
   const [logo, setLogo] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export default function BrandPage() {
     if (localAccount) {
       setAccount(localAccount);
       setBusinessName(localAccount.name || "");
-      setBrandColor(localAccount.brandColor || "#FE6F34");
+      setBrandColor(localAccount.brandColor || "#0066B2");
       setThemeMode(localAccount.themeMode || "light");
       setHighlightIntensity(localAccount.highlightIntensity ?? 100);
       setLogo(localAccount.logo || null);
@@ -41,7 +41,7 @@ export default function BrandPage() {
       if (data && data.account) {
         setAccount(data.account);
         setBusinessName(data.account.name || "");
-        setBrandColor(data.account.brandColor || "#FE6F34");
+        setBrandColor(data.account.brandColor || "#0066B2");
         setThemeMode(data.account.themeMode || "light");
         setHighlightIntensity(data.account.highlightIntensity ?? 100);
         setLogo(data.account.logo || null);
@@ -110,14 +110,14 @@ export default function BrandPage() {
 
   const hasUnsavedChanges =
     businessName !== (account?.name || "") ||
-    brandColor !== (account?.brandColor || "#FE6F34") ||
+    brandColor !== (account?.brandColor || "#0066B2") ||
     themeMode !== (account?.themeMode || "light") ||
     highlightIntensity !== (account?.highlightIntensity ?? 100) ||
     logo !== account?.logo;
 
   return (
     <DashboardShell account={account} title="Brand">
-      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-zinc-50 dark:bg-[#0E0E10] text-zinc-900 dark:text-white transition-colors duration-200 animate-fade-in">
+      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10] text-zinc-900 dark:text-white transition-colors duration-200 animate-fade-in">
         <div className="flex-1 px-6 py-6 lg:px-8 w-full">
 
           {/* Page Title */}
@@ -133,11 +133,11 @@ export default function BrandPage() {
 
             {/* Brand Settings Form */}
             <div className="lg:col-span-4">
-              <div className="rounded-2xl border border-[#FE6F34]/35 bg-white dark:border-[#FE6F34]/30 dark:bg-[#18181B] p-6 shadow-sm dark:shadow-xl h-full flex flex-col justify-between transition-colors">
+              <div className="rounded-2xl border border-[#0066B2]/35 bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] p-6 shadow-sm dark:shadow-xl h-full flex flex-col justify-between transition-colors">
                 {/* Heading */}
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#FE6F34]/30 bg-[#FFF0EA] dark:border-[#FE6F34]/30 dark:bg-[#2a1a14] text-[#FE6F34]">
-                    <Palette className="h-4.5 w-4.5 text-[#FE6F34]" />
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#0066B2]/30 bg-[#EFF6FF] dark:border-[#0066B2]/30 dark:bg-[#1a2638] text-[#0066B2]">
+                    <Palette className="h-4.5 w-4.5 text-[#0066B2]" />
                   </div>
                   <div>
                     <h4 className="text-base font-bold text-zinc-900 dark:text-white">Brand settings</h4>
@@ -158,7 +158,7 @@ export default function BrandPage() {
                       value={businessName}
                       onChange={(e) => setBusinessName(e.target.value)}
                       placeholder="Enter business name"
-                      className="w-full rounded-md border border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#5c5650] focus:border-[#FE6F34] transition"
+                      className="w-full rounded-md border border-[#E2E8F0] bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#5c5650] focus:border-[#0066B2] transition"
                     />
                     <p className="text-xs text-zinc-500 dark:text-[#71717a] mt-2 leading-relaxed">
                       Optional when your uploaded logo already includes your name.
@@ -181,9 +181,9 @@ export default function BrandPage() {
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-1.5 rounded-md border border-zinc-200 bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#18181B] px-4 py-2 text-xs font-semibold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#252529] hover:border-zinc-300 dark:hover:border-[#5c5650] transition"
+                        className="flex items-center gap-1.5 rounded-md border border-[#E2E8F0] bg-zinc-50 dark:border-[#0066B2]/30 dark:bg-[#18181B] px-4 py-2 text-xs font-semibold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#252529] hover:border-[#0066B2] dark:hover:border-[#0066B2] transition cursor-pointer"
                       >
-                        <Upload className="h-3.5 w-3.5 text-zinc-500 dark:text-[#9B9085]" />
+                        <Upload className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
                         Choose logo
                       </button>
                       {logo ? (
@@ -191,7 +191,7 @@ export default function BrandPage() {
                           <img
                             src={logo}
                             alt="Logo Preview"
-                            className="h-9 w-9 rounded object-contain border border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B]"
+                            className="h-9 w-9 rounded object-contain border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B]"
                           />
                           <button
                             type="button"
@@ -216,8 +216,8 @@ export default function BrandPage() {
                     <label className="block text-sm font-semibold text-zinc-700 dark:text-[#a1a1aa] mb-2">
                       Primary
                     </label>
-                    <div className="flex items-center rounded-md border border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 focus-within:border-[#FE6F34] transition">
-                      <label className="relative h-5 w-8 shrink-0 rounded cursor-pointer overflow-hidden border border-zinc-200 dark:border-[#2e2e38] mr-2">
+                    <div className="flex items-center rounded-md border border-[#E2E8F0] bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] px-3.5 py-2.5 focus-within:border-[#0066B2] transition">
+                      <label className="relative h-5 w-8 shrink-0 rounded cursor-pointer overflow-hidden border border-zinc-200 dark:border-[#0066B2]/30 mr-2">
                         <input
                           type="color"
                           value={brandColor}
@@ -245,8 +245,8 @@ export default function BrandPage() {
                         type="button"
                         onClick={() => setThemeMode("light")}
                         className={`flex items-center justify-center gap-1.5 rounded-md border py-2 text-xs font-semibold transition ${themeMode === "light"
-                          ? "border-[#FE6F34] bg-[#FFF0EA] dark:bg-[#252529] text-zinc-900 dark:text-white font-bold"
-                          : "border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] text-zinc-600 dark:text-[#9B9085] hover:bg-zinc-50 dark:hover:bg-[#252529] hover:text-zinc-900 dark:hover:text-white"
+                          ? "border-[#0066B2] bg-[#EFF6FF] dark:bg-[#0066B2]/20 text-zinc-900 dark:text-white font-bold"
+                          : "border-[#E2E8F0] bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] text-zinc-600 dark:text-[#9B9085] hover:bg-zinc-50 dark:hover:bg-[#252529] hover:text-zinc-900 dark:hover:text-white"
                           }`}
                       >
                         <Sun className="h-3.5 w-3.5" />
@@ -256,8 +256,8 @@ export default function BrandPage() {
                         type="button"
                         onClick={() => setThemeMode("dark")}
                         className={`flex items-center justify-center gap-1.5 rounded-md border py-2 text-xs font-semibold transition ${themeMode === "dark"
-                          ? "border-[#FE6F34] bg-zinc-900 text-white font-bold"
-                          : "border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] text-zinc-600 dark:text-[#9B9085] hover:bg-zinc-50 dark:hover:bg-[#252529] hover:text-zinc-900 dark:hover:text-white"
+                          ? "border-[#0066B2] bg-zinc-900 text-white font-bold"
+                          : "border-[#E2E8F0] bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] text-zinc-600 dark:text-[#9B9085] hover:bg-zinc-50 dark:hover:bg-[#252529] hover:text-zinc-900 dark:hover:text-white"
                           }`}
                       >
                         <Moon className="h-3.5 w-3.5" />
@@ -285,7 +285,7 @@ export default function BrandPage() {
                       max="100"
                       value={highlightIntensity}
                       onChange={(e) => setHighlightIntensity(Number(e.target.value))}
-                      className="w-full accent-[#FE6F34] bg-[#18181B] h-1 rounded-lg appearance-none cursor-pointer"
+                      className="w-full accent-[#0066B2] bg-[#18181B] h-1 rounded-lg appearance-none cursor-pointer"
                       style={{
                         backgroundImage: `linear-gradient(to right, ${brandColor} 0%, ${brandColor} ${highlightIntensity}%, #2e2e38 ${highlightIntensity}%, #2e2e38 100%)`
                       }}
@@ -299,14 +299,14 @@ export default function BrandPage() {
                 </div>
 
                 {/* Action Bar */}
-                <div className="mt-6 border-t border-[#2e2e38] pt-5 flex items-center justify-between gap-3">
-                  <span className="text-[10px] text-[#5c5650] leading-tight">
+                <div className="mt-6 border-t border-[#0066B2]/20 dark:border-[#0066B2]/20 pt-5 flex items-center justify-between gap-3">
+                  <span className="text-[10px] text-[#5c5650] dark:text-[#9B9085] leading-tight">
                     {hasUnsavedChanges ? "Unsaved changes stay local until saved." : "All changes saved to database."}
                   </span>
                   <button
                     onClick={handleSave}
                     disabled={saving || !hasUnsavedChanges}
-                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] transition shrink-0"
+                    className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2.5 text-[12.2px] font-bold text-white hover:bg-[#005799] transition shrink-0 cursor-pointer"
                   >
                     <Check className="h-3.5 w-3.5 stroke-[3px]" />
                     {saving ? "Saving..." : "Save brand"}
@@ -317,7 +317,7 @@ export default function BrandPage() {
 
             {/* Live Preview Panel */}
             <div className="lg:col-span-8">
-              <div className="rounded-2xl border border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] p-5 shadow-sm dark:shadow-2xl h-full flex flex-col transition-colors">
+              <div className="rounded-2xl border border-[#0066B2]/35 bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] p-5 shadow-sm dark:shadow-2xl h-full flex flex-col transition-colors">
                 <div className="flex flex-col gap-1 mb-4 pb-3 border-b border-zinc-200 dark:border-[#2e2e38]/50">
                   <span className="text-sm font-bold text-zinc-900 dark:text-zinc-200 uppercase tracking-wider">Preview</span>
                   <span className="text-xs text-zinc-500 dark:text-[#9B9085]">How your brand appears on a full magnet page.</span>
@@ -451,7 +451,7 @@ export default function BrandPage() {
                                 placeholder="Name"
                                 className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition pointer-events-none select-none ${themeMode === "dark"
                                   ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
-                                  : "border-[#e4e4e7] text-zinc-800 focus:border-[#FE6F34]/50"
+                                  : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
                                   }`}
                                 style={{
                                   backgroundColor: themeMode === "light" ? "#ffffff" : undefined
@@ -463,7 +463,7 @@ export default function BrandPage() {
                                 placeholder="Email"
                                 className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition pointer-events-none select-none ${themeMode === "dark"
                                   ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
-                                  : "border-[#e4e4e7] text-zinc-800 focus:border-[#FE6F34]/50"
+                                  : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
                                   }`}
                                 style={{
                                   backgroundColor: themeMode === "light" ? "#ffffff" : undefined
@@ -496,11 +496,11 @@ export default function BrandPage() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
+        <footer className="mt-auto border-t border-[#E2E8F0] dark:border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-zinc-500 dark:text-[#9B9085]">
           <span>LeadMagnets</span>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-white transition">Privacy</a>
-            <a href="#" className="hover:text-white transition">Terms</a>
+            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Privacy</a>
+            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Terms</a>
           </div>
         </footer>
       </div>

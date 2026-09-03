@@ -88,7 +88,7 @@ function OnboardingContent() {
       buttonText: "Receive Resource",
       emailSubject: `Your ${pageName.trim()} download link`,
       emailBody: `Hi there,\n\nThank you for requesting the ${pageName.trim()} resource. You can access it immediately by clicking the link below:\n\n[Download Resource]\n\nBest regards,\nThe LeadMagnets Team`,
-      accentColor: "#FE6F34",
+      accentColor: "#0066B2",
       socialSharingImage: null,
       checkEmailUnique: false,
       customDomain: null,

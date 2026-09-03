@@ -92,6 +92,15 @@ export interface Account {
   isNewAccount?: boolean;
   themeMode?: "light" | "dark";
   highlightIntensity?: number;
+  slackWebhookUrl?: string;
+  zapierWebhookUrl?: string;
+  pipedriveApiToken?: string;
+  kitConnected?: boolean;
+  senderDisplayName?: string;
+  senderAddress?: string;
+  calendarProvider?: "Calendly" | "Cal.com";
+  calendarToken?: string;
+  calendarConnected?: boolean;
 }
 
 export interface Integration {
@@ -108,7 +117,7 @@ export const account: Account = {
   email: "alex@rivera.studio",
   username: "alexrivera",
   plan: "Free",
-  brandColor: "#FE6F34",
+  brandColor: "#0066B2",
   logo: null,
   joinedAt: "June 2026",
 };

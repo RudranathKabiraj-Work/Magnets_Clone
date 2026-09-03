@@ -14,7 +14,7 @@ interface SocialCardModalProps {
 
 export default function SocialCardModal({ isOpen, onClose, page, account }: SocialCardModalProps) {
   const [theme, setTheme] = useState<"gradient" | "sunset" | "emerald" | "neon" | "dark" | "minimal" | "custom">("gradient");
-  const [colorStart, setColorStart] = useState("#FE6F34");
+  const [colorStart, setColorStart] = useState("#0066B2");
   const [colorEnd, setColorEnd] = useState("#7C3AED");
   const [format, setFormat] = useState<"linkedin" | "twitter" | "story" | "facebook">("linkedin");
   const [copied, setCopied] = useState(false);
@@ -54,7 +54,7 @@ export default function SocialCardModal({ isOpen, onClose, page, account }: Soci
     } else {
       const grad = ctx.createLinearGradient(0, 0, width, height);
       if (theme === "gradient") {
-        grad.addColorStop(0, "#FE6F34");
+        grad.addColorStop(0, "#0066B2");
         grad.addColorStop(0.5, "#7C3AED");
         grad.addColorStop(1, "#4F46E5");
       } else if (theme === "sunset") {
@@ -240,7 +240,7 @@ export default function SocialCardModal({ isOpen, onClose, page, account }: Soci
     ctx.fill();
 
     // Draw URL Text inside Pill
-    ctx.fillStyle = "#FE6F34";
+    ctx.fillStyle = "#0066B2";
     ctx.fillText(urlText, pillX + (isLandscape ? 16 : 22), pillY + (isLandscape ? 29 : 37));
 
     // Trigger PNG Download

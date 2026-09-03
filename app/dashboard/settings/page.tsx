@@ -144,30 +144,30 @@ export default function AccountSettingsPage() {
   }
 
   const inputClass =
-    "w-full max-w-lg rounded-md border border-[#2e2e38] bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-white outline-none placeholder:text-[#9B9085] focus:border-[#FE6F34] transition";
+    "w-full max-w-lg rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#9B9085] focus:border-[#0066B2] transition";
 
-  const labelClass = "block text-[12.2px] font-semibold text-[#9B9085] mb-1.5";
+  const labelClass = "block text-[12.2px] font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5";
 
   return (
     <DashboardShell account={account} title="Account">
-      <div className="flex flex-col min-h-[calc(100vh-3rem)]">
+      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">
         <div className="flex-1 px-6 py-6 lg:px-8 w-full">
 
           {/* Page heading */}
           <div className="mb-8">
             <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-900 dark:text-white">
               Account
-              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-[#2e2e38] text-xs font-normal text-[#9B9085] hover:bg-[#18181B]">?</span>
+              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-100 dark:hover:bg-[#18181B]">?</span>
             </h2>
-            <p className="text-xs text-[#9B9085] mt-1">Password, identity, and danger zone.</p>
+            <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Password, identity, and danger zone.</p>
           </div>
 
-          <div className="space-y-5 rounded-3xl bg-gradient-to-b from-[#FFF0EA]/40 via-transparent to-transparent dark:from-[#FE6F34]/5 dark:via-transparent dark:to-transparent p-1.5 sm:p-2">
+          <div className="space-y-5 rounded-3xl bg-gradient-to-b from-[#EFF6FF]/60 via-transparent to-transparent dark:from-[#0066B2]/5 dark:via-transparent dark:to-transparent p-1.5 sm:p-2">
 
             {/* Who you are */}
-            <section className="rounded-2xl border border-[#FE6F34]/40 bg-white dark:border-[#FE6F34]/35 dark:bg-[#18181B] p-6 transition-all shadow-sm hover:border-[#FE6F34] dark:hover:border-[#FE6F34]/60">
+            <section className="rounded-2xl border border-[#0066B2]/40 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] p-6 shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#FE6F34]/30 bg-[#FFF0EA] dark:border-[#FE6F34]/30 dark:bg-[#2a1a14] text-[#FE6F34]">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#0066B2]/30 bg-[#EFF6FF] dark:border-[#0066B2]/30 dark:bg-[#1a2638] text-[#0066B2]">
                   <User className="h-4.5 w-4.5" />
                 </div>
                 <div>
@@ -184,7 +184,7 @@ export default function AccountSettingsPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your Name"
-                    className="w-full max-w-lg rounded-md border border-[#e4e4e7] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#FE6F34] transition"
+                    className="w-full max-w-lg rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
                   />
                 </div>
                 <div>
@@ -193,7 +193,7 @@ export default function AccountSettingsPage() {
                     type="email"
                     value={email}
                     disabled
-                    className="w-full max-w-lg rounded-md border border-[#e4e4e7] bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-500 dark:text-white outline-none opacity-60 cursor-not-allowed transition"
+                    className="w-full max-w-lg rounded-md border border-[#E2E8F0] bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-500 dark:text-white outline-none opacity-60 cursor-not-allowed transition"
                   />
                 </div>
 
@@ -201,9 +201,9 @@ export default function AccountSettingsPage() {
                   <button
                     onClick={handleUpdateName}
                     disabled={updatingName}
-                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] disabled:opacity-60 transition shadow-sm"
+                    className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] px-5 py-2.5 text-[12.2px] font-bold text-white hover:bg-[#005799] disabled:opacity-60 transition shadow-sm"
                   >
-                    <Check className="h-3.5 w-3.5 text-black stroke-[2.5px]" />
+                    <Check className="h-3.5 w-3.5 text-white stroke-[2.5px]" />
                     {updatingName ? "Updating..." : "Update name"}
                   </button>
                 </div>
@@ -211,9 +211,9 @@ export default function AccountSettingsPage() {
             </section>
 
             {/* Change password */}
-            <section className="rounded-2xl border border-[#FE6F34]/40 bg-white dark:border-[#FE6F34]/35 dark:bg-[#18181B] p-6 transition-all shadow-sm hover:border-[#FE6F34] dark:hover:border-[#FE6F34]/60">
+            <section className="rounded-2xl border border-[#0066B2]/40 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] p-6 shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#FE6F34]/30 bg-[#FFF0EA] dark:border-[#FE6F34]/30 dark:bg-[#2a1a14] text-[#FE6F34]">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#0066B2]/30 bg-[#EFF6FF] dark:border-[#0066B2]/30 dark:bg-[#1a2638] text-[#0066B2]">
                   <KeyRound className="h-4.5 w-4.5" />
                 </div>
                 <div>
@@ -229,7 +229,7 @@ export default function AccountSettingsPage() {
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full max-w-lg rounded-md border border-[#e4e4e7] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#FE6F34] transition"
+                    className="w-full max-w-lg rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
                   />
                 </div>
                 <div>
@@ -238,7 +238,7 @@ export default function AccountSettingsPage() {
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full max-w-lg rounded-md border border-[#e4e4e7] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#FE6F34] transition"
+                    className="w-full max-w-lg rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
                   />
                 </div>
                 <div>
@@ -247,7 +247,7 @@ export default function AccountSettingsPage() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full max-w-lg rounded-md border border-[#e4e4e7] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#FE6F34] transition"
+                    className="w-full max-w-lg rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
                   />
                 </div>
 
@@ -255,9 +255,9 @@ export default function AccountSettingsPage() {
                   <button
                     onClick={handleUpdatePassword}
                     disabled={updatingPassword}
-                    className="flex items-center gap-1.5 rounded-lg bg-[#FE6F34] px-5 py-2.5 text-[12.2px] font-bold text-black hover:bg-[#e55e28] disabled:opacity-60 transition shadow-sm"
+                    className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] px-5 py-2.5 text-[12.2px] font-bold text-white hover:bg-[#005799] disabled:opacity-60 transition shadow-sm"
                   >
-                    <KeyRound className="h-3.5 w-3.5 text-black stroke-[2.5px]" />
+                    <KeyRound className="h-3.5 w-3.5 text-white stroke-[2.5px]" />
                     {updatingPassword ? "Updating..." : "Update password"}
                   </button>
                 </div>
@@ -331,14 +331,14 @@ export default function AccountSettingsPage() {
                             setDeleteConfirmText("");
                             setDeleteError("");
                           }}
-                          className="rounded-md border border-[#2e2e38] bg-[#18181B] px-[14px] py-[8px] text-sm font-semibold text-white hover:bg-[#2e2e38] transition"
+                          className="rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-[14px] py-[8px] text-sm font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#2e2e38] transition"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
                           disabled={deleting}
-                          className="flex items-center gap-1.5 rounded-md border border-[#2e2e38] bg-[#18181B] px-[14px] py-[8px] text-sm font-extrabold text-[#FF8585] hover:border-red-800 hover:text-red-400 disabled:opacity-60 transition"
+                          className="flex items-center gap-1.5 rounded-md border border-red-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-[14px] py-[8px] text-sm font-extrabold text-red-600 dark:text-[#FF8585] hover:border-red-400 dark:hover:border-red-800 disabled:opacity-60 transition"
                         >
                           <Trash2 className="h-4 w-4 stroke-[3px]" />
                           {deleting ? "Deleting..." : "Delete permanently"}
@@ -353,12 +353,11 @@ export default function AccountSettingsPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
+        <footer className="mt-auto border-t border-[#E2E8F0] dark:border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-zinc-500 dark:text-[#9B9085]">
           <span>LeadMagnets</span>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-white transition">Privacy</a>
-            <a href="#" className="hover:text-white transition">Terms</a>
+            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Privacy</a>
+            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Terms</a>
           </div>
         </footer>
       </div>

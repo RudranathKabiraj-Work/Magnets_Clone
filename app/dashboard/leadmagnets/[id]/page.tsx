@@ -23,6 +23,7 @@ import {
   Redo2,
   ExternalLink,
   MoreHorizontal,
+  ChevronDown,
   BarChart2,
   QrCode,
   Play,
@@ -97,6 +98,25 @@ export default function EditLeadMagnetPage() {
   const menuRef = useRef<HTMLDivElement>(null);
   const [showAIModal, setShowAIModal] = useState(false);
   const [showSocialModal, setShowSocialModal] = useState(false);
+  const [hostedResources, setHostedResources] = useState<any[]>([]);
+  const [showInsertResourceMenu, setShowInsertResourceMenu] = useState(false);
+
+  useEffect(() => {
+    syncWithDatabase().then((data) => {
+      if (data && data.resources && data.resources.length > 0) {
+        setHostedResources(data.resources);
+        const latestResource = data.resources[0];
+        if (latestResource && latestResource.url) {
+          setEmailBody((prev) => {
+            if (!prev.includes("http")) {
+              return `${prev}\n\n${latestResource.url}`;
+            }
+            return prev;
+          });
+        }
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -664,7 +684,7 @@ export default function EditLeadMagnetPage() {
 
   return (
     <DashboardShell account={account} title="Edit lead magnet">
-      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-zinc-50 dark:bg-[#0E0E10] text-zinc-900 dark:text-white transition-colors duration-200">
+      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10] text-zinc-900 dark:text-white transition-colors duration-200">
         <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto">
 
           {/* Page Top Title Header */}
@@ -681,16 +701,16 @@ export default function EditLeadMagnetPage() {
           </div>
 
           {/* Main Editor Card Frame - 100% Locked Light Mode Card */}
-          <div className="magnet-page--light rounded-2xl border border-zinc-200 bg-white text-zinc-900 shadow-xl overflow-hidden">
+          <div className="magnet-page--light rounded-2xl border border-[#E2E8F0] bg-white text-zinc-900 shadow-xl overflow-hidden">
 
             {/* Inner Header Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-200 px-4 py-3 sm:px-6 bg-white dark:bg-white text-zinc-900 dark:text-zinc-900">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] dark:border-zinc-200 px-4 py-3 sm:px-6 bg-white dark:bg-white text-zinc-900 dark:text-zinc-900">
               {/* Left Back link & Page Name/Slug */}
               <div className="flex items-center gap-3">
                 <Link
                   href="/dashboard/leadmagnets"
                   onClick={handleGoBack}
-                  className="flex items-center gap-1.5 rounded-lg border border-zinc-300 dark:border-zinc-300 bg-white dark:bg-white px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-50 transition shadow-xs"
+                  className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] dark:border-zinc-300 bg-white dark:bg-white px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-800 hover:bg-[#EFF6FF] hover:text-[#0066B2] dark:hover:bg-zinc-50 transition shadow-xs"
                 >
                   <ArrowLeft className="h-3.5 w-3.5 stroke-[2.5px]" />
                   <span>Lead magnets</span>
@@ -704,14 +724,14 @@ export default function EditLeadMagnetPage() {
               {/* Right Status & Actions */}
               <div className="flex items-center gap-2.5">
                 <span className="text-xs text-zinc-500 dark:text-zinc-500 font-medium flex items-center gap-1">
-                  <Check className={`h-3.5 w-3.5 stroke-[3px] ${saveStatus === "saving" ? "text-zinc-400" : "text-zinc-500"}`} />
+                  <Check className={`h-3.5 w-3.5 stroke-[3px] ${saveStatus === "saving" ? "text-zinc-400" : "text-[#0066B2]"}`} />
                   {saveStatus === "saving" ? "Waiting to autosave..." : "Autosaved"}
                 </span>
 
                 {/* AI Co-pilot & Social Studio */}
                 <button
                   onClick={() => setShowAIModal(true)}
-                  className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-brand-orange to-amber-500 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition hover:opacity-90"
+                  className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] hover:bg-[#005799] px-3 py-1.5 text-xs font-bold text-white shadow-xs transition"
                   title="AI Co-pilot: Regenerate headlines & copy"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
@@ -720,21 +740,21 @@ export default function EditLeadMagnetPage() {
 
                 <button
                   onClick={() => setShowSocialModal(true)}
-                  className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-bold text-zinc-800 hover:bg-zinc-100 transition shadow-xs"
+                  className="group flex items-center gap-1.5 rounded-lg border border-[#0066B2]/30 bg-[#EFF6FF] px-3 py-1.5 text-xs font-bold text-[#0066B2] hover:bg-[#0066B2] hover:text-white transition shadow-xs cursor-pointer"
                   title="Generate Social Media Graphic Cards"
                 >
-                  <ImageIcon className="h-3.5 w-3.5 text-brand-orange" />
+                  <ImageIcon className="h-3.5 w-3.5 text-[#0066B2] group-hover:text-white transition-colors" />
                   <span>Social Cards</span>
                 </button>
 
-                <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-200 mx-1" />
+                <div className="h-4 w-px bg-[#E2E8F0] dark:bg-zinc-200 mx-1" />
 
                 {/* Undo / Redo */}
                 <button
                   onClick={handleUndo}
                   disabled={!canUndo}
                   className={`p-1.5 rounded-lg transition ${canUndo
-                    ? "text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 cursor-pointer"
+                    ? "text-zinc-700 hover:text-[#0066B2] hover:bg-[#EFF6FF] cursor-pointer"
                     : "text-zinc-300 cursor-not-allowed opacity-40"
                     }`}
                   title={canUndo ? "Undo (Ctrl+Z)" : "Nothing to undo"}
@@ -745,7 +765,7 @@ export default function EditLeadMagnetPage() {
                   onClick={handleRedo}
                   disabled={!canRedo}
                   className={`p-1.5 rounded-lg transition ${canRedo
-                    ? "text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 cursor-pointer"
+                    ? "text-zinc-700 hover:text-[#0066B2] hover:bg-[#EFF6FF] cursor-pointer"
                     : "text-zinc-300 cursor-not-allowed opacity-40"
                     }`}
                   title={canRedo ? "Redo (Ctrl+Y)" : "Nothing to redo"}
@@ -755,10 +775,10 @@ export default function EditLeadMagnetPage() {
 
                 {/* Copy Link / Open Preview */}
                 <a
-                  href={`/${account?.username || ""}/${page.slug}`}
+                  href={`/${account?.username || "rudranathkabira"}/${page.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-100 transition cursor-pointer"
+                  className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-[#0066B2] dark:hover:text-white hover:bg-[#EFF6FF] dark:hover:bg-zinc-100 transition cursor-pointer"
                   title="Open live page in new tab"
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -775,10 +795,10 @@ export default function EditLeadMagnetPage() {
                   </button>
 
                   {showMenu && (
-                    <div className="absolute right-0 top-9 w-48 rounded-2xl border border-zinc-200/90 dark:border-zinc-200/90 bg-white dark:bg-white p-1.5 shadow-xl z-50 text-zinc-800 dark:text-zinc-800 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="absolute right-0 top-9 w-48 rounded-2xl border border-[#E2E8F0] dark:border-zinc-200/90 bg-white dark:bg-white p-1.5 shadow-xl z-50 text-zinc-800 dark:text-zinc-800 animate-in fade-in slide-in-from-top-2 duration-150">
                       <button
                         onClick={handleAnalytics}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-100 transition cursor-pointer"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-[#EFF6FF] hover:text-[#0066B2] dark:hover:bg-zinc-100 transition cursor-pointer"
                       >
                         <BarChart2 className="h-4 w-4 text-zinc-600" />
                         <span>Analytics</span>
@@ -786,13 +806,13 @@ export default function EditLeadMagnetPage() {
 
                       <button
                         onClick={handleDownloadQR}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-100 transition cursor-pointer"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-[#EFF6FF] hover:text-[#0066B2] dark:hover:bg-zinc-100 transition cursor-pointer"
                       >
                         <QrCode className="h-4 w-4 text-zinc-600" />
                         <span>Download QR code</span>
                       </button>
 
-                      <div className="my-1 h-px bg-zinc-100 dark:bg-zinc-100" />
+                      <div className="my-1 h-px bg-[#E2E8F0] dark:bg-zinc-100" />
 
                       <button
                         onClick={handleDeletePage}
@@ -810,7 +830,7 @@ export default function EditLeadMagnetPage() {
                   onClick={() => update({ status: live ? "draft" : "live", publishedAt: live ? page.publishedAt : new Date().toISOString() })}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer shadow-xs ${live
                     ? "bg-[#1C1A19] text-[#10B981] border border-[#2E2A28]"
-                    : "bg-zinc-100 dark:bg-zinc-100 text-zinc-600 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-200 hover:bg-zinc-200"
+                    : "bg-zinc-100 dark:bg-zinc-100 text-zinc-600 dark:text-zinc-600 border border-[#E2E8F0] dark:border-zinc-200 hover:bg-zinc-200"
                     }`}
                 >
                   <span className={`h-2 w-2 rounded-full ${live ? "bg-[#10B981]" : "bg-zinc-400"}`} />
@@ -820,16 +840,16 @@ export default function EditLeadMagnetPage() {
             </div>
 
             {/* 4 Tabs Bar - Full Width Even Distribution & Slim Height */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 border-b border-zinc-200 dark:border-zinc-200 bg-[#F9F9FB] dark:bg-[#F9F9FB] p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full">
+            <div className="grid grid-cols-2 lg:grid-cols-4 border-b border-[#E2E8F0] dark:border-zinc-200 bg-[#F8FBFF] dark:bg-[#F9F9FB] p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full">
               {/* Tab 1: Landing Page */}
               <button
                 onClick={() => setActiveTab("landing")}
                 className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "landing"
-                  ? "bg-white dark:bg-white border border-zinc-200/90 dark:border-zinc-200/90 text-zinc-900 dark:text-zinc-900 shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-900 hover:bg-zinc-200/40 dark:hover:bg-zinc-200/40 border border-transparent"
+                  ? "bg-white dark:bg-white border border-[#E2E8F0] dark:border-zinc-200/90 text-[#0066B2] dark:text-zinc-900 shadow-sm"
+                  : "text-zinc-600 dark:text-zinc-600 hover:text-[#0066B2] dark:hover:text-zinc-900 hover:bg-[#EFF6FF] dark:hover:bg-zinc-200/40 border border-transparent"
                   }`}
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50/60 dark:bg-red-50/60 text-[#FE6F34] dark:text-[#FE6F34]">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#0066B2]">
                   <Monitor className="h-4 w-4" />
                 </div>
                 <div className="text-left leading-tight">
@@ -842,11 +862,11 @@ export default function EditLeadMagnetPage() {
               <button
                 onClick={() => setActiveTab("email")}
                 className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "email"
-                  ? "bg-white dark:bg-white border border-zinc-200/90 dark:border-zinc-200/90 text-zinc-900 dark:text-zinc-900 shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-900 hover:bg-zinc-200/40 dark:hover:bg-zinc-200/40 border border-transparent"
+                  ? "bg-white dark:bg-white border border-[#E2E8F0] dark:border-zinc-200/90 text-[#0066B2] dark:text-zinc-900 shadow-sm"
+                  : "text-zinc-600 dark:text-zinc-600 hover:text-[#0066B2] dark:hover:text-zinc-900 hover:bg-[#EFF6FF] dark:hover:bg-zinc-200/40 border border-transparent"
                   }`}
               >
-                <Mail className="h-4 w-4 text-zinc-400 dark:text-zinc-400" />
+                <Mail className="h-4 w-4 text-[#0066B2] dark:text-zinc-400" />
                 <div className="text-left leading-tight">
                   <span className="block text-xs font-bold text-zinc-900 dark:text-zinc-900">Delivery email</span>
                   <span className="block text-[10px] font-normal text-zinc-400 dark:text-zinc-400">Send the resource</span>
@@ -857,11 +877,11 @@ export default function EditLeadMagnetPage() {
               <button
                 onClick={() => setActiveTab("sequence")}
                 className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "sequence"
-                  ? "bg-white dark:bg-white border border-zinc-200/90 dark:border-zinc-200/90 text-zinc-900 dark:text-zinc-900 shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-900 hover:bg-zinc-200/40 dark:hover:bg-zinc-200/40 border border-transparent"
+                  ? "bg-white dark:bg-white border border-[#E2E8F0] dark:border-zinc-200/90 text-[#0066B2] dark:text-zinc-900 shadow-sm"
+                  : "text-zinc-600 dark:text-zinc-600 hover:text-[#0066B2] dark:hover:text-zinc-900 hover:bg-[#EFF6FF] dark:hover:bg-zinc-200/40 border border-transparent"
                   }`}
               >
-                <Clock className="h-4 w-4 text-zinc-400 dark:text-zinc-400" />
+                <Clock className="h-4 w-4 text-[#0066B2] dark:text-zinc-400" />
                 <div className="text-left leading-tight">
                   <span className="block text-xs font-bold text-zinc-900 dark:text-zinc-900">Sequence</span>
                   <span className="block text-[10px] font-normal text-zinc-400 dark:text-zinc-400">Nurture leads</span>
@@ -872,11 +892,11 @@ export default function EditLeadMagnetPage() {
               <button
                 onClick={() => setActiveTab("after")}
                 className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "after"
-                  ? "bg-white dark:bg-white border border-zinc-200/90 dark:border-zinc-200/90 text-zinc-900 dark:text-zinc-900 shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-900 hover:bg-zinc-200/40 dark:hover:bg-zinc-200/40 border border-transparent"
+                  ? "bg-white dark:bg-white border border-[#E2E8F0] dark:border-zinc-200/90 text-[#0066B2] dark:text-zinc-900 shadow-sm"
+                  : "text-zinc-600 dark:text-zinc-600 hover:text-[#0066B2] dark:hover:text-zinc-900 hover:bg-[#EFF6FF] dark:hover:bg-zinc-200/40 border border-transparent"
                   }`}
               >
-                <Home className="h-4 w-4 text-zinc-400 dark:text-zinc-400" />
+                <Home className="h-4 w-4 text-[#0066B2] dark:text-zinc-400" />
                 <div className="text-left leading-tight">
                   <span className="block text-xs font-bold text-zinc-900 dark:text-zinc-900">After signup</span>
                   <span className="block text-[10px] font-normal text-zinc-400 dark:text-zinc-400">Choose the next step</span>
@@ -1398,9 +1418,45 @@ export default function EditLeadMagnetPage() {
                             <button type="button" title="List" className="hover:text-zinc-900 transition px-1">⋮=</button>
                             <button type="button" title="Line" className="hover:text-zinc-900 transition px-1">—</button>
                             <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-300 mx-0.5" />
-                            <button type="button" className="hover:text-zinc-900 transition px-1 flex items-center gap-1">
-                              <span>+ Insert</span>
-                            </button>
+                            <div className="relative">
+                               <button 
+                                 type="button" 
+                                 onClick={() => setShowInsertResourceMenu((v) => !v)}
+                                 className="hover:text-[#0066B2] text-[#0066B2] font-semibold transition px-2 py-1 rounded bg-[#EFF6FF] flex items-center gap-1 cursor-pointer"
+                               >
+                                 <span>+ Insert Resource</span>
+                                 <ChevronDown className="h-3 w-3" />
+                               </button>
+
+                               {showInsertResourceMenu && (
+                                 <div className="absolute left-0 top-full mt-1.5 w-64 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-xl z-50 text-zinc-800 space-y-1">
+                                   <div className="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                                     SELECT HOSTED RESOURCE
+                                   </div>
+                                   {hostedResources.length === 0 ? (
+                                     <div className="px-2 py-2 text-xs text-zinc-500 italic">
+                                       No hosted resources found. Upload one in Hosted resources first!
+                                     </div>
+                                   ) : (
+                                     hostedResources.map((res) => (
+                                       <button
+                                         key={res.id}
+                                         type="button"
+                                         onClick={() => {
+                                           const linkText = `\n${res.url}\n`;
+                                           setEmailBody((prev) => prev + linkText);
+                                           setShowInsertResourceMenu(false);
+                                         }}
+                                         className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-[#EFF6FF] hover:text-[#0066B2] text-xs transition flex flex-col gap-0.5 cursor-pointer"
+                                       >
+                                         <span className="font-semibold truncate">{res.name}</span>
+                                         <span className="text-[10px] text-zinc-400 font-mono truncate">{res.url}</span>
+                                       </button>
+                                     ))
+                                   )}
+                                 </div>
+                               )}
+                             </div>
                             <button type="button" title="Link" className="hover:text-zinc-900 transition px-1">🔗</button>
                           </div>
 
@@ -1416,10 +1472,10 @@ export default function EditLeadMagnetPage() {
                       </div>
 
                       {/* Feature 2: Smart Auto-Personalized Deliverable Config Card */}
-                      <div className="rounded-2xl border border-brand-orange/30 bg-gradient-to-br from-brand-soft to-white p-6 shadow-sm space-y-4">
+                      <div className="rounded-2xl border border-[#0066B2]/30 bg-gradient-to-br from-[#EFF6FF] to-white p-6 shadow-sm space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-orange text-white shadow-xs">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0066B2] text-white shadow-xs">
                               <Sparkles className="h-4 w-4" />
                             </span>
                             <div>
@@ -1431,7 +1487,7 @@ export default function EditLeadMagnetPage() {
                             type="button"
                             onClick={() => setEnableAiPersonalizedDeliverable(!enableAiPersonalizedDeliverable)}
                             className={`flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-bold transition cursor-pointer border ${enableAiPersonalizedDeliverable
-                              ? "bg-brand-orange text-white border-brand-orange"
+                              ? "bg-[#0066B2] text-white border-[#0066B2]"
                               : "bg-zinc-100 text-zinc-600 border-zinc-200"
                               }`}
                           >
@@ -1440,7 +1496,7 @@ export default function EditLeadMagnetPage() {
                         </div>
 
                         {enableAiPersonalizedDeliverable && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-brand-orange/20 animate-in fade-in duration-200">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-[#0066B2]/20 animate-in fade-in duration-200">
                             <div>
                               <label className="text-xs font-semibold text-zinc-700 block mb-1">Signup Form Question</label>
                               <input
@@ -1448,7 +1504,7 @@ export default function EditLeadMagnetPage() {
                                 value={customPromptQuestion}
                                 onChange={(e) => setCustomPromptQuestion(e.target.value)}
                                 placeholder="e.g. What is your main goal or bottleneck?"
-                                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-brand-orange"
+                                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#0066B2]"
                               />
                             </div>
                             <div>
@@ -1458,7 +1514,7 @@ export default function EditLeadMagnetPage() {
                                 value={customPromptPlaceholder}
                                 onChange={(e) => setCustomPromptPlaceholder(e.target.value)}
                                 placeholder="e.g. Scaling outreach, Lead generation"
-                                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-brand-orange"
+                                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#0066B2]"
                               />
                             </div>
                           </div>
@@ -1656,8 +1712,8 @@ export default function EditLeadMagnetPage() {
                           <button
                             onClick={() => setAfterSignupOption("standard")}
                             className={`p-3.5 sm:p-4 rounded-xl text-left transition cursor-pointer ${afterSignupOption === "standard"
-                              ? "bg-[#FF6422] text-white border border-transparent shadow-md"
-                              : "bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 hover:border-zinc-300"
+                              ? "bg-[#0066B2] text-white border border-transparent shadow-md"
+                              : "bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 hover:border-[#0066B2]"
                               }`}
                           >
                             <h4 className={`text-xs sm:text-sm font-extrabold ${afterSignupOption === "standard" ? "text-white" : "text-zinc-900 dark:text-zinc-900"}`}>
@@ -1672,8 +1728,8 @@ export default function EditLeadMagnetPage() {
                           <button
                             onClick={() => setAfterSignupOption("elsewhere")}
                             className={`p-3.5 sm:p-4 rounded-xl text-left transition cursor-pointer ${afterSignupOption === "elsewhere"
-                              ? "bg-[#FF6422] text-white border border-transparent shadow-md"
-                              : "bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 hover:border-zinc-300"
+                              ? "bg-[#0066B2] text-white border border-transparent shadow-md"
+                              : "bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 hover:border-[#0066B2]"
                               }`}
                           >
                             <h4 className={`text-xs sm:text-sm font-extrabold ${afterSignupOption === "elsewhere" ? "text-white" : "text-zinc-900 dark:text-zinc-900"}`}>
@@ -1688,8 +1744,8 @@ export default function EditLeadMagnetPage() {
                           <button
                             onClick={() => setAfterSignupOption("custom")}
                             className={`p-3.5 sm:p-4 rounded-xl text-left transition cursor-pointer ${afterSignupOption === "custom"
-                              ? "bg-[#FF6422] text-white border border-transparent shadow-md"
-                              : "bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 hover:border-zinc-300"
+                              ? "bg-[#0066B2] text-white border border-transparent shadow-md"
+                              : "bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 hover:border-[#0066B2]"
                               }`}
                           >
                             <h4 className={`text-xs sm:text-sm font-extrabold ${afterSignupOption === "custom" ? "text-white" : "text-zinc-900 dark:text-zinc-900"}`}>
@@ -1711,7 +1767,7 @@ export default function EditLeadMagnetPage() {
                         {afterSignupOption === "elsewhere" && (
                           <div className="pt-3 space-y-1.5 border-t border-zinc-100 dark:border-zinc-100">
                             <label className="text-xs font-bold text-zinc-700 dark:text-zinc-700 flex items-center gap-1.5">
-                              <ExternalLink className="h-3.5 w-3.5" />
+                              <ExternalLink className="h-3.5 w-3.5 text-[#0066B2]" />
                               <span>Destination URL</span>
                             </label>
                             <input
@@ -1719,7 +1775,7 @@ export default function EditLeadMagnetPage() {
                               value={destinationUrl}
                               onChange={(e) => setDestinationUrl(e.target.value)}
                               placeholder="https://your-site.com/next-step"
-                              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-[#FF6422]"
+                              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-[#0066B2]"
                             />
                             <p className="text-xs text-zinc-400 dark:text-zinc-400">
                               They will be taken here straight after a successful signup.
@@ -1737,7 +1793,7 @@ export default function EditLeadMagnetPage() {
                                 value={customHeading}
                                 onChange={(e) => setCustomHeading(e.target.value)}
                                 placeholder="You are in. Here is what to do next."
-                                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#FF6422]"
+                                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#0066B2]"
                               />
                             </div>
 
@@ -1748,7 +1804,7 @@ export default function EditLeadMagnetPage() {
                                 value={customMessage}
                                 onChange={(e) => setCustomMessage(e.target.value)}
                                 placeholder="Set expectations, introduce an offer, or explain the next step."
-                                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white p-2.5 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#FF6422] resize-none"
+                                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white p-2.5 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#0066B2] resize-none"
                               />
                             </div>
 
@@ -1761,7 +1817,7 @@ export default function EditLeadMagnetPage() {
                                 value={videoUrl}
                                 onChange={(e) => setVideoUrl(e.target.value)}
                                 placeholder="https://www.loom.com/share/..."
-                                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#FF6422]"
+                                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#0066B2]"
                               />
                             </div>
 
@@ -1773,7 +1829,7 @@ export default function EditLeadMagnetPage() {
                                   value={buttonLabel}
                                   onChange={(e) => setButtonLabel(e.target.value)}
                                   placeholder="Book a call"
-                                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#FF6422]"
+                                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#0066B2]"
                                 />
                               </div>
                               <div>
@@ -1783,7 +1839,7 @@ export default function EditLeadMagnetPage() {
                                   value={buttonUrl}
                                   onChange={(e) => setButtonUrl(e.target.value)}
                                   placeholder="https://cal.com/..."
-                                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#FF6422]"
+                                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#0066B2]"
                                 />
                               </div>
                             </div>

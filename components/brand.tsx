@@ -1,4 +1,21 @@
+import React from "react";
 import Image from "next/image";
+
+export function MagnetIcon({ className = "w-7 h-7" }: { className?: string }) {
+  return (
+    <span className={`relative inline-flex shrink-0 items-center justify-center ${className}`}>
+      <Image
+        alt="LeadMagnets"
+        priority
+        decoding="async"
+        fill
+        sizes="80px"
+        className="object-contain"
+        src="/brand/magnets-mark.png"
+      />
+    </span>
+  );
+}
 
 export default function BrandLogo({
   height = "h-8",
@@ -18,16 +35,7 @@ export default function BrandLogo({
           decoding="async"
           fill
           sizes="60px"
-          className="object-contain dark:hidden"
-          src="/brand/magnets-mark-dark.png"
-        />
-        <Image
-          alt="LeadMagnets"
-          priority
-          decoding="async"
-          fill
-          sizes="60px"
-          className="hidden object-contain dark:block"
+          className="object-contain"
           src="/brand/magnets-mark.png"
         />
       </span>
@@ -42,7 +50,7 @@ export function MagnetsMark({ size = "h-12 w-12" }: { size?: string }) {
   return (
     <span aria-hidden="true" className={`relative inline-flex shrink-0 items-center justify-center ${size}`}>
       <Image
-        alt=""
+        alt="LeadMagnets"
         aria-hidden="true"
         loading="lazy"
         decoding="async"

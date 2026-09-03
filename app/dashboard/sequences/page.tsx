@@ -29,7 +29,7 @@ export default function SequencesPage() {
 
   return (
     <DashboardShell account={account} title="Sequences">
-      <div className="flex flex-col min-h-[calc(100vh-3rem)]">
+      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">
       <div className="mx-auto max-w-6xl w-full px-4 py-8 sm:px-6 lg:px-10 flex-1">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>

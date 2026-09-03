@@ -111,26 +111,26 @@ export default function PagesPage() {
 
   return (
     <DashboardShell account={account} title="Lead magnets">
-      <div className="flex flex-col min-h-[calc(100vh-3rem)]">
+      <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">
         <div className="flex-1 px-6 py-6 lg:px-8">
 
           {/* Page heading */}
           <div className="mb-6">
             <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-950 dark:text-white">
               Lead magnets
-              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 bg-white text-xs font-normal text-zinc-500 hover:bg-zinc-100 dark:border-[#2e2e38] dark:bg-transparent dark:text-[#9B9085] dark:hover:bg-[#18181B]">?</span>
+              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-100 dark:hover:bg-[#18181B]">?</span>
             </h2>
             <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Create, publish, and manage your lead magnets</p>
           </div>
 
           {/* Conversion Workspace banner */}
-          <div className="conversion-banner-bg relative mb-6 overflow-hidden rounded-2xl border border-zinc-200/80 py-7 px-8 shadow-sm dark:border-[#2b2b34]">
+          <div className="conversion-banner-bg relative mb-6 overflow-hidden rounded-2xl border border-[#0066B2]/30 bg-white py-7 px-8 shadow-xs dark:border-[#0066B2]/35 dark:bg-[#18181C]">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 {/* Badge */}
                 <div className="mb-3.5 flex items-center">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FE6F34]/30 bg-[#FFF0EA] px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#FE6F34] dark:border-[#5C2E1A] dark:bg-[#2E1810] dark:text-[#FF8C53]">
-                    <Sparkles className="h-3.5 w-3.5 text-[#FE6F34] dark:text-[#FF8C53] fill-[#FE6F34]/20" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#0066B2]/30 bg-[#EFF6FF] px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0066B2] dark:border-[#0066B2]/40 dark:bg-[#0066B2]/15 dark:text-[#38BDF8]">
+                    <Sparkles className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8] fill-[#0066B2]/20" />
                     CONVERSION WORKSPACE
                   </span>
                 </div>
@@ -142,21 +142,21 @@ export default function PagesPage() {
 
               <div className="flex items-center gap-3 shrink-0">
                 {/* Published stat */}
-                <div className="rounded-2xl border border-zinc-200/80 bg-white p-3.5 text-left w-24 flex flex-col justify-between shadow-sm dark:border-[#282830] dark:bg-[#18181C]/90">
+                <div className="rounded-2xl border border-[#0066B2]/30 bg-white p-3.5 text-left w-24 flex flex-col justify-between shadow-xs dark:border-[#0066B2]/35 dark:bg-[#18181C]/90">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86]">PUBLISHED</p>
-                  <p className="text-2xl font-bold text-zinc-950 dark:text-white leading-none mt-2">{live}</p>
+                  <p className="text-2xl font-bold text-zinc-950 dark:text-[#38BDF8] leading-none mt-2">{live}</p>
                 </div>
                 {/* Total stat */}
-                <div className="rounded-2xl border border-zinc-200/80 bg-white p-3.5 text-left w-24 flex flex-col justify-between shadow-sm dark:border-[#282830] dark:bg-[#18181C]/90">
+                <div className="rounded-2xl border border-[#0066B2]/30 bg-white p-3.5 text-left w-24 flex flex-col justify-between shadow-xs dark:border-[#0066B2]/35 dark:bg-[#18181C]/90">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86]">TOTAL</p>
-                  <p className="text-2xl font-bold text-zinc-950 dark:text-white leading-none mt-2">{total}</p>
+                  <p className="text-2xl font-bold text-zinc-950 dark:text-[#38BDF8] leading-none mt-2">{total}</p>
                 </div>
                 {/* New page button - opens popup modal */}
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="flex items-center justify-center gap-1.5 rounded-xl bg-black px-5 py-3 text-xs font-bold text-white hover:bg-zinc-800 transition shadow-md whitespace-nowrap dark:bg-[#FE6F34] dark:text-black dark:hover:bg-[#ff7d47] cursor-pointer"
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-[#0066B2] px-5 py-3 text-xs font-bold text-white hover:bg-[#005799] transition shadow-md whitespace-nowrap dark:bg-[#0066B2] dark:text-white dark:hover:bg-[#005799] cursor-pointer"
                 >
-                  <Plus className="h-4 w-4 text-white dark:text-black stroke-[2.5px]" />
+                  <Plus className="h-4 w-4 text-white stroke-[2.5px]" />
                   New page
                 </button>
               </div>
@@ -165,8 +165,8 @@ export default function PagesPage() {
 
           {/* Search bar + spaces used */}
           <div className="mb-4 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5 rounded-2xl border border-zinc-200/80 bg-white px-4 py-3 w-[380px] focus-within:border-[#FE6F34]/50 transition-colors shadow-sm dark:border-[#2e2e38] dark:bg-[#141417]">
-              <Search className="h-4 w-4 text-zinc-400 dark:text-[#9B9085] shrink-0" />
+            <div className="flex items-center gap-2.5 rounded-2xl border border-[#0066B2]/30 bg-white px-4 py-3 w-[380px] focus-within:border-[#0066B2] dark:focus-within:border-[#0066B2] transition-colors shadow-xs dark:border-[#0066B2]/35 dark:bg-[#141417]">
+              <Search className="h-4 w-4 text-zinc-400 dark:text-[#38BDF8] shrink-0" />
               <input
                 type="text"
                 placeholder="Search by title or URL..."
@@ -181,9 +181,9 @@ export default function PagesPage() {
           {/* Pages list or empty state */}
           {filtered.length === 0 && pages.length === 0 ? (
             /* Empty state */
-            <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-sm overflow-hidden dark:border-[#2e2e38] dark:bg-[#0E0E10] flex flex-col items-center justify-center py-12 px-6 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF0EA] text-[#FE6F34] mb-5 dark:bg-[#2a1a08]">
-                <Sparkles className="h-7 w-7 text-[#FE6F34]" />
+            <div className="rounded-2xl border border-[#0066B2]/30 bg-white shadow-xs overflow-hidden dark:border-[#0066B2]/35 dark:bg-[#0E0E10] flex flex-col items-center justify-center py-12 px-6 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EFF6FF] text-[#0066B2] mb-5 dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+                <Sparkles className="h-7 w-7 text-[#0066B2] dark:text-[#38BDF8]" />
               </div>
               <p className="text-lg font-semibold text-zinc-950 dark:text-white mb-2">Create your first lead magnet</p>
               <p className="text-xs text-zinc-500 dark:text-[#9B9085] max-w-xs mb-6 leading-relaxed">
@@ -191,7 +191,7 @@ export default function PagesPage() {
               </p>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition dark:bg-[#FE6F34] dark:hover:bg-[#e55e28] cursor-pointer"
+                className="flex items-center gap-2 rounded-xl bg-[#0066B2] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition dark:bg-[#0066B2] dark:text-white dark:hover:bg-[#005799] cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 Create lead magnet
@@ -199,7 +199,7 @@ export default function PagesPage() {
             </div>
           ) : filtered.length === 0 ? (
             /* No search results */
-            <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-sm overflow-hidden dark:border-[#2e2e38] dark:bg-[#0E0E10] flex flex-col items-center justify-center py-16 px-6 text-center">
+            <div className="rounded-2xl border border-[#0066B2]/30 bg-white shadow-xs overflow-hidden dark:border-[#0066B2]/35 dark:bg-[#0E0E10] flex flex-col items-center justify-center py-16 px-6 text-center">
               <p className="text-sm font-medium text-zinc-950 dark:text-white mb-1">No results found</p>
               <p className="text-xs text-zinc-500 dark:text-[#9B9085]">Try a different title or URI.</p>
             </div>
@@ -209,13 +209,13 @@ export default function PagesPage() {
               {filtered.map((page) => (
                 <div
                   key={page.id}
-                  className="group rounded-2xl border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#18181C] overflow-hidden shadow-sm hover:shadow-md transition flex flex-col"
+                  className="group rounded-2xl border border-[#0066B2]/30 hover:border-[#0066B2] dark:border-[#0066B2]/35 dark:hover:border-[#38BDF8] bg-white dark:bg-[#18181C] overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 flex flex-col"
                 >
                   {/* Top Media Area with Status Badge */}
-                  <div className="relative h-48 sm:h-52 w-full bg-[#121214] flex items-center justify-center border-b border-zinc-100 dark:border-[#282830] overflow-hidden">
+                  <div className="relative h-48 sm:h-52 w-full bg-[#EFF6FF]/60 dark:bg-[#121214] flex items-center justify-center border-b border-[#0066B2]/20 dark:border-[#0066B2]/30 overflow-hidden">
                     {/* Status Badge Top-Left */}
                     <div className="absolute top-3 left-3 z-10">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-black/80 dark:bg-black/80 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-white uppercase tracking-wider shadow-sm">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 dark:bg-black/80 border border-[#0066B2]/30 dark:border-white/10 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-zinc-900 dark:text-white uppercase tracking-wider shadow-sm">
                         <span className={`h-2 w-2 rounded-full ${page.status === "live" ? "bg-[#10B981]" : "bg-zinc-400"}`} />
                         <span>{page.status === "live" ? "Published" : "Draft"}</span>
                       </span>
@@ -228,9 +228,9 @@ export default function PagesPage() {
                         className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
                       />
                     ) : (
-                      <div className="flex flex-col items-center justify-center text-zinc-500">
-                        <ImageIcon className="h-8 w-8 mb-1 stroke-[1.5px]" />
-                        <span className="text-xs font-medium">No image</span>
+                      <div className="flex flex-col items-center justify-center text-[#0066B2] dark:text-[#38BDF8]">
+                        <ImageIcon className="h-8 w-8 mb-1 stroke-[1.5px] text-[#0066B2] dark:text-[#38BDF8]" />
+                        <span className="text-xs font-semibold text-[#0066B2] dark:text-[#38BDF8]">No image</span>
                       </div>
                     )}
                   </div>
@@ -238,7 +238,7 @@ export default function PagesPage() {
                   {/* Bottom Content Section */}
                   <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                     <div className="space-y-1.5">
-                      <h4 className="text-base font-extrabold text-zinc-950 dark:text-white group-hover:text-[#FE6F34] transition leading-snug pb-0.5">
+                      <h4 className="text-base font-extrabold text-zinc-950 dark:text-white group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8] transition leading-snug pb-0.5">
                         {page.headline || page.name}
                       </h4>
                       <p className="text-xs text-zinc-500 dark:text-[#9E968F] line-clamp-2 leading-relaxed pb-0.5">
@@ -246,24 +246,24 @@ export default function PagesPage() {
                       </p>
                     </div>
 
-                    <div className="pt-3 border-t border-zinc-100 dark:border-[#282830] flex items-center justify-between gap-2">
+                    <div className="pt-3 border-t border-[#0066B2]/20 dark:border-[#0066B2]/30 flex items-center justify-between gap-2">
                       <div className="flex flex-col">
-                        <span className="text-xs font-medium text-zinc-400 dark:text-[#7B7B86]">/{page.slug}</span>
+                        <span className="text-xs font-medium text-[#0066B2] dark:text-[#38BDF8]">/{page.slug}</span>
                         <span className="text-[10px] text-zinc-400 dark:text-[#7B7B86]">Updated {page.updatedAt || "recently"}</span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/dashboard/leadmagnets/${page.id}/analytics`}
-                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#202024] text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#0066B2]/30 dark:border-[#0066B2]/35 bg-white dark:bg-[#202024] text-[#0066B2] dark:text-[#38BDF8] hover:bg-[#EFF6FF] hover:border-[#0066B2] dark:hover:bg-[#0066B2]/20 transition cursor-pointer"
                           title="Analytics"
                         >
-                          <BarChart2 className="h-4 w-4" />
+                          <BarChart2 className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" />
                         </Link>
 
                         <Link
                           href={`/dashboard/leadmagnets/${page.id}`}
-                          className="flex items-center gap-1.5 rounded-xl bg-black dark:bg-[#FE6F34] px-4 py-2 text-xs font-bold text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-[#ff7d47] transition shadow-xs cursor-pointer"
+                          className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] dark:bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005799] dark:hover:bg-[#005799] transition shadow-xs cursor-pointer"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                           <span>Edit</span>
@@ -278,11 +278,11 @@ export default function PagesPage() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-auto border-t border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-[#9B9085]">
+        <footer className="mt-auto border-t border-[#E2E8F0] dark:border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-zinc-500 dark:text-[#9B9085]">
           <span>LeadMagnets</span>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-white transition">Privacy</a>
-            <a href="#" className="hover:text-white transition">Terms</a>
+            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Privacy</a>
+            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Terms</a>
           </div>
         </footer>
       </div>
@@ -294,18 +294,18 @@ export default function PagesPage() {
           onClick={() => setShowCreateModal(false)}
         >
           <div
-            className="relative w-full max-w-[460px] rounded-2xl border border-[#2e2e38] bg-[#18181c] p-6 text-white shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200"
+            className="relative w-full max-w-[460px] rounded-2xl border border-[#0066B2]/30 bg-white p-6 text-zinc-900 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 dark:border-[#0066B2]/35 dark:bg-[#18181c] dark:text-white"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-base font-bold text-white">Create a magnet</h3>
-                <p className="text-xs text-[#9B9085] mt-1">Name the page and choose its URL.</p>
+                <h3 className="text-base font-bold text-zinc-900 dark:text-white">Create a magnet</h3>
+                <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Name the page and choose its URL.</p>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="rounded-lg p-1 text-[#9B9085] hover:bg-[#25252b] hover:text-white transition-colors cursor-pointer"
+                className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#25252b] dark:hover:text-white transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -326,7 +326,7 @@ export default function PagesPage() {
                   subheadline: "",
                   cta: "Get instant access",
                   deliverable: "Instant Access",
-                  accent: "#FE6F34",
+                  accent: "#0066B2",
                   views: 0,
                   signups: 0,
                   conversionRate: 0,
@@ -345,26 +345,26 @@ export default function PagesPage() {
             >
               {/* Page Name */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#d4c8bc]">Page name</label>
+                <label className="text-xs font-semibold text-zinc-700 dark:text-[#d4c8bc]">Page name</label>
                 <input
                   type="text"
                   autoFocus
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="AI Pipeline Playbook"
-                  className="w-full rounded-xl border border-[#FE6F34]/80 bg-[#121214] px-3.5 py-2.5 text-xs text-white placeholder:text-[#52525b] outline-none focus:ring-1 focus:ring-[#FE6F34] transition-all"
+                  className="w-full rounded-xl border border-[#0066B2]/30 bg-white px-3.5 py-2.5 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-[#0066B2] focus:ring-1 focus:ring-[#0066B2] dark:border-[#0066B2]/60 dark:bg-[#121214] dark:text-white dark:placeholder:text-[#52525b] dark:focus:border-[#0066B2] dark:focus:ring-[#0066B2] transition-all"
                   required
                 />
               </div>
 
               {/* URL Slug */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#d4c8bc]">URL slug</label>
-                <div className="flex items-center rounded-xl border border-[#2e2e38] bg-[#121214] px-3.5 py-2.5 text-xs text-[#9B9085]">
-                  <span className="text-[#666675] shrink-0 mr-1.5">/</span>
-                  <span className="font-mono text-[#d4c8bc] truncate">{newSlug}</span>
+                <label className="text-xs font-semibold text-zinc-700 dark:text-[#d4c8bc]">URL slug</label>
+                <div className="flex items-center rounded-xl border border-[#0066B2]/30 bg-zinc-50 px-3.5 py-2.5 text-xs text-zinc-600 dark:border-[#0066B2]/35 dark:bg-[#121214] dark:text-[#9B9085]">
+                  <span className="text-zinc-400 dark:text-[#666675] shrink-0 mr-1.5">/</span>
+                  <span className="font-mono text-zinc-800 dark:text-[#d4c8bc] truncate">{newSlug}</span>
                 </div>
-                <p className="text-[11px] text-[#666675]">The path of the page. Lowercase, digits, and hyphens only.</p>
+                <p className="text-[11px] text-zinc-500 dark:text-[#666675]">The path of the page. Lowercase, digits, and hyphens only.</p>
               </div>
 
               {/* Modal Action Buttons */}
@@ -372,13 +372,13 @@ export default function PagesPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="rounded-xl border border-[#2e2e38] bg-[#222228] px-4 py-2 text-xs font-semibold text-white hover:bg-[#2c2c34] transition-all cursor-pointer"
+                  className="rounded-xl border border-[#0066B2]/30 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-[#0066B2]/35 dark:bg-[#222228] dark:text-white dark:hover:bg-[#2c2c34] transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 rounded-xl bg-[#FE6F34] px-4 py-2 text-xs font-bold text-black hover:bg-[#ff7d47] transition-all cursor-pointer shadow-sm"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005799] dark:bg-[#0066B2] dark:text-white dark:hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                 >
                   <span>+</span>
                   <span>Create page</span>

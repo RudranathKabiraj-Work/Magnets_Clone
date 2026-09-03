@@ -55,7 +55,7 @@ export default function RegisterPage() {
         username: generatedUsername,
         password: password,
         plan: "Free" as const,
-        brandColor: "#FE6F34",
+        brandColor: "#0066B2",
         logo: null,
         joinedAt: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
         isNewAccount: true,

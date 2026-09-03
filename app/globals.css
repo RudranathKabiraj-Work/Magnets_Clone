@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .brand-soft-bg {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(247, 245, 241, 0)), #f7f5f1;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(248, 251, 255, 0)), #f8fbff;
 }
 
 @keyframes cardPopIn {
@@ -22,12 +22,12 @@
 }
 
 .conversion-banner-bg {
-  background: linear-gradient(90deg, #3C2219 0%, #2A1913 25%, #181617 50%, #131315 75%);
+  background: radial-gradient(circle at 4% 35%, rgba(0, 102, 178, 0.25) 0%, transparent 55%), linear-gradient(90deg, #0B2545 0%, #132A4A 25%, #161F2B 50%, #18181C 75%);
 }
 
 html:not(.dark)[data-theme="light"] .conversion-banner-bg,
 html.light .conversion-banner-bg {
-  background: radial-gradient(circle at 4% 35%, rgba(254, 111, 52, 0.1) 0%, transparent 55%), linear-gradient(135deg, #FFF7F4 0%, #FAFAFA 50%, #F5F4F2 100%);
+  background: radial-gradient(circle at 4% 35%, rgba(0, 102, 178, 0.1) 0%, transparent 55%), linear-gradient(135deg, #F8FBFF 0%, #FAFAFA 50%, #EDF6FF 100%);
 }
 
 .vercel-grid-bg {
@@ -175,11 +175,11 @@ html.light .conversion-banner-bg {
 }
 
 .premium-page-bg {
-  background: #f7f5f1;
+  background: #f8fbff;
 }
 
 .dashboard-canvas {
-  background-color: #f7f7f6;
+  background-color: #f8fbff;
 }
 
 .dashboard-chrome {

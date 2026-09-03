@@ -7,13 +7,22 @@ const AccountSchema = new Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, default: "password123" }, // Default seed password
   plan: { type: String, default: "Free" },
-  brandColor: { type: String, default: "#FE6F34" },
+  brandColor: { type: String, default: "#0066B2" },
   logo: { type: String, default: null },
   joinedAt: { type: String, required: true },
   privacyPolicy: { type: String, default: "" },
   termsOfService: { type: String, default: "" },
   themeMode: { type: String, default: "light" },
   highlightIntensity: { type: Number, default: 100 },
+  slackWebhookUrl: { type: String, default: "" },
+  zapierWebhookUrl: { type: String, default: "" },
+  pipedriveApiToken: { type: String, default: "" },
+  kitConnected: { type: Boolean, default: false },
+  senderDisplayName: { type: String, default: "" },
+  senderAddress: { type: String, default: "" },
+  calendarProvider: { type: String, default: "Calendly" },
+  calendarToken: { type: String, default: "" },
+  calendarConnected: { type: Boolean, default: false },
 });
 
 // MagnetPage Schema
@@ -36,7 +45,7 @@ const MagnetPageSchema = new Schema({
   updatedAt: { type: String, default: "Just now" },
   publishedAt: { type: String, default: null },
   template: { type: String, enum: ["classic", "video", "quiz"], default: "classic" },
-  accent: { type: String, default: "#FE6F34" },
+  accent: { type: String, default: "#0066B2" },
   customPromptQuestion: { type: String, default: "" },
   customPromptPlaceholder: { type: String, default: "" },
   enableAiPersonalizedDeliverable: { type: Boolean, default: false },
@@ -109,6 +118,8 @@ const ResourceSchema = new Schema({
   size: { type: Number, required: true },
   uploadedAt: { type: String, required: true },
   url: { type: String, required: true },
+  fileUrl: { type: String },
+  fileExt: { type: String },
 });
 
 export const ResourceModel = mongoose.models.Resource || mongoose.model("Resource", ResourceSchema);
