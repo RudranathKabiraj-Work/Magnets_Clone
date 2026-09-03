@@ -22,8 +22,8 @@ const delays = [
 
 export default function SequenceEditor() {
   const params = useParams<{ id: string }>();
-  const [account, setAccount] = useState(() => loadAccount());
-  const [seq, setSeq] = useState<Sequence | undefined>(() => loadSequences().find((s) => s.id === params.id));
+  const [account, setAccount] = useState<Account | null>(null);
+  const [seq, setSeq] = useState<Sequence | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -32,6 +32,11 @@ export default function SequenceEditor() {
       window.location.href = "/login";
       return;
     }
+
+    const localAcc = loadAccount();
+    if (localAcc) setAccount(localAcc);
+    const foundLocal = loadSequences().find((s) => s.id === params.id);
+    if (foundLocal) setSeq(foundLocal);
 
     syncWithDatabase().then((data) => {
       if (data) {

@@ -7,21 +7,26 @@ import { useEffect, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import Button from "@/components/ui/button";
 import Input, { FieldLabel } from "@/components/ui/input";
-import { type Sequence, type SequenceEmail } from "@/lib/data";
+import { type Sequence, type SequenceEmail, type MagnetPage, type Account } from "@/lib/data";
 import { loadPages, loadSequences, saveSequences, loadAccount, syncWithDatabase } from "@/lib/store";
 
 export default function NewSequence() {
   const router = useRouter();
-  const [account, setAccount] = useState(() => loadAccount());
+  const [account, setAccount] = useState<Account | null>(null);
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
-  const [pages, setPages] = useState(() => loadPages());
+  const [pages, setPages] = useState<MagnetPage[]>([]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
       window.location.href = "/login";
       return;
     }
+
+    const localAccount = loadAccount();
+    if (localAccount) setAccount(localAccount);
+    const localPages = loadPages();
+    if (localPages.length > 0) setPages(localPages);
 
     syncWithDatabase().then((data) => {
       if (data) {

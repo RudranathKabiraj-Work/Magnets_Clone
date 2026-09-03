@@ -18,14 +18,19 @@ import { type MagnetPage, type Account } from "@/lib/data";
 import { loadPages, loadAccount, syncWithDatabase } from "@/lib/store";
 
 export default function GeneralAnalyticsPage() {
-  const [account, setAccount] = useState<Account | null>(() => loadAccount());
-  const [pages, setPages] = useState<MagnetPage[]>(() => loadPages());
+  const [account, setAccount] = useState<Account | null>(null);
+  const [pages, setPages] = useState<MagnetPage[]>([]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
       window.location.href = "/login";
       return;
     }
+
+    const localAccount = loadAccount();
+    if (localAccount) setAccount(localAccount);
+    const localPages = loadPages();
+    if (localPages.length > 0) setPages(localPages);
 
     syncWithDatabase().then((data) => {
       if (data) {

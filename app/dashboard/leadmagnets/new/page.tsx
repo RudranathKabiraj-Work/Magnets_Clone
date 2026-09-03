@@ -24,7 +24,7 @@ function slugify(input: string) {
 
 export default function NewPage() {
   const router = useRouter();
-  const [account, setAccount] = useState(() => loadAccount());
+  const [account, setAccount] = useState<Account | null>(null);
   const [name, setName] = useState("");
   const [showAIModal, setShowAIModal] = useState(false);
   const slug = slugify(name);
@@ -34,6 +34,9 @@ export default function NewPage() {
       window.location.href = "/login";
       return;
     }
+
+    const localAccount = loadAccount();
+    if (localAccount) setAccount(localAccount);
 
     syncWithDatabase().then((data) => {
       if (data && data.account) setAccount(data.account);

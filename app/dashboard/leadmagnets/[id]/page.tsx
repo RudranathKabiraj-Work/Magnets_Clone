@@ -89,8 +89,15 @@ function compressImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 
 export default function EditLeadMagnetPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const [account, setAccount] = useState(() => loadAccount());
-  const [page, setPage] = useState<MagnetPage | undefined>(() => loadPages().find((p) => p.id === params.id));
+  const [account, setAccount] = useState<Account | null>(null);
+  const [page, setPage] = useState<MagnetPage | undefined>(undefined);
+
+  useEffect(() => {
+    const localAcc = loadAccount();
+    if (localAcc) setAccount(localAcc);
+    const localP = loadPages().find((p) => p.id === params.id);
+    if (localP) setPage(localP);
+  }, [params.id]);
 
   // Modal & Menu States
   const [showMenu, setShowMenu] = useState(false);

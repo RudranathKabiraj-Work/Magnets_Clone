@@ -21,17 +21,20 @@ import { loadPages, loadAccount, syncWithDatabase } from "@/lib/store";
 
 export default function LeadMagnetAnalyticsPage() {
   const params = useParams<{ id: string }>();
-  const [account, setAccount] = useState<Account | null>(() => loadAccount());
-  const [page, setPage] = useState<MagnetPage | null>(() => {
-    const pages = loadPages();
-    return pages.find((p) => p.id === params.id) || null;
-  });
+  const [account, setAccount] = useState<Account | null>(null);
+  const [page, setPage] = useState<MagnetPage | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
       window.location.href = "/login";
       return;
     }
+
+    const localAcc = loadAccount();
+    if (localAcc) setAccount(localAcc);
+    const pages = loadPages();
+    const foundLocal = pages.find((p) => p.id === params.id);
+    if (foundLocal) setPage(foundLocal);
 
     syncWithDatabase().then((data) => {
       if (data) {

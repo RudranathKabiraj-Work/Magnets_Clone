@@ -16,8 +16,8 @@ const categoryIcons = {
 } as const;
 
 export default function IntegrationsPage() {
-  const [account, setAccount] = useState(() => loadAccount());
-  const [items, setItems] = useState(() => loadIntegrations());
+  const [account, setAccount] = useState<Account | null>(null);
+  const [items, setItems] = useState<Integration[]>([]);
   const connected = items.filter((i) => i.connected).length;
 
   useEffect(() => {
@@ -25,6 +25,11 @@ export default function IntegrationsPage() {
       window.location.href = "/login";
       return;
     }
+
+    const localAccount = loadAccount();
+    if (localAccount) setAccount(localAccount);
+    const localItems = loadIntegrations();
+    if (localItems.length > 0) setItems(localItems);
 
     syncWithDatabase().then((data) => {
       if (data) {

@@ -9,8 +9,8 @@ import { type Sequence } from "@/lib/data";
 import { loadSequences, loadAccount, syncWithDatabase } from "@/lib/store";
 
 export default function SequencesPage() {
-  const [account, setAccount] = useState(() => loadAccount());
-  const [sequences, setSequences] = useState<Sequence[]>(() => loadSequences());
+  const [account, setAccount] = useState<Account | null>(null);
+  const [sequences, setSequences] = useState<Sequence[]>([]);
   const live = useMemo(() => sequences.filter((s) => s.status === "live").length, [sequences]);
 
   useEffect(() => {
@@ -18,6 +18,11 @@ export default function SequencesPage() {
       window.location.href = "/login";
       return;
     }
+
+    const localAccount = loadAccount();
+    if (localAccount) setAccount(localAccount);
+    const localSeq = loadSequences();
+    if (localSeq.length > 0) setSequences(localSeq);
 
     syncWithDatabase().then((data) => {
       if (data) {
