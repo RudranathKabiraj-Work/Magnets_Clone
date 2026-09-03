@@ -33,8 +33,11 @@ export async function POST(req: NextRequest) {
     const publicFileUrl = `${req.nextUrl.origin}/uploads/${safeFilename}`;
     const downloadRouteUrl = `${req.nextUrl.origin}/r/${id}`;
 
+    const userEmail = formData.get("userEmail") as string | null;
+
     const newResource = {
       id,
+      userEmail: userEmail ? userEmail.trim().toLowerCase() : undefined,
       name: file.name,
       size: file.size,
       uploadedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),

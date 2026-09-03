@@ -37,11 +37,13 @@ export async function GET(req: Request) {
     const pageFilter = normEmail ? { userEmail: normEmail } : {};
     let pages = await MagnetPageModel.find(pageFilter).lean();
 
+    const resourceFilter = normEmail ? { userEmail: normEmail } : {};
+
     const [leads, sequences, integrations, resources] = await Promise.all([
       LeadModel.find().lean(),
       SequenceModel.find().lean(),
       IntegrationModel.find().lean(),
-      ResourceModel.find().lean(),
+      ResourceModel.find(resourceFilter).lean(),
     ]);
 
     return NextResponse.json({

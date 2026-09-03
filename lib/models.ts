@@ -114,6 +114,7 @@ export const IntegrationModel = mongoose.models.Integration || mongoose.model("I
 // Resource Schema
 const ResourceSchema = new Schema({
   id: { type: String, required: true, unique: true },
+  userEmail: { type: String, index: true },
   name: { type: String, required: true },
   size: { type: Number, required: true },
   uploadedAt: { type: String, required: true },

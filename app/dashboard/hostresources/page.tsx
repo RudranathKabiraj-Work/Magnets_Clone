@@ -52,6 +52,10 @@ export default function ResourcesPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      const currentUserEmail = localStorage.getItem("currentUserEmail") || account?.email || "";
+      if (currentUserEmail) {
+        formData.append("userEmail", currentUserEmail);
+      }
 
       const res = await fetch("/api/upload", {
         method: "POST",
