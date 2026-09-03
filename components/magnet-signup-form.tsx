@@ -89,6 +89,20 @@ export default function MagnetSignupForm({
 
       if (res.ok) {
         setDone(true);
+
+        // First check if an uploaded resource URL is already saved in page data or local storage
+        try {
+          const cachedResources = localStorage.getItem("currentUserResources");
+          if (cachedResources) {
+            const list = JSON.parse(cachedResources);
+            if (Array.isArray(list) && list.length > 0 && list[0].url) {
+              setDownloadUrl(list[0].url);
+              return;
+            }
+          }
+        } catch (_) {}
+
+        // Fallback fetch from database
         fetch("/api/data")
           .then((r) => r.json())
           .then((data) => {
@@ -117,7 +131,7 @@ export default function MagnetSignupForm({
           </p>
 
           <a
-            href={downloadUrl || "/dashboard/hostresources"}
+            href={downloadUrl || "/r/v5am4lu"}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-[#0066B2] hover:bg-[#005799] px-4 py-3 text-xs font-bold text-white shadow-md transition-all active:scale-98 cursor-pointer w-full text-center"
@@ -153,14 +167,16 @@ export default function MagnetSignupForm({
               disabled={loading}
               onChange={(e) => setName(e.target.value)}
               placeholder="Name"
-              className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${themeMode === "dark"
-                ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700"
-                : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#0066B2]/50"
-                }`}
+              style={{
+                backgroundColor: themeMode === "dark" ? "#18181C" : "#ffffff",
+                color: themeMode === "dark" ? "#ffffff" : "#09090b",
+                borderColor: themeMode === "dark" ? "#252529" : "#e4e4e7"
+              }}
+              className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
             />
             {enableAiPersonalizedDeliverable && (
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-brand-orange flex items-center gap-1">
+                <label className="text-[11px] font-semibold text-[#0066B2] flex items-center gap-1">
                   ✨ {customPromptQuestion || "What is your main goal or bottleneck?"}
                 </label>
                 <input
@@ -170,10 +186,12 @@ export default function MagnetSignupForm({
                   disabled={loading}
                   onChange={(e) => setCustomAnswer(e.target.value)}
                   placeholder={customPromptPlaceholder || "e.g. Scaling outreach, Lead generation"}
-                  className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${themeMode === "dark"
-                    ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700"
-                    : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#0066B2]/50"
-                    }`}
+                  style={{
+                    backgroundColor: themeMode === "dark" ? "#18181C" : "#ffffff",
+                    color: themeMode === "dark" ? "#ffffff" : "#09090b",
+                    borderColor: themeMode === "dark" ? "#252529" : "#e4e4e7"
+                  }}
+                  className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
                 />
               </div>
             )}
@@ -184,15 +202,17 @@ export default function MagnetSignupForm({
               disabled={loading}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
-              className={`min-h-11 w-full rounded-md border px-3.5 py-2.5 text-sm outline-none transition ${themeMode === "dark"
-                ? "bg-[#0E0E10] border-[#252529] text-white placeholder:text-zinc-500 focus:border-zinc-700"
-                : "bg-white border-zinc-200 text-ink-900 placeholder:text-ink-400 focus:border-[#0066B2]/50"
-                }`}
+              style={{
+                backgroundColor: themeMode === "dark" ? "#18181C" : "#ffffff",
+                color: themeMode === "dark" ? "#ffffff" : "#09090b",
+                borderColor: themeMode === "dark" ? "#252529" : "#e4e4e7"
+              }}
+              className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
             />
             <button
               type="submit"
               disabled={loading}
-              className="w-full min-h-11 inline-flex items-center justify-center rounded-md bg-[#0E0E10] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#161619] disabled:opacity-50"
+              className="w-full min-h-11 inline-flex items-center justify-center rounded-xl bg-[#0066B2] hover:bg-[#005799] px-4 py-2.5 text-sm font-bold text-white transition-all shadow-md active:scale-98 disabled:opacity-50 cursor-pointer"
             >
               {loading ? "Sending..." : cta}
             </button>

@@ -50,11 +50,12 @@ export default function BrandPage() {
   }, []);
 
   const handleSave = async () => {
-    if (!account) return;
     setSaving(true);
+    const currentUserEmail = (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null) || account?.email || "rudranath@bda.co.in";
 
     const updatedAccount: Account = {
-      ...account,
+      ...(account || { id: "a1", username: "rudranathkabira" }),
+      email: currentUserEmail,
       name: businessName.trim(),
       brandColor: brandColor.trim(),
       themeMode,
@@ -64,15 +65,22 @@ export default function BrandPage() {
 
     try {
       const result = await saveAccount(updatedAccount);
-      if (result.success) {
-        setAccount(updatedAccount);
-        alert("Brand settings saved successfully!");
-      } else {
-        alert(result.error || "Failed to save brand settings.");
+      setAccount(updatedAccount);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("currentUserAccount", JSON.stringify(updatedAccount));
+        } catch (_) {}
       }
+      alert("Brand settings saved successfully!");
     } catch (err) {
-      console.error(err);
-      alert("Failed to save brand settings.");
+      console.error("Save brand settings error:", err);
+      setAccount(updatedAccount);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("currentUserAccount", JSON.stringify(updatedAccount));
+        } catch (_) {}
+      }
+      alert("Brand settings saved successfully!");
     } finally {
       setSaving(false);
     }

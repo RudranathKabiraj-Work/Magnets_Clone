@@ -38,7 +38,9 @@ export default function ResourcesPage() {
     syncWithDatabase().then((data) => {
       if (data) {
         setAccount(data.account);
-        setResources(data.resources || []);
+        if (data.resources && data.resources.length > 0) {
+          setResources(data.resources);
+        }
       }
     });
   }, []);

@@ -41,7 +41,7 @@ import {
 import { useEffect, useState, useRef, useCallback } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { type MagnetPage } from "@/lib/data";
-import { loadPages, savePages, deletePage, loadAccount, syncWithDatabase } from "@/lib/store";
+import { loadPages, savePages, deletePage, loadAccount, loadResources, syncWithDatabase } from "@/lib/store";
 import AIMagnetModal from "@/components/leadmagnets/ai-magnet-modal";
 import SocialCardModal from "@/components/leadmagnets/social-card-modal";
 
@@ -102,17 +102,23 @@ export default function EditLeadMagnetPage() {
   const [showInsertResourceMenu, setShowInsertResourceMenu] = useState(false);
 
   useEffect(() => {
+    // 1. Instantly load local resources
+    const local = loadResources();
+    if (local && local.length > 0) {
+      setHostedResources(local);
+      const latestResource = local[0];
+      if (latestResource && latestResource.url) {
+        setEmailBody((prev) => (!prev.includes("http") ? `${prev}\n\n${latestResource.url}` : prev));
+      }
+    }
+
+    // 2. Sync with database
     syncWithDatabase().then((data) => {
       if (data && data.resources && data.resources.length > 0) {
         setHostedResources(data.resources);
         const latestResource = data.resources[0];
         if (latestResource && latestResource.url) {
-          setEmailBody((prev) => {
-            if (!prev.includes("http")) {
-              return `${prev}\n\n${latestResource.url}`;
-            }
-            return prev;
-          });
+          setEmailBody((prev) => (!prev.includes("http") ? `${prev}\n\n${latestResource.url}` : prev));
         }
       }
     });

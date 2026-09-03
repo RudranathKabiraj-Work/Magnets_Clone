@@ -2,6 +2,16 @@
 
 import { pages as seedPages, sequences as seedSequences, type MagnetPage, type Sequence, type Account, type Lead, type Integration, account as seedAccount, leads as seedLeads, integrations as seedIntegrations } from "@/lib/data";
 
+function safeSetItem(key: string, value: string) {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn(`localStorage quota exceeded for ${key}, falling back to memory/database`, e);
+    }
+  }
+}
+
 export function loadPages(): MagnetPage[] {
   if (typeof window !== "undefined") {
     const email = localStorage.getItem("currentUserEmail");
@@ -18,7 +28,7 @@ export function loadPages(): MagnetPage[] {
 
 export function savePages(pages: MagnetPage[]) {
   if (typeof window !== "undefined") {
-    localStorage.setItem("currentUserPages", JSON.stringify(pages));
+    safeSetItem("currentUserPages", JSON.stringify(pages));
     const email = localStorage.getItem("currentUserEmail");
     fetch("/api/data", {
       method: "POST",
@@ -31,7 +41,7 @@ export function savePages(pages: MagnetPage[]) {
 export function deletePage(id: string) {
   if (typeof window !== "undefined") {
     const current = loadPages().filter((p) => p.id !== id);
-    localStorage.setItem("currentUserPages", JSON.stringify(current));
+    safeSetItem("currentUserPages", JSON.stringify(current));
     const email = localStorage.getItem("currentUserEmail");
     fetch("/api/data", {
       method: "POST",
@@ -62,7 +72,7 @@ export function loadSequences(): Sequence[] {
 
 export function saveSequences(sequences: Sequence[]) {
   if (typeof window !== "undefined") {
-    localStorage.setItem("currentUserSequences", JSON.stringify(sequences));
+    safeSetItem("currentUserSequences", JSON.stringify(sequences));
   }
   fetch("/api/data", {
     method: "POST",
@@ -92,8 +102,8 @@ export function loadAccount(): Account | null {
 
 export async function saveAccount(account: Account): Promise<{ success: boolean; account?: Account; error?: string }> {
   if (typeof window !== "undefined") {
-    localStorage.setItem("currentUserAccount", JSON.stringify(account));
-    if (account.email) localStorage.setItem("currentUserEmail", account.email);
+    safeSetItem("currentUserAccount", JSON.stringify(account));
+    if (account.email) safeSetItem("currentUserEmail", account.email);
   }
   try {
     const res = await fetch("/api/data", {
@@ -128,7 +138,7 @@ export function loadIntegrations(): Integration[] {
 
 export function saveIntegrations(integrations: Integration[]) {
   if (typeof window !== "undefined") {
-    localStorage.setItem("currentUserIntegrations", JSON.stringify(integrations));
+    safeSetItem("currentUserIntegrations", JSON.stringify(integrations));
   }
   fetch("/api/data", {
     method: "POST",
@@ -154,7 +164,7 @@ export function loadLeads(): Lead[] {
 
 export function saveLeads(leads: Lead[]) {
   if (typeof window !== "undefined") {
-    localStorage.setItem("currentUserLeads", JSON.stringify(leads));
+    safeSetItem("currentUserLeads", JSON.stringify(leads));
   }
   fetch("/api/data", {
     method: "POST",
@@ -177,7 +187,7 @@ export function loadResources(): any[] {
 
 export function saveResources(resources: any[]) {
   if (typeof window !== "undefined") {
-    localStorage.setItem("currentUserResources", JSON.stringify(resources));
+    safeSetItem("currentUserResources", JSON.stringify(resources));
   }
   fetch("/api/data", {
     method: "POST",
@@ -202,17 +212,17 @@ export async function syncWithDatabase(): Promise<{
     if (!res.ok) return null;
     const data = await res.json();
     if (data && typeof window !== "undefined") {
-      if (data.account) localStorage.setItem("currentUserAccount", JSON.stringify(data.account));
+      if (data.account) safeSetItem("currentUserAccount", JSON.stringify(data.account));
 
       if (data.pages && Array.isArray(data.pages)) {
-        localStorage.setItem("currentUserPages", JSON.stringify(data.pages));
+        safeSetItem("currentUserPages", JSON.stringify(data.pages));
       }
 
-      if (data.sequences) localStorage.setItem("currentUserSequences", JSON.stringify(data.sequences));
-      if (data.leads) localStorage.setItem("currentUserLeads", JSON.stringify(data.leads));
-      if (data.integrations) localStorage.setItem("currentUserIntegrations", JSON.stringify(data.integrations));
-      if (data.resources) localStorage.setItem("currentUserResources", JSON.stringify(data.resources));
-      if (data.account?.email) localStorage.setItem("currentUserEmail", data.account.email);
+      if (data.sequences) safeSetItem("currentUserSequences", JSON.stringify(data.sequences));
+      if (data.leads) safeSetItem("currentUserLeads", JSON.stringify(data.leads));
+      if (data.integrations) safeSetItem("currentUserIntegrations", JSON.stringify(data.integrations));
+      if (data.resources) safeSetItem("currentUserResources", JSON.stringify(data.resources));
+      if (data.account?.email) safeSetItem("currentUserEmail", data.account.email);
     }
     return data;
   } catch (error) {

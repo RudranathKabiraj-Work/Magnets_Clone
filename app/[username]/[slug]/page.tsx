@@ -163,14 +163,14 @@ export default async function MagnetPageRoute({
 
               <div className="space-y-4 pt-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
-                  This playbook breaks down:
+                  {page.pitch || "This playbook breaks down:"}
                 </p>
                 <ul className="space-y-4">
-                  {[
+                  {(page.bullets && page.bullets.length > 0 ? page.bullets : [
                     "101 fill-in-the-blank templates for every content scenario",
                     "Proven structures for storytelling, advice, and transformation posts",
                     "Ready-to-use formats that let you focus on your message"
-                  ].map((line, idx) => (
+                  ]).map((line, idx) => (
                     <li key={idx} className="flex items-start gap-2.5 text-sm">
                       <span
                         className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 shadow-sm transition-all duration-300"

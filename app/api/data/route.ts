@@ -37,7 +37,9 @@ export async function GET(req: Request) {
     const pageFilter = normEmail ? { userEmail: normEmail } : {};
     let pages = await MagnetPageModel.find(pageFilter).lean();
 
-    const resourceFilter = normEmail ? { userEmail: normEmail } : {};
+    const resourceFilter = normEmail
+      ? { $or: [{ userEmail: normEmail }, { userEmail: { $exists: false } }, { userEmail: null }] }
+      : {};
 
     const [leads, sequences, integrations, resources] = await Promise.all([
       LeadModel.find().lean(),
@@ -111,27 +113,31 @@ export async function POST(req: Request) {
 
     if (action === "saveAccount") {
       let account;
-      const normalizedEmail = data.email.trim().toLowerCase();
-      data.email = normalizedEmail; // ensure we save lowercase
-      const existing = await AccountModel.findOne({ email: normalizedEmail });
+      const normalizedEmail = data.email ? data.email.trim().toLowerCase() : "";
+      if (normalizedEmail) {
+        data.email = normalizedEmail;
+      }
+      let existing = normalizedEmail ? await AccountModel.findOne({ email: normalizedEmail }) : null;
+      if (!existing && data.id) {
+        existing = await AccountModel.findOne({ id: data.id });
+      }
+      if (!existing) {
+        existing = await AccountModel.findOne();
+      }
+
       if (existing) {
-        if (data.isNewAccount) {
-          return NextResponse.json({ error: "Account already exists for that email." }, { status: 400 });
-        }
-        // If this is a registration, it shouldn't overwrite. But since we don't have isNew, we can rely on checkEmail or add a check.
-        // Actually, we'll just allow update for now as before, but with the correct normalized email.
-        existing.name = data.name;
-        existing.username = data.username;
-        existing.brandColor = data.brandColor;
+        existing.name = data.name || existing.name;
+        existing.username = data.username || existing.username;
+        existing.brandColor = data.brandColor || existing.brandColor;
         existing.logo = data.logo;
-        existing.themeMode = data.themeMode;
-        existing.highlightIntensity = data.highlightIntensity;
+        existing.themeMode = data.themeMode || existing.themeMode;
+        existing.highlightIntensity = data.highlightIntensity ?? existing.highlightIntensity;
         if (data.password) {
           existing.password = data.password;
         }
         account = await existing.save();
       } else {
-        let username = data.username;
+        let username = data.username || "user";
         let count = 0;
         let uniqueUsername = username;
         while (await AccountModel.findOne({ username: uniqueUsername })) {
