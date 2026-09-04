@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import AuthShell from "@/components/auth-shell";
 import Button from "@/components/ui/button";
 import Input, { FieldLabel } from "@/components/ui/input";
 import { CheckCircle2, Loader2, KeyRound } from "lucide-react";
-
 import PasswordInputWithStrength from "@/components/ui/password-input-with-strength";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const router = useRouter();
@@ -159,5 +158,21 @@ export default function ResetPasswordPage() {
         )}
       </Button>
     </AuthShell>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthShell title="Loading..." subtitle="Please wait while we load the page.">
+          <div className="flex justify-center p-6">
+            <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
+          </div>
+        </AuthShell>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

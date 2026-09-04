@@ -44,6 +44,19 @@ export default function DashboardShell({
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
 
+  const openGmailCompose = (type: "bug" | "feature") => {
+    const email = "support@magnets.com";
+    const subject = type === "bug" ? "[Bug Report] Issue on Magnets" : "[Feature Request] Suggestion for Magnets";
+    const body = type === "bug"
+      ? `Hi Support Team,\n\nI encountered the following issue on ${typeof window !== "undefined" ? window.location.href : ""}:\n\n1. What happened:\n2. Expected behavior:\n`
+      : `Hi Support Team,\n\nI would like to request the following feature:\n\n`;
+
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    if (typeof window !== "undefined") {
+      window.open(gmailUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   const [mounted, setMounted] = useState(false);
   const [navigatingTarget, setNavigatingTarget] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -305,16 +318,12 @@ export default function DashboardShell({
                   onMouseDown={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setFeedbackModal("bug");
-                    setFeedbackText("");
-                    setFeedbackSent(false);
                     setShowProfileMenu(false);
+                    openGmailCompose("bug");
                   }}
                   onClick={() => {
-                    setFeedbackModal("bug");
-                    setFeedbackText("");
-                    setFeedbackSent(false);
                     setShowProfileMenu(false);
+                    openGmailCompose("bug");
                   }}
                   className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
                 >
@@ -325,16 +334,12 @@ export default function DashboardShell({
                   onMouseDown={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setFeedbackModal("feature");
-                    setFeedbackText("");
-                    setFeedbackSent(false);
                     setShowProfileMenu(false);
+                    openGmailCompose("feature");
                   }}
                   onClick={() => {
-                    setFeedbackModal("feature");
-                    setFeedbackText("");
-                    setFeedbackSent(false);
                     setShowProfileMenu(false);
+                    openGmailCompose("feature");
                   }}
                   className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
                 >
@@ -484,10 +489,8 @@ export default function DashboardShell({
                   <button
                     type="button"
                     onClick={() => {
-                      setFeedbackModal("bug");
-                      setFeedbackText("");
-                      setFeedbackSent(false);
                       setShowProfileMenu(false);
+                      openGmailCompose("bug");
                     }}
                     className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
                   >
@@ -496,10 +499,8 @@ export default function DashboardShell({
                   <button
                     type="button"
                     onClick={() => {
-                      setFeedbackModal("feature");
-                      setFeedbackText("");
-                      setFeedbackSent(false);
                       setShowProfileMenu(false);
+                      openGmailCompose("feature");
                     }}
                     className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
                   >
