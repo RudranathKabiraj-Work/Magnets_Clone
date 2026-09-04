@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { Users, Mail, Download, Search, Plus, Upload, ChevronDown, Filter, Trash2 } from "lucide-react";
-import { syncWithDatabase, loadLeads, loadAccount, saveLeads } from "@/lib/store";
+import { syncWithDatabase, loadLeads, loadAccount, saveLeads, deleteLead } from "@/lib/store";
 import type { Account, Lead } from "@/lib/data";
 
 export default function SignupsPage() {
@@ -20,7 +20,7 @@ export default function SignupsPage() {
     if (!confirm("Are you sure you want to delete this signup?")) return;
     const updated = leads.filter((l) => l.id !== leadId);
     setLeads(updated);
-    saveLeads(updated);
+    deleteLead(leadId);
     if (selectedLead?.id === leadId) {
       setSelectedLead(null);
     }
@@ -344,7 +344,7 @@ export default function SignupsPage() {
                 </div>
 
                 <div className="flex justify-between py-2 border-b border-zinc-100 dark:border-white/5">
-                  <span className="text-zinc-500 dark:text-[#9B9085]">First Signup Date</span>
+                  <span className="text-zinc-500 dark:text-[#9B9085]">Signup Date & Time</span>
                   <span className="font-semibold text-zinc-900 dark:text-white">{selectedLead.signedUpAt}</span>
                 </div>
 

@@ -31,7 +31,7 @@ export function loadPages(): MagnetPage[] {
     if (cached) {
       try {
         return JSON.parse(cached);
-      } catch (e) {}
+      } catch (e) { }
     }
   }
   return [];
@@ -74,7 +74,7 @@ export function loadSequences(): Sequence[] {
     if (cached) {
       try {
         return JSON.parse(cached);
-      } catch (e) {}
+      } catch (e) { }
     }
     return seedSequences;
   }
@@ -135,7 +135,7 @@ export function loadAccount(): Account | null {
         if (parsed) {
           return { ...parsed, email: email.trim() };
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     return null;
   }
@@ -171,7 +171,7 @@ export function loadIntegrations(): Integration[] {
     if (cached) {
       try {
         return JSON.parse(cached);
-      } catch (e) {}
+      } catch (e) { }
     }
     return seedIntegrations;
   }
@@ -197,7 +197,7 @@ export function loadLeads(): Lead[] {
     if (cached) {
       try {
         return JSON.parse(cached);
-      } catch (e) {}
+      } catch (e) { }
     }
     return seedLeads;
   }
@@ -216,13 +216,26 @@ export function saveLeads(leads: Lead[]) {
   }).catch(console.error);
 }
 
+export function deleteLead(leadId: string) {
+  const email = typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null;
+  if (typeof window !== "undefined") {
+    const current = loadLeads().filter((l) => l.id !== leadId);
+    safeSetItem("currentUserLeads", JSON.stringify(current));
+  }
+  fetch("/api/data", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "deleteLead", data: { id: leadId }, email }),
+  }).catch(console.error);
+}
+
 export function loadResources(): any[] {
   if (typeof window !== "undefined") {
     const cached = localStorage.getItem("currentUserResources");
     if (cached) {
       try {
         return JSON.parse(cached);
-      } catch (e) {}
+      } catch (e) { }
     }
   }
   return [];

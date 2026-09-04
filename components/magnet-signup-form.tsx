@@ -79,7 +79,7 @@ export default function MagnetSignupForm({
         userEmail: pageOwnerEmail || "",
         status: "new",
         source: "leadmagnets",
-        signedUpAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+        signedUpAt: `${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} at ${new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}`,
         tags: enableAiPersonalizedDeliverable ? ["ai-personalized"] : [],
         customAnswer: customAnswer.trim(),
       };
@@ -127,7 +127,8 @@ export default function MagnetSignupForm({
         } catch (_) {}
 
         // Fallback fetch from database
-        fetch("/api/data")
+        const fetchUrl = pageOwnerEmail ? `/api/data?email=${encodeURIComponent(pageOwnerEmail)}` : "/api/data";
+        fetch(fetchUrl)
           .then((r) => r.json())
           .then((data) => {
             if (data && data.resources && data.resources.length > 0) {

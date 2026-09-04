@@ -10,11 +10,22 @@ export async function GET(req: Request) {
     const email = searchParams.get("email");
     const normEmail = email ? email.trim().toLowerCase() : null;
 
-    const pageFilter = normEmail ? { userEmail: normEmail } : {};
-    const userFilter = normEmail ? { userEmail: normEmail } : {};
+    if (!normEmail) {
+      return NextResponse.json({
+        account: null,
+        pages: [],
+        leads: [],
+        sequences: [],
+        integrations: [],
+        resources: [],
+      });
+    }
+
+    const pageFilter = { userEmail: normEmail };
+    const userFilter = { userEmail: normEmail };
 
     const [account, pages, leads, sequences, integrations, resources] = await Promise.all([
-      normEmail ? AccountModel.findOne({ email: normEmail }).lean() : AccountModel.findOne().lean(),
+      AccountModel.findOne({ email: normEmail }).lean(),
       MagnetPageModel.find(pageFilter).lean(),
       LeadModel.find(userFilter).lean(),
       SequenceModel.find(userFilter).lean(),
@@ -23,7 +34,7 @@ export async function GET(req: Request) {
     ]);
 
     let finalLeads = leads;
-    if (normEmail && pages.length > 0) {
+    if (pages.length > 0) {
       const pageNames = pages.map((p: any) => p.name).filter(Boolean);
       const pageIds = pages.map((p: any) => p.id).filter(Boolean);
       const fallbackLeads = await LeadModel.find({
@@ -36,24 +47,8 @@ export async function GET(req: Request) {
       finalLeads = fallbackLeads;
     }
 
-    let finalAccount = account;
-    if (!finalAccount) {
-      const anyAccount = await AccountModel.findOne();
-      if (!anyAccount) {
-        await AccountModel.create(seedAccount);
-        await LeadModel.insertMany(seedLeads);
-        await SequenceModel.insertMany(seedSequences);
-        await IntegrationModel.insertMany(seedIntegrations);
-      }
-      if (normEmail) {
-        finalAccount = await AccountModel.findOne({ email: normEmail }).lean();
-      } else {
-        finalAccount = await AccountModel.findOne().lean();
-      }
-    }
-
     return NextResponse.json({
-      account: finalAccount,
+      account,
       pages,
       leads: finalLeads,
       sequences,
@@ -211,14 +206,38 @@ export async function POST(req: Request) {
       return NextResponse.json({ account });
     }
 
+    if (action === "deleteLead") {
+      const { id } = data;
+      await LeadModel.deleteOne({ id });
+      return NextResponse.json({ success: true });
+    }
+
     if (action === "saveLeads") {
-      const filter = normEmail ? { userEmail: normEmail } : {};
-      await LeadModel.deleteMany(filter);
+      let pageNames: string[] = [];
+      let pageIds: string[] = [];
+      if (normEmail) {
+        const userPages = await MagnetPageModel.find({ userEmail: normEmail }).lean();
+        pageNames = userPages.map((p: any) => p.name).filter(Boolean);
+        pageIds = userPages.map((p: any) => p.id).filter(Boolean);
+      }
+      const deleteFilter = normEmail
+        ? {
+            $or: [
+              { userEmail: normEmail },
+              ...(pageIds.length > 0 ? [{ pageId: { $in: pageIds } }] : []),
+              ...(pageNames.length > 0 ? [{ page: { $in: pageNames } }] : []),
+            ],
+          }
+        : {};
+      await LeadModel.deleteMany(deleteFilter);
       if (Array.isArray(data) && data.length > 0) {
-        const leadsToInsert = data.map((item: any) => ({
-          ...item,
-          userEmail: normEmail || item.userEmail || "",
-        }));
+        const leadsToInsert = data.map((item: any) => {
+          const { _id, ...cleanItem } = item;
+          return {
+            ...cleanItem,
+            userEmail: normEmail || item.userEmail || "",
+          };
+        });
         await LeadModel.insertMany(leadsToInsert);
       }
       return NextResponse.json({ success: true });
@@ -239,7 +258,7 @@ export async function POST(req: Request) {
         }
       }
       await LeadModel.create({ ...data, userEmail: ownerEmail || "" });
-      
+
       // Also increment the signup count on the corresponding magnet page
       if (data.pageId) {
         const page = await MagnetPageModel.findOne({ id: data.pageId });
