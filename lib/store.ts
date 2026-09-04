@@ -137,7 +137,7 @@ export function loadAccount(): Account | null {
         }
       } catch (e) {}
     }
-    return { ...seedAccount, email: email.trim() };
+    return null;
   }
   return null;
 }
@@ -205,13 +205,14 @@ export function loadLeads(): Lead[] {
 }
 
 export function saveLeads(leads: Lead[]) {
+  const email = typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null;
   if (typeof window !== "undefined") {
     safeSetItem("currentUserLeads", JSON.stringify(leads));
   }
   fetch("/api/data", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "saveLeads", data: leads }),
+    body: JSON.stringify({ action: "saveLeads", data: leads, email }),
   }).catch(console.error);
 }
 

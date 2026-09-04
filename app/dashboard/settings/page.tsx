@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { User, KeyRound, AlertTriangle, Check, Trash2, BarChart3, Database, MailOpen, Zap, HardDrive } from "lucide-react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { saveAccount, syncWithDatabase, loadAccount, loadPages, loadLeads, loadSequences, loadResources } from "@/lib/store";
+import { saveAccount, syncWithDatabase, loadAccount, loadPages, loadLeads, loadSequences, loadResources, safeSetItem } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import type { Account } from "@/lib/data";
 
@@ -105,9 +105,21 @@ export default function AccountSettingsPage() {
     setUpdatingName(true);
     const updatedAccount = { ...account, name: name.trim() };
     try {
-      await saveAccount(updatedAccount);
-      setAccount(updatedAccount);
+      const res = await saveAccount(updatedAccount);
+      if (res.success && res.account) {
+        setAccount(res.account);
+        safeSetItem("currentUserAccount", JSON.stringify(res.account));
+      } else {
+        setAccount(updatedAccount);
+        safeSetItem("currentUserAccount", JSON.stringify(updatedAccount));
+      }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("accountUpdated"));
+      }
       alert("Name updated successfully!");
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
     } catch (err) {
       console.error(err);
       alert("Failed to update name.");

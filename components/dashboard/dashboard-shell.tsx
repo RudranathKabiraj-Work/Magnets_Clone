@@ -61,8 +61,22 @@ export default function DashboardShell({
       setCurrentAccount(loaded);
     }
 
+    const handleAccountUpdate = () => {
+      const loaded = loadAccount();
+      if (loaded) {
+        setCurrentAccount(loaded);
+      }
+    };
+
     if (typeof window !== "undefined") {
-      if (!isSessionValid()) {
+      window.addEventListener("accountUpdated", handleAccountUpdate);
+      window.addEventListener("storage", handleAccountUpdate);
+    }
+
+    if (typeof window !== "undefined") {
+      const activeEmail = localStorage.getItem("currentUserEmail");
+      const activeAccount = loadAccount();
+      if (!isSessionValid() || !activeEmail || !activeAccount) {
         setIsAuthenticated(false);
         window.location.href = "/login";
         return;
@@ -70,6 +84,13 @@ export default function DashboardShell({
         setIsAuthenticated(true);
       }
     }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("accountUpdated", handleAccountUpdate);
+        window.removeEventListener("storage", handleAccountUpdate);
+      }
+    };
   }, [pathname, router]);
 
   const rawAccount = currentAccount || account;

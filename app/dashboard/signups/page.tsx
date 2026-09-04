@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { Users, Mail, Download, Search, Plus, Upload, ChevronDown, Filter } from "lucide-react";
-import { syncWithDatabase, loadLeads, loadAccount } from "@/lib/store";
+import { Users, Mail, Download, Search, Plus, Upload, ChevronDown, Filter, Trash2 } from "lucide-react";
+import { syncWithDatabase, loadLeads, loadAccount, saveLeads } from "@/lib/store";
 import type { Account, Lead } from "@/lib/data";
 
 export default function SignupsPage() {
@@ -15,6 +15,16 @@ export default function SignupsPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
+
+  const handleDeleteLead = (leadId: string) => {
+    if (!confirm("Are you sure you want to delete this signup?")) return;
+    const updated = leads.filter((l) => l.id !== leadId);
+    setLeads(updated);
+    saveLeads(updated);
+    if (selectedLead?.id === leadId) {
+      setSelectedLead(null);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
@@ -257,12 +267,21 @@ export default function SignupsPage() {
                       <td className="px-5 py-3.5 text-xs text-zinc-600 dark:text-[#9B9085]">1</td>
                       <td className="px-5 py-3.5 text-xs text-zinc-600 dark:text-[#9B9085]">{lead.sequence || "—"}</td>
                       <td className="px-5 py-3.5 text-right">
-                        <button
-                          onClick={() => setSelectedLead(lead)}
-                          className="text-xs text-[#0066B2] dark:text-[#38BDF8] hover:text-[#005799] font-medium transition px-2.5 py-1 rounded-lg hover:bg-[#EFF6FF] dark:hover:bg-[#0066B2]/20 cursor-pointer"
-                        >
-                          View
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => setSelectedLead(lead)}
+                            className="text-xs text-[#0066B2] dark:text-[#38BDF8] hover:text-[#005799] font-medium transition px-2.5 py-1 rounded-lg hover:bg-[#EFF6FF] dark:hover:bg-[#0066B2]/20 cursor-pointer"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleDeleteLead(lead.id)}
+                            title="Delete signup"
+                            className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -344,10 +363,17 @@ export default function SignupsPage() {
                 )}
               </div>
 
-              <div className="pt-4 border-t border-zinc-100 dark:border-white/10 flex justify-end">
+              <div className="pt-4 border-t border-zinc-100 dark:border-white/10 flex justify-between items-center">
+                <button
+                  onClick={() => handleDeleteLead(selectedLead.id)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete signup
+                </button>
                 <button
                   onClick={() => setSelectedLead(null)}
-                  className="px-4 py-2 rounded-xl bg-[#0066B2] text-xs font-semibold text-white hover:bg-[#005799] transition"
+                  className="px-4 py-2 rounded-xl bg-[#0066B2] text-xs font-semibold text-white hover:bg-[#005799] transition cursor-pointer"
                 >
                   Close
                 </button>

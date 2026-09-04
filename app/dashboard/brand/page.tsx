@@ -52,10 +52,10 @@ export default function BrandPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    const currentUserEmail = (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null) || account?.email || "rudranath@bda.co.in";
+    const currentUserEmail = (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null) || account?.email || "";
 
     const updatedAccount: Account = {
-      ...(account || { username: "rudranathkabira", plan: "Free" as const, joinedAt: "Just now" }),
+      ...(account || { email: currentUserEmail, name: businessName.trim(), username: "user", plan: "Free" as const, joinedAt: "Just now" }),
       email: currentUserEmail,
       name: businessName.trim(),
       brandColor: brandColor.trim(),

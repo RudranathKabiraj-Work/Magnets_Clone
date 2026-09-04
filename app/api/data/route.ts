@@ -156,7 +156,13 @@ export async function POST(req: Request) {
       if (dbPassword !== password) {
         return NextResponse.json({ error: "Incorrect password." }, { status: 400 });
       }
-      await AccountModel.deleteOne({ email: email.trim().toLowerCase() });
+      const normDelEmail = email.trim().toLowerCase();
+      await AccountModel.deleteOne({ email: normDelEmail });
+      await MagnetPageModel.deleteMany({ userEmail: normDelEmail });
+      await LeadModel.deleteMany({ userEmail: normDelEmail });
+      await SequenceModel.deleteMany({ userEmail: normDelEmail });
+      await IntegrationModel.deleteMany({ userEmail: normDelEmail });
+      await ResourceModel.deleteMany({ userEmail: normDelEmail });
       return NextResponse.json({ success: true });
     }
 

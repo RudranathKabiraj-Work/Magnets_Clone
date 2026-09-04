@@ -788,7 +788,7 @@ export default function EditLeadMagnetPage() {
 
                 {/* Copy Link / Open Preview */}
                 <a
-                  href={`/${account?.username || "rudranathkabira"}/${page.slug}`}
+                  href={`/${account?.username || "user"}/${page.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-[#0066B2] dark:hover:text-white hover:bg-[#EFF6FF] dark:hover:bg-zinc-100 transition cursor-pointer"
