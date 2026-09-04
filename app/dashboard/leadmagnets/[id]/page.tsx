@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, useRef, useCallback } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { type MagnetPage } from "@/lib/data";
+import { type MagnetPage, type Account } from "@/lib/data";
 import { loadPages, savePages, deletePage, loadAccount, loadResources, syncWithDatabase } from "@/lib/store";
 import AIMagnetModal from "@/components/leadmagnets/ai-magnet-modal";
 import SocialCardModal from "@/components/leadmagnets/social-card-modal";

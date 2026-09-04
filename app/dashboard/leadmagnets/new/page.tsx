@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import Button from "@/components/ui/button";
 import Input, { FieldLabel } from "@/components/ui/input";
-import { type MagnetPage, type Sequence } from "@/lib/data";
+import { type MagnetPage, type Sequence, type Account } from "@/lib/data";
 import { loadPages, savePages, loadSequences, saveSequences, loadAccount, syncWithDatabase } from "@/lib/store";
 import AIMagnetModal from "@/components/leadmagnets/ai-magnet-modal";
 

@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
 import type { Account } from "@/lib/data";
+import { isSessionValid, loadAccount } from "@/lib/store";
 
 const mobileNav = [
   { href: "/dashboard/leadmagnets", label: "Lead magnets", icon: FileText },
@@ -27,7 +28,7 @@ export default function DashboardShell({
   title: string;
   children: React.ReactNode;
 }) {
-  const displayAccount = account || { name: "User", email: "", plan: "Free", brandColor: "#0066B2" };
+  const [currentAccount, setCurrentAccount] = useState<Account | null>(account || null);
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -39,14 +40,13 @@ export default function DashboardShell({
   const [showCreateMagnetModal, setShowCreateMagnetModal] = useState(false);
   const [createMagnetName, setCreateMagnetName] = useState("");
 
+  const [feedbackModal, setFeedbackModal] = useState<"bug" | "feature" | null>(null);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSent, setFeedbackSent] = useState(false);
+
   const [mounted, setMounted] = useState(false);
   const [navigatingTarget, setNavigatingTarget] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
-    if (typeof window !== "undefined") {
-      return !!localStorage.getItem("currentUserEmail");
-    }
-    return null;
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
     setNavigatingTarget(null);
@@ -56,9 +56,13 @@ export default function DashboardShell({
     setMounted(true);
     setDark(typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
 
+    const loaded = loadAccount();
+    if (loaded) {
+      setCurrentAccount(loaded);
+    }
+
     if (typeof window !== "undefined") {
-      const email = localStorage.getItem("currentUserEmail");
-      if (!email) {
+      if (!isSessionValid()) {
         setIsAuthenticated(false);
         window.location.href = "/login";
         return;
@@ -67,6 +71,15 @@ export default function DashboardShell({
       }
     }
   }, [pathname, router]);
+
+  const rawAccount = currentAccount || account;
+  const activeEmail = (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null) || rawAccount?.email || "";
+  const displayAccount = {
+    name: rawAccount?.name || "User",
+    email: activeEmail,
+    plan: rawAccount?.plan || "Free",
+    brandColor: rawAccount?.brandColor || "#0066B2",
+  };
 
   if (mounted && isAuthenticated === false) {
     return null;
@@ -178,21 +191,21 @@ export default function DashboardShell({
 
       {/* Click outside to close profile menu */}
       {showProfileMenu && (
-        <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
+        <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setShowProfileMenu(false)} />
       )}
 
-      <aside className="shadow-sm hidden h-screen w-[14.5rem] shrink-0 flex-col border-r border-[#E0EDFB] bg-[#F0F7FF] text-zinc-900 sticky top-0 md:flex z-40 dark:border-white/10 dark:bg-[#18181B] dark:text-[#9B9085]">
-        <div className="flex h-12 shrink-0 items-center border-b border-[#E0EDFB] px-4 dark:border-white/10">
-          <Link href="/dashboard/setup" aria-label="Workspace setup">
-            <BrandLogo height="h-6" />
+      <aside className="shadow-sm hidden h-screen w-[14.5rem] shrink-0 flex-col border-r border-[#E0EDFB] bg-[#F0F7FF] text-zinc-900 sticky top-0 md:flex z-50 dark:border-white/10 dark:bg-[#18181B] dark:text-[#9B9085]">
+        <div className="flex shrink-0 items-center border-b border-[#E0EDFB] px-3.5 py-2.5 dark:border-white/10">
+          <Link href="/dashboard/setup" aria-label="Workspace setup" className="flex items-center">
+            <BrandLogo height="h-9" />
           </Link>
         </div>
-        <nav className="mt-4 flex-1 space-y-1.5 px-3" aria-label="Dashboard">
+        <nav className="mt-3 flex-1 space-y-1 px-3.5" aria-label="Dashboard">
           {mobileNav.map((item, idx) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             const isDividerAfter = idx === 2; // Divider after Signups
 
-            const linkClass = `group flex items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition ${active
+            const linkClass = `group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition ${active
               ? "bg-[#0066B2] text-white font-bold shadow-xs dark:bg-[#0066B2]/15 dark:text-white"
               : "text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#25252a] dark:hover:text-white"
               }`;
@@ -202,12 +215,12 @@ export default function DashboardShell({
                 <div key={item.href}>
                   <button
                     onClick={() => setShowHelp(true)}
-                    className="group flex w-full items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#25252a] dark:hover:text-white"
+                    className="group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#25252a] dark:hover:text-white"
                   >
                     <item.icon className={`h-4 w-4 shrink-0 transition-all duration-200 group-hover:scale-115 group-hover:-translate-y-0.5 ${active ? "text-white dark:text-white" : "text-zinc-500 group-hover:text-zinc-900 dark:text-[#9B9085] dark:group-hover:text-white"}`} aria-hidden="true" />
                     {item.label}
                   </button>
-                  {isDividerAfter && <div className="my-3 border-t border-[#E0EDFB] dark:border-white/10" />}
+                  {isDividerAfter && <div className="my-2.5 border-t border-[#E0EDFB] dark:border-white/10" />}
                 </div>
               );
             }
@@ -229,48 +242,97 @@ export default function DashboardShell({
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-current opacity-80" />
                   )}
                 </Link>
-                {isDividerAfter && <div className="my-3 border-t border-[#E0EDFB] dark:border-white/10" />}
+                {isDividerAfter && <div className="my-2.5 border-t border-[#E0EDFB] dark:border-white/10" />}
               </div>
             );
           })}
         </nav>
-        <div className="border-t border-[#E0EDFB] px-2.5 py-2 dark:border-white/10">
+        <div className="border-t border-[#E0EDFB] px-3.5 py-2.5 dark:border-white/10">
           <div className="relative">
             {/* Profile Popover Menu */}
             {showProfileMenu && (
-              <div className="absolute bottom-full mb-2 left-0 w-52 rounded-xl border border-[#E0EDFB] bg-white p-1.5 shadow-2xl z-50 text-zinc-900 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150 dark:border-[#0066B2]/40 dark:bg-[#121824] dark:text-white">
+              <div
+                className="absolute bottom-full mb-2 left-0 w-52 rounded-xl border border-[#E0EDFB] bg-white p-1.5 shadow-2xl z-[70] text-zinc-900 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150 dark:border-zinc-800 dark:bg-[#191919] dark:text-white"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
-                  onClick={toggleTheme}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-zinc-700 hover:bg-[#EFF6FF] hover:text-[#0066B2] transition w-full dark:text-zinc-200 dark:hover:bg-[#0066B2]/20 dark:hover:text-[#38BDF8]"
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleTheme();
+                    setShowProfileMenu(false);
+                  }}
+                  onClick={() => {
+                    toggleTheme();
+                    setShowProfileMenu(false);
+                  }}
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
                 >
                   {dark ? (
                     <>
-                      <Sun className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" /> Light mode
+                      <Sun className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Light mode
                     </>
                   ) : (
                     <>
-                      <Moon className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" /> Dark mode
+                      <Moon className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Dark mode
                     </>
                   )}
                 </button>
-                <a
-                  href="mailto:hello@leadmagnets.so?subject=Bug%20Report"
-                  onClick={() => setShowProfileMenu(false)}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-zinc-700 hover:bg-[#EFF6FF] hover:text-[#0066B2] transition w-full dark:text-zinc-200 dark:hover:bg-[#0066B2]/20 dark:hover:text-[#38BDF8]"
-                >
-                  <Bug className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" /> Report a bug
-                </a>
-                <a
-                  href="mailto:hello@leadmagnets.so?subject=Feature%20Request"
-                  onClick={() => setShowProfileMenu(false)}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-zinc-700 hover:bg-[#EFF6FF] hover:text-[#0066B2] transition w-full dark:text-zinc-200 dark:hover:bg-[#0066B2]/20 dark:hover:text-[#38BDF8]"
-                >
-                  <Sparkles className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" /> Request a feature
-                </a>
-                <div className="my-1 border-t border-zinc-100 dark:border-white/10" />
                 <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 transition w-full dark:text-rose-400 dark:hover:bg-rose-950/30"
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setFeedbackModal("bug");
+                    setFeedbackText("");
+                    setFeedbackSent(false);
+                    setShowProfileMenu(false);
+                  }}
+                  onClick={() => {
+                    setFeedbackModal("bug");
+                    setFeedbackText("");
+                    setFeedbackSent(false);
+                    setShowProfileMenu(false);
+                  }}
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                >
+                  <Bug className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Report a bug
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setFeedbackModal("feature");
+                    setFeedbackText("");
+                    setFeedbackSent(false);
+                    setShowProfileMenu(false);
+                  }}
+                  onClick={() => {
+                    setFeedbackModal("feature");
+                    setFeedbackText("");
+                    setFeedbackSent(false);
+                    setShowProfileMenu(false);
+                  }}
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                >
+                  <Sparkles className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Request a feature
+                </button>
+                <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowProfileMenu(false);
+                    handleLogout();
+                  }}
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 transition w-full dark:text-rose-400 dark:hover:bg-rose-950/30 cursor-pointer"
                 >
                   <LogOut className="h-4 w-4 text-rose-500" /> Sign out
                 </button>
@@ -303,7 +365,7 @@ export default function DashboardShell({
           >
             <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
               <Link href="/dashboard/setup" aria-label="Workspace setup" onClick={() => setMenuOpen(false)}>
-                <BrandLogo height="h-6" />
+                <BrandLogo height="h-9" />
               </Link>
               <button
                 aria-label="Close menu"
@@ -380,41 +442,57 @@ export default function DashboardShell({
                 {displayAccount.name.charAt(0).toUpperCase()}
               </button>
               {showProfileMenu && (
-                <div className="absolute right-0 top-10 w-52 rounded-xl border border-[#2e2e38] bg-[#1a1a1e] p-1.5 shadow-2xl z-50 text-white flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute right-0 top-10 w-52 rounded-xl border border-[#E0EDFB] bg-white p-1.5 shadow-2xl z-50 text-zinc-900 flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-2 duration-150 dark:border-zinc-800 dark:bg-[#191919] dark:text-white">
                   <button
-                    onClick={toggleTheme}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#26262B] hover:text-white transition w-full"
+                    onClick={() => {
+                      toggleTheme();
+                      setShowProfileMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
                   >
                     {dark ? (
                       <>
-                        <Sun className="h-4 w-4 text-[#9B9085]" /> Light mode
+                        <Sun className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Light mode
                       </>
                     ) : (
                       <>
-                        <Moon className="h-4 w-4 text-[#9B9085]" /> Dark mode
+                        <Moon className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Dark mode
                       </>
                     )}
                   </button>
-                  <a
-                    href="mailto:hello@leadmagnets.so?subject=Bug%20Report"
-                    onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#26262B] hover:text-white transition w-full"
-                  >
-                    <Bug className="h-4 w-4 text-[#9B9085]" /> Report a bug
-                  </a>
-                  <a
-                    href="mailto:hello@leadmagnets.so?subject=Feature%20Request"
-                    onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold hover:bg-[#26262B] hover:text-white transition w-full"
-                  >
-                    <Lightbulb className="h-4 w-4 text-[#9B9085]" /> Request a feature
-                  </a>
-                  <div className="border-t border-white/10 my-1" />
                   <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-[#26262B] transition w-full"
+                    type="button"
+                    onClick={() => {
+                      setFeedbackModal("bug");
+                      setFeedbackText("");
+                      setFeedbackSent(false);
+                      setShowProfileMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
                   >
-                    <LogOut className="h-4 w-4 text-red-400" /> Logout
+                    <Bug className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Report a bug
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFeedbackModal("feature");
+                      setFeedbackText("");
+                      setFeedbackSent(false);
+                      setShowProfileMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                  >
+                    <Sparkles className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Request a feature
+                  </button>
+                  <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setShowProfileMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 transition w-full dark:text-rose-400 dark:hover:bg-rose-950/30"
+                  >
+                    <LogOut className="h-4 w-4 text-rose-500" /> Sign out
                   </button>
                 </div>
               )}
@@ -2978,6 +3056,99 @@ export default function DashboardShell({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* In-App Feedback / Bug Report / Feature Request Modal */}
+      {feedbackModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-[#18181B] dark:text-white">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2 font-bold text-sm text-zinc-900 dark:text-white">
+                {feedbackModal === "bug" ? (
+                  <>
+                    <Bug className="h-4.5 w-4.5 text-rose-500" />
+                    <span>Report a Bug</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4.5 w-4.5 text-[#0066B2]" />
+                    <span>Request a Feature</span>
+                  </>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setFeedbackModal(null)}
+                className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-white transition cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {feedbackSent ? (
+              <div className="py-8 flex flex-col items-center justify-center text-center space-y-3">
+                <CheckCircle2 className="h-10 w-10 text-emerald-500 animate-bounce" />
+                <h4 className="text-sm font-bold text-zinc-900 dark:text-white">Thank you for your feedback!</h4>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs">
+                  {feedbackModal === "bug"
+                    ? "Our engineering team has received your bug report and will investigate."
+                    : "We've added your feature suggestion to our product roadmap."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setFeedbackModal(null)}
+                  className="mt-2 rounded-xl bg-[#0066B2] px-5 py-2 text-xs font-bold text-white hover:bg-[#005799] transition cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!feedbackText.trim()) return;
+                  setFeedbackSent(true);
+                }}
+                className="mt-4 space-y-4"
+              >
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                    {feedbackModal === "bug" ? "What issue did you encounter?" : "What feature would you like to see?"}
+                  </label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                    placeholder={
+                      feedbackModal === "bug"
+                        ? "Please describe what happened, expected behavior, or steps to reproduce..."
+                        : "Describe the feature or workflow improvement you'd love..."
+                    }
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-[#121214] p-3 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] transition placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setFeedbackModal(null)}
+                    className="rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800 px-4 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!feedbackText.trim()}
+                    className="rounded-xl bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005799] disabled:opacity-50 disabled:cursor-not-allowed transition cursor-pointer shadow-sm"
+                  >
+                    Submit Feedback
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

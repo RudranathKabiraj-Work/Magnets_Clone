@@ -96,17 +96,48 @@ export function resetSequences() {
   saveSequences(seedSequences);
 }
 
+export function setSessionExpiry(days = 7) {
+  if (typeof window !== "undefined") {
+    const expiryTime = Date.now() + days * 24 * 60 * 60 * 1000;
+    safeSetItem("sessionExpiry", String(expiryTime));
+  }
+}
+
+export function isSessionValid(): boolean {
+  if (typeof window === "undefined") return false;
+  const email = localStorage.getItem("currentUserEmail");
+  if (!email) return false;
+
+  const expiry = localStorage.getItem("sessionExpiry");
+  if (expiry) {
+    const expiryTime = parseInt(expiry, 10);
+    if (!isNaN(expiryTime) && Date.now() > expiryTime) {
+      // 7-day session expired! Clear local browser session keys ONLY.
+      // NOTE: Database user data remains 100% safe & untouched in MongoDB.
+      localStorage.removeItem("currentUserEmail");
+      localStorage.removeItem("currentUserAccount");
+      localStorage.removeItem("sessionExpiry");
+      return false;
+    }
+  }
+  return true;
+}
+
 export function loadAccount(): Account | null {
   if (typeof window !== "undefined") {
+    if (!isSessionValid()) return null;
     const email = localStorage.getItem("currentUserEmail");
     if (!email) return null;
     const cached = localStorage.getItem("currentUserAccount");
     if (cached) {
       try {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        if (parsed) {
+          return { ...parsed, email: email.trim() };
+        }
       } catch (e) {}
     }
-    return seedAccount;
+    return { ...seedAccount, email: email.trim() };
   }
   return null;
 }
@@ -223,7 +254,12 @@ export async function syncWithDatabase(): Promise<{
     if (!res.ok) return null;
     const data = await res.json();
     if (data && typeof window !== "undefined") {
-      if (data.account) safeSetItem("currentUserAccount", JSON.stringify(data.account));
+      if (data.account && data.account.email) {
+        if (data.account.email.toLowerCase() === email.toLowerCase()) {
+          safeSetItem("currentUserAccount", JSON.stringify(data.account));
+          safeSetItem("currentUserEmail", data.account.email);
+        }
+      }
 
       if (data.pages && Array.isArray(data.pages)) {
         safeSetItem("currentUserPages", JSON.stringify(data.pages));
@@ -233,7 +269,6 @@ export async function syncWithDatabase(): Promise<{
       if (data.leads) safeSetItem("currentUserLeads", JSON.stringify(data.leads));
       if (data.integrations) safeSetItem("currentUserIntegrations", JSON.stringify(data.integrations));
       if (data.resources) safeSetItem("currentUserResources", JSON.stringify(data.resources));
-      if (data.account?.email) safeSetItem("currentUserEmail", data.account.email);
     }
     return data;
   } catch (error) {

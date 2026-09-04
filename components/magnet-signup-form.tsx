@@ -90,6 +90,27 @@ export default function MagnetSignupForm({
       if (res.ok) {
         setDone(true);
 
+        // Update local storage pages signups counter & leads cache instantly
+        try {
+          const cachedPages = localStorage.getItem("currentUserPages");
+          if (cachedPages) {
+            const pagesList = JSON.parse(cachedPages);
+            const targetPage = pagesList.find((p: any) => p.id === pageId || p.name === pageName);
+            if (targetPage) {
+              targetPage.signups = (targetPage.signups || 0) + 1;
+              localStorage.setItem("currentUserPages", JSON.stringify(pagesList));
+            }
+          }
+          const cachedLeads = localStorage.getItem("currentUserLeads");
+          if (cachedLeads) {
+            const leadsList = JSON.parse(cachedLeads);
+            leadsList.unshift(newLead);
+            localStorage.setItem("currentUserLeads", JSON.stringify(leadsList));
+          } else {
+            localStorage.setItem("currentUserLeads", JSON.stringify([newLead]));
+          }
+        } catch (_) {}
+
         // First check if an uploaded resource URL is already saved in page data or local storage
         try {
           const cachedResources = localStorage.getItem("currentUserResources");
@@ -122,11 +143,16 @@ export default function MagnetSignupForm({
   return (
     <>
       {done ? (
-        <div className={`rounded-2xl border p-5 text-left transition-colors duration-300 ${themeMode === "dark" ? "bg-[#161619] border-[#252529]" : "bg-brand-soft border-ink-200"
-          }`}>
-          <CheckCircle2 className="h-6 w-6 text-emerald-600" aria-hidden="true" />
-          <p className={`mt-2 text-sm font-semibold ${themeMode === "dark" ? "text-white" : "text-ink-950"}`}>On its way — check {email}</p>
-          <p className={`mt-1 text-xs leading-5 ${themeMode === "dark" ? "text-zinc-400" : "text-ink-600"}`}>
+        <div className={`rounded-2xl border p-5 text-left transition-colors duration-300 ${
+          themeMode === "dark" 
+            ? "bg-[#161619] border-[#252529] text-white" 
+            : "bg-white border-zinc-200 text-zinc-900 shadow-sm"
+        }`}>
+          <CheckCircle2 className="h-6 w-6 text-emerald-500" aria-hidden="true" />
+          <p className={`mt-2 text-sm font-bold ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>
+            On its way — check <span className={`underline decoration-[#0066B2] font-extrabold ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>{email}</span>
+          </p>
+          <p className={`mt-1 text-xs leading-5 font-medium ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-600"}`}>
             Your resource is being delivered right now.
           </p>
 

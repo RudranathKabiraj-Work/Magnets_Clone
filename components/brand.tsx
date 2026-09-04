@@ -1,25 +1,19 @@
 import React from "react";
-import Image from "next/image";
 
-export function MagnetIcon({ className = "w-7 h-7" }: { className?: string }) {
+export function MagnetIcon({ className = "h-7 w-auto" }: { className?: string }) {
   return (
-    <span className={`relative inline-flex shrink-0 items-center justify-center ${className}`}>
-      <Image
+    <span className="inline-flex shrink-0 items-center justify-center">
+      <img
         alt="LeadMagnets"
-        priority
-        decoding="async"
-        fill
-        sizes="80px"
-        className="object-contain"
-        src="/brand/magnets-mark.png"
+        src="/brand/custom-mark.png"
+        className={`${className} object-contain`}
       />
     </span>
   );
 }
 
 export default function BrandLogo({
-  height = "h-8",
-  width,
+  height = "h-11 sm:h-12 lg:h-13",
   className = "",
 }: {
   height?: string;
@@ -27,37 +21,60 @@ export default function BrandLogo({
   className?: string;
 }) {
   return (
-    <span className={`inline-flex shrink-0 items-center gap-2.5 ${height} ${width || ""} ${className}`}>
-      <span className="relative h-full aspect-square shrink-0">
-        <Image
-          alt="LeadMagnets"
-          priority
-          decoding="async"
-          fill
-          sizes="60px"
-          className="object-contain"
-          src="/brand/magnets-mark.png"
-        />
-      </span>
-      <span className="font-bold text-xl tracking-tight text-ink-950 dark:text-white select-none leading-none">
-        Lead<span className="font-medium text-ink-700 dark:text-ink-200">Magnets</span>
-      </span>
+    <span className={`inline-flex shrink-0 items-center ${className}`}>
+      {/* Light mode logo */}
+      <img
+        alt="LeadMagnets"
+        src="/brand/custom-logo-light.png"
+        className={`${height} w-auto object-contain dark:hidden`}
+      />
+
+      {/* Dark mode logo */}
+      <img
+        alt="LeadMagnets"
+        src="/brand/custom-logo.png"
+        className={`${height} w-auto object-contain hidden dark:block`}
+      />
     </span>
   );
 }
 
-export function MagnetsMark({ size = "h-12 w-12" }: { size?: string }) {
+export function MagnetsMark({ size = "h-14 w-14", src = "/brand/custom-mark.png" }: { size?: string; src?: string }) {
   return (
-    <span aria-hidden="true" className={`relative inline-flex shrink-0 items-center justify-center ${size}`}>
-      <Image
+    <span aria-hidden="true" className="inline-flex shrink-0 items-center justify-center">
+      <img
         alt="LeadMagnets"
-        aria-hidden="true"
-        loading="lazy"
-        decoding="async"
-        fill
-        sizes="100px"
-        className="object-contain"
-        src="/brand/magnets-mark.png"
+        src={src}
+        className={`${size} w-auto object-contain`}
+      />
+    </span>
+  );
+}
+
+export function GeminiLogo({
+  size = "h-20 w-auto",
+  className = "",
+  src = "/brand/gemini-logo.png",
+  darkSrc = "/brand/gemini-logo-dark.png",
+}: {
+  size?: string;
+  className?: string;
+  src?: string;
+  darkSrc?: string;
+}) {
+  return (
+    <span aria-hidden="true" className={`inline-flex shrink-0 items-center justify-center ${className}`}>
+      {/* Light mode logo */}
+      <img
+        alt="LeadMagnets Logo"
+        src={src}
+        className={`${size} object-contain filter drop-shadow-md dark:hidden`}
+      />
+      {/* Dark mode logo */}
+      <img
+        alt="LeadMagnets Logo"
+        src={darkSrc}
+        className={`${size} object-contain filter drop-shadow-md hidden dark:block`}
       />
     </span>
   );

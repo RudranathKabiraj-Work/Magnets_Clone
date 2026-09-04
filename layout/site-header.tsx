@@ -4,7 +4,7 @@ import ThemeToggle from "@/components/theme-toggle";
 
 export default function SiteHeader() {
   return (
-    <header className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10">
+    <header className="relative z-20 mx-auto flex h-18 sm:h-22 max-w-7xl items-center justify-between px-5 pt-2 sm:pt-3 sm:px-8 lg:px-10">
       <a aria-label="LeadMagnets home" href="/">
         <BrandLogo />
       </a>

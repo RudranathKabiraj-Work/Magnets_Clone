@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { ArrowRightIcon } from "@/components/icons";
-import BrandLogo, { MagnetsMark } from "@/components/brand";
+import BrandLogo, { GeminiLogo } from "@/components/brand";
+import ThemeToggle from "@/components/theme-toggle";
 
 const cardClass =
-  "space-y-4 rounded-2xl border border-ink-200 bg-white p-6 shadow-form dark:border-white/10 dark:bg-[#18181B]";
+  "space-y-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-[#191919]";
 
 export default function AuthShell({
   title,
@@ -19,25 +20,26 @@ export default function AuthShell({
   onSubmit?: (e: React.FormEvent) => void;
 }) {
   return (
-    <main className="brand-soft-bg relative flex min-h-screen flex-col px-4 py-6 text-ink-900 dark:bg-[#0E0E10] dark:text-white">
-      {/* Top Left Logo Link to Landing Page */}
-      <div className="mx-auto w-full max-w-6xl px-2 sm:px-4 py-2">
+    <main className="relative flex min-h-screen flex-col bg-[#F0F7FF] dark:bg-[#0a0a0a] text-zinc-900 dark:text-white transition-colors duration-300">
+      {/* Top Header Bar matching Landing Page Navbar positioning */}
+      <header className="relative z-20 mx-auto flex h-18 sm:h-22 w-full max-w-7xl items-center justify-between px-5 pt-2 sm:pt-3 sm:px-8 lg:px-10">
         <Link href="/" aria-label="LeadMagnets home" className="inline-flex items-center transition hover:opacity-80">
-          <BrandLogo height="h-8" />
+          <BrandLogo />
         </Link>
-      </div>
+        <ThemeToggle />
+      </header>
 
       <div className="flex flex-1 items-center justify-center py-6">
         <div className="relative w-full max-w-sm">
           <div className="mb-8 flex flex-col items-center gap-4">
-            <MagnetsMark size="h-12 w-12" />
+            <GeminiLogo size="h-14 sm:h-16 w-auto" />
             <div className="text-center">
-              <h1 className="text-2xl font-semibold tracking-normal text-ink-950 dark:text-white">{title}</h1>
-              <p className="mt-1.5 text-sm font-normal text-ink-600 dark:text-zinc-400">{subtitle}</p>
+              <h1 className="text-2xl font-semibold tracking-normal text-zinc-900 dark:text-white">{title}</h1>
+              <p className="mt-1.5 text-sm font-normal text-zinc-600 dark:text-zinc-400">{subtitle}</p>
             </div>
           </div>
           <form className={cardClass} onSubmit={onSubmit}>{children}</form>
-          {footer && <p className="mt-6 text-center text-sm text-ink-600 dark:text-zinc-400">{footer}</p>}
+          {footer && <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">{footer}</p>}
         </div>
       </div>
     </main>

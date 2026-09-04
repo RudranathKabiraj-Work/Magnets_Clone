@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, KeyRound, AlertTriangle, Check, Trash2 } from "lucide-react";
+import { User, KeyRound, AlertTriangle, Check, Trash2, BarChart3, Database, MailOpen, Zap, HardDrive } from "lucide-react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { saveAccount, syncWithDatabase, loadAccount } from "@/lib/store";
+import { saveAccount, syncWithDatabase, loadAccount, loadPages, loadLeads, loadSequences, loadResources } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import type { Account } from "@/lib/data";
+
+import PasswordInputWithStrength from "@/components/ui/password-input-with-strength";
+import { getPlanLimits } from "@/lib/plan-limits";
 
 export default function AccountSettingsPage() {
   const router = useRouter();
@@ -25,6 +28,16 @@ export default function AccountSettingsPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleteError, setDeleteError] = useState("");
 
+  // Account Usage & Limits State
+  const [leadCount, setLeadCount] = useState(740);
+  const [storageMb, setStorageMb] = useState(18.5);
+  const [activeSequencesCount, setActiveSequencesCount] = useState(3);
+
+  const planConfig = getPlanLimits(account?.plan || "Pro");
+  const leadLimit = planConfig.leadLimit;
+  const storageLimitMb = planConfig.storageLimitMb;
+  const sequencesLimit = planConfig.sequencesLimit;
+
   useEffect(() => {
     if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
       window.location.href = "/login";
@@ -38,14 +51,51 @@ export default function AccountSettingsPage() {
       setName(localAccount.name || "");
       setEmail(localAccount.email || "");
     }
+
+    const isDemo = !localAccount?.email || localAccount.email === "alex@rivera.studio";
+    const localPages = loadPages();
+    const localLeads = loadLeads();
+    const localSeqs = loadSequences();
+    const localRes = loadResources();
+
+    const pageSignups = (localPages || []).reduce((sum: number, p: any) => sum + (p.signups || 0), 0);
+    const leadsLen = (localLeads || []).length;
+    const realLeads = isDemo ? Math.max(740, pageSignups, leadsLen) : Math.max(pageSignups, leadsLen);
+    setLeadCount(realLeads);
+
+    const liveSeqCount = (localSeqs || []).filter((s) => s.status === "live").length;
+    setActiveSequencesCount(isDemo ? Math.max(3, liveSeqCount) : liveSeqCount);
+
+    const resourceCount = (localRes || []).length;
+    setStorageMb(isDemo ? parseFloat((Math.max(18.5, resourceCount * 2.8)).toFixed(1)) : parseFloat((resourceCount * 2.8).toFixed(1)));
+
     setLoading(false);
 
     // Sync in background silently
     syncWithDatabase().then((data) => {
-      if (data && data.account) {
-        setAccount(data.account);
-        setName(data.account.name || "");
-        setEmail(data.account.email || "");
+      if (data) {
+        const curAcc = data.account || localAccount;
+        const curIsDemo = !curAcc?.email || curAcc.email === "alex@rivera.studio";
+        if (data.account) {
+          setAccount(data.account);
+          setName(data.account.name || "");
+          setEmail(data.account.email || "");
+        }
+        
+        const pList = data.pages || localPages || [];
+        const lList = data.leads || localLeads || [];
+        const sList = data.sequences || localSeqs || [];
+        const rList = data.resources || localRes || [];
+
+        const pSignups = pList.reduce((sum: number, p: any) => sum + (p.signups || 0), 0);
+        const lCount = lList.length;
+        setLeadCount(curIsDemo ? Math.max(740, pSignups, lCount) : Math.max(pSignups, lCount));
+
+        const liveSeqs = sList.filter((s: any) => s.status === "live").length;
+        setActiveSequencesCount(curIsDemo ? Math.max(3, liveSeqs) : liveSeqs);
+
+        const rCount = rList.length;
+        setStorageMb(curIsDemo ? parseFloat((Math.max(18.5, rCount * 2.8)).toFixed(1)) : parseFloat((rCount * 2.8).toFixed(1)));
       }
     });
   }, []);
@@ -120,6 +170,12 @@ export default function AccountSettingsPage() {
         if (typeof window !== "undefined") {
           localStorage.removeItem("currentUserAccount");
           localStorage.removeItem("currentUserEmail");
+          localStorage.removeItem("currentUserPages");
+          localStorage.removeItem("currentUserLeads");
+          localStorage.removeItem("currentUserSequences");
+          localStorage.removeItem("currentUserIntegrations");
+          localStorage.removeItem("currentUserResources");
+          localStorage.removeItem("sessionExpiry");
         }
         alert("Account successfully deleted.");
         router.push("/");
@@ -204,6 +260,8 @@ export default function AccountSettingsPage() {
               </div>
             </section>
 
+
+
             {/* Change password */}
             <section className="rounded-2xl border border-[#0066B2]/40 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] p-6 shadow-sm">
               <div className="flex items-start gap-3">
@@ -216,32 +274,35 @@ export default function AccountSettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-5 pl-12 space-y-4 max-w-2xl">
+              <div className="mt-5 pl-12 space-y-4 max-w-lg">
                 <div>
                   <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">Current password</label>
-                  <input
-                    type="password"
+                  <PasswordInputWithStrength
                     value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full max-w-lg rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
+                    onChange={setCurrentPassword}
+                    placeholder="Enter current password"
+                    autoComplete="current-password"
+                    showStrengthMeter={false}
                   />
                 </div>
                 <div>
                   <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">New password</label>
-                  <input
-                    type="password"
+                  <PasswordInputWithStrength
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full max-w-lg rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
+                    onChange={setNewPassword}
+                    placeholder="At least 8 characters"
+                    autoComplete="new-password"
+                    showStrengthMeter={true}
                   />
                 </div>
                 <div>
                   <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">Confirm new password</label>
-                  <input
-                    type="password"
+                  <PasswordInputWithStrength
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full max-w-lg rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
+                    onChange={setConfirmPassword}
+                    placeholder="Type it again"
+                    autoComplete="new-password"
+                    showStrengthMeter={false}
                   />
                 </div>
 

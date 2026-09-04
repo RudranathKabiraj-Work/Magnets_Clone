@@ -8,6 +8,8 @@ import Button from "@/components/ui/button";
 import Input, { FieldLabel } from "@/components/ui/input";
 import { saveAccount } from "@/lib/store";
 
+import PasswordInputWithStrength from "@/components/ui/password-input-with-strength";
+
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -101,14 +103,14 @@ export default function RegisterPage() {
       footer={
         <>
           Already have an account?{" "}
-          <a className="font-medium text-ink-900 underline-offset-4 hover:underline" href="/login">
+          <a className="font-medium text-zinc-900 dark:text-white underline-offset-4 hover:underline" href="/login">
             Sign in
           </a>
         </>
       }
     >
       {error && (
-        <div className="rounded-md border border-brand-coral/30 bg-brand-coral/10 p-3 text-xs font-semibold text-brand-coral text-center">
+        <div className="rounded-md border border-red-500/30 bg-red-50 dark:bg-red-950/20 p-3 text-xs font-semibold text-red-600 dark:text-red-400 text-center">
           {error}
         </div>
       )}
@@ -136,59 +138,57 @@ export default function RegisterPage() {
           required
         />
       </label>
-      <label className="block">
+      <div className="block">
         <FieldLabel>Password</FieldLabel>
-        <Input
-          autoComplete="new-password"
-          type="password"
-          placeholder="At least 8 characters"
-          minLength={8}
+        <PasswordInputWithStrength
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </label>
-      <label className="block">
-        <FieldLabel>Confirm password</FieldLabel>
-        <Input
+          onChange={setPassword}
+          placeholder="At least 8 characters"
           autoComplete="new-password"
-          type="password"
-          placeholder="Type it again"
-          minLength={8}
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
           required
+          showStrengthMeter={true}
         />
-      </label>
-      <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-ink-200 bg-ink-50 p-3 text-xs leading-5 text-ink-700">
+      </div>
+      <div className="block">
+        <FieldLabel>Confirm password</FieldLabel>
+        <PasswordInputWithStrength
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+          placeholder="Type it again"
+          autoComplete="new-password"
+          required
+          showStrengthMeter={false}
+        />
+      </div>
+      <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-[#191919] p-3 text-xs leading-5 text-zinc-700 dark:text-zinc-300">
         <input
           required
           type="checkbox"
           checked={acceptedTerms}
           onChange={(e) => setAcceptedTerms(e.target.checked)}
-          className="mt-0.5 h-4 w-4 shrink-0 rounded border-ink-300 text-ink-950 accent-ink-950"
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 dark:border-zinc-700 text-[#0066B2] accent-[#0066B2]"
         />
         <span>
           I accept the{" "}
-          <a className="font-medium text-ink-950 underline-offset-4 hover:underline" href="/terms" rel="noreferrer" target="_blank">
+          <a className="font-medium text-zinc-900 dark:text-white underline-offset-4 hover:underline" href="/terms" rel="noreferrer" target="_blank">
             Terms of Service
           </a>{" "}
           and{" "}
-          <a className="font-medium text-ink-950 underline-offset-4 hover:underline" href="/privacy" rel="noreferrer" target="_blank">
+          <a className="font-medium text-zinc-900 dark:text-white underline-offset-4 hover:underline" href="/privacy" rel="noreferrer" target="_blank">
             Privacy Policy
           </a>
           .
         </span>
       </label>
-      <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-ink-200 bg-white p-3 text-xs leading-5 text-ink-700">
-        <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0 rounded border-ink-300 text-ink-950 accent-ink-950" />
+      <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-[#191919] p-3 text-xs leading-5 text-zinc-700 dark:text-zinc-300">
+        <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300 dark:border-zinc-700 text-[#0066B2] accent-[#0066B2]" />
         <span>
           Email me occasional product updates and practical lead-magnet tips. Optional, and I can unsubscribe at any time.
         </span>
       </label>
       <Button
         type="submit"
-        className="w-full font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-brand-orange/40 cursor-pointer disabled:cursor-not-allowed disabled:hover:shadow-none"
+        className="w-full bg-[#0066B2] hover:bg-[#005799] text-white font-bold h-11 rounded-xl shadow-md transition-all active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={loading || !acceptedTerms}
       >
         {loadingStatus === "creating" && (

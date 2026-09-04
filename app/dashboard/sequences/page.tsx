@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MailOpen, Pause, Plus, Rocket, StopCircle } from "lucide-react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import StatusBadge from "@/components/dashboard/status-badge";
-import { type Sequence } from "@/lib/data";
+import { type Sequence, type Account } from "@/lib/data";
 import { loadSequences, loadAccount, syncWithDatabase } from "@/lib/store";
 
 export default function SequencesPage() {

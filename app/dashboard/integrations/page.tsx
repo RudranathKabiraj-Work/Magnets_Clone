@@ -5,6 +5,7 @@ import { CalendarClock, Mail, MessageSquare, Newspaper, Plug, Workflow, Users } 
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import Button from "@/components/ui/button";
 import { loadIntegrations, saveIntegrations, loadAccount, syncWithDatabase } from "@/lib/store";
+import type { Account, Integration } from "@/lib/data";
 
 const categoryIcons = {
   newsletter: Newspaper,
@@ -62,7 +63,7 @@ export default function IntegrationsPage() {
 
         <div className="mt-6 space-y-3">
           {items.map((item) => {
-            const Icon = categoryIcons[item.category];
+            const Icon = categoryIcons[item.category as keyof typeof categoryIcons] || Plug;
             return (
               <div
                 key={item.id}

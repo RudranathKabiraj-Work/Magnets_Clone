@@ -341,46 +341,7 @@ html.light .conversion-banner-bg {
 }
 
 .dark .app-theme :is(main, .brand-soft-bg) {
-  background-color: #0f0f11;
   color: #eceae6;
-}
-
-.dark .app-theme .dashboard-canvas {
-  background-color: #0f0f11;
-}
-
-.dark .app-theme .dashboard-chrome {
-  background-color: #18181b;
-}
-
-.dark .app-theme .dashboard-hero-panel {
-  border-color: #343439 !important;
-  background-color: #18181b !important;
-  background-image: radial-gradient(circle at 7% 0, rgb(254 111 52 / 0.18), transparent 34%),
-    linear-gradient(135deg, #1d1d21, #151517) !important;
-}
-
-.dark .app-theme .dashboard-glass-stat {
-  border-color: #3b3b41 !important;
-  background-color: rgb(32 32 36 / 0.9) !important;
-}
-
-.dark .app-theme .lead-magnet-thumbnail-placeholder {
-  background-color: #202024 !important;
-  background-image: radial-gradient(circle at top, rgb(254 111 52 / 0.14), transparent 56%),
-    linear-gradient(135deg, #242429, #18181b) !important;
-}
-
-.dark .app-theme .brand-soft-bg {
-  background-image: linear-gradient(180deg, #151517, #0f0f11);
-}
-
-.dark .app-theme :is(.bg-brand-soft, .bg-brand-soft\/90) {
-  background-color: #0f0f11;
-}
-
-.dark .app-theme .bg-white {
-  background-color: #18181b;
 }
 
 .dark .app-theme .bg-ink-50 {

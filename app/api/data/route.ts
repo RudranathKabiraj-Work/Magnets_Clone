@@ -11,17 +11,17 @@ export async function GET(req: Request) {
     const normEmail = email ? email.trim().toLowerCase() : null;
 
     const pageFilter = normEmail ? { userEmail: normEmail } : {};
-    const resourceFilter = normEmail
+    const userFilter = normEmail
       ? { $or: [{ userEmail: normEmail }, { userEmail: { $exists: false } }, { userEmail: null }] }
       : {};
 
     const [account, pages, leads, sequences, integrations, resources] = await Promise.all([
       normEmail ? AccountModel.findOne({ email: normEmail }).lean() : AccountModel.findOne().lean(),
       MagnetPageModel.find(pageFilter).lean(),
-      LeadModel.find().lean(),
-      SequenceModel.find().lean(),
-      IntegrationModel.find().lean(),
-      ResourceModel.find(resourceFilter).lean(),
+      LeadModel.find(userFilter).lean(),
+      SequenceModel.find(userFilter).lean(),
+      IntegrationModel.find(userFilter).lean(),
+      ResourceModel.find(userFilter).lean(),
     ]);
 
     let finalAccount = account;
@@ -33,7 +33,11 @@ export async function GET(req: Request) {
         await SequenceModel.insertMany(seedSequences);
         await IntegrationModel.insertMany(seedIntegrations);
       }
-      finalAccount = (normEmail ? await AccountModel.findOne({ email: normEmail }).lean() : null) || (await AccountModel.findOne().lean());
+      if (normEmail) {
+        finalAccount = await AccountModel.findOne({ email: normEmail }).lean();
+      } else {
+        finalAccount = await AccountModel.findOne().lean();
+      }
     }
 
     return NextResponse.json({
@@ -72,7 +76,8 @@ export async function POST(req: Request) {
 
     if (action === "deletePage") {
       const { id } = data;
-      await MagnetPageModel.deleteOne({ id });
+      const filter = normEmail ? { id, userEmail: normEmail } : { id };
+      await MagnetPageModel.deleteOne(filter);
       return NextResponse.json({ success: true });
     }
 
@@ -89,9 +94,10 @@ export async function POST(req: Request) {
     if (action === "saveSequences") {
       if (Array.isArray(data)) {
         for (const item of data) {
+          const itemEmail = normEmail || item.userEmail || "";
           await SequenceModel.findOneAndUpdate(
             { id: item.id },
-            item,
+            { ...item, userEmail: itemEmail },
             { upsert: true, returnDocument: 'after' }
           );
         }
@@ -108,9 +114,6 @@ export async function POST(req: Request) {
       let existing = normalizedEmail ? await AccountModel.findOne({ email: normalizedEmail }) : null;
       if (!existing && data.id) {
         existing = await AccountModel.findOne({ id: data.id });
-      }
-      if (!existing) {
-        existing = await AccountModel.findOne();
       }
 
       if (existing) {
@@ -191,15 +194,27 @@ export async function POST(req: Request) {
     }
 
     if (action === "saveLeads") {
-      await LeadModel.deleteMany({});
+      const filter = normEmail ? { userEmail: normEmail } : {};
+      await LeadModel.deleteMany(filter);
       if (Array.isArray(data) && data.length > 0) {
-        await LeadModel.insertMany(data);
+        const leadsToInsert = data.map((item: any) => ({
+          ...item,
+          userEmail: normEmail || item.userEmail || "",
+        }));
+        await LeadModel.insertMany(leadsToInsert);
       }
       return NextResponse.json({ success: true });
     }
 
     if (action === "addLead") {
-      await LeadModel.create(data);
+      let ownerEmail = normEmail || data.userEmail;
+      if (!ownerEmail && data.pageId) {
+        const pageDoc = await MagnetPageModel.findOne({ id: data.pageId });
+        if (pageDoc && pageDoc.userEmail) {
+          ownerEmail = pageDoc.userEmail;
+        }
+      }
+      await LeadModel.create({ ...data, userEmail: ownerEmail || "" });
       
       // Also increment the signup count on the corresponding magnet page
       if (data.pageId) {
@@ -270,6 +285,17 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Account not found." }, { status: 400 });
       }
 
+      const crypto = await import("crypto");
+      const token = crypto.randomBytes(32).toString("hex");
+      const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiry
+
+      account.resetPasswordToken = token;
+      account.resetPasswordExpires = expires;
+      await account.save();
+
+      const origin = req.headers.get("origin") || "http://localhost:3000";
+      const resetUrl = `${origin}/reset-password?token=${token}`;
+
       // Send email using Resend HTTP API
       const resendRes = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -287,9 +313,10 @@ export async function POST(req: Request) {
               <p>Hi ${account.name || "there"},</p>
               <p>We received a request to reset your password. Click the button below to choose a new one:</p>
               <div style="text-align: center; margin: 24px 0;">
-                <a href="${req.headers.get("origin") || "http://localhost:3000"}/dashboard/settings" style="background-color: #FE6F34; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
+                <a href="${resetUrl}" style="background-color: #FE6F34; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
               </div>
-              <p style="font-size: 11px; color: #666;">If you didn't request this, you can safely ignore this email.</p>
+              <p style="font-size: 13px; color: #666;">This link will expire in 1 hour.</p>
+              <p style="font-size: 11px; color: #999;">If you didn't request this, you can safely ignore this email.</p>
             </div>
           `,
         }),
@@ -303,6 +330,29 @@ export async function POST(req: Request) {
 
       const emailData = await resendRes.json();
       return NextResponse.json({ success: true, emailData });
+    }
+
+    if (action === "resetPassword") {
+      const { token, newPassword } = data;
+      if (!token || !newPassword) {
+        return NextResponse.json({ error: "Invalid request parameters." }, { status: 400 });
+      }
+
+      const account = await AccountModel.findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: new Date() },
+      });
+
+      if (!account) {
+        return NextResponse.json({ error: "Password reset token is invalid or has expired." }, { status: 400 });
+      }
+
+      account.password = newPassword;
+      account.resetPasswordToken = null;
+      account.resetPasswordExpires = null;
+      await account.save();
+
+      return NextResponse.json({ success: true });
     }
 
     if (action === "sendVerificationEmail") {

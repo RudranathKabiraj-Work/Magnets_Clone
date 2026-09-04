@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import StatusBadge from "@/components/dashboard/status-badge";
 import Button from "@/components/ui/button";
-import { type Sequence, type SequenceEmail } from "@/lib/data";
+import { type Sequence, type SequenceEmail, type Account } from "@/lib/data";
 import { loadPages, loadSequences, saveSequences, loadAccount, syncWithDatabase } from "@/lib/store";
 
 const delays = [

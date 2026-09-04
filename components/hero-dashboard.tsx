@@ -45,7 +45,7 @@ export default function HeroDashboard() {
             : { perspective: 1400, rotateX: 5, rotateZ: -1.2, scale: 0.94, y: 112 }
         }
       >
-        <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#121824] p-2 shadow-2xl sm:p-3">
+        <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#191919] p-2 shadow-2xl sm:p-3">
           <div className="flex h-9 items-center gap-1.5 border-b border-zinc-100 dark:border-zinc-800 px-2 pb-2">
             <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
             <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
@@ -54,7 +54,7 @@ export default function HeroDashboard() {
               LeadMagnets platform walkthrough
             </span>
           </div>
-          <div className="relative mt-2 aspect-video w-full overflow-hidden rounded-xl border border-zinc-100 dark:border-zinc-800 bg-[#05080E]">
+          <div className="relative mt-2 aspect-video w-full overflow-hidden rounded-xl border border-zinc-100 dark:border-zinc-800 bg-[#F0F7FF] dark:bg-[#0a0a0a]">
             <iframe
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen

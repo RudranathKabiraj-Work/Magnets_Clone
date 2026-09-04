@@ -23,6 +23,8 @@ const AccountSchema = new Schema({
   calendarProvider: { type: String, default: "Calendly" },
   calendarToken: { type: String, default: "" },
   calendarConnected: { type: Boolean, default: false },
+  resetPasswordToken: { type: String, default: null },
+  resetPasswordExpires: { type: Date, default: null },
 });
 
 // MagnetPage Schema
@@ -53,7 +55,8 @@ const MagnetPageSchema = new Schema({
 
 // Lead Schema
 const LeadSchema = new Schema({
-  id: { type: String, required: true, unique: true },
+  id: { type: String, required: true },
+  userEmail: { type: String, lowercase: true, trim: true, index: true },
   name: { type: String, required: true },
   email: { type: String, required: true },
   page: { type: String, required: true },
@@ -80,7 +83,8 @@ const SequenceEmailSchema = new Schema({
 
 // Sequence Schema
 const SequenceSchema = new Schema({
-  id: { type: String, required: true, unique: true },
+  id: { type: String, required: true },
+  userEmail: { type: String, lowercase: true, trim: true, index: true },
   name: { type: String, required: true },
   pageId: { type: String },
   status: { type: String, enum: ["draft", "live"], default: "draft" },
@@ -97,12 +101,13 @@ const SequenceSchema = new Schema({
 
 // Integration Schema
 const IntegrationSchema = new Schema({
-  id: { type: String, required: true, unique: true },
+  id: { type: String, required: true },
+  userEmail: { type: String, lowercase: true, trim: true, index: true },
   name: { type: String, required: true },
   category: { type: String, enum: ["newsletter", "crm", "messaging", "automation", "calendar", "email"], required: true },
-  description: { type: String, required: true },
+  description: { type: String, default: "" },
   connected: { type: Boolean, default: false },
-  trigger: { type: String, required: true },
+  trigger: { type: String, default: "" },
 });
 
 export const AccountModel = mongoose.models.Account || mongoose.model("Account", AccountSchema);
