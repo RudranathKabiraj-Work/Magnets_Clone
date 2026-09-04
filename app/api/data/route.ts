@@ -11,9 +11,7 @@ export async function GET(req: Request) {
     const normEmail = email ? email.trim().toLowerCase() : null;
 
     const pageFilter = normEmail ? { userEmail: normEmail } : {};
-    const userFilter = normEmail
-      ? { $or: [{ userEmail: normEmail }, { userEmail: { $exists: false } }, { userEmail: null }] }
-      : {};
+    const userFilter = normEmail ? { userEmail: normEmail } : {};
 
     const [account, pages, leads, sequences, integrations, resources] = await Promise.all([
       normEmail ? AccountModel.findOne({ email: normEmail }).lean() : AccountModel.findOne().lean(),
@@ -23,6 +21,20 @@ export async function GET(req: Request) {
       IntegrationModel.find(userFilter).lean(),
       ResourceModel.find(userFilter).lean(),
     ]);
+
+    let finalLeads = leads;
+    if (normEmail && pages.length > 0) {
+      const pageNames = pages.map((p: any) => p.name).filter(Boolean);
+      const pageIds = pages.map((p: any) => p.id).filter(Boolean);
+      const fallbackLeads = await LeadModel.find({
+        $or: [
+          { userEmail: normEmail },
+          { pageId: { $in: pageIds } },
+          { page: { $in: pageNames } },
+        ],
+      }).lean();
+      finalLeads = fallbackLeads;
+    }
 
     let finalAccount = account;
     if (!finalAccount) {
@@ -43,7 +55,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       account: finalAccount,
       pages,
-      leads,
+      leads: finalLeads,
       sequences,
       integrations,
       resources,
@@ -214,10 +226,16 @@ export async function POST(req: Request) {
 
     if (action === "addLead") {
       let ownerEmail = normEmail || data.userEmail;
-      if (!ownerEmail && data.pageId) {
-        const pageDoc = await MagnetPageModel.findOne({ id: data.pageId });
-        if (pageDoc && pageDoc.userEmail) {
-          ownerEmail = pageDoc.userEmail;
+      if (!ownerEmail) {
+        const query: any[] = [];
+        if (data.pageId) query.push({ id: data.pageId });
+        if (data.page) query.push({ name: data.page });
+        if (data.pageSlug) query.push({ slug: data.pageSlug });
+        if (query.length > 0) {
+          const pageDoc = await MagnetPageModel.findOne({ $or: query });
+          if (pageDoc && pageDoc.userEmail) {
+            ownerEmail = pageDoc.userEmail;
+          }
         }
       }
       await LeadModel.create({ ...data, userEmail: ownerEmail || "" });

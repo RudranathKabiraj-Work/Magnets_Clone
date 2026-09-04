@@ -9,9 +9,11 @@ export default function MagnetSignupForm({
   accent,
   pageId,
   pageName,
-  brandColor,
-  highlightIntensity,
-  themeMode,
+  pageSlug,
+  pageOwnerEmail,
+  brandColor = "#0066B2",
+  highlightIntensity = 100,
+  themeMode = "light",
   customPromptQuestion,
   customPromptPlaceholder,
   enableAiPersonalizedDeliverable,
@@ -21,6 +23,8 @@ export default function MagnetSignupForm({
   accent: string;
   pageId: string;
   pageName: string;
+  pageSlug?: string;
+  pageOwnerEmail?: string;
   brandColor?: string;
   highlightIntensity?: number;
   themeMode?: "light" | "dark";
@@ -47,15 +51,12 @@ export default function MagnetSignupForm({
       // Feature 2: If AI personalization is enabled and user provided an answer, generate custom deliverable
       if (enableAiPersonalizedDeliverable && customAnswer.trim()) {
         try {
-          const aiRes = await fetch("/api/ai/personalize-deliverable", {
+          const aiRes = await fetch("/api/data", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              leadName: name.trim() || email.split("@")[0],
-              magnetName: pageName,
-              question: customPromptQuestion,
-              answer: customAnswer.trim(),
-              baseDeliverable: deliverable,
+              action: "generateAiPersonalizedDeliverable",
+              data: { prompt: customAnswer.trim(), deliverableName: deliverable },
             }),
           });
           const aiData = await aiRes.json();
@@ -74,6 +75,8 @@ export default function MagnetSignupForm({
         email: email.trim(),
         page: pageName,
         pageId: pageId,
+        pageSlug: pageSlug || "",
+        userEmail: pageOwnerEmail || "",
         status: "new",
         source: "leadmagnets",
         signedUpAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),

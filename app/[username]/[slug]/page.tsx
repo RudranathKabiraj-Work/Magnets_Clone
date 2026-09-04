@@ -216,6 +216,8 @@ export default async function MagnetPageRoute({
                   accent={page.accent}
                   pageId={page.id}
                   pageName={page.name}
+                  pageSlug={page.slug}
+                  pageOwnerEmail={(page as any).userEmail}
                   brandColor={brandColor}
                   highlightIntensity={highlightIntensity}
                   themeMode={themeMode}
