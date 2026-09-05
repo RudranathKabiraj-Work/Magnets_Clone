@@ -42,6 +42,12 @@ function OnboardingContent() {
             setUserName(firstName);
             setUserSlug(data.account.username || "your-workspace");
 
+            fetch("/api/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: email.trim(), name: data.account.name }),
+            }).catch(console.error);
+
             if (typeof window !== "undefined") {
               safeSetItem("currentUserEmail", email.trim().toLowerCase());
               safeSetItem("currentUserAccount", JSON.stringify(data.account));

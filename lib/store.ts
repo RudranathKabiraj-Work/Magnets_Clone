@@ -261,7 +261,19 @@ export async function syncWithDatabase(): Promise<{
   resources?: any[];
 } | null> {
   try {
-    const email = typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null;
+    let email = typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null;
+    if (!email) {
+      const meRes = await fetch("/api/auth/me").catch(() => null);
+      if (meRes && meRes.ok) {
+        const meData = await meRes.json();
+        if (meData.authenticated && meData.email) {
+          email = meData.email;
+          if (typeof window !== "undefined") {
+            safeSetItem("currentUserEmail", email as string);
+          }
+        }
+      }
+    }
     if (!email) return null;
     const url = `/api/data?email=${encodeURIComponent(email)}`;
     const res = await fetch(url);

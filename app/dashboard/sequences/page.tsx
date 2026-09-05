@@ -45,94 +45,139 @@ export default function SequencesPage() {
               {live} live · Automate the resource email, then follow up while the problem is top of mind.
             </p>
           </div>
-          <Link
-            href="/dashboard/sequences/new"
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-ink-950 px-4 text-sm font-semibold text-white transition hover:bg-brand-orange hover:text-ink-950 dark:bg-brand-orange dark:text-ink-950"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            New sequence
-          </Link>
+          {sequences.length > 0 && (
+            <Link
+              href="/dashboard/sequences/new"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#0066B2] px-4 text-xs font-bold text-white shadow-md hover:bg-[#005799] transition dark:bg-[#0066B2] dark:hover:bg-[#005799]"
+            >
+              <Plus className="h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
+              New sequence
+            </Link>
+          )}
         </div>
 
-        <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          {sequences.map((seq) => {
-            const { signedUp, delivered, opened, replied } = seq.stats;
-            return (
-              <Link
-                key={seq.id}
-                href={`/dashboard/sequences/${seq.id}`}
-                className="group rounded-2xl border border-ink-200 bg-white p-5 transition hover:border-ink-300 hover:shadow-card dark:border-ink-700 dark:bg-ink-900/95 dark:hover:border-ink-500"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-md bg-brand-soft text-brand-orange dark:bg-ink-950">
-                      <Rocket className="h-4 w-4" aria-hidden="true" />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-ink-950 group-hover:text-brand-orange dark:text-white dark:group-hover:text-brand-orange">
-                        {seq.name}
-                      </p>
-                      <p className="text-xs text-ink-500 dark:text-ink-400">
-                        {seq.emails.length} {seq.emails.length === 1 ? "email" : "emails"} · updated recently
-                      </p>
+        {/* Active Sequences Grid OR Professional Empty State */}
+        {sequences.length > 0 ? (
+          <div className="mt-6 grid gap-5 lg:grid-cols-2">
+            {sequences.map((seq) => {
+              const { signedUp, delivered, opened, replied } = seq.stats;
+              return (
+                <Link
+                  key={seq.id}
+                  href={`/dashboard/sequences/${seq.id}`}
+                  className="group rounded-2xl border border-zinc-200/90 dark:border-white/10 bg-white dark:bg-[#18181B] p-6 transition-all duration-200 hover:border-[#0066B2] dark:hover:border-[#38BDF8] shadow-xs hover:shadow-md"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3.5">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+                        <Rocket className="h-5 w-5" aria-hidden="true" />
+                      </div>
+                      <div>
+                        <p className="text-base font-bold text-zinc-900 dark:text-white group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8] transition">
+                          {seq.name}
+                        </p>
+                        <p className="text-xs text-zinc-500 dark:text-[#9B9085]">
+                          {seq.emails.length} {seq.emails.length === 1 ? "email step" : "email steps"} · Updated recently
+                        </p>
+                      </div>
+                    </div>
+                    <StatusBadge status={seq.status} />
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-4 divide-x divide-zinc-100 dark:divide-white/5 rounded-xl border border-zinc-100 dark:border-white/5 bg-[#F9F9FB] dark:bg-[#141417] text-center">
+                    <div className="px-2 py-3">
+                      <p className="text-base font-bold text-zinc-900 dark:text-white">{signedUp.toLocaleString()}</p>
+                      <p className="text-[10px] font-medium text-zinc-500 dark:text-[#9B9085]">Signed up</p>
+                    </div>
+                    <div className="px-2 py-3">
+                      <p className="text-base font-bold text-zinc-900 dark:text-white">{delivered.toLocaleString()}</p>
+                      <p className="text-[10px] font-medium text-zinc-500 dark:text-[#9B9085]">Delivered</p>
+                    </div>
+                    <div className="px-2 py-3">
+                      <p className="text-base font-bold text-zinc-900 dark:text-white">{opened.toLocaleString()}</p>
+                      <p className="text-[10px] font-medium text-zinc-500 dark:text-[#9B9085]">Opened</p>
+                    </div>
+                    <div className="px-2 py-3">
+                      <p className="text-base font-bold text-zinc-900 dark:text-white">{replied.toLocaleString()}</p>
+                      <p className="text-[10px] font-medium text-zinc-500 dark:text-[#9B9085]">Replied</p>
                     </div>
                   </div>
-                  <StatusBadge status={seq.status} />
-                </div>
-                <div className="mt-5 grid grid-cols-4 divide-x divide-ink-200 rounded-md border border-ink-200 text-center dark:divide-ink-700 dark:border-ink-700">
-                  <div className="px-2 py-3">
-                    <p className="text-base font-semibold text-ink-950 dark:text-white">{signedUp.toLocaleString()}</p>
-                    <p className="text-[11px] text-ink-500 dark:text-ink-400">Signed up</p>
-                  </div>
-                  <div className="px-2 py-3">
-                    <p className="text-base font-semibold text-ink-950 dark:text-white">{delivered.toLocaleString()}</p>
-                    <p className="text-[11px] text-ink-500 dark:text-ink-400">Delivered</p>
-                  </div>
-                  <div className="px-2 py-3">
-                    <p className="text-base font-semibold text-ink-950 dark:text-white">{opened.toLocaleString()}</p>
-                    <p className="text-[11px] text-ink-500 dark:text-ink-400">Opened</p>
-                  </div>
-                  <div className="px-2 py-3">
-                    <p className="text-base font-semibold text-ink-950 dark:text-white">{replied.toLocaleString()}</p>
-                    <p className="text-[11px] text-ink-500 dark:text-ink-400">Replied</p>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+                </Link>
+              );
+            })}
 
-          <Link
-            href="/dashboard/sequences/new"
-            className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-ink-300 text-center transition hover:border-ink-400 hover:bg-white dark:border-ink-700 dark:hover:border-ink-500 dark:hover:bg-ink-900/95"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-soft text-brand-orange dark:bg-ink-950">
-              <Plus className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <div>
-              <p className="text-sm font-semibold text-ink-900 dark:text-white">Create a new sequence</p>
-              <p className="mt-0.5 text-xs text-ink-500 dark:text-ink-400">Deliver the resource, then follow up on your schedule.</p>
+            {/* Compact Add Card when items exist */}
+            <Link
+              href="/dashboard/sequences/new"
+              className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-white/10 bg-white/50 dark:bg-[#18181B]/50 p-6 text-center transition hover:border-[#0066B2] dark:hover:border-[#38BDF8] hover:bg-white dark:hover:bg-[#18181B]"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+                <Plus className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-zinc-900 dark:text-white">Create another sequence</p>
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-[#9B9085]">Add another automated email follow-up funnel</p>
+              </div>
+            </Link>
+          </div>
+        ) : (
+          /* Sleek Vercel-Style Hero Empty State */
+          <div className="mt-8 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-8 sm:p-12 text-center shadow-xs">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0066B2]/10 dark:bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8] mb-5 border border-[#0066B2]/20">
+              <MailOpen className="h-8 w-8" />
             </div>
-          </Link>
-        </div>
+            <h3 className="text-xl font-extrabold text-zinc-900 dark:text-white">No follow-up sequences yet</h3>
+            <p className="mt-2 text-sm text-zinc-500 dark:text-[#9B9085] max-w-md mx-auto leading-relaxed">
+              Automate your email delivery, send scheduled follow-ups, and convert new subscribers into clients automatically.
+            </p>
+            <div className="mt-6 flex justify-center">
+              <Link
+                href="/dashboard/sequences/new"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-6 py-3 text-xs font-bold text-white shadow-md hover:bg-[#005799] transition dark:bg-[#0066B2] dark:hover:bg-[#005799]"
+              >
+                <Plus className="h-4 w-4 stroke-[2.5px]" />
+                Create your first sequence
+              </Link>
+            </div>
+          </div>
+        )}
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-3">
-          <div className="flex gap-3 rounded-lg border border-ink-200 bg-white p-4 dark:border-ink-700 dark:bg-ink-900/95">
-            <MailOpen className="mt-0.5 h-5 w-5 shrink-0 text-brand-orange" aria-hidden="true" />
-            <p className="text-sm leading-6 text-ink-600 dark:text-ink-300">
-              The first email goes out the moment someone signs up. No manual sending.
-            </p>
+        {/* Feature Cards Grid */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <div className="flex gap-3.5 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-5 shadow-2xs">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+              <MailOpen className="h-4 w-4" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-zinc-900 dark:text-white mb-0.5">Instant Trigger</h4>
+              <p className="text-xs text-zinc-500 dark:text-[#9B9085] leading-relaxed">
+                The first email sends the moment someone signs up. No manual work.
+              </p>
+            </div>
           </div>
-          <div className="flex gap-3 rounded-lg border border-ink-200 bg-white p-4 dark:border-ink-700 dark:bg-ink-900/95">
-            <Pause className="mt-0.5 h-5 w-5 shrink-0 text-brand-orange" aria-hidden="true" />
-            <p className="text-sm leading-6 text-ink-600 dark:text-ink-300">
-              Control the delay for each email. Pause or stop the whole sequence anytime.
-            </p>
+
+          <div className="flex gap-3.5 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-5 shadow-2xs">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+              <Pause className="h-4 w-4" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-zinc-900 dark:text-white mb-0.5">Custom Delays</h4>
+              <p className="text-xs text-zinc-500 dark:text-[#9B9085] leading-relaxed">
+                Control the delay for each email. Pause or stop the sequence anytime.
+              </p>
+            </div>
           </div>
-          <div className="flex gap-3 rounded-lg border border-ink-200 bg-white p-4 dark:border-ink-700 dark:bg-ink-900/95">
-            <StopCircle className="mt-0.5 h-5 w-5 shrink-0 text-brand-orange" aria-hidden="true" />
-            <p className="text-sm leading-6 text-ink-600 dark:text-ink-300">
-              Stop automatically when someone books a call via Calendly or Cal.com.
-            </p>
+
+          <div className="flex gap-3.5 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-5 shadow-2xs">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+              <StopCircle className="h-4 w-4" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-zinc-900 dark:text-white mb-0.5">Smart Calendar Stop</h4>
+              <p className="text-xs text-zinc-500 dark:text-[#9B9085] leading-relaxed">
+                Stops automatically when a lead books a call via Calendly or Cal.com.
+              </p>
+            </div>
           </div>
         </div>
       </div>

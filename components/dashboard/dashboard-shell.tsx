@@ -90,8 +90,26 @@ export default function DashboardShell({
       const activeEmail = localStorage.getItem("currentUserEmail");
       const activeAccount = loadAccount();
       if (!isSessionValid() || !activeEmail || !activeAccount) {
-        setIsAuthenticated(false);
-        window.location.href = "/login";
+        // Verify HTTP-Only cookie as fallback
+        fetch("/api/auth/me")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.authenticated && data.email) {
+              localStorage.setItem("currentUserEmail", data.email);
+              if (data.user) {
+                localStorage.setItem("currentUserAccount", JSON.stringify(data.user));
+                setCurrentAccount(data.user);
+              }
+              setIsAuthenticated(true);
+            } else {
+              setIsAuthenticated(false);
+              window.location.href = "/login";
+            }
+          })
+          .catch(() => {
+            setIsAuthenticated(false);
+            window.location.href = "/login";
+          });
         return;
       } else {
         setIsAuthenticated(true);
@@ -113,6 +131,7 @@ export default function DashboardShell({
     email: activeEmail,
     plan: rawAccount?.plan || "Free",
     brandColor: rawAccount?.brandColor || "#0066B2",
+    avatar: rawAccount?.avatar || rawAccount?.logo || null,
   };
 
   if (mounted && isAuthenticated === false) {
@@ -138,7 +157,8 @@ export default function DashboardShell({
     } catch (_) { }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(console.error);
     if (typeof window !== "undefined") {
       localStorage.removeItem("currentUserEmail");
       localStorage.removeItem("currentUserAccount");
@@ -369,11 +389,19 @@ export default function DashboardShell({
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               className="flex w-full items-center justify-between gap-2.5 rounded-xl p-2 text-left hover:bg-[#E2F0FD] transition dark:hover:bg-[#25252A]"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0066B2] text-xs font-extrabold text-white dark:bg-white dark:text-[#0066B2]" suppressHydrationWarning>
-                {mounted
-                  ? (displayAccount.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || displayAccount.name.charAt(0))
-                  : (displayAccount.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "RK")}
-              </span>
+              {displayAccount.avatar ? (
+                <img
+                  src={displayAccount.avatar}
+                  alt={displayAccount.name}
+                  className="h-8 w-8 shrink-0 rounded-full object-cover border border-[#0066B2]/40"
+                />
+              ) : (
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0066B2] text-xs font-extrabold text-white dark:bg-white dark:text-[#0066B2]" suppressHydrationWarning>
+                  {mounted
+                    ? (displayAccount.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || displayAccount.name.charAt(0))
+                    : (displayAccount.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "RK")}
+                </span>
+              )}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-bold text-zinc-900 leading-tight dark:text-white" suppressHydrationWarning>{displayAccount.name}</p>
                 <p className="truncate text-[10px] text-zinc-500 leading-tight mt-0.5 dark:text-[#9B9085]" suppressHydrationWarning>{displayAccount.email}</p>
@@ -463,9 +491,17 @@ export default function DashboardShell({
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0066B2] text-sm font-bold text-white transition active:scale-95 cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden bg-[#0066B2] text-sm font-bold text-white transition active:scale-95 cursor-pointer"
               >
-                {displayAccount.name.charAt(0).toUpperCase()}
+                {displayAccount.avatar ? (
+                  <img
+                    src={displayAccount.avatar}
+                    alt={displayAccount.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  displayAccount.name.charAt(0).toUpperCase()
+                )}
               </button>
               {showProfileMenu && (
                 <div className="absolute right-0 top-10 w-52 rounded-xl border border-[#E0EDFB] bg-white p-1.5 shadow-2xl z-50 text-zinc-900 flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-2 duration-150 dark:border-zinc-800 dark:bg-[#191919] dark:text-white">

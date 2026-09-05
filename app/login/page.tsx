@@ -38,6 +38,13 @@ export default function LoginPage() {
       }
 
       if (res.ok && data?.success) {
+        // Set HTTP-Only session cookie via auth endpoint
+        await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim(), name: data.account?.name }),
+        }).catch(console.error);
+
         if (typeof window !== "undefined") {
           safeSetItem("currentUserEmail", email.trim().toLowerCase());
           setSessionExpiry(7);

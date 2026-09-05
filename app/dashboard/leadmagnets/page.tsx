@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, Eye, MousePointerClick, Pencil, Plus, Rocket, Search, Sparkles, Trash2, X, BarChart2, Image as ImageIcon } from "lucide-react";
+import { ExternalLink, Eye, Mail, MousePointerClick, Pencil, Plus, Rocket, Search, Sparkles, Trash2, X, BarChart2, Image as ImageIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import StatusBadge from "@/components/dashboard/status-badge";
@@ -136,6 +136,15 @@ export default function PagesPage() {
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86]">TOTAL</p>
                   <p className="text-2xl font-bold text-zinc-950 dark:text-[#38BDF8] leading-none mt-2">{total}</p>
                 </div>
+                {/* Sequences Page Button */}
+                <Link
+                  href="/dashboard/sequences"
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-[#0066B2]/30 bg-[#EFF6FF] dark:bg-[#0066B2]/20 dark:border-[#0066B2]/40 px-4 py-3 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8] hover:bg-[#DBEAFE] dark:hover:bg-[#0066B2]/30 transition shadow-xs whitespace-nowrap cursor-pointer"
+                >
+                  <Mail className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" />
+                  View sequences
+                </Link>
+
                 {/* New page button - opens popup modal */}
                 <button
                   onClick={() => setShowCreateModal(true)}

@@ -379,6 +379,9 @@ export default function EditLeadMagnetPage() {
             if (found.pitch) setPitch(found.pitch);
             if (found.bullets) setBullets(found.bullets);
             if (found.imageUrl !== undefined) setImageUrl(found.imageUrl);
+            if (found.sequenceEnabled !== undefined) setSequenceEnabled(found.sequenceEnabled);
+            if (found.stopOnCall !== undefined) setStopOnCall(found.stopOnCall);
+            if (found.sequenceEmails) setSequenceEmails(found.sequenceEmails);
           }
         }
         if (data.account) setAccount(data.account);
@@ -395,6 +398,9 @@ export default function EditLeadMagnetPage() {
       if (page.pitch) setPitch(page.pitch);
       if (page.bullets) setBullets(page.bullets);
       if (page.imageUrl !== undefined) setImageUrl(page.imageUrl);
+      if (page.sequenceEnabled !== undefined) setSequenceEnabled(page.sequenceEnabled);
+      if (page.stopOnCall !== undefined) setStopOnCall(page.stopOnCall);
+      if (page.sequenceEmails) setSequenceEmails(page.sequenceEmails);
     }
   }, [page]);
 

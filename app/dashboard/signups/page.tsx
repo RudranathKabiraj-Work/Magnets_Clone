@@ -260,7 +260,14 @@ export default function SignupsPage() {
                 <tbody className="divide-y divide-[#E2E8F0]/60 dark:divide-[#1C1C20]">
                   {filtered.map((lead) => (
                     <tr key={lead.id} className="hover:bg-[#EFF6FF]/50 dark:hover:bg-[#18181B]/40 transition">
-                      <td className="px-5 py-3.5 text-xs text-zinc-900 dark:text-white font-medium">{lead.email}</td>
+                      <td className="px-5 py-3.5 text-xs text-zinc-900 dark:text-white font-medium">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#38BDF8]/20 dark:text-[#38BDF8] text-[11px] font-bold uppercase border border-[#0066B2]/20 dark:border-[#38BDF8]/30">
+                            {(lead.name || lead.email || "U").slice(0, 2)}
+                          </div>
+                          <span>{lead.email}</span>
+                        </div>
+                      </td>
                       <td className="px-5 py-3.5 text-xs text-zinc-600 dark:text-[#9B9085]">{lead.name}</td>
                       <td className="px-5 py-3.5 text-xs text-zinc-600 dark:text-[#9B9085] max-w-[200px] truncate">{lead.page}</td>
                       <td className="px-5 py-3.5 text-xs text-zinc-600 dark:text-[#9B9085] whitespace-nowrap">{lead.signedUpAt}</td>
@@ -316,8 +323,8 @@ export default function SignupsPage() {
             >
               <div className="flex items-center justify-between border-b border-zinc-100 dark:border-white/10 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
-                    <Users className="h-5 w-5" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#38BDF8]/20 dark:text-[#38BDF8] text-sm font-bold uppercase border border-[#0066B2]/20 dark:border-[#38BDF8]/30">
+                    {(selectedLead.name || selectedLead.email || "U").slice(0, 2)}
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-zinc-900 dark:text-white">{selectedLead.name || "Lead Details"}</h3>

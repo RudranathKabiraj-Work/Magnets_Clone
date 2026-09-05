@@ -92,6 +92,8 @@ export default function MagnetSignupForm({
 
       if (res.ok) {
         setDone(true);
+        const resData = await res.json().catch(() => ({}));
+        const finalLead = resData.lead || newLead;
 
         // Update local storage pages signups counter & leads cache instantly
         try {
@@ -107,10 +109,10 @@ export default function MagnetSignupForm({
           const cachedLeads = localStorage.getItem("currentUserLeads");
           if (cachedLeads) {
             const leadsList = JSON.parse(cachedLeads);
-            leadsList.unshift(newLead);
+            leadsList.unshift(finalLead);
             localStorage.setItem("currentUserLeads", JSON.stringify(leadsList));
           } else {
-            localStorage.setItem("currentUserLeads", JSON.stringify([newLead]));
+            localStorage.setItem("currentUserLeads", JSON.stringify([finalLead]));
           }
         } catch (_) {}
 

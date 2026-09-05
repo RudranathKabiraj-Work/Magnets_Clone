@@ -101,6 +101,9 @@ export interface Account {
   calendarProvider?: "Calendly" | "Cal.com";
   calendarToken?: string;
   calendarConnected?: boolean;
+  leadAlertsEnabled?: boolean;
+  notifyEmail?: string;
+  avatar?: string | null;
 }
 
 export interface Integration {

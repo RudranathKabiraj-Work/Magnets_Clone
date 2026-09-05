@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongodb";
 import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationModel, ResourceModel } from "@/lib/models";
 import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations } from "@/lib/data";
+import { sendInstantLeadAlert } from "@/lib/email-alerts";
 export async function GET(req: Request) {
   try {
     await dbConnect();
@@ -128,6 +129,9 @@ export async function POST(req: Request) {
         existing.username = data.username || existing.username;
         existing.brandColor = data.brandColor || existing.brandColor;
         existing.logo = data.logo;
+        existing.avatar = data.avatar !== undefined ? data.avatar : existing.avatar;
+        existing.leadAlertsEnabled = data.leadAlertsEnabled !== undefined ? data.leadAlertsEnabled : existing.leadAlertsEnabled;
+        existing.notifyEmail = data.notifyEmail !== undefined ? data.notifyEmail : existing.notifyEmail;
         existing.themeMode = data.themeMode || existing.themeMode;
         existing.highlightIntensity = data.highlightIntensity ?? existing.highlightIntensity;
         if (data.password) {
@@ -245,19 +249,24 @@ export async function POST(req: Request) {
 
     if (action === "addLead") {
       let ownerEmail = normEmail || data.userEmail;
-      if (!ownerEmail) {
+      let pageTitle = data.page || "Lead Magnet";
+      if (data.pageId || data.page || data.pageSlug) {
         const query: any[] = [];
         if (data.pageId) query.push({ id: data.pageId });
         if (data.page) query.push({ name: data.page });
         if (data.pageSlug) query.push({ slug: data.pageSlug });
-        if (query.length > 0) {
-          const pageDoc = await MagnetPageModel.findOne({ $or: query });
-          if (pageDoc && pageDoc.userEmail) {
-            ownerEmail = pageDoc.userEmail;
+        const pageDoc = await MagnetPageModel.findOne({ $or: query });
+        if (pageDoc) {
+          if (pageDoc.userEmail) ownerEmail = pageDoc.userEmail;
+          if (pageDoc.name) pageTitle = pageDoc.name;
+          const seqList = (pageDoc.sequenceEmails && pageDoc.sequenceEmails.length > 0) ? pageDoc.sequenceEmails : [];
+          if (pageDoc.sequenceEnabled || seqList.length > 0) {
+            data.sequence = `${pageTitle} Follow-up`;
+            data.sequenceStep = `Step 1 of ${Math.max(1, seqList.length)}`;
           }
         }
       }
-      await LeadModel.create({ ...data, userEmail: ownerEmail || "" });
+      const createdLead = await LeadModel.create({ ...data, userEmail: ownerEmail || "" });
 
       // Also increment the signup count on the corresponding magnet page
       if (data.pageId) {
@@ -270,7 +279,44 @@ export async function POST(req: Request) {
           await page.save();
         }
       }
-      return NextResponse.json({ success: true });
+
+      // Check owner account alert preferences & send instant alert email
+      if (ownerEmail) {
+        const ownerAccount = await AccountModel.findOne({ email: ownerEmail.trim().toLowerCase() });
+        const alertsEnabled = ownerAccount ? ownerAccount.leadAlertsEnabled !== false : true;
+        const targetInbox = (ownerAccount && ownerAccount.notifyEmail) ? ownerAccount.notifyEmail : ownerEmail;
+
+        if (alertsEnabled) {
+          sendInstantLeadAlert({
+            ownerEmail: targetInbox,
+            leadEmail: data.email,
+            leadName: data.name,
+            pageTitle: pageTitle,
+            signedUpAt: data.signedUpAt || new Date().toLocaleString(),
+            customAnswer: data.customAnswer,
+          }).catch((err) => console.error("Lead Alert Background Error:", err));
+        }
+      }
+
+      return NextResponse.json({ success: true, lead: createdLead });
+    }
+
+    if (action === "sendTestLeadAlert") {
+      const targetEmail = data.email || normEmail;
+      if (!targetEmail) {
+        return NextResponse.json({ error: "Target email required for test alert." }, { status: 400 });
+      }
+
+      const result = await sendInstantLeadAlert({
+        ownerEmail: targetEmail,
+        leadEmail: "sample.subscriber@example.com",
+        leadName: "Sample Lead",
+        pageTitle: "Test Lead Magnet Guide",
+        signedUpAt: `${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+        customAnswer: "Looking to scale leads and email conversions!",
+      });
+
+      return NextResponse.json(result);
     }
 
     if (action === "incrementViews") {
