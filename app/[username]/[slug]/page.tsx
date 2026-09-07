@@ -71,12 +71,24 @@ export default async function MagnetPageRoute({
   const pageDoc = await MagnetPageModel.findOne({ slug: params.slug });
   if (!pageDoc) notFound();
 
-  const accountDoc = await AccountModel.findOne({
+  const decodedUsername = decodeURIComponent(params.username || "");
+  const escapedUsername = decodedUsername.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+  const cleanUserEmail = pageDoc.userEmail ? pageDoc.userEmail.trim().toLowerCase() : null;
+
+  let accountDoc = await AccountModel.findOne({
     $or: [
-      { username: { $regex: new RegExp(`^${params.username}$`, "i") } },
-      { email: pageDoc.userEmail ? pageDoc.userEmail.toLowerCase() : "" }
+      ...(escapedUsername ? [{ username: { $regex: new RegExp(`^${escapedUsername}$`, "i") } }] : []),
+      ...(cleanUserEmail ? [{ email: cleanUserEmail }] : [])
     ]
   });
+
+  if (!accountDoc && cleanUserEmail) {
+    accountDoc = await AccountModel.findOne({ email: cleanUserEmail });
+  }
+
+  if (!accountDoc) {
+    accountDoc = await AccountModel.findOne({});
+  }
 
   // Increment views
   pageDoc.views = (pageDoc.views || 0) + 1;
@@ -87,7 +99,7 @@ export default async function MagnetPageRoute({
 
   const page = JSON.parse(JSON.stringify(pageDoc)) as MagnetPage;
 
-  const themeMode = accountDoc?.themeMode || "light";
+  const themeMode = (accountDoc?.themeMode as "light" | "dark") || "light";
   const brandColor = accountDoc?.brandColor || "#0066B2";
   const logo = accountDoc?.logo || null;
   const highlightIntensity = accountDoc?.highlightIntensity ?? 100;
@@ -95,8 +107,9 @@ export default async function MagnetPageRoute({
 
   return (
     <main
-      className="flex min-h-screen flex-col transition-colors duration-300"
+      className={`flex min-h-screen flex-col transition-colors duration-300 ${themeMode === "dark" ? "dark bg-[#0E0E10] text-white" : "light bg-[#FAFAFA] text-zinc-900"}`}
       style={{
+        colorScheme: themeMode === "dark" ? "dark" : "light",
         backgroundColor: themeMode === "dark" ? "#0E0E10" : "#FAFAFA",
         color: themeMode === "dark" ? "#ffffff" : "#18181b",
         backgroundImage: themeMode === "light"

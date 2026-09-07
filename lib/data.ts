@@ -49,7 +49,7 @@ export interface Lead {
   email: string;
   page: string;
   pageId: string;
-  status: "new" | "delivered" | "opened" | "replied" | "stopped";
+  status: "new" | "delivered" | "opened" | "replied" | "stopped" | "completed";
   source: "leadmagnets" | "custom-domain" | "integration";
   signedUpAt: string;
   sequence?: string;
@@ -75,7 +75,7 @@ export interface Sequence {
   status: "draft" | "live";
   emails: SequenceEmail[];
   stopOnBooking: boolean;
-  stats: { signedUp: number; delivered: number; opened: number; replied: number; stopped: number };
+  stats: { signedUp: number; delivered: number; opened: number; replied: number; stopped: number; completed?: number };
 }
 
 export interface Account {

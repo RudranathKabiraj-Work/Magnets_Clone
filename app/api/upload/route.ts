@@ -5,6 +5,8 @@ import { dbConnect } from "@/lib/mongodb";
 import { ResourceModel } from "@/lib/models";
 import { put } from "@vercel/blob";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     await dbConnect();
@@ -56,7 +58,7 @@ export async function POST(req: NextRequest) {
       userEmail: userEmail ? userEmail.trim().toLowerCase() : undefined,
       name: file.name,
       size: file.size,
-      uploadedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      uploadedAt: new Date().toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true }),
       url: downloadRouteUrl,
       fileUrl: publicFileUrl,
       fileExt: originalExt,

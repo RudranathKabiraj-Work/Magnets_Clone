@@ -85,6 +85,18 @@ export default function PagesPage() {
     };
   }, []);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showCreateModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showCreateModal]);
+
   function removePage(id: string) {
     const next = pages.filter((p) => p.id !== id);
     setPages(next);
@@ -270,15 +282,6 @@ export default function PagesPage() {
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        <footer className="mt-auto border-t border-[#E2E8F0] dark:border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-zinc-500 dark:text-[#9B9085]">
-          <span>LeadMagnets</span>
-          <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Privacy</a>
-            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Terms</a>
-          </div>
-        </footer>
       </div>
 
       {/* 'Create a magnet' Modal Overlay matching exact user screenshot */}

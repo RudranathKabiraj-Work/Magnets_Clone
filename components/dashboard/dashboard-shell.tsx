@@ -2965,7 +2965,7 @@ export default function DashboardShell({
                               <button
                                 key={topic.text}
                                 onClick={() => setSelectedTopic(topic.text)}
-                                className="group flex w-full items-center justify-between rounded-2xl bg-white border border-[#E2E8F0] hover:bg-[#EFF6FF] dark:bg-[#161619] dark:border-[#0066B2]/30 dark:hover:bg-[#0066B2]/15 dark:hover:border-[#0066B2]/60 p-3.5 text-left text-sm font-semibold text-zinc-800 dark:text-white transition-all shadow-sm dark:shadow-none"
+                                className="group flex w-full items-center justify-between rounded-2xl bg-white border border-[#E2E8F0] hover:bg-[#EFF6FF] dark:bg-[#121214] dark:border-[#0066B2]/30 dark:hover:bg-[#0066B2]/15 dark:hover:border-[#0066B2]/60 p-3.5 text-left text-sm font-semibold text-zinc-800 dark:text-white transition-all shadow-sm dark:shadow-none"
                               >
                                 <div className="flex items-center gap-3.5">
                                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F0F4F8] border border-[#E2E8F0] text-[#0066B2] dark:bg-[#0066B2]/20 dark:border-[#0066B2]/40 dark:text-[#38BDF8] group-hover:bg-[#0066B2] group-hover:border-[#0066B2] group-hover:text-white transition-all">

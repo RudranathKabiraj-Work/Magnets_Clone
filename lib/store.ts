@@ -92,6 +92,37 @@ export function saveSequences(sequences: Sequence[]) {
   }).catch(console.error);
 }
 
+export function deleteSequence(id: string) {
+  if (typeof window !== "undefined") {
+    const current = loadSequences();
+    const targetSeq = current.find((s) => s.id === id);
+    const targetPageId = targetSeq?.pageId || id;
+
+    const nextSequences = current.filter((s) => s.id !== id);
+    safeSetItem("currentUserSequences", JSON.stringify(nextSequences));
+
+    // Also disable sequence on the associated lead magnet page
+    const pages = loadPages();
+    let pagesChanged = false;
+    const updatedPages = pages.map((p) => {
+      if (p.id === id || p.id === targetPageId) {
+        pagesChanged = true;
+        return { ...p, sequenceEnabled: false, sequenceEmails: [] };
+      }
+      return p;
+    });
+    if (pagesChanged) {
+      savePages(updatedPages);
+    }
+  }
+  const email = typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null;
+  fetch("/api/data", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "deleteSequence", data: { id }, email }),
+  }).catch(console.error);
+}
+
 export function resetSequences() {
   saveSequences(seedSequences);
 }

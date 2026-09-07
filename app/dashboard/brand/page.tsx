@@ -16,8 +16,23 @@ export default function BrandPage() {
   const [logo, setLogo] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const PRESET_COLORS = [
+    { name: "Ocean Blue", hex: "#0066B2" },
+    { name: "Royal Violet", hex: "#7C3AED" },
+    { name: "Emerald Growth", hex: "#10B981" },
+    { name: "Rose Crimson", hex: "#F43F5E" },
+    { name: "Amber Glow", hex: "#F59E0B" },
+    { name: "Midnight Obsidian", hex: "#0F172A" },
+  ];
+
+  function triggerToast(msg: string) {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  }
 
   useEffect(() => {
     if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
@@ -65,14 +80,14 @@ export default function BrandPage() {
     };
 
     try {
-      const result = await saveAccount(updatedAccount);
+      await saveAccount(updatedAccount);
       setAccount(updatedAccount);
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem("currentUserAccount", JSON.stringify(updatedAccount));
         } catch (_) {}
       }
-      alert("Brand settings saved successfully!");
+      triggerToast("Brand settings saved successfully!");
     } catch (err) {
       console.error("Save brand settings error:", err);
       setAccount(updatedAccount);
@@ -81,7 +96,7 @@ export default function BrandPage() {
           localStorage.setItem("currentUserAccount", JSON.stringify(updatedAccount));
         } catch (_) {}
       }
-      alert("Brand settings saved successfully!");
+      triggerToast("Brand settings saved successfully!");
     } finally {
       setSaving(false);
     }
@@ -141,6 +156,14 @@ export default function BrandPage() {
 
   return (
     <DashboardShell account={account} title="Brand">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-4 py-3 text-xs font-bold shadow-2xl animate-in fade-in slide-in-from-bottom-3 duration-200">
+          <Check className="h-4 w-4 text-emerald-400 dark:text-emerald-600" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10] text-zinc-900 dark:text-white transition-colors duration-200 animate-fade-in">
         <div className="flex-1 px-6 py-6 lg:px-8 w-full">
 
@@ -248,7 +271,7 @@ export default function BrandPage() {
                   {/* Primary Color */}
                   <div>
                     <label className="block text-sm font-semibold text-zinc-700 dark:text-[#a1a1aa] mb-2">
-                      Primary
+                      Primary Brand Color
                     </label>
                     <div className="flex items-center rounded-md border border-[#E2E8F0] bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] px-3.5 py-2.5 focus-within:border-[#0066B2] transition">
                       <label className="relative h-5 w-8 shrink-0 rounded cursor-pointer overflow-hidden border border-zinc-200 dark:border-[#0066B2]/30 mr-2">
@@ -266,6 +289,24 @@ export default function BrandPage() {
                         onChange={(e) => setBrandColor(e.target.value)}
                         className="w-full bg-transparent text-[14.2px] text-zinc-900 dark:text-white outline-none font-mono"
                       />
+                    </div>
+
+                    {/* Quick Swatches */}
+                    <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                      {PRESET_COLORS.map((c) => (
+                        <button
+                          key={c.hex}
+                          type="button"
+                          onClick={() => setBrandColor(c.hex)}
+                          title={c.name}
+                          className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer ${
+                            brandColor.toLowerCase() === c.hex.toLowerCase()
+                              ? "border-zinc-900 dark:border-white scale-110 shadow-xs"
+                              : "border-transparent"
+                          }`}
+                          style={{ backgroundColor: c.hex }}
+                        />
+                      ))}
                     </div>
                   </div>
 
@@ -506,7 +547,8 @@ export default function BrandPage() {
                               />
 
                               <button
-                                className="w-full rounded-md py-2.5 text-xs font-bold text-white transition duration-200 active:scale-95 shadow-md bg-[#0E0E10] hover:bg-[#161619]"
+                                className="w-full rounded-md py-2.5 text-xs font-bold text-white transition duration-200 active:scale-95 shadow-md"
+                                style={{ backgroundColor: brandColor }}
                               >
                                 Get the templates
                               </button>
@@ -528,15 +570,6 @@ export default function BrandPage() {
 
           </div>
         </div>
-
-        {/* Footer */}
-        <footer className="mt-auto border-t border-[#E2E8F0] dark:border-[#2e2e38] px-6 py-4 flex items-center justify-between text-xs text-zinc-500 dark:text-[#9B9085]">
-          <span>LeadMagnets</span>
-          <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Privacy</a>
-            <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition">Terms</a>
-          </div>
-        </footer>
       </div>
     </DashboardShell>
   );

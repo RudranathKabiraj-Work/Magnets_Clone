@@ -3,6 +3,9 @@ import { dbConnect } from "@/lib/mongodb";
 import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationModel, ResourceModel } from "@/lib/models";
 import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations } from "@/lib/data";
 import { sendInstantLeadAlert } from "@/lib/email-alerts";
+
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   try {
     await dbConnect();
@@ -110,6 +113,20 @@ export async function POST(req: Request) {
           );
         }
       }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === "deleteSequence") {
+      const { id } = data;
+      const filter = normEmail ? { id, userEmail: normEmail } : { id };
+      const targetSeq = await SequenceModel.findOne(filter).lean();
+      const pageIdToUpdate = (targetSeq as any)?.pageId || id;
+
+      await SequenceModel.deleteOne(filter);
+      await MagnetPageModel.updateMany(
+        { $or: [{ id }, { id: pageIdToUpdate }] },
+        { $set: { sequenceEnabled: false, sequenceEmails: [] } }
+      );
       return NextResponse.json({ success: true });
     }
 
@@ -226,12 +243,12 @@ export async function POST(req: Request) {
       }
       const deleteFilter = normEmail
         ? {
-            $or: [
-              { userEmail: normEmail },
-              ...(pageIds.length > 0 ? [{ pageId: { $in: pageIds } }] : []),
-              ...(pageNames.length > 0 ? [{ page: { $in: pageNames } }] : []),
-            ],
-          }
+          $or: [
+            { userEmail: normEmail },
+            ...(pageIds.length > 0 ? [{ pageId: { $in: pageIds } }] : []),
+            ...(pageNames.length > 0 ? [{ page: { $in: pageNames } }] : []),
+          ],
+        }
         : {};
       await LeadModel.deleteMany(deleteFilter);
       if (Array.isArray(data) && data.length > 0) {
