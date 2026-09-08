@@ -197,9 +197,15 @@ export default async function MagnetPageRoute({
                 {page.subheadline}
               </p>
 
+              {page.pitch && (
+                <p className={`text-sm leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-600"}`}>
+                  {page.pitch}
+                </p>
+              )}
+
               <div className="space-y-4 pt-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
-                  {page.bulletsTitle || page.pitch || "What they will learn"}
+                  {page.bulletsTitle || "What they will learn"}
                 </p>
                 <ul className="space-y-4">
                   {(page.bullets && page.bullets.length > 0 ? page.bullets : [
