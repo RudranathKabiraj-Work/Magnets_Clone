@@ -68,7 +68,9 @@ export default async function MagnetPageRoute({
 }) {
   await dbConnect();
 
-  const pageDoc = await MagnetPageModel.findOne({ slug: params.slug });
+  let pageDoc = await MagnetPageModel.findOne({
+    $or: [{ id: params.slug }, { slug: params.slug }]
+  });
   if (!pageDoc) notFound();
 
   const decodedUsername = decodeURIComponent(params.username || "");
@@ -98,6 +100,27 @@ export default async function MagnetPageRoute({
   await pageDoc.save();
 
   const page = JSON.parse(JSON.stringify(pageDoc)) as MagnetPage;
+
+  // A/B Split Test Logic (50/50 Cookie / Deterministic Random Split)
+  let activeHeadline = page.headline;
+  let activeImageUrl = page.imageUrl;
+  let activeVariantLabel: "Control" | "Variant B" = "Control";
+
+  if (page.testStarted && page.hasVariantB) {
+    const variantBText = page.variantBTitle && page.variantBTitle.trim() !== "" ? page.variantBTitle : page.headline;
+    const variantBImg = page.variantBImage && page.variantBImage.trim() !== "" ? page.variantBImage : page.imageUrl;
+
+    const isVariantB = Math.random() < 0.5;
+    if (isVariantB) {
+      activeHeadline = variantBText;
+      activeImageUrl = variantBImg;
+      activeVariantLabel = "Variant B";
+      pageDoc.variantBViews = (pageDoc.variantBViews || 0) + 1;
+    } else {
+      pageDoc.variantAViews = (pageDoc.variantAViews || 0) + 1;
+    }
+    await pageDoc.save();
+  }
 
   const themeMode = (accountDoc?.themeMode as "light" | "dark") || "light";
   const brandColor = accountDoc?.brandColor || "#0066B2";
@@ -167,7 +190,7 @@ export default async function MagnetPageRoute({
                 Free resource
               </span>
               <h1 className="text-3xl sm:text-4xl font-extrabold leading-[1.1] tracking-tight">
-                {page.headline}
+                {activeHeadline}
               </h1>
               <p className={`text-base leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"
                 }`}>
@@ -176,7 +199,7 @@ export default async function MagnetPageRoute({
 
               <div className="space-y-4 pt-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
-                  {page.pitch || "This playbook breaks down:"}
+                  {page.bulletsTitle || page.pitch || "What they will learn"}
                 </p>
                 <ul className="space-y-4">
                   {(page.bullets && page.bullets.length > 0 ? page.bullets : [
@@ -214,8 +237,8 @@ export default async function MagnetPageRoute({
                   backgroundColor: `${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')}`
                 }}
               >
-                {page.imageUrl ? (
-                  <img src={page.imageUrl} alt="Resource" className="h-full w-full object-cover" />
+                {activeImageUrl ? (
+                  <img src={activeImageUrl} alt="Resource" className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#9B9085]/60">Media Placeholder</span>
                 )}

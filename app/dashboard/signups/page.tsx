@@ -553,16 +553,27 @@ export default function SignupsPage() {
                             {(lead.name || lead.email || "U").slice(0, 2)}
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-1.5">
-                              {lead.email}
-                              <button
-                                onClick={() => copyEmailToClipboard(lead.email)}
-                                title="Copy Email"
-                                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
-                              >
-                                <Copy className="h-3 w-3" />
-                              </button>
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                                {lead.email}
+                                <button
+                                  onClick={() => copyEmailToClipboard(lead.email)}
+                                  title="Copy Email"
+                                  className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </button>
+                              </p>
+                              {/* AI Lead Quality Badge */}
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                !lead.email.endsWith("@gmail.com") && !lead.email.endsWith("@yahoo.com")
+                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                                  : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                              }`}>
+                                <Sparkles className="h-2.5 w-2.5" />
+                                {!lead.email.endsWith("@gmail.com") && !lead.email.endsWith("@yahoo.com") ? "🔥 Hot Prospect (80 pts)" : "⚡ Warm Lead (60 pts)"}
+                              </span>
+                            </div>
                             {lead.name && lead.name !== lead.email.split("@")[0] && (
                               <p className="text-xs text-zinc-500 dark:text-[#9B9085]">{lead.name}</p>
                             )}

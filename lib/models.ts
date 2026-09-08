@@ -60,6 +60,20 @@ const MagnetPageSchema = new Schema({
   customPromptQuestion: { type: String, default: "" },
   customPromptPlaceholder: { type: String, default: "" },
   enableAiPersonalizedDeliverable: { type: Boolean, default: false },
+  testStarted: { type: Boolean, default: false },
+  hasVariantB: { type: Boolean, default: false },
+  variantBTitle: { type: String, default: "" },
+  variantBImage: { type: String, default: null },
+  variantAViews: { type: Number, default: 0 },
+  variantASignups: { type: Number, default: 0 },
+  variantBViews: { type: Number, default: 0 },
+  variantBSignups: { type: Number, default: 0 },
+  bulletsTitle: { type: String, default: "What they will learn" },
+  formTitle: { type: String, default: "Download for free" },
+  formSubtitle: { type: String, default: "Pop your email in and we'll send it straight over." },
+  namePlaceholder: { type: String, default: "Name" },
+  emailPlaceholder: { type: String, default: "Email" },
+  formButtonText: { type: String, default: "Send it to me" },
 });
 
 // Lead Schema

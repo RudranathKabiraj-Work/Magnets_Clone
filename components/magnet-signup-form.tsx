@@ -114,7 +114,7 @@ export default function MagnetSignupForm({
           } else {
             localStorage.setItem("currentUserLeads", JSON.stringify([finalLead]));
           }
-        } catch (_) {}
+        } catch (_) { }
 
         // First check if an uploaded resource URL is already saved in page data or local storage
         try {
@@ -126,7 +126,7 @@ export default function MagnetSignupForm({
               return;
             }
           }
-        } catch (_) {}
+        } catch (_) { }
 
         // Fallback fetch from database
         const fetchUrl = pageOwnerEmail ? `/api/data?email=${encodeURIComponent(pageOwnerEmail)}` : "/api/data";
@@ -137,7 +137,7 @@ export default function MagnetSignupForm({
               setDownloadUrl(data.resources[0].url);
             }
           })
-          .catch(() => {});
+          .catch(() => { });
       }
     } catch (err) {
       console.error("Failed to submit lead", err);
@@ -149,11 +149,10 @@ export default function MagnetSignupForm({
   return (
     <>
       {done ? (
-        <div className={`rounded-2xl border p-5 text-left transition-colors duration-300 ${
-          themeMode === "dark" 
-            ? "bg-[#161619] border-[#252529] text-white" 
+        <div className={`rounded-2xl border p-5 text-left transition-colors duration-300 ${themeMode === "dark"
+            ? "bg-[#161619] border-[#252529] text-white"
             : "bg-white border-zinc-200 text-zinc-900 shadow-sm"
-        }`}>
+          }`}>
           <CheckCircle2 className="h-6 w-6 text-emerald-500" aria-hidden="true" />
           <p className={`mt-2 text-sm font-bold ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>
             On its way — check <span className={`underline decoration-[#0066B2] font-extrabold ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>{email}</span>

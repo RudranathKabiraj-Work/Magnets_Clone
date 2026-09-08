@@ -37,10 +37,21 @@ export interface MagnetPage {
   testStarted?: boolean;
   variantBImage?: string | null;
   variantBTitle?: string;
+  variantAViews?: number;
+  variantASignups?: number;
+  variantBViews?: number;
+  variantBSignups?: number;
   // Feature 2: Smart Auto-Personalized Deliverable Settings
   customPromptQuestion?: string; // e.g. "What is your main business goal or bottleneck?"
   customPromptPlaceholder?: string;
   enableAiPersonalizedDeliverable?: boolean;
+  bulletsTitle?: string;
+  // Editable Signup Form Card Settings
+  formTitle?: string;
+  formSubtitle?: string;
+  namePlaceholder?: string;
+  emailPlaceholder?: string;
+  formButtonText?: string;
 }
 
 export interface Lead {

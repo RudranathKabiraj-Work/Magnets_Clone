@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { Sparkles, Globe, Plug, FileText, ChevronDown, ChevronUp, Check, Mail, Calendar, Slack, Zap } from "lucide-react";
+import { Sparkles, Globe, Plug, FileText, ChevronDown, ChevronUp, Check, Mail, Calendar, Slack, Zap, Copy, RefreshCw, Loader2 } from "lucide-react";
 import { syncWithDatabase, saveAccount, loadAccount } from "@/lib/store";
 import type { Account } from "@/lib/data";
 
@@ -12,6 +12,12 @@ export default function WorkspaceSetupPage() {
   const [username, setUsername] = useState("");
   const [privacyPolicy, setPrivacyPolicy] = useState("");
   const [termsOfService, setTermsOfService] = useState("");
+  const [rootDomain, setRootDomain] = useState("");
+  const [pageSubdomain, setPageSubdomain] = useState("get");
+  const [checkingDomain, setCheckingDomain] = useState(false);
+  const [domainVerified, setDomainVerified] = useState(false);
+  const [domainError, setDomainError] = useState("");
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Accordions — "public-url" open by default, custom-domain always visible inside it
@@ -198,13 +204,200 @@ export default function WorkspaceSetupPage() {
                   </div>
                 </button>
                 {openSections["custom-domain"] && (
-                  <div className="mt-3 border-t border-[#E2E8F0] pt-3 dark:border-[#0066B2]/20">
-                    <p className="text-xs text-zinc-600 dark:text-[#9B9085] leading-relaxed">
-                      Custom domain features are available on the Pro plan.
-                    </p>
-                    <button className="mt-2.5 rounded-md bg-[#0066B2] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#005799] dark:bg-[#0066B2] dark:text-white dark:hover:bg-[#005799] transition">
-                      Upgrade to Pro
-                    </button>
+                  <div className="mt-4 border-t border-[#E2E8F0] pt-4 dark:border-[#0066B2]/20 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Root domain input */}
+                      <div>
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5">
+                          Root domain
+                        </label>
+                        <input
+                          type="text"
+                          value={rootDomain}
+                          onChange={(e) => setRootDomain(e.target.value)}
+                          placeholder="example.com"
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-[#0066B2] dark:border-[#2e2e38] dark:bg-[#0E0E10] dark:text-white dark:placeholder:text-[#52525b] transition-all"
+                        />
+                        <p className="mt-1.5 text-[11px] text-zinc-400 dark:text-[#666675]">No https or page paths.</p>
+                      </div>
+
+                      {/* Page subdomain input */}
+                      <div>
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5">
+                          Page subdomain
+                        </label>
+                        <input
+                          type="text"
+                          value={pageSubdomain}
+                          onChange={(e) => setPageSubdomain(e.target.value)}
+                          placeholder="get"
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-[#0066B2] dark:border-[#2e2e38] dark:bg-[#0E0E10] dark:text-white dark:placeholder:text-[#52525b] transition-all"
+                        />
+                        <p className="mt-1.5 text-[11px] text-zinc-400 dark:text-[#666675]">Recommended: get</p>
+                      </div>
+                    </div>
+
+                    {/* 2-Step Verification Panel Matching Screenshot */}
+                    {rootDomain.trim() ? (
+                      <div className="space-y-4 pt-1">
+                        {/* Step 1: Prove you own this domain */}
+                        <div className="rounded-2xl border border-zinc-200/90 dark:border-white/10 bg-zinc-50/60 dark:bg-[#151518] p-5 space-y-4 shadow-2xs">
+                          <div className="flex items-start gap-4">
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-white/20 text-xs font-bold text-zinc-900 dark:text-white bg-white dark:bg-[#202026]">
+                              1
+                            </span>
+                            <div className="flex-1">
+                              <h6 className="text-sm font-bold text-zinc-900 dark:text-white">
+                                Prove you own this domain
+                              </h6>
+                              <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
+                                Add this TXT record to your DNS provider. Then click Check.
+                              </p>
+
+                              {/* TXT Record Box with Copy Buttons */}
+                              {(() => {
+                                const cleanDom = rootDomain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+                                const tokenValue = `leadmagnets-verify-${cleanDom.replace(/[^a-z0-9]/g, "")}_8a921c4ef`;
+                                return (
+                                  <div className="mt-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+                                    <div className="flex-1">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                                        TYPE
+                                      </span>
+                                      <span className="font-mono text-xs font-bold text-zinc-900 dark:text-white">
+                                        TXT
+                                      </span>
+                                    </div>
+
+                                    <div className="flex-[2] relative">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                                        HOST
+                                      </span>
+                                      <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
+                                        <span>leadmagnets-verify</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            navigator.clipboard.writeText("leadmagnets-verify");
+                                            setCopiedField("host");
+                                            setTimeout(() => setCopiedField(null), 2000);
+                                          }}
+                                          className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer"
+                                          title="Copy Host"
+                                        >
+                                          {copiedField === "host" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                                        </button>
+                                      </div>
+                                      <span className="text-[10px] text-zinc-400 dark:text-[#666675] block mt-1">
+                                        Full hostname: leadmagnets-verify.{cleanDom}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex-[3] relative">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                                        VALUE
+                                      </span>
+                                      <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
+                                        <span className="truncate max-w-[200px] sm:max-w-xs">
+                                          {tokenValue}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            navigator.clipboard.writeText(tokenValue);
+                                            setCopiedField("value");
+                                            setTimeout(() => setCopiedField(null), 2000);
+                                          }}
+                                          className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer shrink-0"
+                                          title="Copy Value"
+                                        >
+                                          {copiedField === "value" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+
+                              {/* Interactive "Check ownership" button & status message */}
+                              <div className="mt-4 space-y-2">
+                                <button
+                                  type="button"
+                                  disabled={checkingDomain}
+                                  onClick={async () => {
+                                    setCheckingDomain(true);
+                                    setDomainError("");
+                                    try {
+                                      const res = await fetch("/api/domain/verify", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ domain: rootDomain, subdomain: pageSubdomain }),
+                                      });
+                                      const data = await res.json();
+                                      if (data.isVerified) {
+                                        setDomainVerified(true);
+                                        setDomainError("Domain ownership verified!");
+                                      } else {
+                                        setDomainError(data.message || `No TXT record found at leadmagnets-verify.${rootDomain.toLowerCase().replace(/^https?:\/\//, "")}. Check that the root domain above is spelled correctly and that your DNS provider did not append the domain twice. DNS can take 1 to 60 minutes to propagate.`);
+                                      }
+                                    } catch (e) {
+                                      setDomainError(`No TXT record found at leadmagnets-verify.${rootDomain.toLowerCase().replace(/^https?:\/\//, "")}. Check that the root domain above is spelled correctly and that your DNS provider did not append the domain twice. DNS can take 1 to 60 minutes to propagate.`);
+                                    } finally {
+                                      setCheckingDomain(false);
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-2 rounded-xl border border-zinc-300 dark:border-white/15 bg-white dark:bg-[#202026] px-4 py-2 text-xs font-bold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#282830] transition shadow-xs cursor-pointer disabled:opacity-60"
+                                >
+                                  {checkingDomain ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2]" />
+                                  ) : (
+                                    <RefreshCw className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-300" />
+                                  )}
+                                  <span>Check ownership</span>
+                                </button>
+
+                                {domainError && (
+                                  <p className="text-[11.5px] text-zinc-500 dark:text-[#9B9085] leading-relaxed pt-1">
+                                    {domainError}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Step 2: Point traffic at your magnets */}
+                        <div className="rounded-2xl border border-zinc-200/90 dark:border-white/10 bg-zinc-50/60 dark:bg-[#151518] p-5 shadow-2xs opacity-75">
+                          <div className="flex items-start gap-4">
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-white/20 text-xs font-bold text-zinc-500 dark:text-zinc-400 bg-white dark:bg-[#202026]">
+                              2
+                            </span>
+                            <div>
+                              <h6 className="text-sm font-bold text-zinc-900 dark:text-white">
+                                Point traffic at your magnets
+                              </h6>
+                              <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
+                                After ownership is verified, we will give you a CNAME unique to your account.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-4 dark:border-white/10 dark:bg-[#18181C] flex items-start gap-3">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-[#222228] dark:text-zinc-300">
+                          <Globe className="h-3.5 w-3.5" />
+                        </div>
+                        <div>
+                          <h6 className="text-xs font-bold text-zinc-900 dark:text-white">
+                            Enter your root domain and subdomain above to start connecting.
+                          </h6>
+                          <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5">
+                            You will prove ownership with one DNS record, then add a second to route traffic.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

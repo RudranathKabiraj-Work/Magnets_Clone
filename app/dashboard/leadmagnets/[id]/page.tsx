@@ -97,6 +97,20 @@ export default function EditLeadMagnetPage() {
     if (localAcc) setAccount(localAcc);
     const localP = loadPages().find((p) => p.id === params.id);
     if (localP) setPage(localP);
+
+    // Poll latest views & stats from database in real time
+    const interval = setInterval(() => {
+      syncWithDatabase().then((data) => {
+        if (data && data.pages) {
+          const updated = data.pages.find((p: any) => p.id === params.id);
+          if (updated) {
+            setPage(updated);
+          }
+        }
+      });
+    }, 2000);
+
+    return () => clearInterval(interval);
   }, [params.id]);
 
   // Modal & Menu States
@@ -161,6 +175,7 @@ export default function EditLeadMagnetPage() {
   const [subheadline, setSubheadline] = useState(initialSubheadline);
   const [pitch, setPitch] = useState(initialPitch);
   const [bullets, setBullets] = useState<string[]>(initialBullets);
+  const [bulletsTitle, setBulletsTitle] = useState(page?.bulletsTitle && page.bulletsTitle !== "What they will learn" ? page.bulletsTitle : "");
   const [imageUrl, setImageUrl] = useState<string | null>(initialImage);
   const [newBulletText, setNewBulletText] = useState("");
   const [showAddBullet, setShowAddBullet] = useState(false);
@@ -211,6 +226,7 @@ export default function EditLeadMagnetPage() {
     buttonLabel: string;
     buttonUrl: string;
     quizFunnelEnabled: boolean;
+    bulletsTitle: string;
   }[]>(() => [
     {
       headline: initialHeadline,
@@ -232,6 +248,7 @@ export default function EditLeadMagnetPage() {
       buttonLabel: page?.buttonLabel || "",
       buttonUrl: page?.buttonUrl || "",
       quizFunnelEnabled: page?.quizFunnelEnabled || false,
+      bulletsTitle: page?.bulletsTitle && page.bulletsTitle !== "What they will learn" ? page.bulletsTitle : "",
     }
   ]);
   const [historyIndex, setHistoryIndex] = useState<number>(0);
@@ -279,6 +296,7 @@ export default function EditLeadMagnetPage() {
     setButtonLabel(target.buttonLabel);
     setButtonUrl(target.buttonUrl);
     setQuizFunnelEnabled(target.quizFunnelEnabled);
+    setBulletsTitle(target.bulletsTitle);
 
     setHistoryIndex(prevIndex);
   }, [historyIndex, history]);
@@ -310,6 +328,7 @@ export default function EditLeadMagnetPage() {
     setButtonLabel(target.buttonLabel);
     setButtonUrl(target.buttonUrl);
     setQuizFunnelEnabled(target.quizFunnelEnabled);
+    setBulletsTitle(target.bulletsTitle);
 
     setHistoryIndex(nextIndex);
   }, [historyIndex, history]);
@@ -320,6 +339,16 @@ export default function EditLeadMagnetPage() {
   const [variantBImage, setVariantBImage] = useState<string | null>(page?.variantBImage !== undefined ? page.variantBImage : null);
   const [variantBTitle, setVariantBTitle] = useState(page?.variantBTitle || "");
   const variantBFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync A/B testing state cleanly whenever page object updates
+  useEffect(() => {
+    if (page) {
+      setHasVariantB(Boolean(page.hasVariantB));
+      setTestStarted(Boolean(page.testStarted));
+      setVariantBImage(page.variantBImage !== undefined ? page.variantBImage : null);
+      setVariantBTitle(page.variantBTitle || "");
+    }
+  }, [page?.id, page?.hasVariantB, page?.testStarted, page?.variantBTitle, page?.variantBImage]);
 
   const handleVariantBImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputTarget = e.target;
@@ -459,6 +488,7 @@ export default function EditLeadMagnetPage() {
         buttonLabel,
         buttonUrl,
         quizFunnelEnabled,
+        bulletsTitle,
       };
 
       const lastSnapshot = history[historyIndex];
@@ -484,6 +514,7 @@ export default function EditLeadMagnetPage() {
     emailSubject, emailPreviewText, emailBody,
     sequenceEnabled, stopOnCall, sequenceEmails,
     afterSignupOption, destinationUrl, customHeading, customMessage, videoUrl, buttonLabel, buttonUrl, quizFunnelEnabled,
+    bulletsTitle,
     historyIndex, history
   ]);
 
@@ -546,6 +577,7 @@ export default function EditLeadMagnetPage() {
           customPromptQuestion,
           customPromptPlaceholder,
           enableAiPersonalizedDeliverable,
+          bulletsTitle,
           updatedAt: "Just now"
         };
         setPage(next);
@@ -562,7 +594,8 @@ export default function EditLeadMagnetPage() {
     sequenceEnabled, stopOnCall, sequenceEmails,
     afterSignupOption, destinationUrl, customHeading, customMessage, videoUrl, buttonLabel, buttonUrl, quizFunnelEnabled,
     hasVariantB, testStarted, variantBImage, variantBTitle,
-    customPromptQuestion, customPromptPlaceholder, enableAiPersonalizedDeliverable
+    customPromptQuestion, customPromptPlaceholder, enableAiPersonalizedDeliverable,
+    bulletsTitle
   ]);
 
   const handleGoBack = () => {
@@ -592,6 +625,7 @@ export default function EditLeadMagnetPage() {
         testStarted,
         variantBImage,
         variantBTitle,
+        bulletsTitle,
         updatedAt: "Just now"
       };
       const all = loadPages().map((p) => (p.id === next.id ? next : p));
@@ -622,7 +656,7 @@ export default function EditLeadMagnetPage() {
 
   function update(patch: Partial<MagnetPage>) {
     if (!page) return;
-    const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, ...patch };
+    const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, bulletsTitle, ...patch };
     setPage(next);
     const all = loadPages().map((p) => (p.id === next.id ? next : p));
     savePages(all);
@@ -632,7 +666,7 @@ export default function EditLeadMagnetPage() {
     setSaving(true);
     window.setTimeout(() => {
       if (!page) return;
-      const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, updatedAt: "Just now" };
+      const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, bulletsTitle, updatedAt: "Just now" };
       setPage(next);
       const all = loadPages().map((p) => (p.id === next.id ? next : p));
       savePages(all);
@@ -993,16 +1027,23 @@ export default function EditLeadMagnetPage() {
                             />
                           </div>
 
-                          {/* Bullets List Section */}
-                          <div className="group relative rounded-2xl border border-transparent hover:border-zinc-300 dark:hover:border-zinc-300 p-3 transition-all duration-200 space-y-3">
+                          {/* Bullets List Section - Clean by default, Editing Card appears on hover */}
+                          <div className="group relative rounded-2xl border border-transparent hover:border-zinc-300 dark:hover:border-zinc-300 bg-transparent hover:bg-white/80 dark:hover:bg-white/80 p-3.5 transition-all duration-200 space-y-3 hover:shadow-md">
                             {/* Floating Pencil Edit Badge (Visible on hover) */}
-                            <div className="absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full bg-black dark:bg-black text-white dark:text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                            <div className="absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full bg-black dark:bg-black text-white dark:text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer">
                               <Pencil className="h-3.5 w-3.5" />
                             </div>
 
-                            <p className="text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-700">
-                              What they will learn
-                            </p>
+                            {/* Card Title Input */}
+                            <div>
+                              <input
+                                type="text"
+                                value={bulletsTitle}
+                                onChange={(e) => setBulletsTitle(e.target.value)}
+                                placeholder="What they will learn"
+                                className="w-full text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-800 bg-transparent outline-none border-b border-transparent hover:border-[#FE6F34]/50 focus:border-[#FE6F34] hover:bg-white focus:bg-white rounded-lg px-2 py-1 transition-all duration-150 placeholder:text-zinc-400 dark:placeholder:text-zinc-400 placeholder:font-normal"
+                              />
+                            </div>
 
                             {bullets.length === 0 ? (
                               <p className="text-xs italic text-zinc-400 dark:text-zinc-400">
@@ -1234,9 +1275,20 @@ export default function EditLeadMagnetPage() {
 
                           <div className="h-px bg-zinc-100 dark:bg-zinc-100 w-full" />
 
-                          <p className="text-xs text-zinc-400 dark:text-zinc-400 pt-0.5">
-                            Results appear after the test starts
-                          </p>
+                          {testStarted ? (
+                            <div className="flex items-center justify-between text-xs pt-0.5 font-medium">
+                              <span className="text-emerald-600 font-bold flex items-center gap-1">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Tracking
+                              </span>
+                              <span className="text-zinc-600 dark:text-zinc-600 font-semibold">
+                                {page?.variantAViews || 0} views · {page?.variantASignups || 0} signups
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-zinc-400 dark:text-zinc-400 pt-0.5">
+                              Results appear after the test starts
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -1314,17 +1366,35 @@ export default function EditLeadMagnetPage() {
                               </span>
                               <input
                                 type="text"
-                                value={variantBTitle || headline || "TECH"}
+                                value={variantBTitle}
                                 onChange={(e) => setVariantBTitle(e.target.value)}
+                                placeholder={headline || "Version B Title"}
+                                onBlur={() => {
+                                  if (page) {
+                                    const next = { ...page, variantBTitle, hasVariantB: true, updatedAt: "Just now" };
+                                    savePages(loadPages().map((p) => (p.id === next.id ? next : p)));
+                                  }
+                                }}
                                 className="w-full text-sm font-black text-zinc-900 dark:text-zinc-900 outline-none border-b border-transparent focus:border-[#FE6F34] py-0.5"
                               />
                             </div>
 
                             <div className="h-px bg-zinc-100 dark:bg-zinc-100 w-full" />
 
-                            <p className="text-xs text-zinc-400 dark:text-zinc-400 pt-0.5">
-                              Results appear after the test starts
-                            </p>
+                            {testStarted ? (
+                              <div className="flex items-center justify-between text-xs pt-0.5 font-medium">
+                                <span className="text-emerald-600 font-bold flex items-center gap-1">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Tracking
+                                </span>
+                                <span className="text-zinc-600 dark:text-zinc-600 font-semibold">
+                                  {page?.variantBViews || 0} views · {page?.variantBSignups || 0} signups
+                                </span>
+                              </div>
+                            ) : (
+                              <p className="text-xs text-zinc-400 dark:text-zinc-400 pt-0.5">
+                                Results appear after the test starts
+                              </p>
+                            )}
                           </div>
                         </div>
                       )}
@@ -1333,7 +1403,16 @@ export default function EditLeadMagnetPage() {
                     {/* Create Version B Button */}
                     {!hasVariantB && (
                       <button
-                        onClick={() => setHasVariantB(true)}
+                        onClick={() => {
+                          setHasVariantB(true);
+                          const defaultTitle = variantBTitle || headline || "Version B";
+                          setVariantBTitle(defaultTitle);
+                          if (page) {
+                            const next = { ...page, hasVariantB: true, variantBTitle: defaultTitle, updatedAt: "Just now" };
+                            setPage(next);
+                            savePages(loadPages().map((p) => (p.id === next.id ? next : p)));
+                          }
+                        }}
                         className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-300 bg-[#F9FAFB] dark:bg-[#F9FAFB] hover:bg-zinc-100 dark:hover:bg-zinc-100 hover:border-zinc-400 p-3.5 text-xs font-bold text-zinc-700 dark:text-zinc-700 transition-all duration-200 active:scale-[0.99] cursor-pointer shadow-2xs"
                       >
                         <Plus className="h-4 w-4 text-zinc-600 transition-transform duration-200 group-hover:scale-110" />
@@ -1438,44 +1517,44 @@ export default function EditLeadMagnetPage() {
                             <button type="button" title="Line" className="hover:text-zinc-900 transition px-1">—</button>
                             <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-300 mx-0.5" />
                             <div className="relative">
-                               <button 
-                                 type="button" 
-                                 onClick={() => setShowInsertResourceMenu((v) => !v)}
-                                 className="hover:text-[#0066B2] text-[#0066B2] font-semibold transition px-2 py-1 rounded bg-[#EFF6FF] flex items-center gap-1 cursor-pointer"
-                               >
-                                 <span>+ Insert Resource</span>
-                                 <ChevronDown className="h-3 w-3" />
-                               </button>
+                              <button
+                                type="button"
+                                onClick={() => setShowInsertResourceMenu((v) => !v)}
+                                className="hover:text-[#0066B2] text-[#0066B2] font-semibold transition px-2 py-1 rounded bg-[#EFF6FF] flex items-center gap-1 cursor-pointer"
+                              >
+                                <span>+ Insert Resource</span>
+                                <ChevronDown className="h-3 w-3" />
+                              </button>
 
-                               {showInsertResourceMenu && (
-                                 <div className="absolute left-0 top-full mt-1.5 w-64 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-xl z-50 text-zinc-800 space-y-1">
-                                   <div className="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                                     SELECT HOSTED RESOURCE
-                                   </div>
-                                   {hostedResources.length === 0 ? (
-                                     <div className="px-2 py-2 text-xs text-zinc-500 italic">
-                                       No hosted resources found. Upload one in Hosted resources first!
-                                     </div>
-                                   ) : (
-                                     hostedResources.map((res) => (
-                                       <button
-                                         key={res.id}
-                                         type="button"
-                                         onClick={() => {
-                                           const linkText = `\n${res.url}\n`;
-                                           setEmailBody((prev) => prev + linkText);
-                                           setShowInsertResourceMenu(false);
-                                         }}
-                                         className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-[#EFF6FF] hover:text-[#0066B2] text-xs transition flex flex-col gap-0.5 cursor-pointer"
-                                       >
-                                         <span className="font-semibold truncate">{res.name}</span>
-                                         <span className="text-[10px] text-zinc-400 font-mono truncate">{res.url}</span>
-                                       </button>
-                                     ))
-                                   )}
-                                 </div>
-                               )}
-                             </div>
+                              {showInsertResourceMenu && (
+                                <div className="absolute left-0 top-full mt-1.5 w-64 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-xl z-50 text-zinc-800 space-y-1">
+                                  <div className="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                                    SELECT HOSTED RESOURCE
+                                  </div>
+                                  {hostedResources.length === 0 ? (
+                                    <div className="px-2 py-2 text-xs text-zinc-500 italic">
+                                      No hosted resources found. Upload one in Hosted resources first!
+                                    </div>
+                                  ) : (
+                                    hostedResources.map((res) => (
+                                      <button
+                                        key={res.id}
+                                        type="button"
+                                        onClick={() => {
+                                          const linkText = `\n${res.url}\n`;
+                                          setEmailBody((prev) => prev + linkText);
+                                          setShowInsertResourceMenu(false);
+                                        }}
+                                        className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-[#EFF6FF] hover:text-[#0066B2] text-xs transition flex flex-col gap-0.5 cursor-pointer"
+                                      >
+                                        <span className="font-semibold truncate">{res.name}</span>
+                                        <span className="text-[10px] text-zinc-400 font-mono truncate">{res.url}</span>
+                                      </button>
+                                    ))
+                                  )}
+                                </div>
+                              )}
+                            </div>
                             <button type="button" title="Link" className="hover:text-zinc-900 transition px-1">🔗</button>
                           </div>
 

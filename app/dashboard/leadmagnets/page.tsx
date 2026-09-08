@@ -340,9 +340,32 @@ export default function PagesPage() {
               }}
               className="space-y-4"
             >
-              {/* Page Name */}
+              {/* Page Name with AI generator */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-[#d4c8bc]">Page name</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-zinc-700 dark:text-[#d4c8bc]">Page name</label>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/ai/optimize", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ action: "suggest_titles", magnetTitle: newName || "Growth Framework" }),
+                        });
+                        const data = await res.json();
+                        if (data.suggestions?.length) {
+                          setNewName(data.suggestions[Math.floor(Math.random() * data.suggestions.length)]);
+                        }
+                      } catch (e) {
+                        console.error(e);
+                      }
+                    }}
+                    className="flex items-center gap-1 text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline cursor-pointer"
+                  >
+                    <Sparkles className="h-3 w-3" /> AI Title Generator
+                  </button>
+                </div>
                 <input
                   type="text"
                   autoFocus
