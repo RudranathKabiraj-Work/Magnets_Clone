@@ -67,6 +67,8 @@ export interface Lead {
   sequenceStep?: string;
   tags: string[];
   customAnswer?: string;
+  deviceType?: "desktop" | "mobile";
+  referrer?: string;
 }
 
 export interface SequenceEmail {
@@ -121,6 +123,13 @@ export interface Account {
   domainVerified?: boolean;
   cnameVerified?: boolean;
   sslStatus?: "pending" | "active" | "failed";
+  ga4MeasurementId?: string;
+  metaPixelId?: string;
+  faviconUrl?: string;
+  ogImageUrl?: string;
+  spfVerified?: boolean;
+  dkimVerified?: boolean;
+  substackPublication?: string;
 }
 
 export interface Integration {
@@ -264,8 +273,7 @@ export const sequences: Sequence[] = [
 ];
 
 export const integrations: Integration[] = [
-  { id: "beehiiv", name: "Beehiiv", category: "newsletter", description: "Add every new signup to a publication as a subscriber.", connected: false, trigger: "Signup" },
-  { id: "kit", name: "Kit", category: "newsletter", description: "Send new signups to your Kit audience.", connected: false, trigger: "Signup" },
+  { id: "kit", name: "Kit", category: "newsletter", description: "Send new signups to your Kit audience (Free up to 1,000 subscribers).", connected: false, trigger: "Signup" },
   { id: "slack", name: "Slack", category: "messaging", description: "Post a notification to a channel the moment someone signs up.", connected: true, trigger: "Signup" },
   { id: "pipedrive", name: "Pipedrive", category: "crm", description: "Create or update a person in Pipedrive for every signup.", connected: false, trigger: "Signup" },
   { id: "zapier", name: "Zapier", category: "automation", description: "Trigger your own automation with every new signup.", connected: true, trigger: "Signup" },

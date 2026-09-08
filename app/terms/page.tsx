@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LegalFooter, LegalHeader } from "@/layout/legal";
 
 export const metadata: Metadata = {
-  title: "Terms",
+  title: "Terms of Service",
   description: "LeadMagnets Terms of Service.",
   robots: { index: true, follow: true },
   alternates: { canonical: "https://leadmagnets.so/terms" },
@@ -10,14 +10,14 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-brand-soft text-ink-900">
+    <main className="min-h-screen bg-[#F8FBFF] dark:bg-[#0E0E10] text-zinc-900 dark:text-white transition-colors">
       <LegalHeader />
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-        <p className="text-xs font-bold uppercase text-ink-500">Legal</p>
-        <h1 className="mt-2 text-3xl font-black text-ink-950 sm:text-4xl">Terms of Service</h1>
-        <p className="mt-2 text-sm text-ink-500">Effective July 14, 2026</p>
-        <article className="prose-leadmagnets mt-10 space-y-8 text-[15px] leading-7 text-ink-700">
-          <p>
+        <p className="text-xs font-bold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">Legal</p>
+        <h1 className="mt-2 text-3xl font-extrabold text-zinc-900 dark:text-white sm:text-4xl">Terms of Service</h1>
+        <p className="mt-2 text-sm font-medium text-zinc-500 dark:text-[#9B9085]">Effective July 14, 2026</p>
+        <article className="mt-10 space-y-8 text-[15px] leading-7 text-zinc-800 dark:text-zinc-300">
+          <p className="text-zinc-800 dark:text-zinc-200 font-normal">
             These Terms govern your use of LeadMagnets (the &ldquo;Service&rdquo;). By creating an account, publishing a page, or
             otherwise using the Service, you agree to these Terms. If you do not agree, do not use the Service.
           </p>
@@ -28,6 +28,7 @@ export default function TermsPage() {
               domain you connect. LeadMagnets may be offered free of charge or with different plans and features over time.
             </p>
           </LegalSection>
+
           <LegalSection title="2. Your account">
             <p>
               You are responsible for your account, password, and the accuracy of the information you provide. You must keep your
@@ -36,6 +37,7 @@ export default function TermsPage() {
               authorised to use.
             </p>
           </LegalSection>
+
           <LegalSection title="3. Sending email">
             <p>
               LeadMagnets can send a resource email from a LeadMagnets-managed sender address so you can get started without setting up a
@@ -48,6 +50,7 @@ export default function TermsPage() {
               use the provided stop link to stop that sequence. You must not remove, obscure, or circumvent that control.
             </p>
           </LegalSection>
+
           <LegalSection title="4. Follow-up sequences and calendar stops">
             <p>
               A follow-up sequence sends the schedule and content you configure after a person signs up. You may choose to stop an
@@ -56,14 +59,16 @@ export default function TermsPage() {
               and timing are appropriate for your audience.
             </p>
           </LegalSection>
+
           <LegalSection title="5. Optional integrations">
             <p>
-              You may connect supported third-party services, including Beehiiv, Substack, Kit, Slack, Pipedrive, Zapier, Calendly,
+              You may connect supported third-party services, including Substack, Kit, Slack, Pipedrive, Zapier, Calendly,
               and Cal.com. If you do, you authorise LeadMagnets to send the information needed to perform the selected action, such as
               adding a subscriber, posting a signup notification, creating or updating a contact, or stopping a sequence. Your use
               of those services is also governed by their terms, privacy notices, pricing, and limits.
             </p>
           </LegalSection>
+
           <LegalSection title="6. Your content and your subscribers">
             <p>
               You retain ownership of the pages, copy, images, resources, and other content you submit to LeadMagnets. You give us the
@@ -76,9 +81,10 @@ export default function TermsPage() {
               with the laws that apply to you and your subscribers.
             </p>
           </LegalSection>
+
           <LegalSection title="7. Acceptable use">
             <p>You must not use LeadMagnets to:</p>
-            <ul className="list-disc space-y-1 pl-5">
+            <ul className="list-disc space-y-2 pl-5 text-zinc-700 dark:text-zinc-300">
               <li>Send unsolicited, deceptive, unlawful, or abusive messages, including spam, phishing, or malware.</li>
               <li>Collect or use personal data without a lawful basis or required permissions.</li>
               <li>Publish content that is illegal, infringes rights, or is otherwise harmful.</li>
@@ -90,6 +96,7 @@ export default function TermsPage() {
               its users, or providers are at risk.
             </p>
           </LegalSection>
+
           <LegalSection title="8. Third-party services">
             <p>
               LeadMagnets relies on third-party providers for hosting, storage, authentication, email delivery, and integrations. We do
@@ -97,6 +104,7 @@ export default function TermsPage() {
               responsible for maintaining any third-party accounts or plans required for features you choose to use.
             </p>
           </LegalSection>
+
           <LegalSection title="9. Availability and changes">
             <p>
               We work to keep LeadMagnets available and reliable, but the Service is provided on an &ldquo;as available&rdquo; basis.
@@ -104,6 +112,7 @@ export default function TermsPage() {
               operate, secure, or improve the Service. We do not guarantee uninterrupted or error-free operation.
             </p>
           </LegalSection>
+
           <LegalSection title="10. Disclaimer and limitation of liability">
             <p>
               To the maximum extent permitted by law, LeadMagnets is provided without warranties of any kind, whether express, implied,
@@ -115,6 +124,7 @@ export default function TermsPage() {
               hundred US dollars (USD $100). Nothing in these Terms excludes liability that cannot lawfully be excluded.
             </p>
           </LegalSection>
+
           <LegalSection title="11. Ending use">
             <p>
               You may stop using LeadMagnets at any time. You can request or use the dashboard controls to delete your account. We may
@@ -122,24 +132,26 @@ export default function TermsPage() {
               these Terms. Sections that should reasonably survive termination will continue to apply.
             </p>
           </LegalSection>
+
           <LegalSection title="12. Changes to these Terms">
             <p>
               We may update these Terms as LeadMagnets changes. If a change is material, we will provide reasonable notice before it
               takes effect. Continued use after the effective date means you accept the updated Terms.
             </p>
           </LegalSection>
+
           <LegalSection title="13. Governing law and contact">
             <p>
               These Terms are governed by the laws of England and Wales, without regard to conflict-of-law rules. Courts in London,
               England have exclusive jurisdiction, except where mandatory law provides otherwise. Questions about these Terms can be
-              sent to <a className="text-ink-900 underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">hello@leadmagnets.so</a>.
+              sent to <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">hello@leadmagnets.so</a>.
             </p>
           </LegalSection>
         </article>
-        <div className="mt-12 border-t border-ink-200 pt-6 text-sm text-ink-500">
+        <div className="mt-12 border-t border-zinc-200 dark:border-[#2e2e38] pt-6 text-sm text-zinc-600 dark:text-[#9B9085]">
           <p>
             Questions? Email{" "}
-            <a className="text-ink-900 underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">
+            <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">
               hello@leadmagnets.so
             </a>
             .
@@ -153,9 +165,9 @@ export default function TermsPage() {
 
 function LegalSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section>
-      <h2 className="text-lg font-semibold text-ink-950">{title}</h2>
-      <div className="mt-2 space-y-3">{children}</div>
+    <section className="space-y-2">
+      <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{title}</h2>
+      <div className="space-y-3 text-zinc-700 dark:text-zinc-300">{children}</div>
     </section>
   );
 }

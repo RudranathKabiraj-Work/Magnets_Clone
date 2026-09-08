@@ -633,6 +633,38 @@ export default function SignupsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
+                            onClick={async () => {
+                              try {
+                                const res = await fetch("/api/data", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    action: "resendLeadEmail",
+                                    data: {
+                                      leadId: lead.id,
+                                      email: lead.email,
+                                      name: lead.name,
+                                      pageTitle: lead.page,
+                                      ownerEmail: account?.email,
+                                    },
+                                  }),
+                                });
+                                const data = await res.json();
+                                if (res.ok && data.success) {
+                                  setToasts((prev) => [...prev, { id: Date.now().toString(), type: "success", message: `📧 Resource delivery email resent to ${lead.email}!` }]);
+                                } else {
+                                  setToasts((prev) => [...prev, { id: Date.now().toString(), type: "error", message: data.error || "Failed to resend email." }]);
+                                }
+                              } catch (err: any) {
+                                setToasts((prev) => [...prev, { id: Date.now().toString(), type: "error", message: err.message }]);
+                              }
+                            }}
+                            title="Resend Resource Delivery Email"
+                            className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 dark:hover:bg-[#282830] transition cursor-pointer shadow-xs"
+                          >
+                            <Send className="h-3.5 w-3.5 text-emerald-500" /> Resend
+                          </button>
+                          <button
                             onClick={() => setSelectedLead(lead)}
                             className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 dark:hover:bg-[#282830] transition cursor-pointer shadow-xs"
                           >

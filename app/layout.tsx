@@ -54,8 +54,8 @@ export const metadata: Metadata = {
     images: ["/landing-dashboard.png"],
   },
   icons: {
-    icon: "/brand/magnets-mark-dark.png",
-    apple: "/brand/magnets-mark-dark.png",
+    icon: "/brand/gemini-logo-dark-raw.png",
+    apple: "/brand/gemini-logo-dark-raw.png",
   },
 };
 

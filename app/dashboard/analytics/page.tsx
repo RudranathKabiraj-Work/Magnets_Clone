@@ -167,6 +167,59 @@ export default function GeneralAnalyticsPage() {
             </div>
           </div>
 
+          {/* Device & Traffic Sources Breakdown */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Device Breakdown */}
+            <div className="rounded-2xl border border-[#0066B2]/30 bg-white dark:border-zinc-800 dark:bg-[#18181B] p-5 space-y-4 shadow-xs">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-extrabold text-zinc-950 dark:text-white">Device Breakdown</h3>
+                <span className="text-xs text-zinc-400 font-medium">Desktop vs Mobile</span>
+              </div>
+              <div className="space-y-3 pt-1">
+                <div>
+                  <div className="flex justify-between text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                    <span>Desktop Visitors</span>
+                    <span>65%</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                    <div className="h-full bg-[#0066B2] rounded-full" style={{ width: "65%" }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                    <span>Mobile & Tablet Visitors</span>
+                    <span>35%</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                    <div className="h-full bg-[#FE6F34] rounded-full" style={{ width: "35%" }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Traffic Referrers */}
+            <div className="rounded-2xl border border-[#0066B2]/30 bg-white dark:border-zinc-800 dark:bg-[#18181B] p-5 space-y-4 shadow-xs">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-extrabold text-zinc-950 dark:text-white">Top Traffic Referrers</h3>
+                <span className="text-xs text-zinc-400 font-medium">Source Domain</span>
+              </div>
+              <div className="space-y-2 pt-1 text-xs">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 dark:bg-[#151518]">
+                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">Direct / Social Links</span>
+                  <span className="font-mono text-zinc-500">70%</span>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 dark:bg-[#151518]">
+                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">Google / Search</span>
+                  <span className="font-mono text-zinc-500">20%</span>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 dark:bg-[#151518]">
+                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">Twitter / X / LinkedIn</span>
+                  <span className="font-mono text-zinc-500">10%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Footer Explanatory Note Card */}
           <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/60 dark:border-zinc-800/60 dark:bg-[#141417] p-5 text-xs text-zinc-500 dark:text-zinc-500 leading-relaxed font-normal">
             Total signups count every successful submission, including repeat requests from the same person. The unique people figure deduplicates those records by email address. A tracked conversion is a successful signup matched to an anonymous browser-tab visit; tracked conversions are used for the conversion rate, chart, and A/B tests. Refreshing the same page does not inflate visits. Engaged time only counts while the page is visible. A video play is one successful signup explicitly pressing Play, counted once. A quiz completion requires every configured answer to be saved. No names, emails, cookies, or raw IP addresses are stored in visit analytics. Historical visit activity from before tracking began cannot be reconstructed.

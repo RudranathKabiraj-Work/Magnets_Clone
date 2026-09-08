@@ -166,6 +166,12 @@ export async function POST(req: Request) {
         existing.domainVerified = data.domainVerified !== undefined ? data.domainVerified : existing.domainVerified;
         existing.cnameVerified = data.cnameVerified !== undefined ? data.cnameVerified : existing.cnameVerified;
         existing.sslStatus = data.sslStatus || existing.sslStatus;
+        existing.ga4MeasurementId = data.ga4MeasurementId !== undefined ? data.ga4MeasurementId : existing.ga4MeasurementId;
+        existing.metaPixelId = data.metaPixelId !== undefined ? data.metaPixelId : existing.metaPixelId;
+        existing.faviconUrl = data.faviconUrl !== undefined ? data.faviconUrl : existing.faviconUrl;
+        existing.ogImageUrl = data.ogImageUrl !== undefined ? data.ogImageUrl : existing.ogImageUrl;
+        existing.spfVerified = data.spfVerified !== undefined ? data.spfVerified : existing.spfVerified;
+        existing.dkimVerified = data.dkimVerified !== undefined ? data.dkimVerified : existing.dkimVerified;
         if (data.password) {
           existing.password = data.password;
         }
@@ -298,7 +304,26 @@ export async function POST(req: Request) {
           }
         }
       }
-      const createdLead = await LeadModel.create({ ...data, userEmail: ownerEmail || "" });
+
+      const userAgent = req.headers.get("user-agent") || "";
+      const isMobile = /mobile|android|iphone|ipad|tablet/i.test(userAgent);
+      const rawReferrer = req.headers.get("referer") || req.headers.get("referrer") || "";
+      let cleanReferrer = "Direct";
+      if (rawReferrer) {
+        try {
+          const host = new URL(rawReferrer).hostname;
+          cleanReferrer = host.replace(/^www\./, "");
+        } catch (e) {
+          cleanReferrer = "Direct";
+        }
+      }
+
+      const createdLead = await LeadModel.create({
+        ...data,
+        deviceType: data.deviceType || (isMobile ? "mobile" : "desktop"),
+        referrer: data.referrer || cleanReferrer,
+        userEmail: ownerEmail || "",
+      });
 
       // Also increment the signup count on the corresponding magnet page
       if (data.pageId) {
@@ -556,6 +581,28 @@ export async function POST(req: Request) {
         signedUpAt: `${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
         customAnswer: "Looking to scale leads and email conversions!",
       });
+
+      return NextResponse.json(result);
+    }
+
+    if (action === "resendLeadEmail") {
+      const { leadId, email: leadEmail, name: leadName, pageTitle } = data;
+      const ownerEmail = normEmail || data.ownerEmail;
+      if (!ownerEmail || !leadEmail) {
+        return NextResponse.json({ error: "Lead and owner email required." }, { status: 400 });
+      }
+
+      const result = await sendInstantLeadAlert({
+        ownerEmail,
+        leadEmail,
+        leadName: leadName || "Subscriber",
+        pageTitle: pageTitle || "Lead Magnet",
+        signedUpAt: new Date().toLocaleString(),
+      });
+
+      if (leadId) {
+        await LeadModel.updateOne({ id: leadId }, { status: "delivered" });
+      }
 
       return NextResponse.json(result);
     }

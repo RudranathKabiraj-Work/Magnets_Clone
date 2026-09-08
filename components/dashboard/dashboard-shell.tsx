@@ -204,7 +204,7 @@ export default function DashboardShell({
       title: "CONNECTIONS",
       count: "6 topics",
       items: [
-        { text: "Beehiiv and Substack", icon: "Share2" },
+        { text: "Substack and Kit", icon: "Share2" },
         { text: "Connect Kit", icon: "Cpu" },
         { text: "Connect Slack", icon: "Slack" },
         { text: "Connect Zapier", icon: "Zap" },
@@ -1340,7 +1340,7 @@ export default function DashboardShell({
                     </div>
                   </div>
                 </div>
-              ) : selectedTopic === "Beehiiv and Substack" || selectedTopic === "Manage signups" ? (
+              ) : selectedTopic === "Substack and Kit" || selectedTopic === "Beehiiv and Substack" || selectedTopic === "Manage signups" ? (
                 <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                   {/* Header: AUDIENCE SYNC */}
                   <div className="space-y-4">
@@ -1350,12 +1350,12 @@ export default function DashboardShell({
                       </span>
                       <div>
                         <p className="text-xs font-bold text-zinc-500 dark:text-[#9B9085] uppercase tracking-wider">AUDIENCE SYNC</p>
-                        <h2 className="text-xl font-bold text-zinc-900 dark:text-white leading-tight">How do I connect Beehiiv or Substack?</h2>
+                        <h2 className="text-xl font-bold text-zinc-900 dark:text-white leading-tight">How do I connect Substack or Kit (100% Free)?</h2>
                       </div>
                     </div>
 
                     <p className="text-sm text-zinc-600 dark:text-[#d4c8bc] leading-relaxed">
-                      Send new signups straight to the newsletter you already use, without exporting and importing a list by hand. Open Workspace setup, expand Optional connections, then open Newsletter under Audience sync.
+                      Send new signups straight to the free newsletter or audience tool you already use. Open Workspace setup, expand Optional connections, then configure Substack or Kit.
                     </p>
 
                     <p className="text-sm text-zinc-600 dark:text-[#d4c8bc] leading-relaxed">
@@ -1363,33 +1363,10 @@ export default function DashboardShell({
                     </p>
                   </div>
 
-                  {/* 2 Column Cards: Beehiiv vs Substack */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                    {/* Beehiiv Card */}
+                  {/* Substack Card */}
+                  <div className="pt-1">
                     <div className="rounded-2xl border border-[#0066B2]/30 bg-white text-zinc-900 shadow-xs dark:border-[#0066B2]/35 dark:bg-[#18181B] dark:text-white p-5 space-y-3.5 text-left">
-                      <h4 className="text-base font-bold text-zinc-900 dark:text-white">Beehiiv</h4>
-                      <ol className="space-y-3 text-sm text-zinc-500 dark:text-[#9B9085] leading-relaxed">
-                        <li>
-                          <strong className="text-zinc-900 dark:text-white font-bold">1.</strong> In Beehiiv, open Settings, Workspace Settings, then API.
-                        </li>
-                        <li>
-                          <strong className="text-zinc-900 dark:text-white font-bold">2.</strong> Copy the API V2 publication ID for the publication you want.
-                        </li>
-                        <li>
-                          <strong className="text-zinc-900 dark:text-white font-bold">3.</strong> Create an API key and copy it when shown. Beehiiv only shows the key once.
-                        </li>
-                        <li>
-                          <strong className="text-zinc-900 dark:text-white font-bold">4.</strong> Paste both values into LeadMagnets. They save when you leave each field.
-                        </li>
-                      </ol>
-                      <p className="text-xs text-[#666675] leading-relaxed pt-1">
-                        Beehiiv restricts API access to workspace owners and admins and may ask for identity verification.
-                      </p>
-                    </div>
-
-                    {/* Substack Card */}
-                    <div className="rounded-2xl border border-[#0066B2]/30 bg-white text-zinc-900 shadow-xs dark:border-[#0066B2]/35 dark:bg-[#18181B] dark:text-white p-5 space-y-3.5 text-left">
-                      <h4 className="text-base font-bold text-zinc-900 dark:text-white">Substack</h4>
+                      <h4 className="text-base font-bold text-zinc-900 dark:text-white">Substack (100% Free)</h4>
                       <ol className="space-y-3 text-sm text-zinc-500 dark:text-[#9B9085] leading-relaxed">
                         <li>
                           <strong className="text-zinc-900 dark:text-white font-bold">1.</strong> Find your publication subdomain.

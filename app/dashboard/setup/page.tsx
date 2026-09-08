@@ -28,6 +28,13 @@ export default function WorkspaceSetupPage() {
   const [showPipedriveToken, setShowPipedriveToken] = useState(false);
   const [showCalendarToken, setShowCalendarToken] = useState(false);
   const [showKitKey, setShowKitKey] = useState(false);
+  const [ga4MeasurementId, setGa4MeasurementId] = useState("");
+  const [metaPixelId, setMetaPixelId] = useState("");
+  const [faviconUrl, setFaviconUrl] = useState("");
+  const [ogImageUrl, setOgImageUrl] = useState("");
+  const [substackPublication, setSubstackPublication] = useState("");
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [uploadingOgImage, setUploadingOgImage] = useState(false);
 
   // Accordions — "public-url" open by default, custom-domain always visible inside it
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -35,6 +42,8 @@ export default function WorkspaceSetupPage() {
     "connections": false,
     "legal-links": true,
     "newsletter": true,
+    "analytics-tracking": true,
+    "branding-preview": true,
   });
 
   useEffect(() => {
@@ -55,6 +64,11 @@ export default function WorkspaceSetupPage() {
       if (localAccount.domainVerified) setDomainVerified(localAccount.domainVerified);
       if (localAccount.cnameVerified) setCnameVerified(localAccount.cnameVerified);
       if (localAccount.sslStatus) setSslStatus(localAccount.sslStatus);
+      if (localAccount.ga4MeasurementId) setGa4MeasurementId(localAccount.ga4MeasurementId);
+      if (localAccount.metaPixelId) setMetaPixelId(localAccount.metaPixelId);
+      if (localAccount.faviconUrl) setFaviconUrl(localAccount.faviconUrl);
+      if (localAccount.ogImageUrl) setOgImageUrl(localAccount.ogImageUrl);
+      if (localAccount.substackPublication) setSubstackPublication(localAccount.substackPublication);
     }
     setLoading(false);
 
@@ -70,6 +84,11 @@ export default function WorkspaceSetupPage() {
         if (data.account.domainVerified) setDomainVerified(data.account.domainVerified);
         if (data.account.cnameVerified) setCnameVerified(data.account.cnameVerified);
         if (data.account.sslStatus) setSslStatus(data.account.sslStatus);
+        if (data.account.ga4MeasurementId) setGa4MeasurementId(data.account.ga4MeasurementId);
+        if (data.account.metaPixelId) setMetaPixelId(data.account.metaPixelId);
+        if (data.account.faviconUrl) setFaviconUrl(data.account.faviconUrl);
+        if (data.account.ogImageUrl) setOgImageUrl(data.account.ogImageUrl);
+        if (data.account.substackPublication) setSubstackPublication(data.account.substackPublication);
       }
     });
   }, []);
@@ -87,6 +106,11 @@ export default function WorkspaceSetupPage() {
       domainVerified,
       cnameVerified,
       sslStatus,
+      ga4MeasurementId: ga4MeasurementId.trim(),
+      metaPixelId: metaPixelId.trim(),
+      faviconUrl: faviconUrl.trim(),
+      ogImageUrl: ogImageUrl.trim(),
+      substackPublication: substackPublication.trim(),
       ...overrides,
     };
     try {
@@ -209,6 +233,16 @@ export default function WorkspaceSetupPage() {
                     <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                       SSL Active ✓
                     </span>
+                  )}
+                  {cnameVerified && rootDomain && (
+                    <a
+                      href={`https://${pageSubdomain}.${rootDomain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 transition cursor-pointer"
+                    >
+                      Visit Live Domain ↗
+                    </a>
                   )}
                 </div>
               </div>
@@ -1276,7 +1310,7 @@ export default function WorkspaceSetupPage() {
                           <div>
                             <h5 className="text-xs font-bold text-zinc-900 dark:text-white">Newsletter</h5>
                             <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
-                              Forward signups to Beehiiv or Substack. Connect Kit in Automations. Signups are always saved in LeadMagnets too.
+                              Forward signups to Substack or Kit (ConvertKit). Signups are always saved in LeadMagnets too.
                             </p>
                           </div>
                         </div>
@@ -1285,42 +1319,21 @@ export default function WorkspaceSetupPage() {
                         </div>
                       </button>
                       {openSections["newsletter"] && (
-                        <div className="border-t border-[#E2E8F0] dark:border-[#2e2e38] px-4 py-4 space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5 flex items-center gap-1">
-                                <span>Beehiiv publication ID</span>
-                                <span className="text-zinc-400 dark:text-[#666675] cursor-help">?</span>
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Publication ID"
-                                className="w-full rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#52525b] outline-none focus:border-[#0066B2] transition"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5 flex items-center gap-1">
-                                <span>Beehiiv API key</span>
-                                <span className="text-zinc-400 dark:text-[#666675] cursor-help">?</span>
-                              </label>
-                              <input
-                                type="password"
-                                placeholder="API key"
-                                className="w-full rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#52525b] outline-none focus:border-[#0066B2] transition"
-                              />
-                            </div>
-                          </div>
+                        <div className="border-t border-[#E2E8F0] dark:border-[#2e2e38] px-5 py-5 space-y-4 bg-zinc-50/50 dark:bg-[#151518]">
                           <div>
                             <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5 flex items-center gap-1">
                               <span>Substack publication</span>
-                              <span className="text-zinc-400 dark:text-[#666675] cursor-help">?</span>
+                              <span className="text-zinc-400 dark:text-[#666675] cursor-help" title="Subdomain of your Substack e.g. myletter for myletter.substack.com">?</span>
                             </label>
                             <input
                               type="text"
                               placeholder="myletter"
-                              className="w-full rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#52525b] outline-none focus:border-[#0066B2] transition"
+                              value={substackPublication}
+                              onChange={(e) => setSubstackPublication(e.target.value)}
+                              onBlur={() => handleSave()}
+                              className="w-full rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#52525b] outline-none focus:border-[#0066B2] transition font-mono"
                             />
-                            <p className="mt-1 text-[11px] text-zinc-400 dark:text-[#666675]">Just the subdomain. myletter, not myletter.substack.com</p>
+                            <p className="mt-1 text-[11px] text-zinc-400 dark:text-[#666675]">Just the subdomain (e.g. <code className="text-[#0066B2] dark:text-[#38BDF8]">myletter</code> for <code className="text-[#0066B2] dark:text-[#38BDF8]">myletter.substack.com</code>). 100% Free forever.</p>
                           </div>
                         </div>
                       )}
@@ -1378,12 +1391,358 @@ export default function WorkspaceSetupPage() {
                       />
                       <p className="mt-1 text-[11px] text-zinc-400 dark:text-[#666675]">Leave blank to hide this link.</p>
                     </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            {/* Analytics & Ad Conversion Tracking Card */}
+            <div className="group rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm transition-colors overflow-hidden hover:bg-[#EFF6FF] dark:hover:bg-[#18181c]">
+              <button
+                onClick={() => toggle("analytics-tracking")}
+                className="flex w-full items-center justify-between p-4 text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F0FDF4] text-emerald-600 border border-[#BBF7D0] dark:bg-[#0f2e1b] dark:border-emerald-800">
+                    <Sparkles className="h-4.5 w-4.5" />
+                  </div>
+                  <div>
+                    <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Analytics & Conversion Tracking</h4>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
+                      Track page views and ad campaign conversions with Google Analytics 4 and Meta Pixel.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {(ga4MeasurementId || metaPixelId) && (
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                      Tracking Active ✓
+                    </span>
+                  )}
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-zinc-500 shadow-sm dark:border-[#2e2e38] dark:bg-[#18181B] dark:text-[#9B9085]">
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${openSections["analytics-tracking"] ? "rotate-180" : ""}`} />
+                  </div>
+                </div>
+              </button>
+              {openSections["analytics-tracking"] && (
+                <div className="border-t border-[#E2E8F0] dark:border-[#2e2e38] px-5 py-5 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5 flex items-center gap-1">
+                        <span>Google Analytics 4 Measurement ID</span>
+                        <span className="text-zinc-400 dark:text-[#666675] cursor-help" title="Find in GA4 Admin -> Data Streams -> Measurement ID (starts with G-)">?</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="G-XXXXXXXXXX"
+                        value={ga4MeasurementId}
+                        onChange={(e) => setGa4MeasurementId(e.target.value)}
+                        onBlur={() => handleSave()}
+                        className="w-full rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono"
+                      />
+                      <p className="mt-1 text-[11px] text-zinc-400 dark:text-[#666675]">Automatically fires pageviews & lead signup conversion events to GA4.</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5 flex items-center gap-1">
+                        <span>Meta (Facebook) Pixel ID</span>
+                        <span className="text-zinc-400 dark:text-[#666675] cursor-help" title="Find in Meta Events Manager -> Data Sources -> Pixel ID">?</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="123456789012345"
+                        value={metaPixelId}
+                        onChange={(e) => setMetaPixelId(e.target.value)}
+                        onBlur={() => handleSave()}
+                        className="w-full rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono"
+                      />
+                      <p className="mt-1 text-[11px] text-zinc-400 dark:text-[#666675]">Automatically fires Meta `Lead` & `PageView` events for Facebook/Instagram ads.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Social Preview & Favicon Branding Card */}
+            <div className="group rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm transition-colors overflow-hidden">
+              <button
+                onClick={() => toggle("branding-preview")}
+                className="flex w-full items-center justify-between p-4 text-left hover:bg-[#EFF6FF] dark:hover:bg-[#18181c] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] border border-[#DBEAFE] dark:bg-[#1A2E40]">
+                    <Globe className="h-4.5 w-4.5" />
+                  </div>
+                  <div>
+                    <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Social Sharing Thumbnail & Favicon</h4>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
+                      Upload your brand's tab icon and Open Graph thumbnail for social media sharing.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {(faviconUrl || ogImageUrl) && (
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                      Branding Active ✓
+                    </span>
+                  )}
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-zinc-500 shadow-sm dark:border-[#2e2e38] dark:bg-[#18181B] dark:text-[#9B9085]">
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${openSections["branding-preview"] ? "rotate-180" : ""}`} />
+                  </div>
+                </div>
+              </button>
+
+              {openSections["branding-preview"] && (
+                <div className="border-t border-[#E2E8F0] dark:border-[#2e2e38] px-5 py-5 space-y-6">
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Favicon Section */}
+                    <div className="space-y-3 rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-white/10 dark:bg-[#121214]">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold text-zinc-900 dark:text-white">
+                          Custom Favicon <span className="text-zinc-400 font-normal">(Browser Tab Icon)</span>
+                        </label>
+                        <span className="text-[10px] font-mono text-zinc-400">32×32 px</span>
+                      </div>
+
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="url"
+                          placeholder="https://your-site.com/favicon.ico"
+                          value={faviconUrl}
+                          onChange={(e) => setFaviconUrl(e.target.value)}
+                          onBlur={() => handleSave()}
+                          className="flex-1 rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono"
+                        />
+                        {faviconUrl && (
+                          <button
+                            type="button"
+                            title="Clear favicon"
+                            onClick={async () => {
+                              setFaviconUrl("");
+                              await handleSave({ faviconUrl: "" });
+                            }}
+                            className="rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition cursor-pointer shrink-0"
+                          >
+                            Clear ✕
+                          </button>
+                        )}
+                        <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-xl border border-zinc-300 dark:border-white/15 bg-white dark:bg-[#202026] px-3 py-2 text-xs font-bold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#282830] transition shrink-0">
+                          {uploadingFavicon ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2]" /> : <Sparkles className="h-3.5 w-3.5 text-[#0066B2]" />}
+                          <span>{uploadingFavicon ? "Uploading..." : "Upload File"}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              setUploadingFavicon(true);
+                              const formData = new FormData();
+                              formData.append("file", file);
+                              try {
+                                const res = await fetch("/api/upload", { method: "POST", body: formData });
+                                const data = await res.json();
+                                const uploadedUrl = data.data?.fileUrl || data.data?.url || data.url || data.fileUrl;
+                                if (uploadedUrl) {
+                                  setFaviconUrl(uploadedUrl);
+                                  await handleSave({ faviconUrl: uploadedUrl });
+                                }
+                              } catch (err) {
+                                console.error("Upload error:", err);
+                              } finally {
+                                setUploadingFavicon(false);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+
+                      {/* Favicon Browser Tab Mockup Preview */}
+                      <div className="mt-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-2.5 flex items-center gap-3">
+                        <div className="flex items-center gap-2 rounded-md bg-zinc-100 dark:bg-[#0E0E10] px-3 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-white/10">
+                          {faviconUrl ? (
+                            <img src={faviconUrl} alt="Favicon preview" className="h-4 w-4 rounded object-contain shrink-0" />
+                          ) : (
+                            <span className="h-3.5 w-3.5 rounded-full bg-[#0066B2]" />
+                          )}
+                          <span className="font-semibold text-[11px] truncate max-w-[120px]">My Lead Magnet Page</span>
+                          <span className="text-zinc-400 text-[10px]">×</span>
+                        </div>
+                        <p className="text-[11px] text-zinc-500 dark:text-[#9B9085]">
+                          Live Tab Icon Preview
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* OG Social Share Image Section */}
+                    <div className="space-y-3 rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-white/10 dark:bg-[#121214]">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold text-zinc-900 dark:text-white">
+                          Social Share Thumbnail <span className="text-zinc-400 font-normal">(Open Graph Card)</span>
+                        </label>
+                        <span className="text-[10px] font-mono text-zinc-400">1200×630 px</span>
+                      </div>
+
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="url"
+                          placeholder="https://your-site.com/og-banner.png"
+                          value={ogImageUrl}
+                          onChange={(e) => setOgImageUrl(e.target.value)}
+                          onBlur={() => handleSave()}
+                          className="flex-1 rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono"
+                        />
+                        {ogImageUrl && (
+                          <button
+                            type="button"
+                            title="Clear social share image"
+                            onClick={async () => {
+                              setOgImageUrl("");
+                              await handleSave({ ogImageUrl: "" });
+                            }}
+                            className="rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition cursor-pointer shrink-0"
+                          >
+                            Clear ✕
+                          </button>
+                        )}
+                        <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-xl border border-zinc-300 dark:border-white/15 bg-white dark:bg-[#202026] px-3 py-2 text-xs font-bold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#282830] transition shrink-0">
+                          {uploadingOgImage ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2]" /> : <Sparkles className="h-3.5 w-3.5 text-[#0066B2]" />}
+                          <span>{uploadingOgImage ? "Uploading..." : "Upload File"}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              setUploadingOgImage(true);
+                              const formData = new FormData();
+                              formData.append("file", file);
+                              try {
+                                const res = await fetch("/api/upload", { method: "POST", body: formData });
+                                const data = await res.json();
+                                const uploadedUrl = data.data?.fileUrl || data.data?.url || data.url || data.fileUrl;
+                                if (uploadedUrl) {
+                                  setOgImageUrl(uploadedUrl);
+                                  await handleSave({ ogImageUrl: uploadedUrl });
+                                }
+                              } catch (err) {
+                                console.error("Upload error:", err);
+                              } finally {
+                                setUploadingOgImage(false);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+
+                      {/* Real Social Media Share Card Mockup */}
+                      <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] overflow-hidden shadow-xs">
+                        <div className="h-32 w-full bg-zinc-100 dark:bg-[#0E0E10] relative flex items-center justify-center overflow-hidden">
+                          {ogImageUrl ? (
+                            <img src={ogImageUrl} alt="Social Card Thumbnail" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="text-center p-3">
+                              <Globe className="h-6 w-6 text-zinc-300 dark:text-zinc-600 mx-auto mb-1" />
+                              <p className="text-[10px] text-zinc-400">No thumbnail set (Displays default generic card)</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-3 bg-zinc-50/80 dark:bg-[#18181B] border-t border-zinc-100 dark:border-white/5">
+                          <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
+                            {rootDomain || "leadmagnets.so"}
+                          </p>
+                          <p className="text-xs font-bold text-zinc-900 dark:text-white mt-0.5 truncate">
+                            Free Guide: The 10-Step Audience Growth Playbook
+                          </p>
+                          <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] truncate">
+                            Get instant access to strategies used by top creators.
+                          </p>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+              )}
+            </div>
+
+            {/* DKIM & SPF Email Authentication Card */}
+            <div className="group rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm transition-colors overflow-hidden hover:bg-[#EFF6FF] dark:hover:bg-[#18181c]">
+              <button
+                onClick={() => toggle("email-auth")}
+                className="flex w-full items-center justify-between p-4 text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] border border-[#DBEAFE] dark:bg-[#1F2937]">
+                    <Mail className="h-4.5 w-4.5" />
+                  </div>
+                  <div>
+                    <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">DKIM & SPF Email Deliverability Records</h4>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
+                      Ensure your resource delivery emails land in the primary inbox, not spam.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    SPF & DKIM Ready ✓
+                  </span>
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-zinc-500 shadow-sm dark:border-[#2e2e38] dark:bg-[#18181B] dark:text-[#9B9085]">
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${openSections["email-auth"] ? "rotate-180" : ""}`} />
+                  </div>
+                </div>
+              </button>
+              {openSections["email-auth"] && (
+                <div className="border-t border-[#E2E8F0] dark:border-[#2e2e38] px-5 py-5 space-y-4">
+                  <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#151518] p-4 space-y-3">
+                    <h6 className="text-xs font-bold text-zinc-900 dark:text-white">Add these DNS records to authenticate your custom sending domain:</h6>
+                    
+                    {/* SPF Box */}
+                    <div className="flex items-center justify-between gap-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-3 text-xs font-mono">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-500 block mb-0.5">SPF (TXT)</span>
+                        <span className="text-zinc-900 dark:text-white font-semibold">v=spf1 include:mail.leadmagnets.so ~all</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText("v=spf1 include:mail.leadmagnets.so ~all");
+                          setCopiedField("spf");
+                          setTimeout(() => setCopiedField(null), 2000);
+                        }}
+                        className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition cursor-pointer shrink-0"
+                      >
+                        {copiedField === "spf" ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                      </button>
+                    </div>
+
+                    {/* DKIM Box */}
+                    <div className="flex items-center justify-between gap-3 rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-3 text-xs font-mono">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-500 block mb-0.5">DKIM CNAME (lm._domainkey)</span>
+                        <span className="text-zinc-900 dark:text-white font-semibold">lm.mail.leadmagnets.so</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText("lm.mail.leadmagnets.so");
+                          setCopiedField("dkim");
+                          setTimeout(() => setCopiedField(null), 2000);
+                        }}
+                        className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition cursor-pointer shrink-0"
+                      >
+                        {copiedField === "dkim" ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
           </div>
+
         </div>
       </div>
     </DashboardShell>

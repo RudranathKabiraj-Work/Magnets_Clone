@@ -34,6 +34,12 @@ const AccountSchema = new Schema({
   domainVerified: { type: Boolean, default: false },
   cnameVerified: { type: Boolean, default: false },
   sslStatus: { type: String, enum: ["pending", "active", "failed"], default: "pending" },
+  ga4MeasurementId: { type: String, default: "" },
+  metaPixelId: { type: String, default: "" },
+  faviconUrl: { type: String, default: "" },
+  ogImageUrl: { type: String, default: "" },
+  spfVerified: { type: Boolean, default: false },
+  dkimVerified: { type: Boolean, default: false },
 });
 
 // MagnetPage Schema
@@ -74,9 +80,9 @@ const MagnetPageSchema = new Schema({
   variantASignups: { type: Number, default: 0 },
   variantBViews: { type: Number, default: 0 },
   variantBSignups: { type: Number, default: 0 },
-  bulletsTitle: { type: String, default: "What they will learn" },
-  formTitle: { type: String, default: "Download for free" },
-  formSubtitle: { type: String, default: "Pop your email in and we'll send it straight over." },
+  bulletsTitle: { type: String, default: "What's inside:" },
+  formTitle: { type: String, default: "Instant Access" },
+  formSubtitle: { type: String, default: "Where should we send your copy?" },
   namePlaceholder: { type: String, default: "Name" },
   emailPlaceholder: { type: String, default: "Email" },
   formButtonText: { type: String, default: "Send it to me" },
@@ -97,6 +103,8 @@ const LeadSchema = new Schema({
   sequenceStep: { type: String },
   tags: { type: [String], default: [] },
   customAnswer: { type: String, default: "" },
+  deviceType: { type: String, enum: ["desktop", "mobile"], default: "desktop" },
+  referrer: { type: String, default: "Direct" },
 });
 
 // Sequence Email Schema
