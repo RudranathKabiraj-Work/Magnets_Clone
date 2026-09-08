@@ -107,6 +107,7 @@ export interface Account {
   zapierWebhookUrl?: string;
   pipedriveApiToken?: string;
   kitConnected?: boolean;
+  kitApiKey?: string;
   senderDisplayName?: string;
   senderAddress?: string;
   calendarProvider?: "Calendly" | "Cal.com";
@@ -115,6 +116,11 @@ export interface Account {
   leadAlertsEnabled?: boolean;
   notifyEmail?: string;
   avatar?: string | null;
+  customDomain?: string;
+  customSubdomain?: string;
+  domainVerified?: boolean;
+  cnameVerified?: boolean;
+  sslStatus?: "pending" | "active" | "failed";
 }
 
 export interface Integration {

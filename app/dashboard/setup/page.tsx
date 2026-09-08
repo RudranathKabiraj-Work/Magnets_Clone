@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { Sparkles, Globe, Plug, FileText, ChevronDown, ChevronUp, Check, Mail, Calendar, Slack, Zap, Copy, RefreshCw, Loader2 } from "lucide-react";
+import { Sparkles, Globe, Plug, FileText, ChevronDown, ChevronUp, Check, Mail, Calendar, Slack, Zap, Copy, RefreshCw, Loader2, Eye, EyeOff } from "lucide-react";
 import { syncWithDatabase, saveAccount, loadAccount } from "@/lib/store";
 import type { Account } from "@/lib/data";
 
@@ -15,10 +15,19 @@ export default function WorkspaceSetupPage() {
   const [rootDomain, setRootDomain] = useState("");
   const [pageSubdomain, setPageSubdomain] = useState("get");
   const [checkingDomain, setCheckingDomain] = useState(false);
+  const [checkingCname, setCheckingCname] = useState(false);
   const [domainVerified, setDomainVerified] = useState(false);
+  const [cnameVerified, setCnameVerified] = useState(false);
+  const [sslStatus, setSslStatus] = useState<"pending" | "active" | "failed">("pending");
   const [domainError, setDomainError] = useState("");
+  const [cnameError, setCnameError] = useState("");
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showSlackUrl, setShowSlackUrl] = useState(false);
+  const [showZapierUrl, setShowZapierUrl] = useState(false);
+  const [showPipedriveToken, setShowPipedriveToken] = useState(false);
+  const [showCalendarToken, setShowCalendarToken] = useState(false);
+  const [showKitKey, setShowKitKey] = useState(false);
 
   // Accordions — "public-url" open by default, custom-domain always visible inside it
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -41,6 +50,11 @@ export default function WorkspaceSetupPage() {
       setUsername(localAccount.username || "");
       setPrivacyPolicy(localAccount.privacyPolicy || "");
       setTermsOfService(localAccount.termsOfService || "");
+      if (localAccount.customDomain) setRootDomain(localAccount.customDomain);
+      if (localAccount.customSubdomain) setPageSubdomain(localAccount.customSubdomain);
+      if (localAccount.domainVerified) setDomainVerified(localAccount.domainVerified);
+      if (localAccount.cnameVerified) setCnameVerified(localAccount.cnameVerified);
+      if (localAccount.sslStatus) setSslStatus(localAccount.sslStatus);
     }
     setLoading(false);
 
@@ -51,11 +65,16 @@ export default function WorkspaceSetupPage() {
         setUsername(data.account.username || "");
         setPrivacyPolicy(data.account.privacyPolicy || "");
         setTermsOfService(data.account.termsOfService || "");
+        if (data.account.customDomain) setRootDomain(data.account.customDomain);
+        if (data.account.customSubdomain) setPageSubdomain(data.account.customSubdomain);
+        if (data.account.domainVerified) setDomainVerified(data.account.domainVerified);
+        if (data.account.cnameVerified) setCnameVerified(data.account.cnameVerified);
+        if (data.account.sslStatus) setSslStatus(data.account.sslStatus);
       }
     });
   }, []);
 
-  const handleSave = async () => {
+  const handleSave = async (overrides?: Partial<Account>) => {
     if (!account) return;
     setSaving(true);
     const updatedAccount: Account = {
@@ -63,13 +82,18 @@ export default function WorkspaceSetupPage() {
       username: username.trim().toLowerCase().replace(/[^a-z0-9-]/g, ""),
       privacyPolicy: privacyPolicy.trim(),
       termsOfService: termsOfService.trim(),
+      customDomain: rootDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, ""),
+      customSubdomain: pageSubdomain.trim().toLowerCase(),
+      domainVerified,
+      cnameVerified,
+      sslStatus,
+      ...overrides,
     };
     try {
       await saveAccount(updatedAccount);
       setAccount(updatedAccount);
     } catch (err) {
       console.error(err);
-      alert("Failed to save settings.");
     } finally {
       setSaving(false);
     }
@@ -128,10 +152,23 @@ export default function WorkspaceSetupPage() {
 
               {/* Public URL ready status card */}
               <div className="flex items-center gap-2.5 rounded-2xl border border-[#0066B2]/30 bg-white/80 dark:border-[#0066B2]/35 dark:bg-[#0E0E10]/70 px-4 py-3 shrink-0 shadow-sm dark:shadow-none">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                <span className={`h-2 w-2 rounded-full ${cnameVerified || domainVerified ? "bg-emerald-500" : "bg-amber-500"} shrink-0`} />
                 <div>
-                  <p className="text-xs font-semibold text-zinc-900 dark:text-white">Public URL ready</p>
-                  <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5">leadmagnets.so/{username}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-semibold text-zinc-900 dark:text-white">
+                      {cnameVerified ? "Custom Domain Active" : "Public URL ready"}
+                    </p>
+                    {cnameVerified && (
+                      <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                        SSL Active ✓
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5 font-mono">
+                    {cnameVerified && rootDomain
+                      ? `${pageSubdomain}.${rootDomain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "")}`
+                      : `leadmagnets.so/${username}`}
+                  </p>
                 </div>
               </div>
             </div>
@@ -143,21 +180,42 @@ export default function WorkspaceSetupPage() {
             {/* Public URL card */}
             <div className="rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm transition-colors p-5">
               {/* Always-visible header */}
-              <div className="flex items-start gap-3 mb-5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#0066B2]/30 bg-[#F8FBFF] text-[#0066B2] shadow-sm dark:border-[#0066B2]/30 dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
-                  <Globe className="h-4.5 w-4.5" />
+              <div className="flex items-start justify-between gap-3 mb-5">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#0066B2]/30 bg-[#F8FBFF] text-[#0066B2] shadow-sm dark:border-[#0066B2]/30 dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+                    <Globe className="h-4.5 w-4.5" />
+                  </div>
+                  <div>
+                    <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Public URL & Custom Domain</h4>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
+                      This is the link you can share immediately. A custom domain gives your brand a white-label URL.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Public URL</h4>
-                  <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
-                    This is the link you can share immediately. A custom domain is completely optional.
-                  </p>
+
+                {/* Status Pills */}
+                <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                  {domainVerified && (
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                      TXT Verified ✓
+                    </span>
+                  )}
+                  {cnameVerified && (
+                    <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                      CNAME Routed ✓
+                    </span>
+                  )}
+                  {sslStatus === "active" && (
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                      SSL Active ✓
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* LeadMagnets URL field + share card */}
               <div className="mb-4">
-                <label className={labelClass}>LeadMagnets URL</label>
+                <label className={labelClass}>LeadMagnets Default URL</label>
                 <div className="flex flex-col gap-3 md:flex-row md:items-start">
                   {/* Input */}
                   <div className="flex-1">
@@ -169,7 +227,7 @@ export default function WorkspaceSetupPage() {
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        onBlur={handleSave}
+                        onBlur={() => handleSave()}
                         className="w-full bg-transparent px-3 py-2.5 text-xs font-mono text-zinc-900 outline-none dark:text-white placeholder:text-zinc-400"
                         placeholder="your-workspace"
                       />
@@ -195,8 +253,8 @@ export default function WorkspaceSetupPage() {
                       <Globe className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-zinc-900 dark:text-white">Custom domain</p>
-                      <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">Use your own domain whenever you are ready. Your LeadMagnets link already works.</p>
+                      <p className="text-xs font-bold text-zinc-900 dark:text-white">Custom domain setup</p>
+                      <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">Connect your custom domain and route traffic to your lead magnets.</p>
                     </div>
                   </div>
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#E2E8F0] bg-white text-zinc-500 shadow-sm dark:border-[#0066B2]/30 dark:bg-[#18181B] dark:text-[#9B9085]">
@@ -215,6 +273,7 @@ export default function WorkspaceSetupPage() {
                           type="text"
                           value={rootDomain}
                           onChange={(e) => setRootDomain(e.target.value)}
+                          onBlur={() => handleSave()}
                           placeholder="example.com"
                           className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-[#0066B2] dark:border-[#2e2e38] dark:bg-[#0E0E10] dark:text-white dark:placeholder:text-[#52525b] transition-all"
                         />
@@ -230,6 +289,7 @@ export default function WorkspaceSetupPage() {
                           type="text"
                           value={pageSubdomain}
                           onChange={(e) => setPageSubdomain(e.target.value)}
+                          onBlur={() => handleSave()}
                           placeholder="get"
                           className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-[#0066B2] dark:border-[#2e2e38] dark:bg-[#0E0E10] dark:text-white dark:placeholder:text-[#52525b] transition-all"
                         />
@@ -237,7 +297,7 @@ export default function WorkspaceSetupPage() {
                       </div>
                     </div>
 
-                    {/* 2-Step Verification Panel Matching Screenshot */}
+                    {/* 2-Step Verification Panel */}
                     {rootDomain.trim() ? (
                       <div className="space-y-4 pt-1">
                         {/* Step 1: Prove you own this domain */}
@@ -247,11 +307,18 @@ export default function WorkspaceSetupPage() {
                               1
                             </span>
                             <div className="flex-1">
-                              <h6 className="text-sm font-bold text-zinc-900 dark:text-white">
-                                Prove you own this domain
-                              </h6>
+                              <div className="flex items-center justify-between">
+                                <h6 className="text-sm font-bold text-zinc-900 dark:text-white">
+                                  Step 1: Prove domain ownership (TXT Record)
+                                </h6>
+                                {domainVerified && (
+                                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                                    Verified ✓
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
-                                Add this TXT record to your DNS provider. Then click Check.
+                                Add this TXT record to your DNS provider. Then click Check Ownership.
                               </p>
 
                               {/* TXT Record Box with Copy Buttons */}
@@ -336,12 +403,15 @@ export default function WorkspaceSetupPage() {
                                       const data = await res.json();
                                       if (data.isVerified) {
                                         setDomainVerified(true);
+                                        if (data.cnameVerified) setCnameVerified(true);
+                                        if (data.sslStatus) setSslStatus(data.sslStatus);
                                         setDomainError("Domain ownership verified!");
+                                        await handleSave({ domainVerified: true, cnameVerified: data.cnameVerified, sslStatus: data.sslStatus || "active" });
                                       } else {
-                                        setDomainError(data.message || `No TXT record found at leadmagnets-verify.${rootDomain.toLowerCase().replace(/^https?:\/\//, "")}. Check that the root domain above is spelled correctly and that your DNS provider did not append the domain twice. DNS can take 1 to 60 minutes to propagate.`);
+                                        setDomainError(data.message || `No TXT record found at leadmagnets-verify.${rootDomain.toLowerCase().replace(/^https?:\/\//, "")}. Check your DNS settings.`);
                                       }
                                     } catch (e) {
-                                      setDomainError(`No TXT record found at leadmagnets-verify.${rootDomain.toLowerCase().replace(/^https?:\/\//, "")}. Check that the root domain above is spelled correctly and that your DNS provider did not append the domain twice. DNS can take 1 to 60 minutes to propagate.`);
+                                      setDomainError(`No TXT record found at leadmagnets-verify.${rootDomain.toLowerCase().replace(/^https?:\/\//, "")}. Check your DNS provider.`);
                                     } finally {
                                       setCheckingDomain(false);
                                     }
@@ -353,7 +423,7 @@ export default function WorkspaceSetupPage() {
                                   ) : (
                                     <RefreshCw className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-300" />
                                   )}
-                                  <span>Check ownership</span>
+                                  <span>Check ownership (TXT)</span>
                                 </button>
 
                                 {domainError && (
@@ -366,19 +436,136 @@ export default function WorkspaceSetupPage() {
                           </div>
                         </div>
 
-                        {/* Step 2: Point traffic at your magnets */}
-                        <div className="rounded-2xl border border-zinc-200/90 dark:border-white/10 bg-zinc-50/60 dark:bg-[#151518] p-5 shadow-2xs opacity-75">
+                        {/* Step 2: Point traffic at your magnets (CNAME Record Box) */}
+                        <div className="rounded-2xl border border-zinc-200/90 dark:border-white/10 bg-zinc-50/60 dark:bg-[#151518] p-5 space-y-4 shadow-2xs">
                           <div className="flex items-start gap-4">
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-white/20 text-xs font-bold text-zinc-500 dark:text-zinc-400 bg-white dark:bg-[#202026]">
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-white/20 text-xs font-bold text-zinc-900 dark:text-white bg-white dark:bg-[#202026]">
                               2
                             </span>
-                            <div>
-                              <h6 className="text-sm font-bold text-zinc-900 dark:text-white">
-                                Point traffic at your magnets
-                              </h6>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <h6 className="text-sm font-bold text-zinc-900 dark:text-white">
+                                  Step 2: Route Traffic (CNAME Record)
+                                </h6>
+                                {cnameVerified && (
+                                  <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded-full">
+                                    Traffic Routed ✓
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
-                                After ownership is verified, we will give you a CNAME unique to your account.
+                                Add this CNAME record to route traffic from your subdomain to your magnets.
                               </p>
+
+                              {/* CNAME Record Guidance Box with Copy Buttons */}
+                              {(() => {
+                                const cleanDom = rootDomain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+                                const sub = (pageSubdomain || "get").toLowerCase().trim();
+                                const cnameTarget = "cname.leadmagnets.so";
+                                return (
+                                  <div className="mt-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+                                    <div className="flex-1">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                                        TYPE
+                                      </span>
+                                      <span className="font-mono text-xs font-bold text-zinc-900 dark:text-white">
+                                        CNAME
+                                      </span>
+                                    </div>
+
+                                    <div className="flex-[2] relative">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                                        SUBDOMAIN / HOST
+                                      </span>
+                                      <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
+                                        <span>{sub}</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            navigator.clipboard.writeText(sub);
+                                            setCopiedField("cnameHost");
+                                            setTimeout(() => setCopiedField(null), 2000);
+                                          }}
+                                          className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer"
+                                          title="Copy Subdomain Host"
+                                        >
+                                          {copiedField === "cnameHost" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                                        </button>
+                                      </div>
+                                      <span className="text-[10px] text-zinc-400 dark:text-[#666675] block mt-1">
+                                        Full Host: {sub}.{cleanDom}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex-[3] relative">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                                        TARGET VALUE
+                                      </span>
+                                      <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
+                                        <span>{cnameTarget}</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            navigator.clipboard.writeText(cnameTarget);
+                                            setCopiedField("cnameValue");
+                                            setTimeout(() => setCopiedField(null), 2000);
+                                          }}
+                                          className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer shrink-0"
+                                          title="Copy CNAME Target Value"
+                                        >
+                                          {copiedField === "cnameValue" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+
+                              {/* Interactive "Check CNAME routing" button */}
+                              <div className="mt-4 space-y-2">
+                                <button
+                                  type="button"
+                                  disabled={checkingCname}
+                                  onClick={async () => {
+                                    setCheckingCname(true);
+                                    setCnameError("");
+                                    try {
+                                      const res = await fetch("/api/domain/verify", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ domain: rootDomain, subdomain: pageSubdomain }),
+                                      });
+                                      const data = await res.json();
+                                      if (data.cnameVerified) {
+                                        setCnameVerified(true);
+                                        setSslStatus("active");
+                                        setCnameError(`Traffic successfully routed! ${data.fullSubdomainHost} points to ${data.cnameTarget}`);
+                                        await handleSave({ cnameVerified: true, sslStatus: "active" });
+                                      } else {
+                                        setCnameError(data.cnameMessage || `No CNAME record detected pointing ${pageSubdomain}.${rootDomain} to cname.leadmagnets.so`);
+                                      }
+                                    } catch (e) {
+                                      setCnameError(`Unable to verify CNAME routing for ${pageSubdomain}.${rootDomain}`);
+                                    } finally {
+                                      setCheckingCname(false);
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-2 rounded-xl border border-zinc-300 dark:border-white/15 bg-white dark:bg-[#202026] px-4 py-2 text-xs font-bold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#282830] transition shadow-xs cursor-pointer disabled:opacity-60"
+                                >
+                                  {checkingCname ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2]" />
+                                  ) : (
+                                    <RefreshCw className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-300" />
+                                  )}
+                                  <span>Verify CNAME routing</span>
+                                </button>
+
+                                {cnameError && (
+                                  <p className="text-[11.5px] text-zinc-500 dark:text-[#9B9085] leading-relaxed pt-1">
+                                    {cnameError}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -446,7 +633,7 @@ export default function WorkspaceSetupPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {/* Your sender domain Expandable Card */}
                       <div className={`${openSections["sender-domain"] ? "md:col-span-2" : "md:col-span-1"} rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#121214] overflow-hidden shadow-sm transition-all duration-300 ease-in-out`}>
-                        <div 
+                        <div
                           onClick={() => toggle("sender-domain")}
                           className="p-4 flex items-center justify-between hover:bg-[#EFF6FF] dark:hover:bg-[#18181c] transition-colors cursor-pointer"
                         >
@@ -565,7 +752,7 @@ export default function WorkspaceSetupPage() {
 
                       {/* Calendar booking Expandable Card */}
                       <div className={`${openSections["calendar-booking"] ? "md:col-span-2" : "md:col-span-1"} rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#121214] overflow-hidden shadow-sm transition-all duration-300 ease-in-out`}>
-                        <div 
+                        <div
                           onClick={() => toggle("calendar-booking")}
                           className="p-4 flex items-center justify-between hover:bg-[#EFF6FF] dark:hover:bg-[#18181c] transition-colors cursor-pointer"
                         >
@@ -610,17 +797,27 @@ export default function WorkspaceSetupPage() {
                                   <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-2">
                                     {account?.calendarProvider || "Calendly"} personal access token
                                   </label>
-                                  <input
-                                    type="password"
-                                    placeholder={`${account?.calendarProvider || "Calendly"} API token`}
-                                    value={account?.calendarToken || ""}
-                                    onChange={(e) => {
-                                      const tok = e.target.value;
-                                      setAccount((prev) => prev ? { ...prev, calendarToken: tok } : prev);
-                                    }}
-                                    onBlur={() => handleSave()}
-                                    className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none focus:border-[#D97706] transition"
-                                  />
+                                  <div className="relative">
+                                    <input
+                                      type={showCalendarToken ? "text" : "password"}
+                                      placeholder={`${account?.calendarProvider || "Calendly"} API token`}
+                                      value={account?.calendarToken || ""}
+                                      onChange={(e) => {
+                                        const tok = e.target.value;
+                                        setAccount((prev) => prev ? { ...prev, calendarToken: tok } : prev);
+                                      }}
+                                      onBlur={() => handleSave()}
+                                      className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] pl-3.5 pr-10 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none focus:border-[#D97706] transition font-mono"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowCalendarToken(!showCalendarToken)}
+                                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition cursor-pointer"
+                                      title={showCalendarToken ? "Hide Token" : "Show Token"}
+                                    >
+                                      {showCalendarToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                  </div>
                                   <p className="text-[11px] text-zinc-500 dark:text-[#666675] mt-1.5">
                                     {account?.calendarProvider || "Calendly"} requires a paid plan for webhooks.
                                   </p>
@@ -641,11 +838,10 @@ export default function WorkspaceSetupPage() {
                                     await saveAccount(updated);
                                     alert(nextConnected ? `${account.calendarProvider || "Calendar"} connected successfully!` : "Calendar disconnected.");
                                   }}
-                                  className={`inline-flex items-center gap-1.5 self-start sm:self-auto px-4 py-2 rounded-xl text-xs font-semibold transition shrink-0 shadow-sm ${
-                                    account?.calendarConnected
+                                  className={`inline-flex items-center gap-1.5 self-start sm:self-auto px-4 py-2 rounded-xl text-xs font-semibold transition shrink-0 shadow-sm ${account?.calendarConnected
                                       ? "bg-emerald-600 text-white hover:bg-emerald-700"
                                       : "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-zinc-200"
-                                  }`}
+                                    }`}
                                 >
                                   {account?.calendarConnected ? "Calendar connected ✓" : "Connect calendar"}
                                 </button>
@@ -667,7 +863,7 @@ export default function WorkspaceSetupPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {/* Slack Expandable Card */}
                       <div className={`${openSections["slack-webhook"] ? "md:col-span-2" : "md:col-span-1"} rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#121214] overflow-hidden shadow-sm transition-all duration-300 ease-in-out`}>
-                        <div 
+                        <div
                           onClick={() => toggle("slack-webhook")}
                           className="p-4 flex items-center justify-between hover:bg-[#EFF6FF] dark:hover:bg-[#18181c] transition-colors cursor-pointer"
                         >
@@ -693,17 +889,27 @@ export default function WorkspaceSetupPage() {
                                 <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-2">
                                   Slack incoming-webhook URL
                                 </label>
-                                <input
-                                  type="url"
-                                  placeholder="https://hooks.slack.com/services/..."
-                                  value={account?.slackWebhookUrl || ""}
-                                  onChange={(e) => {
-                                    const url = e.target.value;
-                                    setAccount((prev) => prev ? { ...prev, slackWebhookUrl: url } : prev);
-                                  }}
-                                  onBlur={() => handleSave()}
-                                  className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none focus:border-[#0066B2] transition"
-                                />
+                                <div className="relative">
+                                  <input
+                                    type={showSlackUrl ? "text" : "password"}
+                                    placeholder="https://hooks.slack.com/services/..."
+                                    value={account?.slackWebhookUrl || ""}
+                                    onChange={(e) => {
+                                      const url = e.target.value;
+                                      setAccount((prev) => prev ? { ...prev, slackWebhookUrl: url } : prev);
+                                    }}
+                                    onBlur={() => handleSave()}
+                                    className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] pl-3.5 pr-10 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none focus:border-[#0066B2] transition font-mono"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowSlackUrl(!showSlackUrl)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition cursor-pointer"
+                                    title={showSlackUrl ? "Hide URL" : "Show URL"}
+                                  >
+                                    {showSlackUrl ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
                                 <p className="text-[11px] text-zinc-500 dark:text-[#666675] mt-1.5">
                                   In Slack, create an Incoming Webhook, choose its channel, then paste the generated hooks.slack.com URL here. Leave it blank to disconnect.
                                 </p>
@@ -715,10 +921,34 @@ export default function WorkspaceSetupPage() {
                                 </p>
                                 <button
                                   type="button"
-                                  onClick={() => alert("Test Slack message sent! Please check your channel.")}
-                                  className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-1.5 rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#1E1E22] text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#25252A] transition shrink-0"
+                                  onClick={async () => {
+                                    if (!account?.slackWebhookUrl) {
+                                      alert("Please enter your Slack incoming-webhook URL first.");
+                                      return;
+                                    }
+                                    try {
+                                      const res = await fetch("/api/data", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                          action: "sendTestSlackAlert",
+                                          data: { webhookUrl: account.slackWebhookUrl },
+                                          email: account.email,
+                                        }),
+                                      });
+                                      const data = await res.json();
+                                      if (res.ok && data.success) {
+                                        alert("🎉 Test Slack message sent! Check your Slack channel or Slackbot DM.");
+                                      } else {
+                                        alert(data.error || "Failed to send test message to Slack. Check the webhook URL.");
+                                      }
+                                    } catch (err: any) {
+                                      alert(`Error sending test message: ${err.message}`);
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-1.5 rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#1E1E22] text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#25252A] transition shrink-0 cursor-pointer"
                                 >
-                                  <Slack className="h-3.5 w-3.5" />
+                                  <Slack className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
                                   Send test
                                 </button>
                               </div>
@@ -729,7 +959,7 @@ export default function WorkspaceSetupPage() {
 
                       {/* Zapier Expandable Card */}
                       <div className={`${openSections["zapier-webhook"] ? "md:col-span-2" : "md:col-span-1"} rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#121214] overflow-hidden shadow-sm transition-all duration-300 ease-in-out`}>
-                        <div 
+                        <div
                           onClick={() => toggle("zapier-webhook")}
                           className="p-4 flex items-center justify-between hover:bg-[#EFF6FF] dark:hover:bg-[#18181c] transition-colors cursor-pointer"
                         >
@@ -760,17 +990,27 @@ export default function WorkspaceSetupPage() {
                                 <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-2">
                                   Zapier Catch Hook URL
                                 </label>
-                                <input
-                                  type="url"
-                                  placeholder="https://hooks.zapier.com/hooks/catch/..."
-                                  value={account?.zapierWebhookUrl || ""}
-                                  onChange={(e) => {
-                                    const url = e.target.value;
-                                    setAccount((prev) => prev ? { ...prev, zapierWebhookUrl: url } : prev);
-                                  }}
-                                  onBlur={() => handleSave()}
-                                  className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none focus:border-[#FF4F00] transition"
-                                />
+                                <div className="relative">
+                                  <input
+                                    type={showZapierUrl ? "text" : "password"}
+                                    placeholder="https://hooks.zapier.com/hooks/catch/..."
+                                    value={account?.zapierWebhookUrl || ""}
+                                    onChange={(e) => {
+                                      const url = e.target.value;
+                                      setAccount((prev) => prev ? { ...prev, zapierWebhookUrl: url } : prev);
+                                    }}
+                                    onBlur={() => handleSave()}
+                                    className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] pl-3.5 pr-10 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none focus:border-[#FF4F00] transition font-mono"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowZapierUrl(!showZapierUrl)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition cursor-pointer"
+                                    title={showZapierUrl ? "Hide URL" : "Show URL"}
+                                  >
+                                    {showZapierUrl ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
                                 <p className="text-[11px] text-zinc-500 dark:text-[#666675] mt-1.5">
                                   Paste the unique hooks.zapier.com URL from the Test tab. Leave it blank to disconnect.
                                 </p>
@@ -782,10 +1022,34 @@ export default function WorkspaceSetupPage() {
                                 </p>
                                 <button
                                   type="button"
-                                  onClick={() => alert("Test Zapier event sent! Check your Zap test tab.")}
-                                  className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-1.5 rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#1E1E22] text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#25252A] transition shrink-0"
+                                  onClick={async () => {
+                                    if (!account?.zapierWebhookUrl) {
+                                      alert("Please enter your Zapier Catch Hook URL first.");
+                                      return;
+                                    }
+                                    try {
+                                      const res = await fetch("/api/data", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                          action: "sendTestZapierAlert",
+                                          data: { webhookUrl: account.zapierWebhookUrl },
+                                          email: account.email,
+                                        }),
+                                      });
+                                      const data = await res.json();
+                                      if (res.ok && data.success) {
+                                        alert("⚡ Test Zapier event sent! Check your Zapier test trigger tab.");
+                                      } else {
+                                        alert(data.error || "Failed to send test payload to Zapier. Check the webhook URL.");
+                                      }
+                                    } catch (err: any) {
+                                      alert(`Error sending test payload: ${err.message}`);
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-1.5 rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#1E1E22] text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#25252A] transition shrink-0 cursor-pointer"
                                 >
-                                  <Zap className="h-3.5 w-3.5" />
+                                  <Zap className="h-3.5 w-3.5 text-[#FF4F00]" />
                                   Send test
                                 </button>
                               </div>
@@ -796,7 +1060,7 @@ export default function WorkspaceSetupPage() {
 
                       {/* Pipedrive Expandable Card */}
                       <div className={`${openSections["pipedrive-webhook"] ? "md:col-span-2" : "md:col-span-1"} rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#121214] overflow-hidden shadow-sm transition-all duration-300 ease-in-out`}>
-                        <div 
+                        <div
                           onClick={() => toggle("pipedrive-webhook")}
                           className="p-4 flex items-center justify-between hover:bg-[#EFF6FF] dark:hover:bg-[#18181c] transition-colors cursor-pointer"
                         >
@@ -822,17 +1086,27 @@ export default function WorkspaceSetupPage() {
                                 <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-2">
                                   Pipedrive API token
                                 </label>
-                                <input
-                                  type="password"
-                                  placeholder="Paste your Pipedrive API token"
-                                  value={account?.pipedriveApiToken || ""}
-                                  onChange={(e) => {
-                                    const token = e.target.value;
-                                    setAccount((prev) => prev ? { ...prev, pipedriveApiToken: token } : prev);
-                                  }}
-                                  onBlur={() => handleSave()}
-                                  className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none focus:border-[#28A745] transition"
-                                />
+                                <div className="relative">
+                                  <input
+                                    type={showPipedriveToken ? "text" : "password"}
+                                    placeholder="Paste your Pipedrive API token"
+                                    value={account?.pipedriveApiToken || ""}
+                                    onChange={(e) => {
+                                      const token = e.target.value;
+                                      setAccount((prev) => prev ? { ...prev, pipedriveApiToken: token } : prev);
+                                    }}
+                                    onBlur={() => handleSave()}
+                                    className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] pl-3.5 pr-10 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none focus:border-[#28A745] transition font-mono"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowPipedriveToken(!showPipedriveToken)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition cursor-pointer"
+                                    title={showPipedriveToken ? "Hide Token" : "Show Token"}
+                                  >
+                                    {showPipedriveToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
                                 <p className="text-[11px] text-zinc-500 dark:text-[#666675] mt-1.5">
                                   In Pipedrive, open Personal preferences, then API. Paste the API token here. Leave it blank to disconnect.
                                 </p>
@@ -844,8 +1118,32 @@ export default function WorkspaceSetupPage() {
                                 </p>
                                 <button
                                   type="button"
-                                  onClick={() => alert("Pipedrive API connection test successful!")}
-                                  className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-1.5 rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#1E1E22] text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#25252A] transition shrink-0"
+                                  onClick={async () => {
+                                    if (!account?.pipedriveApiToken) {
+                                      alert("Please enter your Pipedrive API token first.");
+                                      return;
+                                    }
+                                    try {
+                                      const res = await fetch("/api/data", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                          action: "sendTestPipedriveAlert",
+                                          data: { apiToken: account.pipedriveApiToken },
+                                          email: account.email,
+                                        }),
+                                      });
+                                      const data = await res.json();
+                                      if (res.ok && data.success) {
+                                        alert(`🎉 Pipedrive connection successful! Connected as ${data.user}.`);
+                                      } else {
+                                        alert(data.error || "Failed to connect to Pipedrive. Please check your API token.");
+                                      }
+                                    } catch (err: any) {
+                                      alert(`Error connecting to Pipedrive: ${err.message}`);
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-1.5 rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#1E1E22] text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#25252A] transition shrink-0 cursor-pointer"
                                 >
                                   <Check className="h-3.5 w-3.5 text-emerald-500" />
                                   Test connection
@@ -858,7 +1156,7 @@ export default function WorkspaceSetupPage() {
 
                       {/* Kit Expandable Card */}
                       <div className={`${openSections["kit-webhook"] ? "md:col-span-2" : "md:col-span-1"} rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#121214] overflow-hidden shadow-sm transition-all duration-300 ease-in-out`}>
-                        <div 
+                        <div
                           onClick={() => toggle("kit-webhook")}
                           className="p-4 flex items-center justify-between hover:bg-[#EFF6FF] dark:hover:bg-[#18181c] transition-colors cursor-pointer"
                         >
@@ -880,31 +1178,75 @@ export default function WorkspaceSetupPage() {
                         <div className={`grid transition-all duration-300 ease-in-out ${openSections["kit-webhook"] ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
                           <div className="overflow-hidden">
                             <div className="px-5 pb-5 pt-3 border-t border-zinc-100 dark:border-white/5 space-y-4 bg-zinc-50/50 dark:bg-[#151518]">
-                              <p className="text-xs text-zinc-600 dark:text-[#9B9085]">
-                                Connect with Kit's secure authorization screen. Magnets never asks you to paste an API key and never exposes Kit credentials in the browser.
-                              </p>
+                              <div>
+                                <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-2">
+                                  Kit API Secret / Key
+                                </label>
+                                <div className="relative">
+                                  <input
+                                    type={showKitKey ? "text" : "password"}
+                                    placeholder="Paste your Kit API Secret (e.g. FM9REw...) or API Key"
+                                    value={account?.kitApiKey || ""}
+                                    onChange={(e) => {
+                                      const key = e.target.value;
+                                      setAccount((prev) => prev ? { ...prev, kitApiKey: key, kitConnected: !!key.trim() } : prev);
+                                    }}
+                                    onBlur={() => handleSave()}
+                                    className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] pl-3.5 pr-10 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none focus:border-[#FF6A3D] transition font-mono"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowKitKey(!showKitKey)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition cursor-pointer"
+                                    title={showKitKey ? "Hide Key" : "Show Key"}
+                                  >
+                                    {showKitKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  </button>
+                                </div>
+                                <p className="text-[11px] text-zinc-500 dark:text-[#666675] mt-1.5">
+                                  In Kit, open Settings → Advanced, then copy your API Key. Leave blank to disconnect.
+                                </p>
+                              </div>
 
                               <div className="pt-2 border-t border-zinc-200/60 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <p className="text-[11px] text-zinc-500 dark:text-[#666675]">
-                                  Kit sync runs after the resource email is accepted, so a temporary Kit issue never blocks the signup.
+                                  Kit subscriber sync runs automatically after every lead magnet signup.
                                 </p>
                                 <button
                                   type="button"
                                   onClick={async () => {
-                                    if (!account) return;
-                                    const nextState = !account.kitConnected;
-                                    const updated = { ...account, kitConnected: nextState };
-                                    setAccount(updated);
-                                    await saveAccount(updated);
-                                    alert(nextState ? "Connected to Kit successfully!" : "Disconnected Kit connection.");
+                                    if (!account?.kitApiKey && !account?.kitConnected) {
+                                      alert("Please enter your Kit V3 API Key first.");
+                                      return;
+                                    }
+                                    try {
+                                      const res = await fetch("/api/data", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                          action: "sendTestKitAlert",
+                                          data: { apiKey: account?.kitApiKey },
+                                          email: account?.email,
+                                        }),
+                                      });
+                                      const data = await res.json();
+                                      if (res.ok && data.success) {
+                                        setAccount((prev) => prev ? { ...prev, kitConnected: true } : prev);
+                                        await handleSave({ kitConnected: true });
+                                        alert(`🎉 Kit connection successful! Account: ${data.user}`);
+                                      } else {
+                                        alert(data.error || "Failed to verify Kit API Key. Check Settings -> Advanced in Kit.");
+                                      }
+                                    } catch (err: any) {
+                                      alert(`Error connecting to Kit: ${err.message}`);
+                                    }
                                   }}
-                                  className={`inline-flex items-center gap-1.5 self-start sm:self-auto px-4 py-2 rounded-xl text-xs font-semibold transition shrink-0 shadow-sm ${
-                                    account?.kitConnected
+                                  className={`inline-flex items-center gap-1.5 self-start sm:self-auto px-4 py-2 rounded-xl text-xs font-semibold transition shrink-0 shadow-sm cursor-pointer ${account?.kitConnected
                                       ? "bg-emerald-600 text-white hover:bg-emerald-700"
                                       : "bg-[#FF6A3D] text-white hover:bg-[#E8592E]"
-                                  }`}
+                                    }`}
                                 >
-                                  {account?.kitConnected ? "Kit Connected ✓" : "Connect Kit"}
+                                  {account?.kitConnected ? "Kit Connected ✓" : "Test & Connect Kit"}
                                 </button>
                               </div>
                             </div>
@@ -1019,7 +1361,7 @@ export default function WorkspaceSetupPage() {
                         placeholder="https://your-site.com/privacy"
                         value={privacyPolicy}
                         onChange={(e) => setPrivacyPolicy(e.target.value)}
-                        onBlur={handleSave}
+                        onBlur={() => handleSave()}
                         className="w-full rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition"
                       />
                       <p className="mt-1 text-[11px] text-zinc-400 dark:text-[#666675]">Leave blank to hide this link.</p>
@@ -1031,7 +1373,7 @@ export default function WorkspaceSetupPage() {
                         placeholder="https://your-site.com/terms"
                         value={termsOfService}
                         onChange={(e) => setTermsOfService(e.target.value)}
-                        onBlur={handleSave}
+                        onBlur={() => handleSave()}
                         className="w-full rounded-xl border border-[#E5E3DD] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition"
                       />
                       <p className="mt-1 text-[11px] text-zinc-400 dark:text-[#666675]">Leave blank to hide this link.</p>

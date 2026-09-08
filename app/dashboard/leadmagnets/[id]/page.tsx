@@ -418,7 +418,20 @@ export default function EditLeadMagnetPage() {
     });
   }, [params.id]);
 
-
+  useEffect(() => {
+    if (page) {
+      const cleanSubheadline = page.subheadline && page.subheadline !== "Enter your email to get instant access." ? page.subheadline : "";
+      const cleanHeadline = page.headline && page.headline !== "hi" ? page.headline : (page.name || "");
+      setHeadline(cleanHeadline);
+      setSubheadline(cleanSubheadline);
+      if (page.pitch) setPitch(page.pitch);
+      if (page.bullets) setBullets(page.bullets);
+      if (page.imageUrl !== undefined) setImageUrl(page.imageUrl);
+      if (page.sequenceEnabled !== undefined) setSequenceEnabled(page.sequenceEnabled);
+      if (page.stopOnCall !== undefined) setStopOnCall(page.stopOnCall);
+      if (page.sequenceEmails) setSequenceEmails(page.sequenceEmails);
+    }
+  }, [page]);
 
   const adjustTextareaHeights = useCallback(() => {
     requestAnimationFrame(() => {
@@ -818,7 +831,6 @@ export default function EditLeadMagnetPage() {
                   href={`/${account?.username || "user"}/${page.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => update({ bulletsTitle })}
                   className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-[#0066B2] dark:hover:text-white hover:bg-[#EFF6FF] dark:hover:bg-zinc-100 transition cursor-pointer"
                   title="Open live page in new tab"
                 >
@@ -1028,7 +1040,6 @@ export default function EditLeadMagnetPage() {
                                 type="text"
                                 value={bulletsTitle}
                                 onChange={(e) => setBulletsTitle(e.target.value)}
-                                onBlur={() => update({ bulletsTitle })}
                                 placeholder="What they will learn"
                                 className="w-full text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-800 bg-transparent outline-none border-b border-transparent hover:border-[#FE6F34]/50 focus:border-[#FE6F34] hover:bg-white focus:bg-white rounded-lg px-2 py-1 transition-all duration-150 placeholder:text-zinc-400 dark:placeholder:text-zinc-400 placeholder:font-normal"
                               />

@@ -18,6 +18,7 @@ const AccountSchema = new Schema({
   zapierWebhookUrl: { type: String, default: "" },
   pipedriveApiToken: { type: String, default: "" },
   kitConnected: { type: Boolean, default: false },
+  kitApiKey: { type: String, default: "" },
   senderDisplayName: { type: String, default: "" },
   senderAddress: { type: String, default: "" },
   calendarProvider: { type: String, default: "Calendly" },
@@ -28,6 +29,11 @@ const AccountSchema = new Schema({
   avatar: { type: String, default: null },
   resetPasswordToken: { type: String, default: null },
   resetPasswordExpires: { type: Date, default: null },
+  customDomain: { type: String, default: "" },
+  customSubdomain: { type: String, default: "get" },
+  domainVerified: { type: Boolean, default: false },
+  cnameVerified: { type: Boolean, default: false },
+  sslStatus: { type: String, enum: ["pending", "active", "failed"], default: "pending" },
 });
 
 // MagnetPage Schema

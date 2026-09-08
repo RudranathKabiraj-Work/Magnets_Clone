@@ -151,6 +151,21 @@ export async function POST(req: Request) {
         existing.notifyEmail = data.notifyEmail !== undefined ? data.notifyEmail : existing.notifyEmail;
         existing.themeMode = data.themeMode || existing.themeMode;
         existing.highlightIntensity = data.highlightIntensity ?? existing.highlightIntensity;
+        existing.slackWebhookUrl = data.slackWebhookUrl !== undefined ? data.slackWebhookUrl : existing.slackWebhookUrl;
+        existing.zapierWebhookUrl = data.zapierWebhookUrl !== undefined ? data.zapierWebhookUrl : existing.zapierWebhookUrl;
+        existing.pipedriveApiToken = data.pipedriveApiToken !== undefined ? data.pipedriveApiToken : existing.pipedriveApiToken;
+        existing.kitConnected = data.kitConnected !== undefined ? data.kitConnected : existing.kitConnected;
+        existing.kitApiKey = data.kitApiKey !== undefined ? data.kitApiKey : existing.kitApiKey;
+        existing.senderDisplayName = data.senderDisplayName !== undefined ? data.senderDisplayName : existing.senderDisplayName;
+        existing.senderAddress = data.senderAddress !== undefined ? data.senderAddress : existing.senderAddress;
+        existing.calendarProvider = data.calendarProvider || existing.calendarProvider;
+        existing.calendarToken = data.calendarToken !== undefined ? data.calendarToken : existing.calendarToken;
+        existing.calendarConnected = data.calendarConnected !== undefined ? data.calendarConnected : existing.calendarConnected;
+        existing.customDomain = data.customDomain !== undefined ? data.customDomain : existing.customDomain;
+        existing.customSubdomain = data.customSubdomain !== undefined ? data.customSubdomain : existing.customSubdomain;
+        existing.domainVerified = data.domainVerified !== undefined ? data.domainVerified : existing.domainVerified;
+        existing.cnameVerified = data.cnameVerified !== undefined ? data.cnameVerified : existing.cnameVerified;
+        existing.sslStatus = data.sslStatus || existing.sslStatus;
         if (data.password) {
           existing.password = data.password;
         }
@@ -313,9 +328,218 @@ export async function POST(req: Request) {
             customAnswer: data.customAnswer,
           }).catch((err) => console.error("Lead Alert Background Error:", err));
         }
+
+        // Dispatch Slack incoming webhook notification if configured
+        if (ownerAccount?.slackWebhookUrl) {
+          fetch(ownerAccount.slackWebhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: `🚀 *New Lead Alert!*\n*Name:* ${data.name}\n*Email:* ${data.email}\n*Lead Magnet:* ${pageTitle}`,
+            }),
+          }).catch((err) => console.error("Slack Webhook dispatch error:", err));
+        }
+
+        // Dispatch Zapier Catch Hook payload if configured
+        if (ownerAccount?.zapierWebhookUrl) {
+          fetch(ownerAccount.zapierWebhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              event: "new_lead",
+              lead_id: createdLead.id || data.id,
+              name: data.name,
+              email: data.email,
+              lead_magnet_title: pageTitle,
+              signed_up_at: data.signedUpAt || new Date().toISOString(),
+              custom_answer: data.customAnswer || "",
+            }),
+          }).catch((err) => console.error("Zapier Webhook dispatch error:", err));
+        }
+
+        // Sync lead to Pipedrive CRM if API Token configured
+        if (ownerAccount?.pipedriveApiToken) {
+          const apiToken = ownerAccount.pipedriveApiToken.trim();
+          fetch(`https://api.pipedrive.com/v1/persons?api_token=${encodeURIComponent(apiToken)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: data.name || "Lead Subscriber",
+              email: [{ value: data.email, primary: true }],
+            }),
+          }).catch((err) => console.error("Pipedrive API sync error:", err));
+        }
+
+        // Sync lead to Kit (ConvertKit) via Tag subscription
+        if (ownerAccount?.kitApiKey || ownerAccount?.kitConnected) {
+          const kitKey = (ownerAccount.kitApiKey || "").trim();
+          if (kitKey) {
+            (async () => {
+              try {
+                const tagsRes = await fetch(`https://api.convertkit.com/v3/tags?api_secret=${encodeURIComponent(kitKey)}&api_key=${encodeURIComponent(kitKey)}`);
+                const tagsData = await tagsRes.json();
+                let tagId = tagsData.tags && tagsData.tags[0] ? tagsData.tags[0].id : null;
+
+                if (!tagId) {
+                  const createTagRes = await fetch("https://api.convertkit.com/v3/tags", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ api_secret: kitKey, api_key: kitKey, tag: { name: "LeadMagnets Signups" } }),
+                  });
+                  const createTagData = await createTagRes.json();
+                  tagId = createTagData.tag ? createTagData.tag.id : null;
+                }
+
+                if (tagId) {
+                  await fetch(`https://api.convertkit.com/v3/tags/${tagId}/subscribe`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      api_secret: kitKey,
+                      api_key: kitKey,
+                      email: data.email,
+                      first_name: data.name || "",
+                      fields: { lead_magnet: pageTitle },
+                    }),
+                  });
+                }
+              } catch (err) {
+                console.error("Kit Tag Sync Error:", err);
+              }
+            })();
+          }
+        }
       }
 
       return NextResponse.json({ success: true, lead: createdLead });
+    }
+
+    if (action === "sendTestKitAlert") {
+      const apiKey = data?.apiKey || (await AccountModel.findOne({ email: normEmail }))?.kitApiKey;
+      if (!apiKey || !apiKey.trim()) {
+        return NextResponse.json({ error: "No Kit API key or secret provided." }, { status: 400 });
+      }
+
+      try {
+        const kitKey = apiKey.trim();
+        // Fetch account info if API Secret was provided
+        const accountRes = await fetch(`https://api.convertkit.com/v3/account?api_secret=${encodeURIComponent(kitKey)}`);
+        const accountData = await accountRes.json();
+        const accountName = accountData.name || accountData.primary_email_address;
+
+        const tagsRes = await fetch(`https://api.convertkit.com/v3/tags?api_secret=${encodeURIComponent(kitKey)}&api_key=${encodeURIComponent(kitKey)}`);
+        const tagsData = await tagsRes.json();
+
+        if (tagsRes.ok && Array.isArray(tagsData.tags)) {
+          let tagId = tagsData.tags[0]?.id;
+          if (!tagId) {
+            const createTagRes = await fetch("https://api.convertkit.com/v3/tags", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ api_secret: kitKey, api_key: kitKey, tag: { name: "LeadMagnets Signups" } }),
+            });
+            const createTagData = await createTagRes.json();
+            tagId = createTagData.tag?.id;
+          }
+
+          if (tagId) {
+            await fetch(`https://api.convertkit.com/v3/tags/${tagId}/subscribe`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                api_secret: kitKey,
+                api_key: kitKey,
+                email: "sample.subscriber@example.com",
+                first_name: "Sample Lead",
+                fields: { lead_magnet: "Test Lead Magnet" },
+              }),
+            });
+          }
+
+          return NextResponse.json({ success: true, user: accountName || "Kit Creator" });
+        }
+
+        return NextResponse.json({ error: tagsData.message || accountData.message || "Invalid Kit API Key or Secret. Copy from Kit Settings -> Advanced." }, { status: 400 });
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message || "Failed to reach Kit API." }, { status: 500 });
+      }
+    }
+
+    if (action === "sendTestPipedriveAlert") {
+      const apiToken = data?.apiToken || (await AccountModel.findOne({ email: normEmail }))?.pipedriveApiToken;
+      if (!apiToken || !apiToken.trim()) {
+        return NextResponse.json({ error: "No Pipedrive API token provided." }, { status: 400 });
+      }
+
+      try {
+        const pdRes = await fetch(`https://api.pipedrive.com/v1/users/me?api_token=${encodeURIComponent(apiToken.trim())}`);
+        const pdData = await pdRes.json();
+        if (pdRes.ok && pdData.success) {
+          return NextResponse.json({ success: true, user: pdData.data?.name || "Pipedrive User" });
+        } else {
+          return NextResponse.json({ error: pdData.error || "Invalid Pipedrive API token." }, { status: 400 });
+        }
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message || "Failed to reach Pipedrive API." }, { status: 500 });
+      }
+    }
+
+    if (action === "sendTestZapierAlert") {
+      const webhookUrl = data?.webhookUrl || (await AccountModel.findOne({ email: normEmail }))?.zapierWebhookUrl;
+      if (!webhookUrl) {
+        return NextResponse.json({ error: "No Zapier Catch Hook URL provided." }, { status: 400 });
+      }
+
+      try {
+        const zapRes = await fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: "test_signup",
+            lead_id: "test-lead-123",
+            name: "Sample Lead",
+            email: "sample.subscriber@example.com",
+            lead_magnet_title: "Sample Lead Magnet",
+            signed_up_at: new Date().toISOString(),
+            custom_answer: "Testing Zapier Integration!",
+          }),
+        });
+
+        if (!zapRes.ok) {
+          const text = await zapRes.text();
+          return NextResponse.json({ error: `Zapier returned error: ${text}` }, { status: 400 });
+        }
+
+        return NextResponse.json({ success: true });
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message || "Failed to reach Zapier webhook." }, { status: 500 });
+      }
+    }
+
+    if (action === "sendTestSlackAlert") {
+      const webhookUrl = data?.webhookUrl || (await AccountModel.findOne({ email: normEmail }))?.slackWebhookUrl;
+      if (!webhookUrl) {
+        return NextResponse.json({ error: "No Slack Webhook URL provided." }, { status: 400 });
+      }
+
+      try {
+        const slackRes = await fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: "🎉 *LeadMagnets Test Alert!*\nSlack integration is connected and working! New lead signups will post here automatically.",
+          }),
+        });
+
+        if (!slackRes.ok) {
+          const text = await slackRes.text();
+          return NextResponse.json({ error: `Slack returned error: ${text}` }, { status: 400 });
+        }
+
+        return NextResponse.json({ success: true });
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message || "Failed to reach Slack webhook." }, { status: 500 });
+      }
     }
 
     if (action === "sendTestLeadAlert") {
