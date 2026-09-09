@@ -763,7 +763,7 @@ export default function EditLeadMagnetPage() {
                 <Link
                   href="/dashboard/leadmagnets"
                   onClick={handleGoBack}
-                  className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] dark:border-zinc-300 bg-white dark:bg-white px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-800 hover:bg-[#EFF6FF] hover:text-[#0066B2] dark:hover:bg-zinc-50 transition shadow-xs"
+                  className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] dark:border-zinc-300 bg-white dark:bg-white px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-800 hover:bg-[#EFF6FF] hover:border-[#0066B2]/40 hover:text-[#0066B2] dark:hover:bg-zinc-100 dark:hover:border-zinc-400 active:scale-95 transition-all shadow-xs cursor-pointer"
                 >
                   <ArrowLeft className="h-3.5 w-3.5 stroke-[2.5px]" />
                   <span>Lead magnets</span>
