@@ -72,6 +72,11 @@ export default function SignupsPage() {
   const [leadToDelete, setLeadToDelete] = useState<Lead | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Bulk Selection & Bulk Delete State
+  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
@@ -145,6 +150,7 @@ export default function SignupsPage() {
       const updated = leads.filter((l) => l.id !== leadToDelete.id);
       setLeads(updated);
       deleteLead(leadToDelete.id);
+      setSelectedLeadIds((prev) => prev.filter((id) => id !== leadToDelete.id));
 
       if (selectedLead?.id === leadToDelete.id) {
         setSelectedLead(null);
@@ -157,6 +163,43 @@ export default function SignupsPage() {
     } finally {
       setIsDeleting(false);
       setLeadToDelete(null);
+    }
+  };
+
+  // Bulk Selection Helpers & Handler
+  const toggleSelectAll = () => {
+    if (selectedLeadIds.length === paginatedLeads.length && paginatedLeads.length > 0) {
+      setSelectedLeadIds([]);
+    } else {
+      setSelectedLeadIds(paginatedLeads.map((l) => l.id));
+    }
+  };
+
+  const toggleSelectLead = (id: string) => {
+    setSelectedLeadIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const confirmBulkDelete = async () => {
+    if (selectedLeadIds.length === 0) return;
+    setIsBulkDeleting(true);
+
+    try {
+      const idsToDelete = new Set(selectedLeadIds);
+      const updated = leads.filter((l) => !idsToDelete.has(l.id));
+      setLeads(updated);
+
+      selectedLeadIds.forEach((id) => deleteLead(id));
+
+      addToast("info", `Successfully deleted ${selectedLeadIds.length} selected signups.`);
+      setSelectedLeadIds([]);
+      setShowBulkDeleteModal(false);
+    } catch (err) {
+      console.error("Error bulk deleting leads:", err);
+      addToast("error", "Failed to delete selected signups.");
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -480,6 +523,17 @@ export default function SignupsPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
+                  {/* Bulk Delete Selected Button */}
+                  {selectedLeadIds.length > 0 && (
+                    <button
+                      onClick={() => setShowBulkDeleteModal(true)}
+                      className="flex items-center gap-1.5 rounded-xl bg-red-600 hover:bg-red-700 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-all cursor-pointer animate-in fade-in zoom-in-95 duration-150"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>Delete Selected ({selectedLeadIds.length})</span>
+                    </button>
+                  )}
+
                   {/* Filter by Magnet */}
                   <div className="relative" ref={filterRef}>
                     <button
@@ -533,6 +587,15 @@ export default function SignupsPage() {
               <table className="min-w-full divide-y divide-zinc-200/80 dark:divide-[#2e2e38]">
                 <thead className="bg-[#F8FBFF] dark:bg-[#151518]">
                   <tr>
+                    <th className="px-4 py-3.5 text-center w-10">
+                      <input
+                        type="checkbox"
+                        checked={paginatedLeads.length > 0 && selectedLeadIds.length === paginatedLeads.length}
+                        onChange={toggleSelectAll}
+                        className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#202026] text-[#0066B2] focus:ring-[#0066B2] cursor-pointer"
+                        title="Select All On Page"
+                      />
+                    </th>
                     <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Subscriber</th>
                     <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Lead Magnet</th>
                     <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Signup Date</th>
@@ -541,8 +604,22 @@ export default function SignupsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 bg-white dark:divide-[#222228] dark:bg-[#18181B]">
-                  {paginatedLeads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-[#EFF6FF]/40 dark:hover:bg-[#1C1C22]/60 transition-colors">
+                  {paginatedLeads.map((lead) => {
+                    const isSelected = selectedLeadIds.includes(lead.id);
+
+                    return (
+                      <tr
+                        key={lead.id}
+                        className={`transition-colors ${isSelected ? "bg-[#EFF6FF] dark:bg-[#0066B2]/15" : "hover:bg-[#EFF6FF]/40 dark:hover:bg-[#1C1C22]/60"}`}
+                      >
+                        <td className="px-4 py-4 text-center whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectLead(lead.id)}
+                            className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#202026] text-[#0066B2] focus:ring-[#0066B2] cursor-pointer"
+                          />
+                        </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#38BDF8]/20 dark:text-[#38BDF8] text-xs font-bold uppercase border border-[#0066B2]/20 dark:border-[#38BDF8]/30">
@@ -636,7 +713,8 @@ export default function SignupsPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  );
+                })}
                 </tbody>
               </table>
 
@@ -891,6 +969,45 @@ export default function SignupsPage() {
                 >
                   {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                   <span>Delete Subscriber</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 4. Bulk Delete Confirmation Modal */}
+        {showBulkDeleteModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-all duration-200"
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-[#18181B] shadow-2xl border border-zinc-200 dark:border-[#2e2e38]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400">
+                <AlertCircle className="h-6 w-6" />
+              </div>
+              <h3 className="mt-4 text-lg font-bold text-zinc-900 dark:text-white">
+                Delete {selectedLeadIds.length} Selected Subscribers?
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-[#9B9085]">
+                Are you sure you want to delete <strong className="text-zinc-900 dark:text-white">{selectedLeadIds.length} subscribers</strong>? This action cannot be undone and will remove them from your active lead list.
+              </p>
+
+              <div className="mt-6 flex items-center justify-end gap-3">
+                <button
+                  disabled={isBulkDeleting}
+                  onClick={() => setShowBulkDeleteModal(false)}
+                  className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={isBulkDeleting}
+                  onClick={confirmBulkDelete}
+                  className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 transition cursor-pointer shadow-sm"
+                >
+                  {isBulkDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                  <span>Delete {selectedLeadIds.length} Subscribers</span>
                 </button>
               </div>
             </div>
