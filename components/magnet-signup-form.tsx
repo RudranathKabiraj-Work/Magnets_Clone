@@ -164,6 +164,7 @@ export default function MagnetSignupForm({
           <a
             href={downloadUrl || "/r/v5am4lu"}
             target="_blank"
+            download
             rel="noopener noreferrer"
             className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-[#0066B2] hover:bg-[#005799] px-4 py-3 text-xs font-bold text-white shadow-md transition-all active:scale-98 cursor-pointer w-full text-center"
           >

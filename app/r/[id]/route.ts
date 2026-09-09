@@ -14,8 +14,21 @@ export async function GET(
     await dbConnect();
     let resource = await ResourceModel.findOne({ id: resourceId }).lean();
 
-    // 1. If stored in Vercel Blob Cloud, redirect directly to cloud URL
+    // 1. If stored in Vercel Blob Cloud, fetch and stream directly with instant attachment download headers
     if (resource && resource.fileUrl && resource.fileUrl.startsWith("http") && !resource.fileUrl.includes("/uploads/")) {
+      const blobResponse = await fetch(resource.fileUrl);
+      if (blobResponse.ok) {
+        const downloadFilename = resource.name || resource.fileUrl.split("/").pop() || "resource-file";
+        const contentType = blobResponse.headers.get("content-type") || "application/octet-stream";
+
+        return new NextResponse(blobResponse.body, {
+          headers: {
+            "Content-Type": contentType,
+            "Content-Disposition": `attachment; filename="${encodeURIComponent(downloadFilename)}"`,
+            "Cache-Control": "public, max-age=31536000, immutable",
+          },
+        });
+      }
       return NextResponse.redirect(resource.fileUrl);
     }
 
