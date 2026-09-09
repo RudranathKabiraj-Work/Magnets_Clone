@@ -6,24 +6,33 @@ export default function Reveal({
   children,
   className = "",
   delay = 0,
+  id,
 }: {
   children: ReactNode;
   className?: string;
   delay?: number;
+  id?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(false);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const rect = el.getBoundingClientRect();
-    if (rect.top < 0.88 * window.innerHeight && rect.bottom > 0) {
+    if (!el) return;
+
+    // Skip animation entirely if user prefers reduced motion
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setVisible(true);
-      setActive(true);
       return;
     }
+
+    // Use IntersectionObserver EXCLUSIVELY — never call getBoundingClientRect().
+    // getBoundingClientRect forces a synchronous layout (reflow) on every call.
+    // With ~15 Reveal instances on the page, that's 15 forced reflows on mount = TBT killer.
+    //
+    // rootMargin "250px 0px -5% 0px":
+    //   top=250px  → catches elements already visible on load (fires immediately, no frame flash)
+    //   bottom=-5% → triggers animation slightly before element enters from below
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -31,20 +40,21 @@ export default function Reveal({
           io.unobserve(entry.target);
         }
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.1 }
+      { rootMargin: "250px 0px -5% 0px", threshold: 0 }
     );
+
     io.observe(el);
-    setActive(true);
     return () => io.disconnect();
   }, []);
 
   return (
     <div
       ref={ref}
-      className={`transition-[opacity,transform,filter] duration-700 ease-out ${
-        active && !visible && "translate-y-10 opacity-0 blur-[2px]"
-      } ${visible && "translate-y-0 opacity-100"} ${className}`}
-      style={visible ? { transitionDelay: `${delay}s` } : undefined}
+      id={id}
+      className={`transition-all duration-700 ease-out ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+      } ${className}`}
+      style={{ transitionDelay: `${delay}s` }}
     >
       {children}
     </div>

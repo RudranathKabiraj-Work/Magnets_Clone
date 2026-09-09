@@ -1,11 +1,14 @@
-import React from "react";
+import Image from "next/image";
 
 export function MagnetIcon({ className = "h-7 w-auto" }: { className?: string }) {
   return (
     <span className="inline-flex shrink-0 items-center justify-center">
-      <img
+      <Image
         alt="LeadMagnets"
-        src="/brand/custom-mark.png"
+        src="/brand/custom-mark.webp"
+        width={160}
+        height={160}
+        loading="lazy"
         className={`${className} object-contain`}
       />
     </span>
@@ -22,17 +25,23 @@ export default function BrandLogo({
 }) {
   return (
     <span className={`inline-flex shrink-0 items-center ${className}`}>
-      {/* Light mode logo */}
-      <img
+      {/* Light mode logo — intrinsic 512×160 (3.2:1 ratio) */}
+      <Image
         alt="LeadMagnets"
-        src="/brand/custom-logo-light.png"
+        src="/brand/custom-logo-light.webp"
+        width={512}
+        height={160}
+        priority
         className={`${height} w-auto object-contain dark:hidden`}
       />
 
-      {/* Dark mode logo */}
-      <img
+      {/* Dark mode logo — transparent background full logo */}
+      <Image
         alt="LeadMagnets"
-        src="/brand/custom-logo.png"
+        src="/brand/custom-logo.webp"
+        width={512}
+        height={160}
+        priority
         className={`${height} w-auto object-contain hidden dark:block`}
       />
     </span>
@@ -42,39 +51,48 @@ export default function BrandLogo({
 export function MagnetsMark({ size = "h-14 w-14", src = "/brand/custom-mark.png" }: { size?: string; src?: string }) {
   return (
     <span aria-hidden="true" className="inline-flex shrink-0 items-center justify-center">
-      <img
+      <Image
         alt="LeadMagnets"
         src={src}
-        className={`${size} w-auto object-contain`}
+        width={160}
+        height={160}
+        loading="lazy"
+        className={`${size} object-contain`}
       />
     </span>
   );
 }
 
 export function GeminiLogo({
-  size = "h-20 w-auto",
-  className = "",
-  src = "/brand/gemini-logo.png",
-  darkSrc = "/brand/gemini-logo-dark.png",
+  className = "h-10 w-auto",
+  size,
+  src = "/brand/custom-logo-light.webp",
+  darkSrc = "/brand/custom-logo.webp",
 }: {
-  size?: string;
   className?: string;
+  size?: string;
   src?: string;
   darkSrc?: string;
 }) {
   return (
-    <span aria-hidden="true" className={`inline-flex shrink-0 items-center justify-center ${className}`}>
+    <span aria-hidden="true" className="inline-flex shrink-0 items-center justify-center">
       {/* Light mode logo */}
-      <img
+      <Image
         alt="LeadMagnets Logo"
         src={src}
-        className={`${size} object-contain filter drop-shadow-md dark:hidden`}
+        width={240}
+        height={60}
+        priority
+        className={`${className} object-contain dark:hidden`}
       />
       {/* Dark mode logo */}
-      <img
+      <Image
         alt="LeadMagnets Logo"
         src={darkSrc}
-        className={`${size} object-contain filter drop-shadow-md hidden dark:block`}
+        width={240}
+        height={60}
+        priority
+        className={`${className} object-contain hidden dark:block`}
       />
     </span>
   );

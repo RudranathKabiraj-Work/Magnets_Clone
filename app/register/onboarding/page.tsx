@@ -2,9 +2,45 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
-import { MagnetsMark } from "@/components/brand";
+import Link from "next/link";
+import { GeminiLogo } from "@/components/brand";
+import ThemeToggle from "@/components/theme-toggle";
+import GhostFibers from "@/components/ui/GhostFibers";
 import { safeSetItem } from "@/lib/store";
-import { Gift, Monitor, Rocket, BookOpen, CheckSquare, FileText, PlayCircle, GraduationCap, Tag, ShieldAlert, PlusCircle, ArrowLeft, ArrowRight, CheckCircle2, X } from "lucide-react";
+import {
+  Gift,
+  Monitor,
+  Rocket,
+  BookOpen,
+  CheckSquare,
+  FileText,
+  PlayCircle,
+  GraduationCap,
+  Tag,
+  ShieldAlert,
+  PlusCircle,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  X,
+  Sparkles,
+  Target,
+  Zap,
+  Globe,
+  Share2,
+  MailCheck,
+  Check,
+  TrendingUp,
+  Layers,
+  Wand2,
+} from "lucide-react";
+
+const ONBOARDING_STEPS = [
+  { step: 1, title: "The Concept", label: "01. Concept" },
+  { step: 2, title: "Select Lead Magnet Format", label: "02. Format" },
+  { step: 3, title: "Customize Brand & Niche", label: "03. Brand Setup" },
+  { step: 4, title: "Launch & Publish", label: "04. Launch" },
+];
 
 function OnboardingContent() {
   const searchParams = useSearchParams();
@@ -16,17 +52,30 @@ function OnboardingContent() {
   const [userSlug, setUserSlug] = useState("your-workspace");
   const [loadingProfile, setLoadingProfile] = useState(true);
 
-  // Form values
-  const [selectedFormat, setSelectedFormat] = useState("");
+  // Form state
+  const [selectedFormat, setSelectedFormat] = useState("checklist");
   const [businessName, setBusinessName] = useState("");
-  const [businessType, setBusinessType] = useState("Pick a category");
-  const [publishFrequency, setPublishFrequency] = useState("Pick a cadence");
+  const [businessType, setBusinessType] = useState("Solo creator");
+  const [publishFrequency, setPublishFrequency] = useState("Weekly");
 
-  // Step 4 Modal values
+  // Modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [pageName, setPageName] = useState("");
   const [pageSlug, setPageSlug] = useState("");
   const [creatingPage, setCreatingPage] = useState(false);
+
+  // Theme tracking for WebGL canvas
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    };
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (email) {
@@ -40,7 +89,11 @@ function OnboardingContent() {
           if (data && data.account) {
             const firstName = data.account.name.split(" ")[0];
             setUserName(firstName);
-            setUserSlug(data.account.username || "your-workspace");
+            const slug = data.account.username || firstName.toLowerCase().replace(/[^a-z0-9]/g, "") || "your-workspace";
+            setUserSlug(slug);
+            if (!businessName) {
+              setBusinessName(`${firstName}'s Workspace`);
+            }
 
             fetch("/api/auth/login", {
               method: "POST",
@@ -64,7 +117,6 @@ function OnboardingContent() {
     }
   }, [email]);
 
-  // Auto-generate URL slug as page name changes
   const handlePageNameChange = (name: string) => {
     setPageName(name);
     const slugified = name
@@ -82,7 +134,18 @@ function OnboardingContent() {
 
     setCreatingPage(true);
     const pageId = Math.random().toString(36).substring(2, 9);
-    
+
+    const formatLabels: Record<string, string> = {
+      ebook: "Guide / Ebook",
+      checklist: "Checklist & Action Plan",
+      template: "Starter Template",
+      webinar: "Webinar Masterclass",
+      course: "Mini-Course",
+      discount: "VIP Access",
+      audit: "Scorecard & Audit",
+      other: "Resource Pack",
+    };
+
     const newPage = {
       id: pageId,
       name: pageName.trim(),
@@ -91,11 +154,11 @@ function OnboardingContent() {
       views: 0,
       signups: 0,
       conversionRate: 0,
-      headline: `Get your free ${pageName.trim()} now`,
-      subheadline: "Enter your email address below to receive the resource directly in your inbox.",
-      buttonText: "Receive Resource",
-      emailSubject: `Your ${pageName.trim()} download link`,
-      emailBody: `Hi there,\n\nThank you for requesting the ${pageName.trim()} resource. You can access it immediately by clicking the link below:\n\n[Download Resource]\n\nBest regards,\nThe LeadMagnets Team`,
+      headline: `Download the Free ${pageName.trim()}`,
+      subheadline: `Get instant access to this high-value ${formatLabels[selectedFormat] || "resource"} built specifically for ${businessType.toLowerCase()}s.`,
+      buttonText: "Get Free Access Now",
+      emailSubject: `Here is your ${pageName.trim()} download link`,
+      emailBody: `Hi there,\n\nThank you for requesting the ${pageName.trim()}. You can access your resource immediately using the link below:\n\n[Access Resource]\n\nBest regards,\n${businessName || userName}`,
       accentColor: "#0066B2",
       socialSharingImage: null,
       checkEmailUnique: false,
@@ -136,129 +199,207 @@ function OnboardingContent() {
 
   if (loadingProfile) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#0E0E10] text-[#9B9085]">
-        <div className="text-sm">Loading onboarding details...</div>
+      <div className="flex h-screen items-center justify-center bg-[#F7F5F1] dark:bg-[#040406] text-zinc-600 dark:text-zinc-400">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#0066B2] border-t-transparent" />
+          <p className="text-xs font-semibold tracking-wide">Initializing your workspace...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0E0E10] p-4 text-white font-sans">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-[#1C1C20] bg-[#131316] overflow-hidden shadow-2xl flex flex-col min-h-[580px]">
-        
-        {/* Header */}
-        <div className="p-6 border-b border-[#1C1C20] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-brand-orange text-white">
-              <MagnetsMark size="h-5 w-5" />
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block">Welcome to magnets</span>
-              <h2 className="text-sm font-semibold text-white mt-0.5">Let's get you started, {userName}.</h2>
-            </div>
-          </div>
-          <span className="text-xs font-semibold text-ink-500">{step} of 4</span>
+    <main className="relative flex min-h-screen flex-col bg-[#F7F5F1] dark:bg-[#040406] text-zinc-900 dark:text-zinc-100 transition-colors duration-300 overflow-x-hidden">
+      {/* React Bits WebGL Animated Background Canvas */}
+      <div className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-30 dark:opacity-35 transition-opacity duration-500">
+        <GhostFibers
+          lineColor={isDark ? "#111827" : "#0066B2"}
+          glowColor={isDark ? "#1E1B4B" : "#38BDF8"}
+          lightMode={!isDark}
+          speed={0.18}
+          scale={1.5}
+          fps={60}
+          layers={4}
+          waveAmplitude={0.015}
+          waveFrequency={2.5}
+          glowIntensity={1.0}
+          brightness={0.9}
+          blueBoost={0.8}
+          vignette={0.8}
+          grain={0.03}
+        />
+      </div>
+
+      {/* Glow highlight */}
+      <div className="pointer-events-none absolute left-1/2 top-0 z-0 h-[500px] w-full max-w-7xl -translate-x-1/2 opacity-50 blur-[130px] dark:opacity-25">
+        <div className="h-full w-full bg-gradient-to-tr from-[#0066B2]/20 via-[#38BDF8]/15 to-purple-600/15 animate-pulse" />
+      </div>
+
+
+
+      {/* Main Content Box */}
+      <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-4 py-6 sm:px-6">
+
+        {/* Step Indicator Badges */}
+        <div className="mb-6 grid grid-cols-4 gap-2 sm:gap-3">
+          {ONBOARDING_STEPS.map((s) => {
+            const active = s.step === step;
+            const completed = s.step < step;
+            return (
+              <button
+                key={s.step}
+                onClick={() => completed && setStep(s.step)}
+                disabled={!completed && !active}
+                className={`group flex flex-col gap-1.5 rounded-xl border p-2.5 text-left transition-all ${active
+                    ? "border-[#0066B2] bg-white/90 dark:bg-white/[0.08] shadow-md shadow-[#0066B2]/10 backdrop-blur-md"
+                    : completed
+                      ? "border-emerald-500/40 bg-emerald-500/5 hover:border-emerald-500/60 cursor-pointer"
+                      : "border-zinc-200/60 dark:border-zinc-800/60 bg-white/40 dark:bg-white/[0.02] opacity-60"
+                  }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${active
+                      ? "text-[#0066B2] dark:text-[#38BDF8]"
+                      : completed
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-zinc-500 dark:text-zinc-500"
+                    }`}>
+                    {s.label}
+                  </span>
+                  {completed && <Check className="h-3 w-3 text-emerald-500" />}
+                </div>
+                <div className="hidden sm:block text-xs font-semibold truncate text-zinc-800 dark:text-zinc-200">
+                  {s.title}
+                </div>
+                <div className={`h-1 w-full rounded-full transition-all ${active
+                    ? "bg-gradient-to-r from-[#0066B2] to-[#38BDF8]"
+                    : completed
+                      ? "bg-emerald-500"
+                      : "bg-zinc-200 dark:bg-zinc-800"
+                  }`} />
+              </button>
+            );
+          })}
         </div>
 
-        {/* Progress Bar */}
-        <div className="px-6 py-2 flex gap-2">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                i <= step ? "bg-brand-orange" : "bg-[#1C1C20]"
-              }`}
-            />
-          ))}
-        </div>
+        {/* Card Body */}
+        <div data-lenis-prevent className="relative rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-[#0c0d12]/80 backdrop-blur-2xl shadow-2xl p-6 sm:p-8 transition-all flex flex-col justify-between min-h-[480px]">
 
-        {/* Content Box */}
-        <div className="flex-1 p-6 flex flex-col justify-center">
-          
-          {/* STEP 1 */}
+          {/* STEP 1: CONCEPT & PHILOSOPHY */}
           {step === 1 && (
-            <div className="space-y-6">
-              <div>
-                <span className="inline-flex items-center gap-1 rounded bg-[#2A1B15] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#FF8C53]">
-                  📖 The two-minute version
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
+              <div className="space-y-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0066B2]/10 px-3 py-1 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8]">
+                  <Sparkles className="h-3.5 w-3.5" /> High-Converting Growth System
                 </span>
-                <h3 className="mt-3 text-lg font-bold text-white">Turn useful knowledge into an audience you can reach</h3>
-                <p className="mt-2 text-xs text-ink-400 leading-relaxed max-w-xl">
-                  A lead magnet is a useful free resource someone receives in exchange for their email. It gives them a quick win and gives you a relevant way to follow up, even if they are not ready to buy or book today.
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+                  Welcome to LeadMagnets, {userName}! 👋
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed max-w-2xl">
+                  A lead magnet is a high-value resource offered for free in exchange for a prospect's email address. It builds trust instantly, turns anonymous site visitors into leads, and sets up automated nurture sequences.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="rounded-2xl border border-[#1C1C20] bg-[#121214]/50 p-4">
-                  <div className="flex h-7 w-7 items-center justify-center rounded bg-[#2A1B15] text-[#FF8C53] mb-3">
-                    <Gift className="h-4 w-4" />
+              {/* 3 Core Pillars */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="group rounded-2xl border border-zinc-200/70 dark:border-zinc-800/80 bg-white/50 dark:bg-white/[0.03] p-4 transition-all hover:border-[#0066B2]/40 hover:shadow-lg">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-[#0066B2] dark:text-[#38BDF8] mb-3">
+                    <Target className="h-5 w-5" />
                   </div>
-                  <h4 className="text-xs font-semibold text-white">Attract the right people</h4>
-                  <p className="mt-1 text-[10px] text-ink-400 leading-relaxed">Focus on one problem your ideal customer already wants solved.</p>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">1. High-Intent Opt-ins</h3>
+                  <p className="mt-1.5 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                    Attract targeted, ready-to-buy leads by offering exact solutions to their pressing problems.
+                  </p>
                 </div>
-                <div className="rounded-2xl border border-[#1C1C20] bg-[#121214]/50 p-4">
-                  <div className="flex h-7 w-7 items-center justify-center rounded bg-[#2A1B15] text-[#FF8C53] mb-3">
-                    <Monitor className="h-4 w-4" />
+
+                <div className="group rounded-2xl border border-zinc-200/70 dark:border-zinc-800/80 bg-white/50 dark:bg-white/[0.03] p-4 transition-all hover:border-[#0066B2]/40 hover:shadow-lg">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 mb-3">
+                    <MailCheck className="h-5 w-5" />
                   </div>
-                  <h4 className="text-xs font-semibold text-white">Capture real interest</h4>
-                  <p className="mt-1 text-[10px] text-ink-400 leading-relaxed">Turn a passing visitor into someone you can reach again.</p>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">2. Instant Delivery</h3>
+                  <p className="mt-1.5 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                    Automatically dispatch download links and nurture email sequences the second a user submits their email.
+                  </p>
                 </div>
-                <div className="rounded-2xl border border-[#1C1C20] bg-[#121214]/50 p-4">
-                  <div className="flex h-7 w-7 items-center justify-center rounded bg-[#2A1B15] text-[#FF8C53] mb-3">
-                    <Rocket className="h-4 w-4" />
+
+                <div className="group rounded-2xl border border-zinc-200/70 dark:border-zinc-800/80 bg-white/50 dark:bg-white/[0.03] p-4 transition-all hover:border-[#0066B2]/40 hover:shadow-lg">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 mb-3">
+                    <TrendingUp className="h-5 w-5" />
                   </div>
-                  <h4 className="text-xs font-semibold text-white">Build trust at scale</h4>
-                  <p className="mt-1 text-[10px] text-ink-400 leading-relaxed">Deliver a useful result and follow up automatically.</p>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">3. Zero-Tech Setup</h3>
+                  <p className="mt-1.5 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                    No custom domain or developer needed. Get a production-ready, ultra-fast landing page live in 60 seconds.
+                  </p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-emerald-950/20 bg-emerald-950/10 p-3 text-emerald-400 text-[11px] leading-relaxed">
-                <strong>You can launch without a custom domain.</strong> LeadMagnets gives you a working link immediately, and you can connect your own domain later.
+              <div className="rounded-2xl border border-blue-500/20 bg-blue-50 dark:bg-blue-950/20 p-4 flex items-start gap-3">
+                <ShieldAlert className="h-5 w-5 text-[#0066B2] dark:text-[#38BDF8] shrink-0 mt-0.5" />
+                <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                  <strong className="text-[#0066B2] dark:text-[#38BDF8]">Pro Tip:</strong> Businesses using lead magnets see an average <strong>400% increase</strong> in email list growth compared to standard "Subscribe to newsletter" forms.
+                </p>
               </div>
             </div>
           )}
 
-          {/* STEP 2 */}
+          {/* STEP 2: CHOOSE FORMAT */}
           {step === 2 && (
-            <div className="space-y-4">
-              <div>
-                <span className="inline-flex items-center gap-1 rounded bg-[#2A1B15] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#FF8C53]">
-                  🎯 Start small and specific
+            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-300">
+              <div className="space-y-1.5">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0066B2]/10 px-3 py-1 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8]">
+                  <Layers className="h-3.5 w-3.5" /> Step 2: Choose Format
                 </span>
-                <h3 className="mt-2 text-lg font-bold text-white">What could you give away?</h3>
-                <p className="mt-1 text-xs text-ink-400">
-                  The format matters less than the result. Choose one immediate problem, make the promise specific, and give people something they can use quickly.
+                <h2 className="text-2xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+                  What format suits your audience best?
+                </h2>
+                <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
+                  Select the lead magnet style you plan to create first. You can change this anytime or build multiple formats.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 max-h-[300px] overflow-y-auto pr-1">
+              <div
+                data-lenis-prevent
+                className="grid grid-cols-1 gap-3 sm:grid-cols-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-700 overscroll-contain touch-pan-y"
+              >
                 {[
-                  { id: "ebook", label: "Guide / ebook", desc: "Teach one narrow topic with a clear, practical outcome.", icon: BookOpen },
-                  { id: "checklist", label: "Checklist", desc: "Help someone complete a process without missing a step.", icon: CheckSquare },
-                  { id: "template", label: "Template", desc: "Give them a useful starting point and save them time.", icon: FileText },
-                  { id: "webinar", label: "Webinar replay", desc: "A useful format when it closely matches your audience's next step.", icon: PlayCircle },
-                  { id: "course", label: "Course preview", desc: "A useful format when it closely matches your audience's next step.", icon: GraduationCap },
-                  { id: "discount", label: "Discount code", desc: "A useful format when it closely matches your audience's next step.", icon: Tag },
-                  { id: "audit", label: "Audit / scorecard", desc: "Help them understand where they are and what to do next.", icon: ShieldAlert },
-                  { id: "other", label: "Other", desc: "A useful format when it closely matches your audience's next step.", icon: PlusCircle },
+                  { id: "checklist", label: "Checklist & Action Plan", desc: "Step-by-step framework to execute tasks quickly without mistakes.", icon: CheckSquare, popular: true },
+                  { id: "template", label: "Starter Template & Cheat Sheet", desc: "Copy-paste frameworks, Notion templates, or spreadsheet calculators.", icon: FileText, popular: true },
+                  { id: "ebook", label: "Practical Playbook / Guide", desc: "In-depth breakdown of a specific methodology or strategic playbook.", icon: BookOpen },
+                  { id: "audit", label: "Audit & Scorecard", desc: "Interactive questionnaire to help prospects evaluate their current bottlenecks.", icon: ShieldAlert },
+                  { id: "webinar", label: "Masterclass / Video Replay", desc: "Exclusive video training or webinar recording for high-trust conversions.", icon: PlayCircle },
+                  { id: "course", label: "Mini-Course (5-Day Email)", desc: "Drip-fed bite-sized email lessons delivered automatically.", icon: GraduationCap },
+                  { id: "discount", label: "Voucher / VIP Pass", desc: "Special promo codes, free trial passes, or exclusive store discounts.", icon: Tag },
+                  { id: "other", label: "Resource Pack & Toolkits", desc: "Curated bundle of tools, prompts, software scripts, or graphics.", icon: PlusCircle },
                 ].map((item) => {
                   const selected = selectedFormat === item.id;
                   return (
                     <button
                       key={item.id}
+                      type="button"
                       onClick={() => setSelectedFormat(item.id)}
-                      className={`flex items-start gap-3 rounded-2xl border p-3 text-left transition w-full ${
-                        selected
-                          ? "border-brand-orange bg-[#241B15]"
-                          : "border-[#1C1C20] bg-[#121214]/50 hover:bg-[#1C1C20]/50"
-                      }`}
+                      className={`group relative flex items-start gap-3.5 rounded-2xl border p-3.5 text-left transition-all cursor-pointer ${selected
+                          ? "border-[#0066B2] bg-[#0066B2]/10 dark:bg-[#0066B2]/20 shadow-md shadow-[#0066B2]/10 ring-1 ring-[#0066B2]"
+                          : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/60 dark:bg-white/[0.02] hover:bg-zinc-50 dark:hover:bg-white/[0.05]"
+                        }`}
                     >
-                      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded ${selected ? "bg-brand-orange text-white" : "bg-[#1C1C20] text-ink-400"}`}>
-                        <item.icon className="h-4 w-4" />
+                      {item.popular && (
+                        <span className="absolute right-3 top-3 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                          Popular
+                        </span>
+                      )}
+                      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all ${selected
+                          ? "bg-[#0066B2] text-white shadow-md shadow-[#0066B2]/30"
+                          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white"
+                        }`}>
+                        <item.icon className="h-4.5 w-4.5" />
                       </div>
-                      <div>
-                        <h4 className="text-xs font-semibold text-white">{item.label}</h4>
-                        <p className="mt-0.5 text-[10px] text-[#9B9085] leading-relaxed">{item.desc}</p>
+                      <div className="pr-12">
+                        <h3 className="text-xs font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                          {item.label}
+                        </h3>
+                        <p className="mt-1 text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                          {item.desc}
+                        </p>
                       </div>
                     </button>
                   );
@@ -267,215 +408,252 @@ function OnboardingContent() {
             </div>
           )}
 
-          {/* STEP 3 */}
+          {/* STEP 3: CUSTOMIZE BRAND */}
           {step === 3 && (
-            <div className="space-y-5">
-              <div>
-                <span className="inline-flex items-center gap-1 rounded bg-[#2A1B15] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#FF8C53]">
-                  ✨ Make it yours
+            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-300">
+              <div className="space-y-1.5">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0066B2]/10 px-3 py-1 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8]">
+                  <Wand2 className="h-3.5 w-3.5" /> Step 3: Brand & Audience
                 </span>
-                <h3 className="mt-2 text-lg font-bold text-white">Tell us what you're building</h3>
-                <p className="mt-1 text-xs text-ink-400">
-                  We use this context to give you a sensible publishing address and more relevant writing help.
+                <h2 className="text-2xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+                  Customize your workspace settings
+                </h2>
+                <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
+                  This helps us auto-generate high-converting copy, page subheadings, and email templates for your niche.
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-[#9B9085] mb-1.5">Business or creator name</label>
+                  <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                    Brand / Business / Creator Name
+                  </label>
                   <input
                     type="text"
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    placeholder="Your business or creator name"
-                    className="w-full rounded-md border border-[#1C1C20] bg-[#0E0E10] px-3.5 py-2.5 text-xs text-white outline-none focus:border-brand-orange"
+                    placeholder="e.g. Acme Agency, Growth Digest, Alex Rivera"
+                    className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-white/[0.04] px-4 py-3 text-xs sm:text-sm text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] focus:ring-1 focus:ring-[#0066B2] transition"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-[#9B9085] mb-1.5">What kind of business is it?</label>
-                  <select
-                    value={businessType}
-                    onChange={(e) => setBusinessType(e.target.value)}
-                    className="w-full rounded-md border border-[#1C1C20] bg-[#0E0E10] px-3.5 py-2.5 text-xs text-white outline-none focus:border-brand-orange cursor-pointer appearance-none"
-                    style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239B9085' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1.25rem', backgroundRepeat: 'no-repeat' }}
-                  >
-                    <option disabled>Pick a category</option>
-                    <option value="Solo creator">Solo creator</option>
-                    <option value="Newsletter">Newsletter</option>
-                    <option value="Small business">Small business</option>
-                    <option value="SaaS product">SaaS product</option>
-                    <option value="Agency">Agency</option>
-                    <option value="Consultancy">Consultancy</option>
-                    <option value="Coach">Coach</option>
-                    <option value="Other">Other</option>
-                  </select>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      Business Niche / Model
+                    </label>
+                    <select
+                      value={businessType}
+                      onChange={(e) => setBusinessType(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-white/[0.04] px-4 py-3 text-xs sm:text-sm text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] cursor-pointer appearance-none"
+                      style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748B' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.85rem center', backgroundSize: '1.25rem', backgroundRepeat: 'no-repeat' }}
+                    >
+                      <option value="Solo creator" className="bg-[#121215] text-white">Solo Creator / Educator</option>
+                      <option value="Newsletter" className="bg-[#121215] text-white">Newsletter Publisher</option>
+                      <option value="SaaS product" className="bg-[#121215] text-white">SaaS / Software Product</option>
+                      <option value="Agency" className="bg-[#121215] text-white">Agency / Service Business</option>
+                      <option value="Consultancy" className="bg-[#121215] text-white">Consultant / Advisor</option>
+                      <option value="Coach" className="bg-[#121215] text-white">Executive or Fitness Coach</option>
+                      <option value="E-commerce" className="bg-[#121215] text-white">E-commerce / Store Owner</option>
+                      <option value="Other" className="bg-[#121215] text-white">Other / General Business</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      Expected Publishing Cadence
+                    </label>
+                    <select
+                      value={publishFrequency}
+                      onChange={(e) => setPublishFrequency(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-white/[0.04] px-4 py-3 text-xs sm:text-sm text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] cursor-pointer appearance-none"
+                      style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748B' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.85rem center', backgroundSize: '1.25rem', backgroundRepeat: 'no-repeat' }}
+                    >
+                      <option value="Weekly" className="bg-[#121215] text-white">Weekly (Recommended)</option>
+                      <option value="Bi-weekly" className="bg-[#121215] text-white">Bi-weekly</option>
+                      <option value="Monthly" className="bg-[#121215] text-white">Monthly</option>
+                      <option value="Quarterly" className="bg-[#121215] text-white">Quarterly</option>
+                      <option value="Ad-hoc" className="bg-[#121215] text-white">As needed</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-[#9B9085] mb-1.5">How often do you expect to publish?</label>
-                  <select
-                    value={publishFrequency}
-                    onChange={(e) => setPublishFrequency(e.target.value)}
-                    className="w-full rounded-md border border-[#1C1C20] bg-[#0E0E10] px-3.5 py-2.5 text-xs text-white outline-none focus:border-brand-orange cursor-pointer appearance-none"
-                    style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239B9085' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.75rem center', backgroundSize: '1.25rem', backgroundRepeat: 'no-repeat' }}
-                  >
-                    <option disabled>Pick a cadence</option>
-                    <option value="Weekly">Weekly</option>
-                    <option value="Bi-weekly">Bi-weekly</option>
-                    <option value="Monthly">Monthly</option>
-                    <option value="Quarterly">Quarterly</option>
-                    <option value="Ad-hoc">Ad-hoc</option>
-                  </select>
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-white/[0.02] p-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <Globe className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" />
+                    <span className="text-xs text-zinc-600 dark:text-zinc-400">Default Subdomain Slug:</span>
+                  </div>
+                  <code className="text-xs font-mono font-bold text-[#0066B2] dark:text-[#38BDF8] bg-blue-500/10 px-2 py-0.5 rounded-md">
+                    {userSlug}.leadmagnets.so
+                  </code>
                 </div>
               </div>
             </div>
           )}
 
-          {/* STEP 4 */}
+          {/* STEP 4: LAUNCH & READY */}
           {step === 4 && (
-            <div className="space-y-6 text-center flex flex-col items-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
-                <CheckCircle2 className="h-6 w-6" />
+            <div className="space-y-6 text-center flex flex-col items-center animate-in fade-in slide-in-from-bottom-3 duration-300 py-2">
+              <div className="relative">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-500/30">
+                  <CheckCircle2 className="h-8 w-8" />
+                </div>
+                <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#0066B2] text-white">
+                  <Sparkles className="h-3.5 w-3.5" />
+                </span>
               </div>
+
               <div>
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">Your workspace is ready</span>
-                <h3 className="mt-2 text-xl font-extrabold text-white">Let's make your first lead magnet</h3>
-                <p className="mt-2 text-xs text-ink-400 leading-relaxed max-w-md mx-auto">
-                  Start with one useful outcome. LeadMagnets will guide you through the page, resource email, follow-up, and publishing.
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest block">
+                  Workspace Initialized
+                </span>
+                <h2 className="mt-1 text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+                  You're Ready to Build Your First Lead Magnet!
+                </h2>
+                <p className="mt-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-md mx-auto">
+                  LeadMagnets will automatically handle high-converting landing pages, instant file downloads, and email capture.
                 </p>
               </div>
 
-              <div className="w-full max-w-md rounded-2xl border border-[#1C1C20] bg-[#0E0E10]/80 p-4 text-left">
-                <span className="text-[9px] font-bold text-[#9B9085] uppercase tracking-widest block">Your free publishing address</span>
-                <span className="mt-1 block text-xs font-mono text-white/95">leadmagnets.so/{userSlug}/...</span>
+              {/* Ready Checklist */}
+              <div className="w-full max-w-lg grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-white/[0.03] p-3.5 flex flex-col justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">01. Page Builder</span>
+                  <p className="mt-1 text-xs text-zinc-700 dark:text-zinc-300 font-semibold">Custom Opt-in Form</p>
+                  <span className="mt-2 flex items-center gap-1 text-[10px] text-emerald-500 font-bold">
+                    <Check className="h-3 w-3" /> Ready
+                  </span>
+                </div>
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-white/[0.03] p-3.5 flex flex-col justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">02. File Delivery</span>
+                  <p className="mt-1 text-xs text-zinc-700 dark:text-zinc-300 font-semibold">Automated Email</p>
+                  <span className="mt-2 flex items-center gap-1 text-emerald-500 font-bold text-[10px]">
+                    <Check className="h-3 w-3" /> Configured
+                  </span>
+                </div>
+                <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-white/[0.03] p-3.5 flex flex-col justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">03. Analytics</span>
+                  <p className="mt-1 text-xs text-zinc-700 dark:text-zinc-300 font-semibold">Conversion Tracking</p>
+                  <span className="mt-2 flex items-center gap-1 text-emerald-500 font-bold text-[10px]">
+                    <Check className="h-3 w-3" /> Enabled
+                  </span>
+                </div>
               </div>
 
-              <div className="w-full max-w-sm text-left space-y-3.5 pt-2">
-                <div className="flex items-center gap-3.5 text-xs text-ink-300">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1C1C20] text-[10px] font-bold text-[#FF8C53]">1</span>
-                  <span>Create a focused page with a clear promise</span>
-                </div>
-                <div className="flex items-center gap-3.5 text-xs text-ink-300">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1C1C20] text-[10px] font-bold text-[#FF8C53]">2</span>
-                  <span>Add the resource and delivery email</span>
-                </div>
-                <div className="flex items-center gap-3.5 text-xs text-ink-300">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1C1C20] text-[10px] font-bold text-[#FF8C53]">3</span>
-                  <span>Preview, publish, and share your link</span>
-                </div>
+              <div className="w-full max-w-lg rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-blue-50/50 dark:bg-blue-950/20 p-3.5 text-xs text-zinc-700 dark:text-zinc-300 flex items-center justify-between">
+                <span className="font-medium">Publishing Link:</span>
+                <code className="font-mono text-[#0066B2] dark:text-[#38BDF8] font-bold">
+                  leadmagnets.so/{userSlug}/[magnet-slug]
+                </code>
               </div>
             </div>
           )}
 
-        </div>
-
-        {/* Footer controls */}
-        <div className="p-4 border-t border-[#1C1C20] flex items-center justify-between bg-[#121214]/50">
-          {step < 4 ? (
-            <>
-              {step > 1 ? (
-                <button
-                  onClick={handleBack}
-                  className="flex items-center gap-1.5 rounded-lg border border-[#1C1C20] px-4 py-2 text-xs font-semibold text-[#9B9085] hover:bg-[#1C1C20] hover:text-white transition"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" /> Back
-                </button>
-              ) : (
-                <div />
-              )}
+          {/* Footer controls */}
+          <div className="mt-8 pt-5 border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center justify-between">
+            {step > 1 ? (
               <button
+                type="button"
+                onClick={handleBack}
+                className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+              >
+                <ArrowLeft className="h-4 w-4" /> Back
+              </button>
+            ) : (
+              <div />
+            )}
+
+            {step < 4 ? (
+              <button
+                type="button"
                 onClick={handleNext}
-                disabled={step === 2 && !selectedFormat}
-                className={`flex items-center gap-1.5 rounded-lg px-5 py-2.5 text-xs font-bold text-white transition ${
-                  step === 2 && !selectedFormat
-                    ? "bg-brand-orange/45 cursor-not-allowed"
-                    : "bg-brand-orange hover:bg-brand-orange/80"
-                }`}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] hover:bg-[#005799] px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-[#0066B2]/20 transition-all hover:scale-[1.01] active:scale-98 cursor-pointer"
               >
-                Continue <ArrowRight className="h-3.5 w-3.5" />
+                Continue <ArrowRight className="h-4 w-4" />
               </button>
-            </>
-          ) : (
-            <>
-              <span className="text-[10px] text-ink-500">Help is always available from the sidebar.</span>
+            ) : (
               <button
+                type="button"
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-brand-orange px-5 py-2.5 text-xs font-bold text-white hover:bg-brand-orange/80 transition"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#0066B2] via-[#1C83D3] to-[#38BDF8] px-7 py-3 text-sm font-extrabold text-white shadow-xl shadow-[#0066B2]/25 transition-all hover:scale-[1.02] active:scale-98 cursor-pointer"
               >
-                Create my first lead magnet <ArrowRight className="h-3.5 w-3.5" />
+                Create My First Lead Magnet <Sparkles className="h-4 w-4" />
               </button>
-            </>
-          )}
-        </div>
+            )}
+          </div>
 
+        </div>
       </div>
 
-      {/* Create Lead Magnet Modal Overlay */}
+      {/* Modal Dialog for First Magnet Creation */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-md rounded-2xl border border-[#1C1C20] bg-[#131316] p-6 shadow-2xl text-white">
-            
-            {/* Modal Header */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0c0d12] p-6 sm:p-8 shadow-2xl text-zinc-900 dark:text-white">
+
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-base font-bold text-white">Create a magnet</h3>
-                <p className="text-xs text-ink-400 mt-1">Name the page and choose its URL.</p>
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#0066B2]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">
+                  Final Step
+                </span>
+                <h3 className="text-xl font-extrabold text-zinc-900 dark:text-white mt-1">Name Your First Lead Magnet</h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Give your resource a title and choose its custom URL slug.</p>
               </div>
               <button
-                onClick={() => { setShowCreateModal(false); router.push("/dashboard"); }}
-                className="rounded-lg p-1 text-ink-400 hover:bg-[#1C1C20] hover:text-white"
+                onClick={() => { setShowCreateModal(false); router.push("/dashboard/leadmagnets"); }}
+                className="rounded-xl p-1.5 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
               >
-                <X className="h-4.5 w-4.5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Modal Form */}
             <form onSubmit={handleCreatePage} className="mt-5 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[#9B9085] mb-1.5">Page name</label>
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                  Lead Magnet Title
+                </label>
                 <input
                   type="text"
                   required
                   autoFocus
-                  placeholder="AI Pipeline Playbook"
+                  placeholder="e.g. 2026 AI Growth Checklist"
                   value={pageName}
                   onChange={(e) => handlePageNameChange(e.target.value)}
-                  className="w-full rounded-md border border-[#1C1C20] bg-[#0E0E10] px-3.5 py-2.5 text-xs text-white outline-none focus:border-brand-orange"
+                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-white/[0.04] px-4 py-3 text-xs sm:text-sm text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] focus:ring-1 focus:ring-[#0066B2] transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#9B9085] mb-1.5">URL slug</label>
-                <div className="flex rounded-md border border-[#1C1C20] bg-[#0E0E10] focus-within:border-brand-orange">
-                  <span className="flex items-center select-none pl-3.5 text-xs text-ink-500 font-medium">/</span>
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                  Custom Page URL Slug
+                </label>
+                <div className="flex rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-white/[0.04] focus-within:border-[#0066B2] focus-within:ring-1 focus-within:ring-[#0066B2]">
+                  <span className="flex items-center select-none pl-3.5 text-xs text-zinc-400 font-mono">/</span>
                   <input
                     type="text"
                     required
                     value={pageSlug}
                     onChange={(e) => setPageSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                    className="w-full min-w-0 border-0 bg-transparent py-2.5 pl-1.5 pr-3 text-xs text-white outline-none focus:ring-0"
-                    placeholder="ai-pipeline-playbook"
+                    className="w-full min-w-0 border-0 bg-transparent py-3 pl-1 pr-3 text-xs sm:text-sm text-zinc-900 dark:text-white outline-none font-mono"
+                    placeholder="ai-growth-checklist"
                   />
                 </div>
-                <span className="text-[10px] text-ink-500 block mt-1.5">The path of the page. Lowercase, digits, and hyphens only.</span>
+                <span className="text-[10px] text-zinc-500 block mt-1.5">Lowercase letters, numbers, and hyphens only.</span>
               </div>
 
-              {/* Modal Buttons */}
-              <div className="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-[#1C1C20]">
+              <div className="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="rounded-lg border border-[#1C1C20] px-4 py-2 text-xs font-semibold text-[#9B9085] hover:bg-[#1C1C20] hover:text-white transition"
+                  className="rounded-xl border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creatingPage}
-                  className="rounded-lg bg-brand-orange px-4 py-2 text-xs font-bold text-white hover:bg-brand-orange/80 transition"
+                  className="rounded-xl bg-[#0066B2] hover:bg-[#005799] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-[#0066B2]/20 transition"
                 >
-                  {creatingPage ? "Creating..." : "+ Create page"}
+                  {creatingPage ? "Creating Page..." : "Launch Page Editor →"}
                 </button>
               </div>
             </form>
@@ -483,15 +661,15 @@ function OnboardingContent() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
 
 export default function OnboardingPage() {
   return (
     <Suspense fallback={
-      <div className="flex h-screen items-center justify-center bg-[#0E0E10] text-[#9B9085]">
-        <div className="text-sm">Loading onboarding wizard...</div>
+      <div className="flex h-screen items-center justify-center bg-[#F7F5F1] dark:bg-[#040406] text-zinc-600 dark:text-zinc-400">
+        <div className="text-xs font-semibold">Loading onboarding wizard...</div>
       </div>
     }>
       <OnboardingContent />

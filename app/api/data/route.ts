@@ -87,7 +87,9 @@ export async function POST(req: Request) {
 
     if (action === "deletePage") {
       const { id } = data;
-      const filter = normEmail ? { id, userEmail: normEmail } : { id };
+      const filter = normEmail 
+        ? { id, userEmail: { $regex: new RegExp(`^${normEmail}$`, "i") } } 
+        : { id };
       await MagnetPageModel.deleteOne(filter);
       return NextResponse.json({ success: true });
     }

@@ -1,12 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import dynamic from "next/dynamic";
 import "./globals.css";
 
+const SmoothScroll = dynamic(() => import("@/components/smooth-scroll"), { ssr: false });
+
 const geist = localFont({
-  src: "../public/fonts/Geist-Variable.ttf",
+  src: "../public/fonts/Geist-Variable.woff2",
   variable: "--font-geist-sans",
   display: "swap",
   weight: "100 900",
+  preload: true,
 });
 
 const geistMono = localFont({
@@ -54,8 +58,8 @@ export const metadata: Metadata = {
     images: ["/landing-dashboard.png"],
   },
   icons: {
-    icon: "/brand/gemini-logo-dark-raw.png",
-    apple: "/brand/gemini-logo-dark-raw.png",
+    icon: "/brand/magnets-mark-dark.png",
+    apple: "/brand/magnets-mark-dark.png",
   },
 };
 
@@ -80,7 +84,6 @@ const themeScript = `
   } catch (_) {}
 `;
 
-import SmoothScroll from "@/components/smooth-scroll";
 
 export default function RootLayout({
   children,
@@ -91,6 +94,9 @@ export default function RootLayout({
     <html lang="en" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {/* Preload brand logos above the fold for faster LCP */}
+        <link rel="preload" as="image" href="/brand/custom-logo-light.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/brand/custom-logo.webp" type="image/webp" />
       </head>
       <body className="antialiased font-sans">
         <SmoothScroll />

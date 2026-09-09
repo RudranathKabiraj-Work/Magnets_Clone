@@ -439,8 +439,8 @@ export default function ResourcesPage() {
                     key={tab.id}
                     onClick={() => setActiveCategory(tab.id)}
                     className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all shrink-0 cursor-pointer ${activeCategory === tab.id
-                        ? "bg-[#0066B2] text-white shadow-sm"
-                        : "bg-white text-zinc-600 hover:bg-zinc-100 dark:bg-[#18181B] dark:text-zinc-400 dark:hover:bg-[#25252A]"
+                      ? "bg-[#0066B2] text-white shadow-sm"
+                      : "bg-white text-zinc-600 hover:bg-zinc-100 dark:bg-[#18181B] dark:text-zinc-400 dark:hover:bg-[#25252A]"
                       }`}
                   >
                     {tab.label}
@@ -555,8 +555,8 @@ export default function ResourcesPage() {
                                   <button
                                     onClick={() => copyToClipboard(resource.url, resource.id)}
                                     className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition shadow-xs cursor-pointer ${isCopied
-                                        ? "bg-emerald-500 text-white"
-                                        : "bg-[#0066B2] text-white hover:bg-[#005291]"
+                                      ? "bg-emerald-500 text-white"
+                                      : "bg-[#0066B2] text-white hover:bg-[#005291]"
                                       }`}
                                   >
                                     {isCopied ? (
@@ -631,10 +631,10 @@ export default function ResourcesPage() {
             <div
               key={toast.id}
               className={`pointer-events-auto flex items-center gap-3 rounded-2xl p-4 text-xs font-medium shadow-xl backdrop-blur-md border transition-all animate-in slide-in-from-bottom-5 duration-300 ${toast.type === "success"
-                  ? "bg-emerald-950/90 border-emerald-500/30 text-emerald-100"
-                  : toast.type === "error"
-                    ? "bg-red-950/90 border-red-500/30 text-red-100"
-                    : "bg-zinc-900/90 border-zinc-700/40 text-zinc-100"
+                ? "bg-emerald-950/90 border-emerald-500/30 text-emerald-100"
+                : toast.type === "error"
+                  ? "bg-red-950/90 border-red-500/30 text-red-100"
+                  : "bg-zinc-900/90 border-zinc-700/40 text-zinc-100"
                 }`}
             >
               {toast.type === "success" && <Check className="h-4 w-4 shrink-0 text-emerald-400" />}

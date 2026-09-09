@@ -3,24 +3,24 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { 
-  Users, 
-  Mail, 
-  Download, 
-  Search, 
-  Plus, 
-  Upload, 
-  ChevronDown, 
-  Filter, 
-  Trash2, 
-  Check, 
-  AlertCircle, 
-  X, 
-  Sparkles, 
-  FileSpreadsheet, 
-  UserPlus, 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  Users,
+  Mail,
+  Download,
+  Search,
+  Plus,
+  Upload,
+  ChevronDown,
+  Filter,
+  Trash2,
+  Check,
+  AlertCircle,
+  X,
+  Sparkles,
+  FileSpreadsheet,
+  UserPlus,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   Calendar,
   Send,
@@ -45,7 +45,7 @@ export default function SignupsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [magnetPages, setMagnetPages] = useState<MagnetPage[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Filtering & Search
   const [search, setSearch] = useState("");
   const [filterMagnet, setFilterMagnet] = useState("All lead magnets");
@@ -470,7 +470,7 @@ export default function SignupsPage() {
 
           {/* Table Container */}
           <div className="rounded-2xl border border-zinc-200/80 bg-white/90 dark:border-[#2e2e38] dark:bg-[#18181B]/90 shadow-sm backdrop-blur-sm overflow-hidden">
-            
+
             {/* Toolbar */}
             <div className="p-5 border-b border-zinc-200/80 dark:border-[#2e2e38]">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -496,11 +496,10 @@ export default function SignupsPage() {
                           <button
                             key={opt}
                             onClick={() => { setFilterMagnet(opt); setFilterOpen(false); setCurrentPage(1); }}
-                            className={`w-full text-left px-3.5 py-2 text-xs transition cursor-pointer ${
-                              filterMagnet === opt
+                            className={`w-full text-left px-3.5 py-2 text-xs transition cursor-pointer ${filterMagnet === opt
                                 ? "text-[#0066B2] dark:text-[#38BDF8] bg-[#EFF6FF] dark:bg-[#0066B2]/20 font-bold"
                                 : "text-zinc-700 dark:text-[#9B9085] hover:bg-zinc-50 dark:hover:bg-[#25252A] hover:text-zinc-900 dark:hover:text-white"
-                            }`}
+                              }`}
                           >
                             {opt}
                           </button>
@@ -562,11 +561,10 @@ export default function SignupsPage() {
                                 </button>
                               </p>
                               {/* AI Lead Quality Badge */}
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                                !lead.email.endsWith("@gmail.com") && !lead.email.endsWith("@yahoo.com")
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${!lead.email.endsWith("@gmail.com") && !lead.email.endsWith("@yahoo.com")
                                   ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
                                   : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
-                              }`}>
+                                }`}>
                                 <Sparkles className="h-2.5 w-2.5" />
                                 {!lead.email.endsWith("@gmail.com") && !lead.email.endsWith("@yahoo.com") ? "🔥 Hot Prospect (80 pts)" : "⚡ Warm Lead (60 pts)"}
                               </span>
@@ -651,12 +649,12 @@ export default function SignupsPage() {
                                 });
                                 const data = await res.json();
                                 if (res.ok && data.success) {
-                                  setToasts((prev) => [...prev, { id: Date.now().toString(), type: "success", message: `📧 Resource delivery email resent to ${lead.email}!` }]);
+                                  addToast("success", `📧 Resource delivery email resent to ${lead.email}!`);
                                 } else {
-                                  setToasts((prev) => [...prev, { id: Date.now().toString(), type: "error", message: data.error || "Failed to resend email." }]);
+                                  addToast("error", data.error || "Failed to resend email.");
                                 }
                               } catch (err: any) {
-                                setToasts((prev) => [...prev, { id: Date.now().toString(), type: "error", message: err.message }]);
+                                addToast("error", err.message);
                               }
                             }}
                             title="Resend Resource Delivery Email"
@@ -752,7 +750,7 @@ export default function SignupsPage() {
 
         {/* 1. Add Subscriber Manually Modal */}
         {showAddModal && (
-          <div 
+          <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-all duration-200"
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
@@ -840,7 +838,7 @@ export default function SignupsPage() {
 
         {/* 2. Import CSV Preview Modal */}
         {showImportModal && (
-          <div 
+          <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-all duration-200"
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
@@ -906,7 +904,7 @@ export default function SignupsPage() {
 
         {/* 3. Delete Lead Modal */}
         {leadToDelete && (
-          <div 
+          <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-all duration-200"
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
@@ -1094,13 +1092,12 @@ export default function SignupsPage() {
           {toasts.map((toast) => (
             <div
               key={toast.id}
-              className={`pointer-events-auto flex items-center gap-3 rounded-2xl p-4 text-xs font-medium shadow-xl backdrop-blur-md border transition-all animate-in slide-in-from-bottom-5 duration-300 ${
-                toast.type === "success"
+              className={`pointer-events-auto flex items-center gap-3 rounded-2xl p-4 text-xs font-medium shadow-xl backdrop-blur-md border transition-all animate-in slide-in-from-bottom-5 duration-300 ${toast.type === "success"
                   ? "bg-emerald-950/90 border-emerald-500/30 text-emerald-100"
                   : toast.type === "error"
-                  ? "bg-red-950/90 border-red-500/30 text-red-100"
-                  : "bg-zinc-900/90 border-zinc-700/40 text-zinc-100"
-              }`}
+                    ? "bg-red-950/90 border-red-500/30 text-red-100"
+                    : "bg-zinc-900/90 border-zinc-700/40 text-zinc-100"
+                }`}
             >
               {toast.type === "success" && <Check className="h-4 w-4 shrink-0 text-emerald-400" />}
               {toast.type === "error" && <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />}

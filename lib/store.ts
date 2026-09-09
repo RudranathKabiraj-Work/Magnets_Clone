@@ -59,6 +59,12 @@ export function deletePage(id: string) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "deletePage", data: { id }, email }),
     }).catch(console.error);
+    // Also save the pruned list so savePages won't overwrite with full list
+    fetch("/api/data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "savePages", data: current, email }),
+    }).catch(console.error);
   }
 }
 

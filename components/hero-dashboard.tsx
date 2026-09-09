@@ -54,15 +54,20 @@ export default function HeroDashboard() {
               LeadMagnets platform walkthrough
             </span>
           </div>
-          <div className="relative mt-2 aspect-video w-full overflow-hidden rounded-xl border border-zinc-100 dark:border-zinc-800 bg-[#F0F7FF] dark:bg-[#0a0a0a]">
-            <iframe
-              allow="autoplay; fullscreen; picture-in-picture"
-              allowFullScreen
-              className="absolute inset-0 h-full w-full border-0"
-              loading="lazy"
-              src="https://www.loom.com/embed/ebb8dded5142439d8a97e338a49cb104?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true"
-              title="LeadMagnets platform walkthrough"
-            />
+          <div className="relative mt-2 aspect-video w-full overflow-hidden rounded-xl border border-zinc-100 dark:border-zinc-800 bg-[#F0F7FF] dark:bg-[#0a0a0a] flex items-center justify-center p-6 text-center">
+            <div className="flex flex-col items-center justify-center space-y-4 max-w-md">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0066B2]/10 dark:bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8] border border-[#0066B2]/20">
+                <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-white">High-Converting Lead Magnet Builder</h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  Create beautiful opt-in pages, capture emails, and automate resource delivery seamlessly.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </motion.div>
