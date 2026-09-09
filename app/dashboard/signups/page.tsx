@@ -549,28 +549,18 @@ export default function SignupsPage() {
                             {(lead.name || lead.email || "U").slice(0, 2)}
                           </div>
                           <div>
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-1.5">
-                                {lead.email}
-                                <button
-                                  onClick={() => copyEmailToClipboard(lead.email)}
-                                  title="Copy Email"
-                                  className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
-                                >
-                                  <Copy className="h-3 w-3" />
-                                </button>
-                              </p>
-                              {/* AI Lead Quality Badge */}
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${!lead.email.endsWith("@gmail.com") && !lead.email.endsWith("@yahoo.com")
-                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                                  : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
-                                }`}>
-                                <Sparkles className="h-2.5 w-2.5" />
-                                {!lead.email.endsWith("@gmail.com") && !lead.email.endsWith("@yahoo.com") ? "🔥 Hot Prospect (80 pts)" : "⚡ Warm Lead (60 pts)"}
-                              </span>
-                            </div>
+                            <p className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                              {lead.email}
+                              <button
+                                onClick={() => copyEmailToClipboard(lead.email)}
+                                title="Copy Email"
+                                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </button>
+                            </p>
                             {lead.name && lead.name !== lead.email.split("@")[0] && (
-                              <p className="text-xs text-zinc-500 dark:text-[#9B9085]">{lead.name}</p>
+                              <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">{lead.name}</p>
                             )}
                           </div>
                         </div>
@@ -631,42 +621,10 @@ export default function SignupsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={async () => {
-                              try {
-                                const res = await fetch("/api/data", {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({
-                                    action: "resendLeadEmail",
-                                    data: {
-                                      leadId: lead.id,
-                                      email: lead.email,
-                                      name: lead.name,
-                                      pageTitle: lead.page,
-                                      ownerEmail: account?.email,
-                                    },
-                                  }),
-                                });
-                                const data = await res.json();
-                                if (res.ok && data.success) {
-                                  addToast("success", `📧 Resource delivery email resent to ${lead.email}!`);
-                                } else {
-                                  addToast("error", data.error || "Failed to resend email.");
-                                }
-                              } catch (err: any) {
-                                addToast("error", err.message);
-                              }
-                            }}
-                            title="Resend Resource Delivery Email"
-                            className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 dark:hover:bg-[#282830] transition cursor-pointer shadow-xs"
-                          >
-                            <Send className="h-3.5 w-3.5 text-emerald-500" /> Resend
-                          </button>
-                          <button
                             onClick={() => setSelectedLead(lead)}
-                            className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 dark:hover:bg-[#282830] transition cursor-pointer shadow-xs"
+                            className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-200 dark:hover:bg-[#282830] transition cursor-pointer shadow-xs"
                           >
-                            <Eye className="h-3.5 w-3.5 text-[#0066B2]" /> View Details
+                            <Eye className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" /> View Details
                           </button>
                           <button
                             onClick={() => setLeadToDelete(lead)}
@@ -958,7 +916,16 @@ export default function SignupsPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-zinc-900 dark:text-white">{selectedLead.name || "Subscriber Details"}</h3>
-                    <p className="text-xs text-zinc-500 dark:text-[#9B9085]">{selectedLead.email}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-xs text-zinc-500 dark:text-[#9B9085]">{selectedLead.email}</p>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${!selectedLead.email.endsWith("@gmail.com") && !selectedLead.email.endsWith("@yahoo.com")
+                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                          : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                        }`}>
+                        <Sparkles className="h-2.5 w-2.5" />
+                        {!selectedLead.email.endsWith("@gmail.com") && !selectedLead.email.endsWith("@yahoo.com") ? "🔥 Hot Prospect (80 pts)" : "⚡ Warm Lead (60 pts)"}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <button
@@ -1065,17 +1032,50 @@ export default function SignupsPage() {
               </div>
 
               <div className="pt-4 border-t border-zinc-100 dark:border-white/10 flex justify-between items-center">
-                <button
-                  onClick={() => {
-                    const target = selectedLead;
-                    setSelectedLead(null);
-                    setLeadToDelete(target);
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Delete signup
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/data", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            action: "resendLeadEmail",
+                            data: {
+                              leadId: selectedLead.id,
+                              email: selectedLead.email,
+                              name: selectedLead.name,
+                              pageTitle: selectedLead.page,
+                              ownerEmail: account?.email,
+                            },
+                          }),
+                        });
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                          addToast("success", `📧 Resource delivery email resent to ${selectedLead.email}!`);
+                        } else {
+                          addToast("error", data.error || "Failed to resend email.");
+                        }
+                      } catch (err: any) {
+                        addToast("error", err.message);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#202026] text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-[#282830] transition cursor-pointer"
+                  >
+                    <Send className="h-3.5 w-3.5 text-emerald-500" /> Resend Email
+                  </button>
+                  <button
+                    onClick={() => {
+                      const target = selectedLead;
+                      setSelectedLead(null);
+                      setLeadToDelete(target);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Delete
+                  </button>
+                </div>
                 <button
                   onClick={() => setSelectedLead(null)}
                   className="px-4 py-2 rounded-xl bg-[#0066B2] text-xs font-semibold text-white hover:bg-[#005799] transition cursor-pointer"

@@ -163,12 +163,6 @@ export default async function MagnetPageRoute({
             {businessName}
           </span>
         </div>
-        <a
-          href="/login"
-          className={`absolute right-4 sm:right-6 text-sm font-medium transition ${themeMode === "dark" ? "text-zinc-400 hover:text-white" : "text-ink-600 hover:text-ink-950"}`}
-        >
-          Sign in
-        </a>
       </header>
 
       {/* Main card container layout */}
