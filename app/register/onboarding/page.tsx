@@ -125,6 +125,12 @@ function OnboardingContent() {
             if (!businessName) {
               setBusinessName(`${firstName}'s Workspace`);
             }
+            fetch("/api/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: data.email, name: acc.name }),
+            }).catch(console.error);
+
             if (typeof window !== "undefined" && data.email) {
               safeSetItem("currentUserEmail", data.email.trim().toLowerCase());
               safeSetItem("currentUserAccount", JSON.stringify(acc));

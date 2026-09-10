@@ -43,6 +43,30 @@ export async function GET() {
       console.warn("Could not query DB for account in /api/auth/me:", e);
     }
 
+    if (!account && email) {
+      try {
+        const baseName = name || email.split("@")[0];
+        const generatedUsername = baseName.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 15) || "user";
+        const newAcc = {
+          name: baseName,
+          email: email,
+          username: generatedUsername,
+          password: "",
+          plan: "Free",
+          brandColor: "#0066B2",
+          logo: null,
+          joinedAt: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+          isNewAccount: true,
+        };
+        account = await AccountModel.create(newAcc);
+        if (account && (account as any).toObject) {
+          account = (account as any).toObject();
+        }
+      } catch (err) {
+        console.error("Auto-creating account in /api/auth/me error:", err);
+      }
+    }
+
     if (!account) {
       const response = NextResponse.json({ authenticated: false, user: null }, { status: 401 });
       const { clearAuthCookie } = await import("@/lib/auth");
