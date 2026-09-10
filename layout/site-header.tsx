@@ -50,7 +50,7 @@ export default function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="relative z-30 mx-auto flex h-18 sm:h-22 max-w-7xl items-center justify-between px-4 sm:px-8 lg:px-10">
+    <header className="relative z-30 mx-auto flex h-18 sm:h-22 max-w-7xl items-center justify-between px-4 sm:px-8 lg:px-10 pt-2 sm:pt-3.5">
       <a aria-label="LeadMagnets home" href="/" className="shrink-0">
         <BrandLogo />
       </a>

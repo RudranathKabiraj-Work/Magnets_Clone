@@ -35,6 +35,7 @@ import Reveal from "@/components/reveal";
 import { MagnetsMark, GeminiLogo } from "@/components/brand";
 import ShowcaseTabs from "@/components/landing/showcase-tabs";
 import FaqAccordion from "@/components/landing/faq-accordion";
+import CtaSection from "@/components/landing/cta-section";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -116,17 +117,17 @@ export default function Home() {
         <SiteHeader />
         <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-0 h-[36rem] vercel-dot-bg opacity-30 dark:opacity-15" />
 
-        <div className="relative mx-auto max-w-7xl px-5 pt-12 pb-20 sm:px-8 sm:pt-20 lg:px-10 lg:pb-28">
+        <div className="relative mx-auto max-w-7xl px-5 pt-20 pb-20 sm:px-8 sm:pt-28 lg:px-10 lg:pt-32 lg:pb-28">
           {/* Hero text is NOT wrapped in Reveal — H1 is the LCP element and must paint immediately */}
           <div className="relative z-10 mx-auto max-w-4xl text-center">
             {/* Top Pill */}
             <div className="inline-flex items-center gap-2 rounded-full border border-[#0066B2]/20 dark:border-white/10 bg-white/80 dark:bg-[#18181C]/80 backdrop-blur-md px-4 py-1.5 text-xs font-semibold text-[#0066B2] dark:text-[#38BDF8] shadow-xs">
               <Sparkles className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8] animate-pulse" aria-hidden="true" />
-              <span>Next-Gen Lead Nurturing Platform</span>
+              <span>AI Lead Magnet & Nurture Engine</span>
             </div>
 
             {/* Main Headline — LCP Element, must be immediately visible */}
-            <h1 className="mx-auto mt-6 max-w-5xl text-5xl font-black leading-[1.02] text-zinc-900 dark:text-white sm:text-6xl lg:text-7xl tracking-tight">
+            <h1 className="mx-auto mt-8 max-w-5xl text-5xl font-black leading-[1.02] text-zinc-900 dark:text-white sm:text-6xl lg:text-7xl tracking-tight">
               Turn Free Resources Into <span className="bg-gradient-to-r from-[#0066B2] via-[#38BDF8] to-[#60A5FA] bg-clip-text text-transparent drop-shadow-sm">High-Converting</span> Lead Engines
             </h1>
 
@@ -476,8 +477,11 @@ export default function Home() {
       <section className="cv-auto bg-[#F0F7FF] dark:bg-[#0a0a0a] py-20 sm:py-28 border-b border-zinc-200/80 dark:border-zinc-800/80" id="features">
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
           <Reveal className="text-center max-w-3xl mx-auto">
-            <p className="text-xs font-bold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">Engineered For Results</p>
-            <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold text-zinc-900 dark:text-white tracking-tight leading-tight">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#0066B2]/20 dark:border-white/10 bg-white/80 dark:bg-[#18181C]/80 backdrop-blur-md px-4 py-1.5 text-xs font-semibold text-[#0066B2] dark:text-[#38BDF8] shadow-xs mb-4">
+              <Zap className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
+              <span>Engineered For Results</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-zinc-900 dark:text-white tracking-tight leading-tight">
               Everything You Need to <span className="bg-gradient-to-r from-[#0066B2] via-[#38BDF8] to-purple-500 bg-clip-text text-transparent">Capture & Convert High-Value Leads</span>
             </h2>
             <p className="mt-4 text-base text-zinc-600 dark:text-zinc-400">
@@ -536,7 +540,7 @@ export default function Home() {
           <Reveal className="text-center max-w-3xl mx-auto mb-14 sm:mb-16">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#0066B2]/20 dark:border-white/10 bg-[#0066B2]/5 dark:bg-[#18181C]/80 backdrop-blur-md px-4 py-1.5 text-xs font-semibold text-[#0066B2] dark:text-[#38BDF8] shadow-2xs mb-4">
               <HelpCircle className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
-              <span>FREQUENTLY ASKED QUESTIONS</span>
+              <span>Frequently Asked Questions</span>
             </div>
             <h2 className="text-3xl sm:text-5xl font-extrabold text-zinc-900 dark:text-white tracking-tight leading-tight">
               Got Questions? We Have <span className="bg-gradient-to-r from-[#0066B2] via-[#38BDF8] to-purple-500 bg-clip-text text-transparent">Answers.</span>
@@ -554,49 +558,7 @@ export default function Home() {
       {/* ------------------------------------------------------------- */}
       {/* SECTION 5: FINAL CTA                                          */}
       {/* ------------------------------------------------------------- */}
-      <section className="bg-[#F0F7FF] dark:bg-[#0a0a0a] py-24 sm:py-32 px-5 sm:px-8 lg:px-10 border-t border-zinc-200 dark:border-zinc-800/80">
-        <Reveal className="mx-auto flex max-w-4xl flex-col items-center text-center">
-          {/* Exact Brand Logo */}
-          <div className="mb-6 flex items-center justify-center">
-            <GeminiLogo darkSrc="/brand/gemini-logo-dark.webp" size="h-16 sm:h-20 w-auto" />
-          </div>
-
-          {/* Headline */}
-          <h2 className="text-3xl sm:text-5xl font-extrabold leading-[1.08] text-zinc-900 dark:text-white tracking-tight max-w-3xl">
-            Ready to Build Lead Magnets That <span className="text-[#0066B2] dark:text-[#38BDF8]">Actually Convert?</span>
-          </h2>
-
-          {/* Subtitle */}
-          <p className="mt-5 max-w-xl text-base sm:text-lg leading-relaxed text-zinc-600 dark:text-zinc-400 font-normal">
-            Create your opt-in page, upload your resource, and set up automated nurture emails in less than 5 minutes.
-          </p>
-
-          {/* Action Buttons */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full sm:w-auto">
-            <Link
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#0066B2] hover:bg-[#005799] px-8 text-base font-bold text-white shadow-lg shadow-[#0066B2]/20 transition-all hover:scale-[1.02] active:scale-98 cursor-pointer w-full sm:w-auto"
-              href="/register"
-            >
-              Get Started Free <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
-            </Link>
-            <Link
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#18181C] px-6 text-base font-semibold text-zinc-700 dark:text-zinc-200 shadow-xs transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80 w-full sm:w-auto"
-              href="#features"
-            >
-              Explore Features
-            </Link>
-          </div>
-
-          {/* Clean Enterprise Trust Line */}
-          <div className="mt-10 flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-            <span>Free Forever Plan</span>
-            <span className="text-zinc-300 dark:text-zinc-700">•</span>
-            <span>No Credit Card Required</span>
-            <span className="text-zinc-300 dark:text-zinc-700">•</span>
-            <span>Instant 60-Second Setup</span>
-          </div>
-        </Reveal>
-      </section>
+      <CtaSection />
 
       <SiteFooter />
     </main>
