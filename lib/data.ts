@@ -52,6 +52,7 @@ export interface MagnetPage {
   namePlaceholder?: string;
   emailPlaceholder?: string;
   formButtonText?: string;
+  userEmail?: string;
 }
 
 export interface Lead {
@@ -118,6 +119,7 @@ export interface Account {
   leadAlertsEnabled?: boolean;
   notifyEmail?: string;
   avatar?: string | null;
+  avatar_url?: string | null;
   customDomain?: string;
   customSubdomain?: string;
   domainVerified?: boolean;

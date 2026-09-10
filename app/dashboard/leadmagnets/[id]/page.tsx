@@ -24,6 +24,8 @@ import {
   ExternalLink,
   MoreHorizontal,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   BarChart2,
   QrCode,
   Play,
@@ -33,10 +35,12 @@ import {
   X,
   HelpCircle,
   Monitor,
+  Smartphone,
   CheckCircle2,
   Pencil,
   AlertTriangle,
   Sparkles,
+  GripVertical,
 } from "lucide-react";
 import { useEffect, useState, useRef, useCallback } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
@@ -98,13 +102,28 @@ export default function EditLeadMagnetPage() {
     const localP = loadPages().find((p) => p.id === params.id);
     if (localP) setPage(localP);
 
-    // Poll latest views & stats from database in real time
+    // Poll latest views & stats from database in real time without resetting user-edited form fields
     const interval = setInterval(() => {
       syncWithDatabase().then((data) => {
         if (data && data.pages) {
           const updated = data.pages.find((p: any) => p.id === params.id);
           if (updated) {
-            setPage(updated);
+            setPage((prev) => {
+              if (!prev) return updated;
+              if (
+                prev.views === updated.views &&
+                prev.signups === updated.signups &&
+                prev.conversionRate === updated.conversionRate
+              ) {
+                return prev;
+              }
+              return {
+                ...prev,
+                views: updated.views,
+                signups: updated.signups,
+                conversionRate: updated.conversionRate,
+              };
+            });
           }
         }
       });
@@ -176,6 +195,9 @@ export default function EditLeadMagnetPage() {
   const [pitch, setPitch] = useState(initialPitch);
   const [bullets, setBullets] = useState<string[]>(initialBullets);
   const [bulletsTitle, setBulletsTitle] = useState(page?.bulletsTitle && page.bulletsTitle !== "What they will learn" ? page.bulletsTitle : "");
+  const [formTitle, setFormTitle] = useState(page?.formTitle || "Download for free");
+  const [formSubtitle, setFormSubtitle] = useState(page?.formSubtitle || "Pop your email in and we'll send it straight over.");
+  const [formButtonText, setFormButtonText] = useState(page?.formButtonText || page?.cta || "Send it to me");
   const [imageUrl, setImageUrl] = useState<string | null>(initialImage);
   const [newBulletText, setNewBulletText] = useState("");
   const [showAddBullet, setShowAddBullet] = useState(false);
@@ -188,7 +210,11 @@ export default function EditLeadMagnetPage() {
   // Sequence State (Tab 3: Sequence)
   const [sequenceEnabled, setSequenceEnabled] = useState(page?.sequenceEnabled || false);
   const [stopOnCall, setStopOnCall] = useState(page?.stopOnCall !== undefined ? page.stopOnCall : true);
-  const [sequenceEmails, setSequenceEmails] = useState<{ id: string; subject: string; delayDays: number; body: string }[]>(page?.sequenceEmails || []);
+  const [sequenceEmails, setSequenceEmails] = useState<{ id: string; subject: string; delayDays: number; delayUnit?: "hours" | "minutes"; previewText?: string; body: string }[]>(page?.sequenceEmails || []);
+  const [selectedSequenceIndex, setSelectedSequenceIndex] = useState<number>(0);
+  const [showSequencePreviewModal, setShowSequencePreviewModal] = useState(false);
+  const [previewSequenceIndex, setPreviewSequenceIndex] = useState<number>(0);
+  const [previewDeviceMode, setPreviewDeviceMode] = useState<"desktop" | "mobile">("desktop");
 
   // Feature 2: Smart Auto-Personalized Deliverable State
   const [customPromptQuestion, setCustomPromptQuestion] = useState(page?.customPromptQuestion || "What is your main goal or bottleneck?");
@@ -227,6 +253,9 @@ export default function EditLeadMagnetPage() {
     buttonUrl: string;
     quizFunnelEnabled: boolean;
     bulletsTitle: string;
+    formTitle: string;
+    formSubtitle: string;
+    formButtonText: string;
   }[]>(() => [
     {
       headline: initialHeadline,
@@ -249,6 +278,9 @@ export default function EditLeadMagnetPage() {
       buttonUrl: page?.buttonUrl || "",
       quizFunnelEnabled: page?.quizFunnelEnabled || false,
       bulletsTitle: page?.bulletsTitle && page.bulletsTitle !== "What they will learn" ? page.bulletsTitle : "",
+      formTitle: page?.formTitle || "Download for free",
+      formSubtitle: page?.formSubtitle || "Pop your email in and we'll send it straight over.",
+      formButtonText: page?.formButtonText || page?.cta || "Send it to me",
     }
   ]);
   const [historyIndex, setHistoryIndex] = useState<number>(0);
@@ -258,6 +290,64 @@ export default function EditLeadMagnetPage() {
   // Autosave Status State
   const [saveStatus, setSaveStatus] = useState<"autosaved" | "saving">("autosaved");
   const isInitialMount = useRef(true);
+
+  // Live Auto-Sync for Views & Signups without needing page refresh
+  useEffect(() => {
+    if (!page?.id && !page?.slug) return;
+    const userEmail = page?.userEmail || (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null);
+
+    const syncStats = async () => {
+      try {
+        if (!userEmail) return;
+        const res = await fetch(`/api/data?email=${encodeURIComponent(userEmail)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.pages && Array.isArray(data.pages)) {
+          const fresh = data.pages.find((p: any) => p.id === page.id || p.slug === page.slug);
+          if (fresh) {
+            setPage((prev) => {
+              if (!prev) return fresh;
+              return {
+                ...prev,
+                views: fresh.views || 0,
+                signups: fresh.signups || 0,
+                conversionRate: fresh.conversionRate || 0,
+                variantAViews: fresh.variantAViews || 0,
+                variantBViews: fresh.variantBViews || 0,
+                variantASignups: fresh.variantASignups || 0,
+                variantBSignups: fresh.variantBSignups || 0,
+              };
+            });
+          }
+        }
+      } catch (_) { }
+    };
+
+    // Fast initial sync
+    syncStats();
+
+    // 1. BroadcastChannel for instant cross-tab sync when a visitor views/submits
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      bc = new BroadcastChannel("leadmagnets_live_sync");
+      bc.onmessage = (e) => {
+        if (e.data && e.data.type === "STATS_UPDATED") {
+          syncStats();
+        }
+      };
+    }
+
+    // 2. Fallback window focus & 2.5s interval polling
+    const intervalId = setInterval(syncStats, 2500);
+    const handleFocus = () => syncStats();
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", handleFocus);
+      if (bc) bc.close();
+    };
+  }, [page?.id, page?.slug, page?.userEmail]);
 
   // Media & Input Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -355,10 +445,36 @@ export default function EditLeadMagnetPage() {
     const file = inputTarget.files?.[0];
     if (file) {
       try {
-        const compressed = await compressImage(file);
-        setVariantBImage(compressed);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("isPageAsset", "true");
+        if (account?.email) {
+          formData.append("userEmail", account.email);
+        }
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.data?.fileUrl) {
+            setVariantBImage(json.data.fileUrl);
+          } else {
+            const compressed = await compressImage(file);
+            setVariantBImage(compressed);
+          }
+        } else {
+          const compressed = await compressImage(file);
+          setVariantBImage(compressed);
+        }
       } catch (err) {
-        console.error("Variant B image compression error", err);
+        console.error("Variant B image upload error", err);
+        try {
+          const compressed = await compressImage(file);
+          setVariantBImage(compressed);
+        } catch (_) { }
       }
       inputTarget.value = "";
     }
@@ -367,27 +483,37 @@ export default function EditLeadMagnetPage() {
 
 
   const addSequenceEmail = () => {
-    setSequenceEmails([
-      ...sequenceEmails,
-      {
-        id: Date.now().toString(),
-        subject: `Follow-up #${sequenceEmails.length + 1}`,
-        delayDays: sequenceEmails.length === 0 ? 1 : sequenceEmails.length * 2,
-        body: "Hey {name}, just checking in to see if you had a chance to look at the resource!",
-      },
-    ]);
+    const nextNum = sequenceEmails.length + 1;
+    const newEmail = {
+      id: Date.now().toString(),
+      subject: `Follow-up #${nextNum}`,
+      delayDays: 1,
+      delayUnit: "hours" as const,
+      previewText: sequenceEmails.length === 0 ? "Quick follow-up" : "",
+      body: "Hey {name}, just checking in to see if you had a chance to look at the resource!",
+    };
+    const updated = [...sequenceEmails, newEmail];
+    setSequenceEmails(updated);
+    setSelectedSequenceIndex(updated.length - 1);
     setSequenceEnabled(true);
   };
 
   const removeSequenceEmail = (id: string) => {
     const updated = sequenceEmails.filter((e) => e.id !== id);
     setSequenceEmails(updated);
-    if (updated.length === 0) setSequenceEnabled(false);
+    if (updated.length === 0) {
+      setSequenceEnabled(false);
+      setSelectedSequenceIndex(0);
+    } else if (selectedSequenceIndex >= updated.length) {
+      setSelectedSequenceIndex(updated.length - 1);
+    }
   };
 
   // General States
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const hasPopulatedForm = useRef(false);
 
   useEffect(() => {
     if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
@@ -401,16 +527,19 @@ export default function EditLeadMagnetPage() {
           const found = data.pages.find((p) => p.id === params.id);
           if (found) {
             setPage(found);
-            const cleanSubheadline = found.subheadline && found.subheadline !== "Enter your email to get instant access." ? found.subheadline : "";
-            const cleanHeadline = found.headline && found.headline !== "hi" ? found.headline : (found.name || "");
-            setHeadline(cleanHeadline);
-            setSubheadline(cleanSubheadline);
-            if (found.pitch) setPitch(found.pitch);
-            if (found.bullets) setBullets(found.bullets);
-            if (found.imageUrl !== undefined) setImageUrl(found.imageUrl);
-            if (found.sequenceEnabled !== undefined) setSequenceEnabled(found.sequenceEnabled);
-            if (found.stopOnCall !== undefined) setStopOnCall(found.stopOnCall);
-            if (found.sequenceEmails) setSequenceEmails(found.sequenceEmails);
+            if (!hasPopulatedForm.current) {
+              hasPopulatedForm.current = true;
+              const cleanSubheadline = found.subheadline && found.subheadline !== "Enter your email to get instant access." ? found.subheadline : "";
+              const cleanHeadline = found.headline && found.headline !== "hi" ? found.headline : (found.name || "");
+              setHeadline(cleanHeadline);
+              setSubheadline(cleanSubheadline);
+              if (found.pitch) setPitch(found.pitch);
+              if (found.bullets) setBullets(found.bullets);
+              if (found.imageUrl !== undefined) setImageUrl(found.imageUrl);
+              if (found.sequenceEnabled !== undefined) setSequenceEnabled(found.sequenceEnabled);
+              if (found.stopOnCall !== undefined) setStopOnCall(found.stopOnCall);
+              if (found.sequenceEmails) setSequenceEmails(found.sequenceEmails);
+            }
           }
         }
         if (data.account) setAccount(data.account);
@@ -419,7 +548,8 @@ export default function EditLeadMagnetPage() {
   }, [params.id]);
 
   useEffect(() => {
-    if (page) {
+    if (page && !hasPopulatedForm.current) {
+      hasPopulatedForm.current = true;
       const cleanSubheadline = page.subheadline && page.subheadline !== "Enter your email to get instant access." ? page.subheadline : "";
       const cleanHeadline = page.headline && page.headline !== "hi" ? page.headline : (page.name || "");
       setHeadline(cleanHeadline);
@@ -489,6 +619,9 @@ export default function EditLeadMagnetPage() {
         buttonUrl,
         quizFunnelEnabled,
         bulletsTitle,
+        formTitle,
+        formSubtitle,
+        formButtonText,
       };
 
       const lastSnapshot = history[historyIndex];
@@ -578,6 +711,10 @@ export default function EditLeadMagnetPage() {
           customPromptPlaceholder,
           enableAiPersonalizedDeliverable,
           bulletsTitle,
+          formTitle,
+          formSubtitle,
+          formButtonText,
+          cta: formButtonText,
           updatedAt: "Just now"
         };
         setPage(next);
@@ -595,10 +732,11 @@ export default function EditLeadMagnetPage() {
     afterSignupOption, destinationUrl, customHeading, customMessage, videoUrl, buttonLabel, buttonUrl, quizFunnelEnabled,
     hasVariantB, testStarted, variantBImage, variantBTitle,
     customPromptQuestion, customPromptPlaceholder, enableAiPersonalizedDeliverable,
-    bulletsTitle
+    bulletsTitle, formTitle, formSubtitle, formButtonText
   ]);
 
-  const handleGoBack = () => {
+  const handleGoBack = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (page) {
       const next = {
         ...page,
@@ -626,11 +764,16 @@ export default function EditLeadMagnetPage() {
         variantBImage,
         variantBTitle,
         bulletsTitle,
+        formTitle,
+        formSubtitle,
+        formButtonText,
+        cta: formButtonText,
         updatedAt: "Just now"
       };
       const all = loadPages().map((p) => (p.id === next.id ? next : p));
       savePages(all);
     }
+    router.push("/dashboard/leadmagnets");
   };
 
   if (!page) {
@@ -714,10 +857,50 @@ export default function EditLeadMagnetPage() {
     const file = inputTarget.files?.[0];
     if (file) {
       try {
-        const compressed = await compressImage(file);
-        setImageUrl(compressed);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("isPageAsset", "true");
+        if (account?.email) {
+          formData.append("userEmail", account.email);
+        }
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          const uploadedUrl = json?.data?.fileUrl || (await compressImage(file));
+          setImageUrl(uploadedUrl);
+          if (page) {
+            const updated = { ...page, imageUrl: uploadedUrl };
+            setPage(updated);
+            const all = loadPages().map((p) => (p.id === updated.id ? updated : p));
+            savePages(all);
+          }
+        } else {
+          const compressed = await compressImage(file);
+          setImageUrl(compressed);
+          if (page) {
+            const updated = { ...page, imageUrl: compressed };
+            setPage(updated);
+            const all = loadPages().map((p) => (p.id === updated.id ? updated : p));
+            savePages(all);
+          }
+        }
       } catch (err) {
-        console.error("Image compression error", err);
+        console.error("Image upload error", err);
+        try {
+          const compressed = await compressImage(file);
+          setImageUrl(compressed);
+          if (page) {
+            const updated = { ...page, imageUrl: compressed };
+            setPage(updated);
+            const all = loadPages().map((p) => (p.id === updated.id ? updated : p));
+            savePages(all);
+          }
+        } catch (_) { }
       }
       inputTarget.value = "";
     }
@@ -734,6 +917,154 @@ export default function EditLeadMagnetPage() {
   const removeBullet = (index: number) => {
     setBullets(bullets.filter((_, i) => i !== index));
   };
+
+  // Block Email Body Editor with Drag & Drop Up/Down Reordering, Plus Add, and Trash Delete
+  const renderEmailBlockEditor = (
+    val: string,
+    onValChange: (next: string) => void,
+    isDisabled = false
+  ) => {
+    const blocks = val ? val.split("\n\n") : [""];
+    return (
+      <div data-block-container className="space-y-2.5">
+        {blocks.map((blockText, idx) => (
+          <div
+            key={idx}
+            draggable={!isDisabled}
+            onDragStart={(e) => {
+              e.dataTransfer.setData("text/plain", idx.toString());
+            }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const sourceIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+              if (isNaN(sourceIdx) || sourceIdx === idx) return;
+              const updated = [...blocks];
+              const [moved] = updated.splice(sourceIdx, 1);
+              updated.splice(idx, 0, moved);
+              onValChange(updated.join("\n\n"));
+            }}
+            className={`group flex items-center gap-2.5 rounded-xl border px-3 py-2.5 shadow-2xs transition-all ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] focus-within:border-zinc-500 hover:border-zinc-600" : "border-zinc-200 bg-white focus-within:border-zinc-400 hover:border-zinc-300"}`}
+          >
+            {/* Left Controls: Plus + Drag Handle (Reveals on Hover / Focus) */}
+            <div className="flex items-center gap-1 shrink-0 text-zinc-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150">
+              <button
+                type="button"
+                disabled={isDisabled}
+                onClick={(e) => {
+                  const updated = [...blocks];
+                  updated.splice(idx + 1, 0, "");
+                  onValChange(updated.join("\n\n"));
+                  const currentEditor = e.currentTarget.closest("[data-block-container]");
+                  setTimeout(() => {
+                    if (currentEditor) {
+                      const textareas = currentEditor.querySelectorAll("textarea");
+                      const nextTextarea = textareas[idx + 1] as HTMLTextAreaElement;
+                      if (nextTextarea) nextTextarea.focus();
+                    }
+                  }, 40);
+                }}
+                className="p-1 rounded hover:bg-zinc-800 hover:text-white transition cursor-pointer disabled:opacity-40"
+                title="Add block below (+)"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+
+              <span
+                className="p-1 rounded hover:bg-zinc-800 hover:text-white transition cursor-grab active:cursor-grabbing text-zinc-400"
+                title="Drag to reorder block up/down"
+              >
+                <GripVertical className="h-4 w-4" />
+              </span>
+            </div>
+
+            {/* Multiline Block Textarea (Press Enter to jump to next text field, Shift+Enter for newline) */}
+            <textarea
+              disabled={isDisabled}
+              rows={Math.max(1, blockText.split("\n").length)}
+              value={blockText}
+              onChange={(e) => {
+                const updated = [...blocks];
+                updated[idx] = e.target.value;
+                onValChange(updated.join("\n\n"));
+                e.target.style.height = "auto";
+                e.target.style.height = `${e.target.scrollHeight}px`;
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  const updated = [...blocks];
+                  updated.splice(idx + 1, 0, "");
+                  onValChange(updated.join("\n\n"));
+                  const currentEditor = e.currentTarget.closest("[data-block-container]");
+                  setTimeout(() => {
+                    if (currentEditor) {
+                      const textareas = currentEditor.querySelectorAll("textarea");
+                      const nextTextarea = textareas[idx + 1] as HTMLTextAreaElement;
+                      if (nextTextarea) nextTextarea.focus();
+                    }
+                  }, 40);
+                } else if (e.key === "Backspace" && blockText === "" && blocks.length > 1) {
+                  e.preventDefault();
+                  const updated = blocks.filter((_, i) => i !== idx);
+                  onValChange(updated.join("\n\n"));
+                  const currentEditor = e.currentTarget.closest("[data-block-container]");
+                  setTimeout(() => {
+                    if (currentEditor) {
+                      const textareas = currentEditor.querySelectorAll("textarea");
+                      const prevTargetIdx = Math.max(0, idx - 1);
+                      const prevTextarea = textareas[prevTargetIdx] as HTMLTextAreaElement;
+                      if (prevTextarea) {
+                        prevTextarea.focus();
+                        const len = prevTextarea.value.length;
+                        prevTextarea.setSelectionRange(len, len);
+                      }
+                    }
+                  }, 40);
+                }
+              }}
+              placeholder="Start writing, or press / for blocks. Use {name} for the recipient."
+              className={`flex-1 text-xs outline-none bg-transparent resize-none overflow-hidden leading-relaxed py-0.5 ${(account?.themeMode || "light") === "dark" ? "text-white placeholder:text-zinc-500" : "text-zinc-900 placeholder:text-zinc-400"}`}
+              ref={(el) => {
+                if (el) {
+                  el.style.height = "auto";
+                  el.style.height = `${el.scrollHeight}px`;
+                }
+              }}
+            />
+
+            {/* Right Control: Delete Trash Button (Reveals on Hover / Focus) */}
+            <button
+              type="button"
+              disabled={isDisabled}
+              onClick={(e) => {
+                if (blocks.length <= 1) {
+                  onValChange("");
+                  return;
+                }
+                const updated = blocks.filter((_, i) => i !== idx);
+                onValChange(updated.join("\n\n"));
+                const currentEditor = e.currentTarget.closest("[data-block-container]");
+                setTimeout(() => {
+                  if (currentEditor) {
+                    const textareas = currentEditor.querySelectorAll("textarea");
+                    const prevTargetIdx = Math.max(0, idx - 1);
+                    const prevTextarea = textareas[prevTargetIdx] as HTMLTextAreaElement;
+                    if (prevTextarea) prevTextarea.focus();
+                  }
+                }, 40);
+              }}
+              className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150 p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-[#121216] text-zinc-400 hover:text-red-400 hover:border-red-500/50 transition cursor-pointer disabled:opacity-40"
+              title="Delete block"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
 
   return (
     <DashboardShell account={account} title="Edit lead magnet">
@@ -753,38 +1084,38 @@ export default function EditLeadMagnetPage() {
             </div>
           </div>
 
-          {/* Main Editor Card Frame - 100% Locked Light Mode Card */}
-          <div className="magnet-page--light rounded-2xl border border-[#E2E8F0] bg-white text-zinc-900 shadow-xl overflow-hidden">
+          {/* Main Editor Card Frame - Background matches Left Panel in Dark Mode */}
+          <div className={`rounded-2xl border text-zinc-900 dark:text-zinc-100 shadow-2xl overflow-hidden transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#18181B]" : "border-zinc-200 bg-white"}`}>
 
             {/* Inner Header Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] dark:border-zinc-200 px-4 py-3 sm:px-6 bg-white dark:bg-white text-zinc-900 dark:text-zinc-900">
+            <div className={`flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:px-6 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#18181B] text-white" : "border-zinc-200 bg-zinc-50/80 text-zinc-900"}`}>
               {/* Left Back link & Page Name/Slug */}
               <div className="flex items-center gap-3">
-                <Link
-                  href="/dashboard/leadmagnets"
+                <button
+                  type="button"
                   onClick={handleGoBack}
-                  className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] dark:border-zinc-300 bg-white dark:bg-white px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-800 hover:bg-[#EFF6FF] hover:border-[#0066B2]/40 hover:text-[#0066B2] dark:hover:bg-zinc-100 dark:hover:border-zinc-400 active:scale-95 transition-all shadow-xs cursor-pointer"
+                  className="flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-[#27272A] bg-white dark:bg-[#1E1E24] px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#27272A] active:scale-95 transition-all shadow-xs cursor-pointer"
                 >
                   <ArrowLeft className="h-3.5 w-3.5 stroke-[2.5px]" />
                   <span>Lead magnets</span>
-                </Link>
+                </button>
                 <div className="flex flex-col justify-center">
-                  <span className="text-xs font-black text-zinc-900 dark:text-zinc-900 uppercase tracking-wide leading-tight">{page.name}</span>
-                  <span className="text-[11px] text-zinc-400 dark:text-zinc-400 leading-none mt-0.5">/{page.slug}</span>
+                  <span className={`text-xs font-black uppercase tracking-wide leading-tight ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>{page.name}</span>
+                  <span className={`text-[11px] leading-none mt-0.5 ${(account?.themeMode || "light") === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>/{page.slug}</span>
                 </div>
               </div>
 
               {/* Right Status & Actions */}
               <div className="flex items-center gap-2.5">
-                <span className="text-xs text-zinc-500 dark:text-zinc-500 font-medium flex items-center gap-1">
-                  <Check className={`h-3.5 w-3.5 stroke-[3px] ${saveStatus === "saving" ? "text-zinc-400" : "text-[#0066B2]"}`} />
+                <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium flex items-center gap-1">
+                  <Check className="h-3.5 w-3.5 stroke-[3px] text-emerald-500" />
                   {saveStatus === "saving" ? "Waiting to autosave..." : "Autosaved"}
                 </span>
 
                 {/* AI Co-pilot & Social Studio */}
                 <button
                   onClick={() => setShowAIModal(true)}
-                  className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] hover:bg-[#005799] px-3 py-1.5 text-xs font-bold text-white shadow-xs transition"
+                  className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
                   title="AI Co-pilot: Regenerate headlines & copy"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
@@ -793,22 +1124,22 @@ export default function EditLeadMagnetPage() {
 
                 <button
                   onClick={() => setShowSocialModal(true)}
-                  className="group flex items-center gap-1.5 rounded-lg border border-[#0066B2]/30 bg-[#EFF6FF] px-3 py-1.5 text-xs font-bold text-[#0066B2] hover:bg-[#0066B2] hover:text-white transition shadow-xs cursor-pointer"
+                  className="group flex items-center gap-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-bold text-indigo-400 hover:bg-indigo-600 hover:text-white transition shadow-xs cursor-pointer"
                   title="Generate Social Media Graphic Cards"
                 >
-                  <ImageIcon className="h-3.5 w-3.5 text-[#0066B2] group-hover:text-white transition-colors" />
+                  <ImageIcon className="h-3.5 w-3.5 text-indigo-400 group-hover:text-white transition-colors" />
                   <span>Social Cards</span>
                 </button>
 
-                <div className="h-4 w-px bg-[#E2E8F0] dark:bg-zinc-200 mx-1" />
+                <div className="h-4 w-px bg-zinc-200 dark:bg-[#27272A] mx-1" />
 
                 {/* Undo / Redo */}
                 <button
                   onClick={handleUndo}
                   disabled={!canUndo}
                   className={`p-1.5 rounded-lg transition ${canUndo
-                    ? "text-zinc-700 hover:text-[#0066B2] hover:bg-[#EFF6FF] cursor-pointer"
-                    : "text-zinc-300 cursor-not-allowed opacity-40"
+                    ? "text-zinc-700 dark:text-zinc-300 hover:text-white hover:bg-zinc-800 cursor-pointer"
+                    : "text-zinc-300 dark:text-zinc-700 cursor-not-allowed opacity-40"
                     }`}
                   title={canUndo ? "Undo (Ctrl+Z)" : "Nothing to undo"}
                 >
@@ -818,8 +1149,8 @@ export default function EditLeadMagnetPage() {
                   onClick={handleRedo}
                   disabled={!canRedo}
                   className={`p-1.5 rounded-lg transition ${canRedo
-                    ? "text-zinc-700 hover:text-[#0066B2] hover:bg-[#EFF6FF] cursor-pointer"
-                    : "text-zinc-300 cursor-not-allowed opacity-40"
+                    ? "text-zinc-700 dark:text-zinc-300 hover:text-white hover:bg-zinc-800 cursor-pointer"
+                    : "text-zinc-300 dark:text-zinc-700 cursor-not-allowed opacity-40"
                     }`}
                   title={canRedo ? "Redo (Ctrl+Y)" : "Nothing to redo"}
                 >
@@ -831,7 +1162,7 @@ export default function EditLeadMagnetPage() {
                   href={`/${account?.username || "user"}/${page.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-[#0066B2] dark:hover:text-white hover:bg-[#EFF6FF] dark:hover:bg-zinc-100 transition cursor-pointer"
+                  className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
                   title="Open live page in new tab"
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -841,35 +1172,35 @@ export default function EditLeadMagnetPage() {
                 <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setShowMenu(!showMenu)}
-                    className="p-1.5 rounded-lg text-zinc-400 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-100 transition cursor-pointer"
+                    className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
                     title="More actions"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </button>
 
                   {showMenu && (
-                    <div className="absolute right-0 top-9 w-48 rounded-2xl border border-[#E2E8F0] dark:border-zinc-200/90 bg-white dark:bg-white p-1.5 shadow-xl z-50 text-zinc-800 dark:text-zinc-800 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="absolute right-0 top-9 w-48 rounded-2xl border border-zinc-200 dark:border-[#27272A] bg-white dark:bg-[#18181C] p-1.5 shadow-xl z-50 text-zinc-800 dark:text-zinc-200 animate-in fade-in slide-in-from-top-2 duration-150">
                       <button
                         onClick={handleAnalytics}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-[#EFF6FF] hover:text-[#0066B2] dark:hover:bg-zinc-100 transition cursor-pointer"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-[#27272A] hover:text-white transition cursor-pointer"
                       >
-                        <BarChart2 className="h-4 w-4 text-zinc-600" />
+                        <BarChart2 className="h-4 w-4 text-zinc-400" />
                         <span>Analytics</span>
                       </button>
 
                       <button
                         onClick={handleDownloadQR}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-[#EFF6FF] hover:text-[#0066B2] dark:hover:bg-zinc-100 transition cursor-pointer"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-[#27272A] hover:text-white transition cursor-pointer"
                       >
-                        <QrCode className="h-4 w-4 text-zinc-600" />
+                        <QrCode className="h-4 w-4 text-zinc-400" />
                         <span>Download QR code</span>
                       </button>
 
-                      <div className="my-1 h-px bg-[#E2E8F0] dark:bg-zinc-100" />
+                      <div className="my-1 h-px bg-zinc-200 dark:bg-[#27272A]" />
 
                       <button
                         onClick={handleDeletePage}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-50 transition cursor-pointer"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4 text-red-400" />
                         <span>Delete lead magnet</span>
@@ -882,32 +1213,32 @@ export default function EditLeadMagnetPage() {
                 <button
                   onClick={() => update({ status: live ? "draft" : "live", publishedAt: live ? page.publishedAt : new Date().toISOString() })}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer shadow-xs ${live
-                    ? "bg-[#1C1A19] text-[#10B981] border border-[#2E2A28]"
-                    : "bg-zinc-100 dark:bg-zinc-100 text-zinc-600 dark:text-zinc-600 border border-[#E2E8F0] dark:border-zinc-200 hover:bg-zinc-200"
+                    ? "bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700/60"
+                    : "bg-zinc-100 text-zinc-700 border border-zinc-300 dark:bg-[#1E1E24] dark:text-zinc-300 dark:border-[#27272A] hover:bg-zinc-200 dark:hover:bg-[#27272A]"
                     }`}
                 >
-                  <span className={`h-2 w-2 rounded-full ${live ? "bg-[#10B981]" : "bg-zinc-400"}`} />
+                  <span className={`h-2 w-2 rounded-full ${live ? "bg-emerald-600 dark:bg-emerald-400" : "bg-zinc-500"}`} />
                   <span>{live ? "Published" : "Draft"}</span>
                 </button>
               </div>
             </div>
 
-            {/* 4 Tabs Bar - Full Width Even Distribution & Slim Height */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 border-b border-[#E2E8F0] dark:border-zinc-200 bg-[#F8FBFF] dark:bg-[#F9F9FB] p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full">
+            {/* 4 Tabs Bar - Adapts dynamically to Brand Theme Mode */}
+            <div className={`grid grid-cols-2 lg:grid-cols-4 border-b p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#0E0E11]" : "border-zinc-200 bg-zinc-100/70"}`}>
               {/* Tab 1: Landing Page */}
               <button
                 onClick={() => setActiveTab("landing")}
                 className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "landing"
-                  ? "bg-white dark:bg-white border border-[#E2E8F0] dark:border-zinc-200/90 text-[#0066B2] dark:text-zinc-900 shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-600 hover:text-[#0066B2] dark:hover:text-zinc-900 hover:bg-[#EFF6FF] dark:hover:bg-zinc-200/40 border border-transparent"
+                  ? ((account?.themeMode || "light") === "dark" ? "bg-[#1E1E24] border border-[#27272A] text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-900 shadow-sm")
+                  : ((account?.themeMode || "light") === "dark" ? "text-zinc-400 hover:text-white hover:bg-[#18181C] border border-transparent" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/80 border border-transparent")
                   }`}
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#0066B2]">
+                <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A] text-zinc-300" : "bg-zinc-200/60 text-zinc-700"}`}>
                   <Monitor className="h-4 w-4" />
                 </div>
                 <div className="text-left leading-tight">
-                  <span className="block text-xs font-bold text-zinc-900 dark:text-zinc-900">Landing page</span>
-                  <span className="block text-[10px] font-normal text-zinc-400 dark:text-zinc-400">Design the page</span>
+                  <span className={`block text-xs font-bold ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-900"}`}>Landing page</span>
+                  <span className="block text-[10px] font-normal text-zinc-400">Design the page</span>
                 </div>
               </button>
 
@@ -915,14 +1246,14 @@ export default function EditLeadMagnetPage() {
               <button
                 onClick={() => setActiveTab("email")}
                 className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "email"
-                  ? "bg-white dark:bg-white border border-[#E2E8F0] dark:border-zinc-200/90 text-[#0066B2] dark:text-zinc-900 shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-600 hover:text-[#0066B2] dark:hover:text-zinc-900 hover:bg-[#EFF6FF] dark:hover:bg-zinc-200/40 border border-transparent"
+                  ? ((account?.themeMode || "light") === "dark" ? "bg-[#1E1E24] border border-[#27272A] text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-900 shadow-sm")
+                  : ((account?.themeMode || "light") === "dark" ? "text-zinc-400 hover:text-white hover:bg-[#18181C] border border-transparent" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/80 border border-transparent")
                   }`}
               >
-                <Mail className="h-4 w-4 text-[#0066B2] dark:text-zinc-400" />
+                <Mail className="h-4 w-4 text-zinc-500" />
                 <div className="text-left leading-tight">
-                  <span className="block text-xs font-bold text-zinc-900 dark:text-zinc-900">Delivery email</span>
-                  <span className="block text-[10px] font-normal text-zinc-400 dark:text-zinc-400">Send the resource</span>
+                  <span className={`block text-xs font-bold ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-900"}`}>Delivery email</span>
+                  <span className="block text-[10px] font-normal text-zinc-400">Send the resource</span>
                 </div>
               </button>
 
@@ -930,14 +1261,14 @@ export default function EditLeadMagnetPage() {
               <button
                 onClick={() => setActiveTab("sequence")}
                 className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "sequence"
-                  ? "bg-white dark:bg-white border border-[#E2E8F0] dark:border-zinc-200/90 text-[#0066B2] dark:text-zinc-900 shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-600 hover:text-[#0066B2] dark:hover:text-zinc-900 hover:bg-[#EFF6FF] dark:hover:bg-zinc-200/40 border border-transparent"
+                  ? ((account?.themeMode || "light") === "dark" ? "bg-[#1E1E24] border border-[#27272A] text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-900 shadow-sm")
+                  : ((account?.themeMode || "light") === "dark" ? "text-zinc-400 hover:text-white hover:bg-[#18181C] border border-transparent" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/80 border border-transparent")
                   }`}
               >
-                <Clock className="h-4 w-4 text-[#0066B2] dark:text-zinc-400" />
+                <Clock className="h-4 w-4 text-zinc-500" />
                 <div className="text-left leading-tight">
-                  <span className="block text-xs font-bold text-zinc-900 dark:text-zinc-900">Sequence</span>
-                  <span className="block text-[10px] font-normal text-zinc-400 dark:text-zinc-400">Nurture leads</span>
+                  <span className={`block text-xs font-bold ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-900"}`}>Sequence</span>
+                  <span className="block text-[10px] font-normal text-zinc-400">Nurture leads</span>
                 </div>
               </button>
 
@@ -945,36 +1276,67 @@ export default function EditLeadMagnetPage() {
               <button
                 onClick={() => setActiveTab("after")}
                 className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "after"
-                  ? "bg-white dark:bg-white border border-[#E2E8F0] dark:border-zinc-200/90 text-[#0066B2] dark:text-zinc-900 shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-600 hover:text-[#0066B2] dark:hover:text-zinc-900 hover:bg-[#EFF6FF] dark:hover:bg-zinc-200/40 border border-transparent"
+                  ? ((account?.themeMode || "light") === "dark" ? "bg-[#1E1E24] border border-[#27272A] text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-900 shadow-sm")
+                  : ((account?.themeMode || "light") === "dark" ? "text-zinc-400 hover:text-white hover:bg-[#18181C] border border-transparent" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/80 border border-transparent")
                   }`}
               >
-                <Home className="h-4 w-4 text-[#0066B2] dark:text-zinc-400" />
+                <Home className="h-4 w-4 text-zinc-500" />
                 <div className="text-left leading-tight">
-                  <span className="block text-xs font-bold text-zinc-900 dark:text-zinc-900">After signup</span>
-                  <span className="block text-[10px] font-normal text-zinc-400 dark:text-zinc-400">Choose the next step</span>
+                  <span className={`block text-xs font-bold ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-900"}`}>After signup</span>
+                  <span className="block text-[10px] font-normal text-zinc-400">Choose the next step</span>
                 </div>
               </button>
             </div>
 
-            {/* Editor Body Tab Content - 100% Light Mode */}
-            <div className="p-4 sm:p-6 bg-white dark:bg-white text-zinc-900 dark:text-zinc-900">
+            {/* Editor Body Tab Content */}
+            <div className={`p-4 sm:p-6 text-zinc-900 dark:text-zinc-100 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "bg-[#18181B]" : "bg-[#F8FBFF]"}`}>
 
               {/* TAB 1: LANDING PAGE EDITOR */}
               {activeTab === "landing" && (
                 <div className="space-y-8">
-                  {/* Canvas Outer Container (Card removed) */}
-                  <div className="text-zinc-900 dark:text-zinc-900 py-2">
+                  {/* Canvas Outer Container - Dynamically switches Light vs Dark depending on account.themeMode */}
+                  <div
+                    className="rounded-3xl p-4 sm:p-8 transition-colors duration-300 relative"
+                    style={{
+                      backgroundColor: (account?.themeMode || "light") === "dark" ? "#0E0E10" : "#FAFAFA",
+                      color: (account?.themeMode || "light") === "dark" ? "#ffffff" : "#18181b",
+                      backgroundImage: (account?.themeMode || "light") === "light"
+                        ? `radial-gradient(circle at 0% 0%, ${account?.brandColor || "#0066B2"}10 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${account?.brandColor || "#0066B2"}08 0%, transparent 40%)`
+                        : `radial-gradient(circle at 0% 0%, ${account?.brandColor || "#0066B2"}25 0%, transparent 50%), radial-gradient(circle at 100% 100%, ${account?.brandColor || "#0066B2"}15 0%, transparent 50%)`
+                    }}
+                  >
 
                     {/* Brand Name Header */}
-                    <div className="mb-8 text-center">
-                      <h1 className="text-3xl sm:text-4xl font-black tracking-wide text-black dark:text-black uppercase">
-                        {account?.name || "BDA"}
-                      </h1>
+                    <div className="mb-6 flex items-center justify-center">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-9 w-9 rounded-lg border border-dashed border-[#a1a1aa]/45 flex items-center justify-center bg-transparent overflow-hidden">
+                          {account?.logo || account?.avatar_url ? (
+                            <img src={account.logo || account.avatar_url || ""} alt="Logo" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-4 w-4 rounded-sm border border-dashed border-[#a1a1aa]" />
+                          )}
+                        </div>
+                        <span className={`text-sm font-bold tracking-wider uppercase ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>
+                          {account?.name || "BDA"}
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Canvas Main Card */}
-                    <div className="mx-auto max-w-6xl rounded-[24px] border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white text-zinc-900 dark:text-zinc-900 p-8 sm:p-10 shadow-2xl">
+                    {/* Canvas Main Card - 100% Synced with Public Page formula */}
+                    <div
+                      className={`mx-auto max-w-6xl rounded-2xl border p-6 md:p-8 shadow-2xl transition-all duration-300 backdrop-blur-md ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}
+                      style={{
+                        borderColor: account?.brandColor
+                          ? `${account.brandColor}${Math.round((0.15 + ((account?.highlightIntensity ?? 100) / 100) * 0.65) * 255).toString(16).padStart(2, '0')}`
+                          : "#0066B230",
+                        boxShadow: ((account?.highlightIntensity ?? 100) > 10 && account?.brandColor)
+                          ? `0 16px 40px -10px ${account.brandColor}${Math.round(((account?.highlightIntensity ?? 100) / 100) * 0.45 * 255).toString(16).padStart(2, '0')}`
+                          : "0 4px 12px rgba(0,0,0,0.05)",
+                        background: (account?.themeMode || "light") === "light"
+                          ? `linear-gradient(135deg, ${account?.brandColor || "#0066B2"}${Math.round((0.02 + ((account?.highlightIntensity ?? 100) / 100) * 0.25) * 255).toString(16).padStart(2, '0')} 0%, rgba(255, 255, 255, 0.95) 50%)`
+                          : `linear-gradient(135deg, ${account?.brandColor || "#0066B2"}${Math.round((0.05 + ((account?.highlightIntensity ?? 100) / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(18, 18, 20, 0.95) 50%)`
+                      }}
+                    >
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
                         {/* Left Column: Copy & Bullets */}
@@ -991,7 +1353,7 @@ export default function EditLeadMagnetPage() {
                                 e.target.style.height = `${e.target.scrollHeight + 24}px`;
                               }}
                               placeholder="BDA"
-                              className="w-full text-3xl sm:text-5xl font-black text-black dark:text-black bg-transparent dark:bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text hover:bg-[#F8F6F2] dark:hover:bg-[#F8F6F2] focus:border focus:border-zinc-300 focus:!bg-white focus:!text-black focus:shadow-2xs focus:ring-1 focus:ring-zinc-400 transition-all duration-150 resize-none overflow-hidden leading-snug"
+                              className={`w-full text-3xl sm:text-5xl font-black bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text transition-all duration-150 resize-none overflow-hidden leading-snug ${(account?.themeMode || "light") === "dark" ? "text-white hover:bg-white/5 focus:border-white/20 focus:!bg-black/30" : "text-zinc-900 hover:bg-black/5 focus:border-black/20 focus:!bg-white"}`}
                             />
                           </div>
 
@@ -1007,7 +1369,7 @@ export default function EditLeadMagnetPage() {
                                 e.target.style.height = `${e.target.scrollHeight + 24}px`;
                               }}
                               placeholder="Short subhead. say what they will get"
-                              className="w-full text-sm sm:text-base font-semibold text-zinc-600 dark:text-zinc-600 bg-transparent dark:bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text hover:bg-[#F8F6F2] dark:hover:bg-[#F8F6F2] focus:border focus:border-zinc-300 focus:!bg-white focus:!text-zinc-900 focus:shadow-2xs focus:ring-1 focus:ring-zinc-400 transition-all duration-150 resize-none overflow-hidden leading-relaxed"
+                              className={`w-full text-sm sm:text-base font-semibold bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text transition-all duration-150 resize-none overflow-hidden leading-relaxed ${(account?.themeMode || "light") === "dark" ? "text-zinc-300 hover:bg-white/5 focus:border-white/20 focus:!bg-black/30" : "text-zinc-600 hover:bg-black/5 focus:border-black/20 focus:!bg-white"}`}
                             />
                           </div>
 
@@ -1023,14 +1385,14 @@ export default function EditLeadMagnetPage() {
                                 e.target.style.height = `${e.target.scrollHeight + 24}px`;
                               }}
                               placeholder="Write a short pitch. Press Enter twice to start a new paragraph."
-                              className="w-full text-xs sm:text-sm text-zinc-500 dark:text-zinc-500 bg-transparent dark:bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text hover:bg-[#F8F6F2] dark:hover:bg-[#F8F6F2] focus:border focus:border-zinc-300 focus:!bg-white focus:!text-zinc-900 focus:shadow-2xs focus:ring-1 focus:ring-zinc-400 transition-all duration-150 resize-none overflow-hidden leading-relaxed"
+                              className={`w-full text-xs sm:text-sm bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text transition-all duration-150 resize-none overflow-hidden leading-relaxed ${(account?.themeMode || "light") === "dark" ? "text-zinc-400 hover:bg-white/5 focus:border-white/20 focus:!bg-black/30" : "text-zinc-500 hover:bg-black/5 focus:border-black/20 focus:!bg-white"}`}
                             />
                           </div>
 
-                          {/* Bullets List Section - Clean by default, Editing Card appears on hover */}
-                          <div className="group relative rounded-2xl border border-transparent hover:border-zinc-300 dark:hover:border-zinc-300 bg-transparent hover:bg-white/80 dark:hover:bg-white/80 p-3.5 transition-all duration-200 space-y-3 hover:shadow-md">
-                            {/* Floating Pencil Edit Badge (Visible on hover) */}
-                            <div className="absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full bg-black dark:bg-black text-white dark:text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer">
+                          {/* Bullets List Section */}
+                          <div className={`group relative rounded-2xl border border-transparent p-3.5 transition-all duration-200 space-y-3 ${(account?.themeMode || "light") === "dark" ? "hover:border-white/10 hover:bg-white/5" : "hover:border-black/10 hover:bg-black/5"}`}>
+                            {/* Floating Pencil Edit Badge */}
+                            <div className={`absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer ${(account?.themeMode || "light") === "dark" ? "bg-white text-black" : "bg-black text-white"}`}>
                               <Pencil className="h-3.5 w-3.5" />
                             </div>
 
@@ -1041,19 +1403,22 @@ export default function EditLeadMagnetPage() {
                                 value={bulletsTitle}
                                 onChange={(e) => setBulletsTitle(e.target.value)}
                                 placeholder="What they will learn"
-                                className="w-full text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-800 bg-transparent outline-none border-b border-transparent hover:border-[#FE6F34]/50 focus:border-[#FE6F34] hover:bg-white focus:bg-white rounded-lg px-2 py-1 transition-all duration-150 placeholder:text-zinc-400 dark:placeholder:text-zinc-400 placeholder:font-normal"
+                                className={`w-full text-xs sm:text-sm font-bold bg-transparent outline-none border-b border-transparent rounded-lg px-2 py-1 transition-all duration-150 placeholder:font-normal ${(account?.themeMode || "light") === "dark" ? "text-zinc-200 hover:border-white/20 focus:border-white/40 placeholder:text-zinc-500" : "text-zinc-800 hover:border-black/20 focus:border-black/40 placeholder:text-zinc-400"}`}
                               />
                             </div>
 
                             {bullets.length === 0 ? (
-                              <p className="text-xs italic text-zinc-400 dark:text-zinc-400">
+                              <p className="text-xs italic text-zinc-400">
                                 No bullets yet. click + to add one.
                               </p>
                             ) : (
                               <ul className="space-y-3">
                                 {bullets.map((b, idx) => (
                                   <li key={idx} className="group relative flex items-center gap-3">
-                                    <span className="flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full bg-[#FE6F34] text-white font-bold shadow-xs">
+                                    <span
+                                      className="flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full text-white font-bold shadow-xs transition-colors"
+                                      style={{ backgroundColor: account?.brandColor || "#0066B2" }}
+                                    >
                                       <Check className="h-3.5 w-3.5 stroke-[3px]" />
                                     </span>
                                     <input
@@ -1064,7 +1429,7 @@ export default function EditLeadMagnetPage() {
                                         updated[idx] = e.target.value;
                                         setBullets(updated);
                                       }}
-                                      className="w-full text-xs sm:text-sm font-semibold text-zinc-800 dark:text-zinc-800 bg-transparent outline-none border-none ring-0 rounded-xl px-3 py-1.5 hover:bg-[#F7F5F0] focus:bg-white focus:border focus:border-zinc-300 transition-all duration-150"
+                                      className={`w-full text-xs sm:text-sm font-semibold bg-transparent outline-none border-none ring-0 rounded-xl px-3 py-1.5 transition-all duration-150 ${(account?.themeMode || "light") === "dark" ? "text-zinc-200 hover:bg-white/5 focus:bg-black/30 focus:border focus:border-white/20" : "text-zinc-800 hover:bg-black/5 focus:bg-white focus:border focus:border-black/20"}`}
                                     />
                                     <button
                                       onClick={() => removeBullet(idx)}
@@ -1088,11 +1453,12 @@ export default function EditLeadMagnetPage() {
                                   onChange={(e) => setNewBulletText(e.target.value)}
                                   onKeyDown={(e) => e.key === "Enter" && addBullet()}
                                   placeholder="Type bullet point..."
-                                  className="w-full rounded-xl border border-zinc-300 dark:border-zinc-300 bg-white dark:bg-white px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#FE6F34]"
+                                  className={`w-full rounded-xl border px-3 py-1.5 text-xs outline-none ${(account?.themeMode || "light") === "dark" ? "border-white/20 bg-black/40 text-white focus:border-white/50" : "border-black/20 bg-white text-zinc-900 focus:border-black/50"}`}
                                 />
                                 <button
                                   onClick={addBullet}
-                                  className="rounded-xl bg-[#FE6F34] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#ff7d47] transition shrink-0"
+                                  style={{ backgroundColor: account?.brandColor || "#0066B2" }}
+                                  className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-white hover:opacity-90 transition shrink-0"
                                 >
                                   Add
                                 </button>
@@ -1106,7 +1472,7 @@ export default function EditLeadMagnetPage() {
                             ) : (
                               <button
                                 onClick={() => setShowAddBullet(true)}
-                                className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-300 px-3.5 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-700 hover:border-[#FE6F34] hover:text-[#FE6F34] transition bg-white dark:bg-white shadow-2xs cursor-pointer"
+                                className={`inline-flex items-center gap-1.5 rounded-xl border border-dashed px-3.5 py-1.5 text-xs font-semibold transition shadow-2xs cursor-pointer ${(account?.themeMode || "light") === "dark" ? "border-white/20 text-zinc-300 hover:border-white/40 bg-white/5" : "border-black/20 text-zinc-700 hover:border-black/40 bg-black/5"}`}
                               >
                                 <Plus className="h-3.5 w-3.5" />
                                 <span>Add bullet</span>
@@ -1127,7 +1493,7 @@ export default function EditLeadMagnetPage() {
                               className="hidden"
                             />
                             {imageUrl ? (
-                              <div className="relative group rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-200 bg-zinc-50 shadow-xs">
+                              <div className={`relative group rounded-2xl overflow-hidden border shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/20" : "border-black/10 bg-white"}`}>
                                 <img src={imageUrl} alt="Uploaded magnet media" className="w-full object-cover max-h-72 rounded-2xl" />
                                 <div className="absolute bottom-4 right-4 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                   <button
@@ -1136,9 +1502,9 @@ export default function EditLeadMagnetPage() {
                                       e.stopPropagation();
                                       fileInputRef.current?.click();
                                     }}
-                                    className="flex items-center gap-1.5 rounded-xl bg-white dark:bg-white hover:bg-zinc-50 px-3.5 py-2 text-xs font-bold text-zinc-800 dark:text-zinc-800 shadow-md border border-zinc-200/80 transition cursor-pointer pointer-events-auto"
+                                    className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-black px-3.5 py-2 text-xs font-bold text-white shadow-md border border-white/20 transition cursor-pointer pointer-events-auto"
                                   >
-                                    <ImageIcon className="h-4 w-4 text-zinc-600" />
+                                    <ImageIcon className="h-4 w-4 text-zinc-400" />
                                     <span>Replace</span>
                                   </button>
                                   <button
@@ -1147,7 +1513,7 @@ export default function EditLeadMagnetPage() {
                                       e.stopPropagation();
                                       setImageUrl(null);
                                     }}
-                                    className="flex items-center gap-1.5 rounded-xl bg-white dark:bg-white hover:bg-red-50 px-3.5 py-2 text-xs font-bold text-red-500 dark:text-red-500 shadow-md border border-zinc-200/80 transition cursor-pointer pointer-events-auto"
+                                    className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-red-950/80 px-3.5 py-2 text-xs font-bold text-red-400 shadow-md border border-white/20 transition cursor-pointer pointer-events-auto"
                                   >
                                     <Trash2 className="h-4 w-4 text-red-400" />
                                     <span>Remove</span>
@@ -1155,44 +1521,117 @@ export default function EditLeadMagnetPage() {
                                 </div>
                               </div>
                             ) : (
-                              <div className="rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-200 bg-[#FAFAFA] dark:bg-[#FAFAFA] text-zinc-800 dark:text-zinc-800 p-6 text-center transition hover:border-[#FE6F34]/60">
+                              <div className={`rounded-2xl border-2 border-dashed p-6 text-center transition ${(account?.themeMode || "light") === "dark" ? "border-white/15 bg-black/20 text-white hover:border-white/30" : "border-black/15 bg-white text-zinc-900 hover:border-black/30"}`}>
                                 <button
                                   onClick={() => fileInputRef.current?.click()}
                                   className="flex flex-col items-center justify-center w-full py-4 cursor-pointer"
                                 >
-                                  <ImageIcon className="h-7 w-7 text-zinc-400 dark:text-zinc-400 mb-2" />
-                                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-800">Add an image</span>
-                                  <span className="text-[11px] text-zinc-400 dark:text-zinc-400 mt-0.5">PNG, JPG, WebP, or GIF. 10 MB max.</span>
+                                  <ImageIcon className="h-7 w-7 text-zinc-400 mb-2" />
+                                  <span className="text-xs font-bold">Add an image</span>
+                                  <span className="text-[11px] text-zinc-400 mt-0.5">PNG, JPG, WebP, or GIF. 10 MB max.</span>
                                 </button>
                               </div>
                             )}
                           </div>
 
-                          {/* Signup Form Card - Soft Warm Accent Background */}
-                          <div className="rounded-2xl border border-[#FFD0BD] dark:border-[#FFD0BD] bg-gradient-to-b from-[#FFF4EE] to-[#FFF9F6] dark:from-[#FFF4EE] dark:to-[#FFF9F6] p-6 text-center shadow-xs">
-                            <h4 className="text-2xl font-bold text-zinc-900 dark:text-zinc-900">Download for free</h4>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-                              Pop your email in and we&apos;ll send it straight over.
-                            </p>
+                          {/* Signup Form Card - Fully Editable Title, Subtitle & Button CTA (Except Name & Email Inputs) */}
+                          <div
+                            className="rounded-2xl border p-6 text-center shadow-lg transition-all duration-200 backdrop-blur-md"
+                            style={{
+                              borderColor: (account?.themeMode || "light") === "dark"
+                                ? (account?.brandColor ? `${account.brandColor}40` : "rgba(255, 255, 255, 0.15)")
+                                : (account?.brandColor ? `${account.brandColor}30` : "#FFD0BD"),
+                              backgroundColor: (account?.themeMode || "light") === "dark"
+                                ? "rgba(10, 10, 12, 0.6)"
+                                : "rgba(255, 255, 255, 0.85)"
+                            }}
+                          >
+                            {/* Editable Card Title */}
+                            <input
+                              type="text"
+                              value={formTitle}
+                              onChange={(e) => setFormTitle(e.target.value)}
+                              onFocus={(e) => {
+                                if (e.target.value === "Download for free") {
+                                  setFormTitle("");
+                                } else {
+                                  e.target.select();
+                                }
+                              }}
+                              onBlur={(e) => {
+                                if (!e.target.value.trim()) {
+                                  setFormTitle("Download for free");
+                                }
+                              }}
+                              placeholder="Download for free"
+                              className={`w-full text-center text-xl sm:text-2xl font-extrabold outline-none border border-transparent hover:border-white/10 focus:border-white/30 rounded-xl py-1.5 px-3 bg-transparent transition-all duration-200 ${(account?.themeMode || "light") === "dark" ? "text-white focus:bg-[#16161A]" : "text-zinc-900 focus:bg-white"}`}
+                            />
+
+                            {/* Editable Card Subtitle */}
+                            <textarea
+                              rows={1}
+                              value={formSubtitle}
+                              onChange={(e) => {
+                                setFormSubtitle(e.target.value);
+                                e.target.style.height = "auto";
+                                e.target.style.height = `${e.target.scrollHeight}px`;
+                              }}
+                              onFocus={(e) => {
+                                if (e.target.value === "Pop your email in and we'll send it straight over.") {
+                                  setFormSubtitle("");
+                                } else {
+                                  e.target.select();
+                                }
+                              }}
+                              onBlur={(e) => {
+                                if (!e.target.value.trim()) {
+                                  setFormSubtitle("Pop your email in and we'll send it straight over.");
+                                }
+                              }}
+                              placeholder="Pop your email in and we'll send it straight over."
+                              className={`w-full text-center text-xs mt-1 outline-none border border-transparent hover:border-white/10 focus:border-white/30 rounded-xl py-1 px-3 bg-transparent transition-all duration-200 resize-none overflow-hidden ${(account?.themeMode || "light") === "dark" ? "text-zinc-400 focus:bg-[#16161A] focus:text-white" : "text-zinc-500 focus:bg-white focus:text-zinc-900"}`}
+                            />
 
                             <div className="mt-5 space-y-3">
+                              {/* Non-editable Preview Input: Name */}
                               <input
                                 type="text"
                                 placeholder="Name"
                                 readOnly
-                                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-4 py-3 text-xs text-zinc-900 dark:text-zinc-900 placeholder:text-zinc-400 dark:placeholder:text-zinc-400 outline-none shadow-xs"
+                                className={`w-full rounded-xl border px-4 py-3 text-xs outline-none shadow-xs select-none ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/50 text-white placeholder:text-zinc-500" : "border-black/10 bg-white text-zinc-900 placeholder:text-zinc-400"}`}
                               />
+
+                              {/* Non-editable Preview Input: Email */}
                               <input
                                 type="email"
                                 placeholder="Email"
                                 readOnly
-                                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-4 py-3 text-xs text-zinc-900 dark:text-zinc-900 placeholder:text-zinc-400 dark:placeholder:text-zinc-400 outline-none shadow-xs"
+                                className={`w-full rounded-xl border px-4 py-3 text-xs outline-none shadow-xs select-none ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/50 text-white placeholder:text-zinc-500" : "border-black/10 bg-white text-zinc-900 placeholder:text-zinc-400"}`}
                               />
-                              <button
-                                className="w-full rounded-xl bg-[#1D2433] hover:bg-[#273043] dark:bg-[#1D2433] dark:hover:bg-[#273043] px-4 py-3.5 text-xs font-bold text-white dark:text-white shadow-md transition"
-                              >
-                                Send it to me
-                              </button>
+
+                              {/* Editable Button CTA Text */}
+                              <div className="relative group/btn">
+                                <input
+                                  type="text"
+                                  value={formButtonText}
+                                  onChange={(e) => setFormButtonText(e.target.value)}
+                                  onFocus={(e) => {
+                                    if (e.target.value === "Send it to me") {
+                                      setFormButtonText("");
+                                    } else {
+                                      e.target.select();
+                                    }
+                                  }}
+                                  onBlur={(e) => {
+                                    if (!e.target.value.trim()) {
+                                      setFormButtonText("Send it to me");
+                                    }
+                                  }}
+                                  placeholder="Send it to me"
+                                  style={{ backgroundColor: account?.brandColor || "#0066B2" }}
+                                  className="w-full text-center rounded-xl px-4 py-3.5 text-xs font-extrabold text-white shadow-lg transition duration-150 outline-none border-2 border-transparent hover:border-white/40 focus:border-white cursor-text"
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1201,35 +1640,35 @@ export default function EditLeadMagnetPage() {
                     </div>
 
                     {/* Canvas Footer */}
-                    <div className="mt-8 text-center text-xs text-zinc-400 dark:text-zinc-400">
+                    <div className="mt-8 text-center text-xs text-zinc-400">
                       All rights reserved 2026
                     </div>
                   </div>
 
-                  {/* A/B Split Test Section */}
-                  <div className="space-y-4 text-zinc-900 dark:text-zinc-900">
-                    {/* Top Header Bar separated by lines above and below */}
-                    <div className="border-t border-b border-zinc-200 dark:border-zinc-200 py-4 my-4">
+                  {/* A/B Split Test Section - Adapts dynamically to Brand Theme Mode */}
+                  <div className={`space-y-4 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-900"}`}>
+                    {/* Top Header Bar */}
+                    <div className={`border-t border-b py-4 my-4 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A]" : "border-zinc-200"}`}>
                       <div className="flex flex-wrap items-center justify-between gap-4 px-1">
                         <div>
                           <div className="flex items-center gap-2.5">
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-100 text-zinc-600 dark:text-zinc-600">
+                            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${(account?.themeMode || "light") === "dark" ? "bg-[#25252B] text-zinc-400" : "bg-zinc-100 text-zinc-600"}`}>
                               <BarChart2 className="h-4 w-4" />
                             </div>
-                            <h4 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-900">
+                            <h4 className={`text-sm sm:text-base font-bold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>
                               Test title and image
                             </h4>
                           </div>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-2">
+                          <p className={`text-xs mt-2 ${(account?.themeMode || "light") === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
                             LeadMagnets splits new visitors evenly and keeps each person on the same version for an accurate result.
                           </p>
                         </div>
 
                         <button
                           onClick={() => setTestStarted(!testStarted)}
-                          className="flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-50 transition cursor-pointer shadow-2xs"
+                          className={`flex items-center gap-2 rounded-xl border px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer shadow-2xs ${(account?.themeMode || "light") === "dark" ? "border-[#2E2E35] bg-[#222228] text-zinc-300 hover:bg-[#2A2A32]" : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"}`}
                         >
-                          <span className={`h-2 w-2 rounded-full ${testStarted ? "bg-emerald-500" : "bg-zinc-300"}`} />
+                          <span className={`h-2 w-2 rounded-full ${testStarted ? "bg-emerald-500" : "bg-zinc-400"}`} />
                           <span>{testStarted ? "Pause test" : "Start test"}</span>
                         </button>
                       </div>
@@ -1238,11 +1677,11 @@ export default function EditLeadMagnetPage() {
                     {/* A/B Versions Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Control Variant Card */}
-                      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white overflow-hidden shadow-xs">
-                        {/* Top Gray Media Area - Flush to top/left/right */}
-                        <div className="relative h-64 sm:h-72 w-full bg-[#F8F9FA] dark:bg-[#F8F9FA] flex flex-col items-center justify-center border-b border-zinc-100 dark:border-zinc-100">
+                      <div className={`rounded-2xl border overflow-hidden shadow-xs transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#2E2E35] bg-[#1D1D22]" : "border-zinc-200 bg-white"}`}>
+                        {/* Top Media Area */}
+                        <div className={`relative h-64 sm:h-72 w-full flex flex-col items-center justify-center border-b ${(account?.themeMode || "light") === "dark" ? "bg-[#141418] border-[#27272C]" : "bg-zinc-50 border-zinc-100"}`}>
                           <div className="absolute top-4 left-4 z-10">
-                            <span className="inline-flex items-center rounded-full bg-black dark:bg-black px-3.5 py-1 text-[11px] font-extrabold text-white dark:text-white uppercase tracking-wider">
+                            <span className={`inline-flex items-center rounded-full px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-wider ${(account?.themeMode || "light") === "dark" ? "bg-white text-black" : "bg-black text-white"}`}>
                               {hasVariantB ? "CONTROL · 50%" : "CONTROL · 100%"}
                             </span>
                           </div>
@@ -1255,37 +1694,37 @@ export default function EditLeadMagnetPage() {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-400">
+                            <div className="flex flex-col items-center justify-center text-zinc-400">
                               <ImageIcon className="h-7 w-7 mb-1.5 stroke-[1.5px]" />
                               <span className="text-xs font-medium">No image</span>
                             </div>
                           )}
                         </div>
 
-                        {/* Bottom White Section */}
-                        <div className="p-5 space-y-3 bg-white dark:bg-white">
+                        {/* Bottom Section */}
+                        <div className={`p-5 space-y-3 ${(account?.themeMode || "light") === "dark" ? "bg-[#1D1D22]" : "bg-white"}`}>
                           <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-400 block mb-1">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">
                               CURRENT PAGE
                             </span>
-                            <h5 className="text-sm font-black text-zinc-900 dark:text-zinc-900">
+                            <h5 className={`text-sm font-black ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>
                               {headline || page.name || "BDA"}
                             </h5>
                           </div>
 
-                          <div className="h-px bg-zinc-100 dark:bg-zinc-100 w-full" />
+                          <div className={`h-px w-full ${(account?.themeMode || "light") === "dark" ? "bg-[#27272C]" : "bg-zinc-100"}`} />
 
                           {testStarted ? (
                             <div className="flex items-center justify-between text-xs pt-0.5 font-medium">
-                              <span className="text-emerald-600 font-bold flex items-center gap-1">
+                              <span className="text-emerald-500 font-bold flex items-center gap-1">
                                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Tracking
                               </span>
-                              <span className="text-zinc-600 dark:text-zinc-600 font-semibold">
+                              <span className={`font-semibold ${(account?.themeMode || "light") === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>
                                 {page?.variantAViews || 0} views · {page?.variantASignups || 0} signups
                               </span>
                             </div>
                           ) : (
-                            <p className="text-xs text-zinc-400 dark:text-zinc-400 pt-0.5">
+                            <p className="text-xs text-zinc-400 pt-0.5">
                               Results appear after the test starts
                             </p>
                           )}
@@ -1294,11 +1733,11 @@ export default function EditLeadMagnetPage() {
 
                       {/* Variant B Card if created */}
                       {hasVariantB && (
-                        <div className="group animate-card-pop-in rounded-2xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white overflow-hidden shadow-xs hover:border-zinc-300 transition-all duration-300">
-                          {/* Top Gray Media Area - Flush to top/left/right */}
-                          <div className="relative h-64 sm:h-72 w-full bg-[#F8F9FA] dark:bg-[#F8F9FA] flex flex-col items-center justify-center border-b border-zinc-100 dark:border-zinc-100">
+                        <div className={`group animate-card-pop-in rounded-2xl border overflow-hidden shadow-xs transition-all duration-300 ${(account?.themeMode || "light") === "dark" ? "border-[#2E2E35] bg-[#1D1D22] hover:border-zinc-600" : "border-zinc-200 bg-white hover:border-zinc-300"}`}>
+                          {/* Top Media Area */}
+                          <div className={`relative h-64 sm:h-72 w-full flex flex-col items-center justify-center border-b ${(account?.themeMode || "light") === "dark" ? "bg-[#141418] border-[#27272C]" : "bg-zinc-50 border-zinc-100"}`}>
                             <div className="absolute top-4 left-4 z-10">
-                              <span className="inline-flex items-center rounded-full bg-[#F4F4F5] dark:bg-[#F4F4F5] px-3.5 py-1 text-[11px] font-extrabold text-zinc-700 dark:text-zinc-700 uppercase tracking-wider">
+                              <span className={`inline-flex items-center rounded-full px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-wider ${(account?.themeMode || "light") === "dark" ? "bg-[#27272D] text-zinc-200" : "bg-zinc-200 text-zinc-800"}`}>
                                 VERSION B · 50%
                               </span>
                             </div>
@@ -1321,7 +1760,7 @@ export default function EditLeadMagnetPage() {
                                   className="h-full w-full object-cover"
                                 />
                               ) : (
-                                <div className="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-400">
+                                <div className="flex flex-col items-center justify-center text-zinc-400">
                                   <ImageIcon className="h-7 w-7 mb-1.5 stroke-[1.5px]" />
                                   <span className="text-xs font-medium">No image</span>
                                 </div>
@@ -1336,9 +1775,9 @@ export default function EditLeadMagnetPage() {
                                   e.stopPropagation();
                                   variantBFileInputRef.current?.click();
                                 }}
-                                className="flex items-center gap-1.5 rounded-xl bg-white dark:bg-white hover:bg-zinc-50 px-3.5 py-2 text-xs font-bold text-zinc-800 dark:text-zinc-800 shadow-md border border-zinc-200/80 transition cursor-pointer pointer-events-auto active:scale-95"
+                                className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold shadow-md border transition cursor-pointer pointer-events-auto active:scale-95 ${(account?.themeMode || "light") === "dark" ? "bg-[#25252B] hover:bg-[#2E2E36] text-zinc-200 border-[#2E2E35]" : "bg-white hover:bg-zinc-50 text-zinc-800 border-zinc-200"}`}
                               >
-                                <ImageIcon className="h-4 w-4 text-zinc-600" />
+                                <ImageIcon className="h-4 w-4 text-zinc-400" />
                                 <span>Replace</span>
                               </button>
                               <button
@@ -1349,7 +1788,7 @@ export default function EditLeadMagnetPage() {
                                   setVariantBImage(null);
                                   setVariantBTitle("");
                                 }}
-                                className="flex items-center gap-1.5 rounded-xl bg-white dark:bg-white hover:bg-red-50 px-3.5 py-2 text-xs font-bold text-red-500 dark:text-red-500 shadow-md border border-zinc-200/80 transition cursor-pointer pointer-events-auto active:scale-95"
+                                className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold text-red-500 shadow-md border transition cursor-pointer pointer-events-auto active:scale-95 ${(account?.themeMode || "light") === "dark" ? "bg-[#25252B] hover:bg-red-950/40 border-[#2E2E35]" : "bg-white hover:bg-red-50 border-zinc-200"}`}
                                 title="Remove Version B split test"
                               >
                                 <Trash2 className="h-4 w-4 text-red-400" />
@@ -1358,10 +1797,10 @@ export default function EditLeadMagnetPage() {
                             </div>
                           </div>
 
-                          {/* Bottom White Section */}
-                          <div className="p-5 space-y-3 bg-white dark:bg-white">
+                          {/* Bottom Section */}
+                          <div className={`p-5 space-y-3 ${(account?.themeMode || "light") === "dark" ? "bg-[#1D1D22]" : "bg-white"}`}>
                             <div>
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-400 block mb-1">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">
                                 VERSION TITLE
                               </span>
                               <input
@@ -1375,23 +1814,23 @@ export default function EditLeadMagnetPage() {
                                     savePages(loadPages().map((p) => (p.id === next.id ? next : p)));
                                   }
                                 }}
-                                className="w-full text-sm font-black text-zinc-900 dark:text-zinc-900 outline-none border-b border-transparent focus:border-[#FE6F34] py-0.5"
+                                className={`w-full text-sm font-black outline-none border-b border-transparent focus:border-zinc-400 py-0.5 bg-transparent ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}
                               />
                             </div>
 
-                            <div className="h-px bg-zinc-100 dark:bg-zinc-100 w-full" />
+                            <div className={`h-px w-full ${(account?.themeMode || "light") === "dark" ? "bg-[#27272C]" : "bg-zinc-100"}`} />
 
                             {testStarted ? (
                               <div className="flex items-center justify-between text-xs pt-0.5 font-medium">
-                                <span className="text-emerald-600 font-bold flex items-center gap-1">
+                                <span className="text-emerald-500 font-bold flex items-center gap-1">
                                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Tracking
                                 </span>
-                                <span className="text-zinc-600 dark:text-zinc-600 font-semibold">
+                                <span className={`font-semibold ${(account?.themeMode || "light") === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>
                                   {page?.variantBViews || 0} views · {page?.variantBSignups || 0} signups
                                 </span>
                               </div>
                             ) : (
-                              <p className="text-xs text-zinc-400 dark:text-zinc-400 pt-0.5">
+                              <p className="text-xs text-zinc-400 pt-0.5">
                                 Results appear after the test starts
                               </p>
                             )}
@@ -1405,17 +1844,15 @@ export default function EditLeadMagnetPage() {
                       <button
                         onClick={() => {
                           setHasVariantB(true);
-                          const defaultTitle = variantBTitle || headline || "Version B";
-                          setVariantBTitle(defaultTitle);
+                          setVariantBTitle(`${headline || page.name} (B)`);
                           if (page) {
-                            const next = { ...page, hasVariantB: true, variantBTitle: defaultTitle, updatedAt: "Just now" };
-                            setPage(next);
+                            const next = { ...page, hasVariantB: true, variantBTitle: `${headline || page.name} (B)`, updatedAt: "Just now" };
                             savePages(loadPages().map((p) => (p.id === next.id ? next : p)));
                           }
                         }}
-                        className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-300 bg-[#F9FAFB] dark:bg-[#F9FAFB] hover:bg-zinc-100 dark:hover:bg-zinc-100 hover:border-zinc-400 p-3.5 text-xs font-bold text-zinc-700 dark:text-zinc-700 transition-all duration-200 active:scale-[0.99] cursor-pointer shadow-2xs"
+                        className={`mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed p-3.5 text-xs font-bold transition-all duration-200 active:scale-[0.99] cursor-pointer shadow-2xs ${(account?.themeMode || "light") === "dark" ? "border-[#2E2E35] bg-[#1D1D22] hover:bg-[#25252B] text-zinc-300" : "border-zinc-300 bg-zinc-50 hover:bg-zinc-100 text-zinc-700"}`}
                       >
-                        <Plus className="h-4 w-4 text-zinc-600 transition-transform duration-200 group-hover:scale-110" />
+                        <Plus className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
                         <span>Create version B</span>
                       </button>
                     )}
@@ -1427,26 +1864,26 @@ export default function EditLeadMagnetPage() {
               {/* TAB 2: DELIVERY EMAIL */}
               {activeTab === "email" && (
                 <div className="space-y-6">
-                  {/* Canvas Outer Wrapper */}
-                  <div className="rounded-2xl border border-zinc-200/70 dark:border-zinc-200/70 bg-[#F9F9FB] dark:bg-[#F9F9FB] p-4 sm:p-8 text-zinc-900 dark:text-zinc-900">
+                  {/* Canvas Outer Wrapper - Adapts dynamically to Brand Theme Mode */}
+                  <div className={`rounded-2xl border p-4 sm:p-8 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#0E0E10] text-white" : "border-zinc-200/70 bg-[#F9F9FB] text-zinc-900"}`}>
 
-                    {/* Inner White Card Container */}
-                    <div className="mx-auto max-w-4xl rounded-2xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white p-6 sm:p-8 shadow-xs text-zinc-900 dark:text-zinc-900 space-y-6">
+                    {/* Inner Card Container */}
+                    <div className={`mx-auto max-w-4xl rounded-2xl border p-6 sm:p-8 shadow-xs space-y-6 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
 
                       {/* Top Header Bar inside Card */}
-                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-200 pb-4">
-                        <div className="flex items-center gap-2 text-sm font-bold text-zinc-800 dark:text-zinc-800">
-                          <Mail className="h-4 w-4 text-zinc-500 dark:text-zinc-500" />
+                      <div className={`flex flex-wrap items-center justify-between gap-3 border-b pb-4 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A]" : "border-zinc-200"}`}>
+                        <div className={`flex items-center gap-2 text-sm font-bold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-800"}`}>
+                          <Mail className="h-4 w-4 text-zinc-400" />
                           <span>Delivery email</span>
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <span className="text-xs text-zinc-400 dark:text-zinc-400 font-mono">
+                          <span className="text-xs text-zinc-400 font-mono">
                             LeadMagnets &lt;hello@mail.leadmagnets.so&gt;
                           </span>
                           <button
                             onClick={() => alert("Previewing email as subscriber...")}
-                            className="flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-800 hover:bg-zinc-50 transition shadow-xs cursor-pointer"
+                            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24] text-white hover:bg-[#27272A]" : "border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50"}`}
                           >
                             <Eye className="h-3.5 w-3.5" />
                             <span>Preview</span>
@@ -1456,45 +1893,45 @@ export default function EditLeadMagnetPage() {
 
                       {/* Subject */}
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-500 block">Subject</label>
+                        <label className="text-xs font-bold text-zinc-400 block">Subject</label>
                         <input
                           type="text"
                           value={emailSubject}
                           onChange={(e) => setEmailSubject(e.target.value)}
                           placeholder="What people see in the inbox"
-                          className="w-full text-2xl sm:text-3xl font-extrabold text-zinc-800 dark:text-zinc-800 placeholder:text-zinc-300 dark:placeholder:text-zinc-300 bg-transparent outline-none border-b border-transparent focus:border-[#FE6F34] transition py-1"
+                          className={`w-full text-2xl sm:text-3xl font-extrabold bg-transparent outline-none border-b border-transparent focus:border-[#FE6F34] transition py-1 ${(account?.themeMode || "light") === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-300"}`}
                         />
                       </div>
 
                       {/* Preview text */}
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-zinc-500 dark:text-zinc-500 block">Preview text</label>
+                        <label className="text-xs font-bold text-zinc-400 block">Preview text</label>
                         <input
                           type="text"
                           value={emailPreviewText}
                           onChange={(e) => setEmailPreviewText(e.target.value)}
                           placeholder="A short teaser shown after the subject"
-                          className="w-full text-sm font-medium text-zinc-600 dark:text-zinc-600 placeholder:text-zinc-300 dark:placeholder:text-zinc-300 bg-transparent outline-none border-b border-transparent focus:border-[#FE6F34] transition py-1"
+                          className={`w-full text-sm font-medium bg-transparent outline-none border-b border-transparent focus:border-[#FE6F34] transition py-1 ${(account?.themeMode || "light") === "dark" ? "text-zinc-300 placeholder:text-zinc-600" : "text-zinc-600 placeholder:text-zinc-300"}`}
                         />
                       </div>
 
                       {/* Divider */}
-                      <div className="h-px bg-zinc-200/80 dark:bg-zinc-200/80 w-full my-4" />
+                      <div className={`h-px w-full my-4 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-200/80"}`} />
 
                       {/* Body Section */}
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-zinc-700 dark:text-zinc-700 block">Body</label>
+                        <label className={`text-xs font-bold block ${(account?.themeMode || "light") === "dark" ? "text-zinc-400" : "text-zinc-700"}`}>Body</label>
 
                         {/* Rich Text Editor Container */}
-                        <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-200/90 bg-white dark:bg-white overflow-hidden shadow-xs">
+                        <div className={`rounded-2xl border overflow-hidden shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B]" : "border-zinc-200/90 bg-white"}`}>
                           {/* Toolbar */}
-                          <div className="flex flex-wrap items-center gap-3 border-b border-zinc-200 dark:border-zinc-200 bg-[#F9F9FB] dark:bg-[#F9F9FB] px-4 py-2.5 text-xs font-semibold text-zinc-600 dark:text-zinc-600">
+                          <div className={`flex flex-wrap items-center gap-3 border-b px-4 py-2.5 text-xs font-semibold ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-zinc-300" : "border-zinc-200 bg-[#F9F9FB] text-zinc-600"}`}>
                             <button
                               type="button"
                               onClick={handleUndo}
                               disabled={!canUndo}
                               title={canUndo ? "Undo (Ctrl+Z)" : "Nothing to undo"}
-                              className={`p-1 transition ${canUndo ? "hover:text-zinc-900 cursor-pointer" : "opacity-30 cursor-not-allowed"}`}
+                              className={`p-1 transition ${canUndo ? "hover:text-white cursor-pointer" : "opacity-30 cursor-not-allowed"}`}
                             >
                               <Undo2 className="h-3.5 w-3.5" />
                             </button>
@@ -1503,36 +1940,36 @@ export default function EditLeadMagnetPage() {
                               onClick={handleRedo}
                               disabled={!canRedo}
                               title={canRedo ? "Redo (Ctrl+Y)" : "Nothing to redo"}
-                              className={`p-1 transition ${canRedo ? "hover:text-zinc-900 cursor-pointer" : "opacity-30 cursor-not-allowed"}`}
+                              className={`p-1 transition ${canRedo ? "hover:text-white cursor-pointer" : "opacity-30 cursor-not-allowed"}`}
                             >
                               <Redo2 className="h-3.5 w-3.5" />
                             </button>
-                            <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-300 mx-0.5" />
-                            <button type="button" title="Text Size" className="hover:text-zinc-900 font-serif font-bold transition px-1">Aa</button>
-                            <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-300 mx-0.5" />
-                            <button type="button" title="Bold" className="hover:text-zinc-900 font-black transition px-1">B</button>
-                            <button type="button" title="Italic" className="hover:text-zinc-900 italic transition px-1">I</button>
-                            <button type="button" title="Quote" className="hover:text-zinc-900 font-serif transition px-1">”</button>
-                            <button type="button" title="List" className="hover:text-zinc-900 transition px-1">⋮=</button>
-                            <button type="button" title="Line" className="hover:text-zinc-900 transition px-1">—</button>
-                            <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-300 mx-0.5" />
+                            <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
+                            <button type="button" title="Text Size" className="hover:text-white font-serif font-bold transition px-1">Aa</button>
+                            <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
+                            <button type="button" title="Bold" className="hover:text-white font-black transition px-1">B</button>
+                            <button type="button" title="Italic" className="hover:text-white italic transition px-1">I</button>
+                            <button type="button" title="Quote" className="hover:text-white font-serif transition px-1">”</button>
+                            <button type="button" title="List" className="hover:text-white transition px-1">⋮=</button>
+                            <button type="button" title="Line" className="hover:text-white transition px-1">—</button>
+                            <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
                             <div className="relative">
                               <button
                                 type="button"
                                 onClick={() => setShowInsertResourceMenu((v) => !v)}
-                                className="hover:text-[#0066B2] text-[#0066B2] font-semibold transition px-2 py-1 rounded bg-[#EFF6FF] flex items-center gap-1 cursor-pointer"
+                                className="hover:text-[#38BDF8] text-[#0066B2] dark:text-[#38BDF8] font-semibold transition px-2 py-1 rounded bg-[#EFF6FF] dark:bg-[#0066B2]/20 flex items-center gap-1 cursor-pointer"
                               >
                                 <span>+ Insert Resource</span>
                                 <ChevronDown className="h-3 w-3" />
                               </button>
 
                               {showInsertResourceMenu && (
-                                <div className="absolute left-0 top-full mt-1.5 w-64 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-xl z-50 text-zinc-800 space-y-1">
+                                <div className={`absolute left-0 top-full mt-1.5 w-64 rounded-xl border p-1.5 shadow-xl z-50 space-y-1 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24] text-white" : "border-zinc-200 bg-white text-zinc-800"}`}>
                                   <div className="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                                     SELECT HOSTED RESOURCE
                                   </div>
                                   {hostedResources.length === 0 ? (
-                                    <div className="px-2 py-2 text-xs text-zinc-500 italic">
+                                    <div className="px-2 py-2 text-xs text-zinc-400 italic">
                                       No hosted resources found. Upload one in Hosted resources first!
                                     </div>
                                   ) : (
@@ -1545,7 +1982,7 @@ export default function EditLeadMagnetPage() {
                                           setEmailBody((prev) => prev + linkText);
                                           setShowInsertResourceMenu(false);
                                         }}
-                                        className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-[#EFF6FF] hover:text-[#0066B2] text-xs transition flex flex-col gap-0.5 cursor-pointer"
+                                        className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-[#0066B2]/20 hover:text-[#38BDF8] text-xs transition flex flex-col gap-0.5 cursor-pointer"
                                       >
                                         <span className="font-semibold truncate">{res.name}</span>
                                         <span className="text-[10px] text-zinc-400 font-mono truncate">{res.url}</span>
@@ -1555,30 +1992,26 @@ export default function EditLeadMagnetPage() {
                                 </div>
                               )}
                             </div>
-                            <button type="button" title="Link" className="hover:text-zinc-900 transition px-1">🔗</button>
+                            <button type="button" title="Link" className="hover:text-white transition px-1">🔗</button>
                           </div>
 
-                          {/* Editor Textarea */}
-                          <textarea
-                            rows={8}
-                            value={emailBody}
-                            onChange={(e) => setEmailBody(e.target.value)}
-                            placeholder="Start writing, or press / for blocks. Use {name} for the recipient."
-                            className="w-full min-h-[200px] p-5 text-xs sm:text-sm text-zinc-700 dark:text-zinc-700 placeholder:text-zinc-400 dark:placeholder:text-zinc-400 bg-white dark:bg-white outline-none resize-none"
-                          />
+                          {/* Block Email Body Editor */}
+                          <div className="p-3">
+                            {renderEmailBlockEditor(emailBody, setEmailBody, false)}
+                          </div>
                         </div>
                       </div>
 
                       {/* Feature 2: Smart Auto-Personalized Deliverable Config Card */}
-                      <div className="rounded-2xl border border-[#0066B2]/30 bg-gradient-to-br from-[#EFF6FF] to-white p-6 shadow-sm space-y-4">
+                      <div className={`rounded-2xl border p-6 shadow-sm space-y-4 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#16161A] text-white" : "border-[#0066B2]/30 bg-gradient-to-br from-[#EFF6FF] to-white text-zinc-900"}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0066B2] text-white shadow-xs">
                               <Sparkles className="h-4 w-4" />
                             </span>
                             <div>
-                              <h4 className="text-sm font-bold text-zinc-900">AI Personalization Engine (Feature 2)</h4>
-                              <p className="text-xs text-zinc-500">Ask leads a question during signup & generate custom AI action plans automatically.</p>
+                              <h4 className={`text-sm font-bold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>AI Personalization Engine (Feature 2)</h4>
+                              <p className="text-xs text-zinc-400">Ask leads a question during signup & generate custom AI action plans automatically.</p>
                             </div>
                           </div>
                           <button
@@ -1622,9 +2055,13 @@ export default function EditLeadMagnetPage() {
                     </div>
 
                     {/* Bottom Banner Card */}
-                    <div className="mt-6 mx-auto max-w-4xl rounded-2xl bg-[#080B12] dark:bg-[#080B12] p-6 flex items-center justify-center shadow-lg">
-                      <button className="flex items-center gap-2 rounded-xl bg-white dark:bg-white px-4 py-2.5 text-xs font-bold text-zinc-900 dark:text-zinc-900 shadow-md hover:bg-zinc-100 transition cursor-pointer">
-                        <span className="flex h-5 w-5 items-center justify-center rounded bg-[#FE6F34] text-black font-extrabold text-[10px]">🧲</span>
+                    <div className="mt-6 mx-auto max-w-4xl rounded-2xl bg-[#080B12] p-6 flex items-center justify-center shadow-lg">
+                      <button className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold shadow-md transition cursor-pointer ${(account?.themeMode || "light") === "dark" ? "bg-[#181C26] text-white border border-[#272D3C] hover:bg-[#202534]" : "bg-white text-zinc-900 hover:bg-zinc-100"}`}>
+                        {account?.logo || account?.avatar_url || account?.avatar ? (
+                          <img src={account?.logo || account?.avatar_url || account?.avatar || ""} alt="Logo" className="h-5 w-5 rounded object-cover" />
+                        ) : (
+                          <span className="flex h-5 w-5 items-center justify-center rounded bg-[#FE6F34] text-black font-extrabold text-[10px]">🧲</span>
+                        )}
                         <span>Build yours free with LeadMagnets</span>
                       </button>
                     </div>
@@ -1636,19 +2073,19 @@ export default function EditLeadMagnetPage() {
               {/* TAB 3: SEQUENCE */}
               {activeTab === "sequence" && (
                 <div className="space-y-6">
-                  {/* Canvas Outer Wrapper */}
-                  <div className="rounded-2xl border border-zinc-200/70 dark:border-zinc-200/70 bg-[#F9F9FB] dark:bg-[#F9F9FB] p-4 sm:p-8 text-zinc-900 dark:text-zinc-900">
-                    <div className="mx-auto max-w-4xl space-y-6">
+                  {/* Canvas Outer Wrapper - Adapts dynamically to Brand Theme Mode */}
+                  <div className={`rounded-2xl border p-4 sm:p-6 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#0E0E10] text-white" : "border-zinc-200/70 bg-[#F9F9FB] text-zinc-900"}`}>
+                    <div className="mx-auto max-w-5xl space-y-6">
 
-                      {/* Top Control Card */}
-                      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white p-6 sm:p-8 shadow-xs text-zinc-900 dark:text-zinc-900 space-y-6">
+                      {/* Top Control Card - Left Panel Background (#18181B) in Dark Mode */}
+                      <div className={`rounded-2xl border p-5 sm:p-6 shadow-xs space-y-4 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
                         <div className="flex flex-wrap items-start justify-between gap-4">
                           <div>
-                            <h3 className="text-base sm:text-lg font-extrabold text-zinc-900 dark:text-zinc-900">Follow-up sequence</h3>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+                            <h3 className={`text-base font-extrabold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>Follow-up sequence</h3>
+                            <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
                               Send extra emails after the lead magnet email. Delays are counted from the previous email or from signup for the first one.
                             </p>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+                            <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
                               LeadMagnets creates the events, templates, and automation for this sequence after your sender domain is ready.
                             </p>
                           </div>
@@ -1657,8 +2094,8 @@ export default function EditLeadMagnetPage() {
                           <button
                             onClick={() => setSequenceEnabled(!sequenceEnabled)}
                             className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-bold transition cursor-pointer shrink-0 border ${sequenceEnabled
-                              ? "bg-emerald-50 dark:bg-emerald-50 text-emerald-700 dark:text-emerald-700 border-emerald-300 dark:border-emerald-300"
-                              : "bg-[#F4F4F6] dark:bg-[#F4F4F6] text-zinc-600 dark:text-zinc-600 border-zinc-200 dark:border-zinc-200"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700/60"
+                              : "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-[#25252B] dark:text-zinc-300 dark:border-[#27272A]"
                               }`}
                           >
                             <span className={`h-2.5 w-2.5 rounded-full ${sequenceEnabled ? "bg-emerald-500" : "bg-zinc-400"}`} />
@@ -1667,114 +2104,302 @@ export default function EditLeadMagnetPage() {
                         </div>
 
                         {/* 2 Sub-cards in grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                           {/* Sub-card 1: Stop when a call is booked */}
                           <div
-                            onClick={() => setStopOnCall(!stopOnCall)}
-                            className="rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white p-4 cursor-pointer hover:border-zinc-300 transition shadow-2xs"
+                            onClick={() => { if (sequenceEnabled) setStopOnCall(!stopOnCall); }}
+                            className={`rounded-xl border p-3.5 transition shadow-2xs ${sequenceEnabled ? "cursor-pointer" : "opacity-50 cursor-not-allowed"} ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] hover:border-zinc-500 text-white" : "border-zinc-200 bg-white hover:border-zinc-300 text-zinc-900"}`}
                           >
                             <div className="flex items-center gap-2">
                               <input
                                 type="checkbox"
                                 checked={stopOnCall}
+                                disabled={!sequenceEnabled}
                                 onChange={() => { }}
-                                className="rounded border-zinc-300 text-[#FE6F34] focus:ring-[#FE6F34] cursor-pointer"
+                                className="rounded border-zinc-300 text-[#FE6F34] focus:ring-[#FE6F34] cursor-pointer disabled:cursor-not-allowed"
                               />
-                              <span className="text-xs font-bold text-zinc-800 dark:text-zinc-800">Stop when a call is booked</span>
+                              <span className={`text-xs font-bold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-800"}`}>Stop when a call is booked</span>
                             </div>
-                            <p className="text-[11px] text-zinc-400 dark:text-zinc-400 mt-1.5 pl-6 leading-relaxed">
+                            <p className="text-[11px] text-zinc-400 mt-1 pl-6 leading-relaxed">
                               Calendly and Cal.com booking-created webhooks stop this magnet&apos;s sequence for that email.
                             </p>
                           </div>
 
                           {/* Sub-card 2: Calendar connection */}
-                          <div className="rounded-xl border border-zinc-100 dark:border-zinc-100 bg-[#F9F9FB] dark:bg-[#F9F9FB] p-4">
-                            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-700 block">Calendar connection</span>
-                            <p className="text-[11px] text-zinc-400 dark:text-zinc-400 mt-1.5 leading-relaxed">
+                          <div className={`rounded-xl border p-3.5 transition ${sequenceEnabled ? "" : "opacity-50"} ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] text-white" : "border-zinc-200 bg-[#F9F9FB] text-zinc-900"}`}>
+                            <span className={`text-xs font-bold block ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-700"}`}>Calendar connection</span>
+                            <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
                               Connect Calendly or Cal.com in Configure to let booked calls stop this sequence.
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      {/* Bottom Card: Sequence List or Empty State */}
+                      {/* Main Editor Body: Empty State OR 2-Column Sidebar + Detail View */}
                       {sequenceEmails.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-300 bg-white dark:bg-white p-12 text-center shadow-xs">
-                          <h4 className="text-base font-bold text-zinc-900 dark:text-zinc-900">No follow-up emails yet</h4>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1 mb-5">
+                        <div className={`rounded-2xl border p-12 text-center shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-dashed border-[#27272A] bg-[#18181B] text-white" : "border-dashed border-zinc-300 bg-white text-zinc-900"}`}>
+                          <h4 className={`text-base font-bold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>No follow-up emails yet</h4>
+                          <p className="text-xs text-zinc-400 mt-1 mb-5">
                             Add up to 10 emails to build this magnet&apos;s sequence.
                           </p>
                           <button
+                            disabled={!sequenceEnabled}
                             onClick={addSequenceEmail}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-800 hover:bg-zinc-50 transition cursor-pointer shadow-xs"
+                            className={`inline-flex items-center gap-1.5 rounded-xl border px-4 py-2.5 text-xs font-bold transition shadow-xs ${!sequenceEnabled
+                              ? "opacity-50 cursor-not-allowed pointer-events-none"
+                              : "cursor-pointer"
+                              } ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#202025] text-white hover:bg-[#27272E]" : "border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50"}`}
                           >
                             <Plus className="h-4 w-4" />
                             <span>Add first email</span>
                           </button>
                         </div>
                       ) : (
-                        <div className="space-y-4">
-                          {sequenceEmails.map((emailItem, idx) => (
-                            <div key={emailItem.id} className="rounded-2xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white p-6 shadow-xs space-y-4 text-zinc-900 dark:text-zinc-900">
-                              <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-                                <span className="text-xs font-extrabold text-[#FE6F34] uppercase tracking-wider">Email #{idx + 1}</span>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-zinc-500">Wait</span>
-                                  <input
-                                    type="number"
-                                    min={1}
-                                    max={30}
-                                    value={emailItem.delayDays}
-                                    onChange={(e) => {
-                                      const val = parseInt(e.target.value) || 1;
-                                      setSequenceEmails(sequenceEmails.map((item) => item.id === emailItem.id ? { ...item, delayDays: val } : item));
-                                    }}
-                                    className="w-14 rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs text-center text-zinc-900 outline-none"
-                                  />
-                                  <span className="text-xs text-zinc-500">days</span>
-                                  <button
-                                    onClick={() => removeSequenceEmail(emailItem.id)}
-                                    className="text-zinc-400 hover:text-red-500 p-1.5 transition ml-2 cursor-pointer"
-                                    title="Remove email step"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              </div>
+                        <div className={`rounded-2xl border overflow-hidden shadow-xs transition-colors duration-200 flex flex-col md:flex-row min-h-[580px] ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
 
-                              <div>
-                                <label className="text-xs font-semibold text-zinc-700 block mb-1">Subject</label>
-                                <input
-                                  type="text"
-                                  value={emailItem.subject}
-                                  onChange={(e) => setSequenceEmails(sequenceEmails.map((item) => item.id === emailItem.id ? { ...item, subject: e.target.value } : item))}
-                                  placeholder="Follow-up email subject line"
-                                  className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs text-zinc-900 outline-none focus:border-[#FE6F34]"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="text-xs font-semibold text-zinc-700 block mb-1">Email Body</label>
-                                <textarea
-                                  rows={4}
-                                  value={emailItem.body}
-                                  onChange={(e) => setSequenceEmails(sequenceEmails.map((item) => item.id === emailItem.id ? { ...item, body: e.target.value } : item))}
-                                  placeholder="Write your email body here..."
-                                  className="w-full rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-900 outline-none focus:border-[#FE6F34] resize-none"
-                                />
-                              </div>
+                          {/* LEFT COLUMN / SIDEBAR ITEM LIST */}
+                          <div className={`w-full md:w-64 border-b md:border-b-0 md:border-r flex flex-col p-4 shrink-0 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#141418]" : "border-zinc-200 bg-zinc-50/70"}`}>
+                            {/* Header: "SEQUENCE" + "+" Button */}
+                            <div className="flex items-center justify-between pb-3 mb-2 border-b border-zinc-200 dark:border-[#27272A]">
+                              <span className="text-xs font-extrabold tracking-wider text-zinc-500 dark:text-zinc-400 uppercase">Sequence</span>
+                              <button
+                                disabled={!sequenceEnabled || sequenceEmails.length >= 10}
+                                onClick={addSequenceEmail}
+                                className={`p-1 rounded-lg border transition shadow-xs ${!sequenceEnabled || sequenceEmails.length >= 10
+                                  ? "opacity-40 cursor-not-allowed pointer-events-none"
+                                  : "cursor-pointer"
+                                  } ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24] text-zinc-200 hover:bg-[#272730] hover:text-white" : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100"}`}
+                                title={sequenceEmails.length >= 10 ? "Maximum 10 emails" : "Add sequence email (+)"}
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                              </button>
                             </div>
-                          ))}
 
-                          {sequenceEmails.length < 10 && (
-                            <button
-                              onClick={addSequenceEmail}
-                              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-300 bg-white p-3 text-xs font-bold text-zinc-700 hover:bg-zinc-50 transition cursor-pointer shadow-xs"
-                            >
-                              <Plus className="h-4 w-4" />
-                              <span>Add another sequence email ({sequenceEmails.length}/10)</span>
-                            </button>
-                          )}
+                            {/* Email Items List */}
+                            <div className="space-y-2 overflow-y-auto max-h-[500px] pr-1">
+                              {sequenceEmails.map((item, idx) => {
+                                const isSelected = idx === selectedSequenceIndex;
+                                return (
+                                  <div
+                                    key={item.id}
+                                    onClick={() => setSelectedSequenceIndex(idx)}
+                                    className={`rounded-xl p-3 flex items-center justify-between transition cursor-pointer ${isSelected
+                                      ? "bg-[#FE6F34] text-white shadow-md font-bold"
+                                      : ((account?.themeMode || "light") === "dark"
+                                        ? "bg-[#1B1B20] text-zinc-300 hover:bg-[#24242A] border border-[#27272A]"
+                                        : "bg-white text-zinc-800 hover:bg-zinc-100 border border-zinc-200")
+                                      }`}
+                                  >
+                                    <div className="min-w-0 flex-1 pr-2">
+                                      <span className={`block text-xs font-extrabold truncate ${isSelected ? "text-white" : ((account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900")}`}>
+                                        Email {idx + 2}
+                                      </span>
+                                      <span className={`block text-[11px] truncate mt-0.5 ${isSelected ? "text-white/80" : "text-zinc-400"}`}>
+                                        {item.subject || "Untitled email"}
+                                      </span>
+                                    </div>
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isSelected ? "bg-white/20 text-white" : "bg-zinc-800/40 text-zinc-400"}`}>
+                                      {item.delayDays}{item.delayUnit === "minutes" ? "m" : "h"}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* RIGHT COLUMN / MAIN EMAIL EDITOR PANEL */}
+                          <div className="flex-1 flex flex-col justify-between p-4 sm:p-6 min-w-0">
+                            {(() => {
+                              const activeEmail = sequenceEmails[selectedSequenceIndex] || sequenceEmails[0];
+                              if (!activeEmail) return null;
+
+                              return (
+                                <div className="space-y-5">
+                                  {/* Editor Top Bar */}
+                                  <div className="flex items-center justify-between border-b pb-4 border-zinc-200 dark:border-[#27272A]">
+                                    <div className="flex items-center gap-2">
+                                      <Mail className="h-4 w-4 text-[#FE6F34]" />
+                                      <h4 className={`text-sm sm:text-base font-extrabold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>
+                                        Email {selectedSequenceIndex + 2}
+                                      </h4>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                      {/* Preview Button */}
+                                      <button
+                                        disabled={!sequenceEnabled}
+                                        onClick={() => {
+                                          setPreviewSequenceIndex(selectedSequenceIndex + 1);
+                                          setShowSequencePreviewModal(true);
+                                        }}
+                                        className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition shadow-2xs ${!sequenceEnabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                                          } ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24] text-zinc-200 hover:bg-[#272730]" : "border-zinc-200 bg-zinc-100 text-zinc-800 hover:bg-zinc-200"}`}
+                                      >
+                                        <Eye className="h-3.5 w-3.5" />
+                                        <span>Preview</span>
+                                      </button>
+
+                                      {/* Remove Button */}
+                                      <button
+                                        disabled={!sequenceEnabled}
+                                        onClick={() => removeSequenceEmail(activeEmail.id)}
+                                        className="flex items-center gap-1.5 rounded-lg border border-red-900/40 bg-red-950/20 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-900/40 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                        <span>Remove</span>
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Field 1: Delay from previous email */}
+                                  <div>
+                                    <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1.5 mb-1.5">
+                                      <Clock className="h-3.5 w-3.5 text-zinc-400" />
+                                      <span>Delay from previous email</span>
+                                    </label>
+                                    <div className="flex items-center gap-2 max-w-xs">
+                                      <input
+                                        type="number"
+                                        min={1}
+                                        max={365}
+                                        disabled={!sequenceEnabled}
+                                        value={activeEmail.delayDays || 1}
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value) || 1;
+                                          setSequenceEmails(sequenceEmails.map((item, idx) => idx === selectedSequenceIndex ? { ...item, delayDays: val } : item));
+                                        }}
+                                        className={`w-24 rounded-xl border px-3 py-2 text-xs font-bold outline-none disabled:cursor-not-allowed ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] text-white focus:border-[#FE6F34]" : "border-zinc-200 bg-white text-zinc-900 focus:border-[#FE6F34]"}`}
+                                      />
+                                      <select
+                                        disabled={!sequenceEnabled}
+                                        value={activeEmail.delayUnit || "hours"}
+                                        onChange={(e) => {
+                                          const unit = e.target.value as "hours" | "minutes";
+                                          setSequenceEmails(sequenceEmails.map((item, idx) => idx === selectedSequenceIndex ? { ...item, delayUnit: unit } : item));
+                                        }}
+                                        className={`rounded-xl border px-3 py-2 text-xs font-bold outline-none cursor-pointer disabled:cursor-not-allowed ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] text-white focus:border-[#FE6F34]" : "border-zinc-200 bg-white text-zinc-900 focus:border-[#FE6F34]"}`}
+                                      >
+                                        <option value="minutes">minutes</option>
+                                        <option value="hours">hours</option>
+                                      </select>
+                                    </div>
+                                  </div>
+
+                                  {/* Field 2: Subject */}
+                                  <div>
+                                    <label className={`text-xs font-semibold block mb-1.5 ${(account?.themeMode || "light") === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Subject</label>
+                                    <input
+                                      type="text"
+                                      disabled={!sequenceEnabled}
+                                      value={activeEmail.subject || ""}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSequenceEmails(sequenceEmails.map((item, idx) => idx === selectedSequenceIndex ? { ...item, subject: val } : item));
+                                      }}
+                                      placeholder="Quick follow-up"
+                                      className={`w-full rounded-xl border px-3.5 py-2.5 text-xs outline-none transition disabled:cursor-not-allowed ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] text-white placeholder:text-zinc-600 focus:border-[#FE6F34]" : "border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-[#FE6F34]"}`}
+                                    />
+                                  </div>
+
+                                  {/* Field 3: Preview Text */}
+                                  <div>
+                                    <label className={`text-xs font-semibold block mb-1.5 ${(account?.themeMode || "light") === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Preview text</label>
+                                    <input
+                                      type="text"
+                                      disabled={!sequenceEnabled}
+                                      value={activeEmail.previewText || ""}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSequenceEmails(sequenceEmails.map((item, idx) => idx === selectedSequenceIndex ? { ...item, previewText: val } : item));
+                                      }}
+                                      placeholder="Short inbox teaser"
+                                      className={`w-full rounded-xl border px-3.5 py-2.5 text-xs outline-none transition disabled:cursor-not-allowed ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-white placeholder:text-zinc-600 focus:border-[#FE6F34]" : "border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-[#FE6F34]"}`}
+                                    />
+                                  </div>
+
+                                  {/* Field 4: Body + Rich Editor Toolbar */}
+                                  <div>
+                                    <label className={`text-xs font-semibold block mb-1.5 ${(account?.themeMode || "light") === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Body</label>
+                                    <div className={`rounded-xl border overflow-hidden transition ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B]" : "border-zinc-200 bg-white"}`}>
+                                      {/* Toolbar */}
+                                      <div className={`flex flex-wrap items-center gap-1 px-3 py-2 border-b text-xs text-zinc-400 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B]" : "border-zinc-100 bg-zinc-50"}`}>
+                                        <button title="Undo" onClick={() => { }} className="p-1 hover:text-white transition cursor-pointer"><Undo2 className="h-3.5 w-3.5" /></button>
+                                        <button title="Redo" onClick={() => { }} className="p-1 hover:text-white transition cursor-pointer"><Redo2 className="h-3.5 w-3.5" /></button>
+                                        <div className="h-3 w-px bg-zinc-700 mx-1" />
+                                        <span className="px-1 font-extrabold text-[11px] cursor-pointer">Aa</span>
+                                        <span className="px-1 font-bold italic cursor-pointer">B</span>
+                                        <span className="px-1 italic cursor-pointer">I</span>
+                                        <span className="px-1 font-serif cursor-pointer">&rdquo;</span>
+                                        <span className="px-1 cursor-pointer">≡</span>
+                                        <span className="px-1 cursor-pointer">-</span>
+                                        <div className="h-3 w-px bg-zinc-700 mx-1" />
+                                        <button
+                                          onClick={() => {
+                                            const updatedBody = (activeEmail.body || "") + " {name}";
+                                            setSequenceEmails(sequenceEmails.map((item, idx) => idx === selectedSequenceIndex ? { ...item, body: updatedBody } : item));
+                                          }}
+                                          className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-[11px] text-zinc-200 transition cursor-pointer"
+                                        >
+                                          <Plus className="h-3 w-3" />
+                                          <span>Insert &#123;name&#125;</span>
+                                        </button>
+                                      </div>
+
+                                      {/* Block Email Body Editor */}
+                                      <div className="p-3">
+                                        {renderEmailBlockEditor(
+                                          activeEmail.body || "",
+                                          (nextVal) => {
+                                            setSequenceEmails(sequenceEmails.map((item, idx) => idx === selectedSequenceIndex ? { ...item, body: nextVal } : item));
+                                          },
+                                          !sequenceEnabled
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Bottom Banner Card */}
+                                  <div className="mt-4 rounded-xl bg-[#080B12] p-5 flex items-center justify-center shadow-lg">
+                                    <button className="flex items-center gap-2 rounded-xl bg-[#181C26] text-white border border-[#272D3C] px-4 py-2 text-xs font-bold shadow-md hover:bg-[#202534] transition cursor-pointer">
+                                      {account?.logo || account?.avatar_url || account?.avatar ? (
+                                        <img src={account?.logo || account?.avatar_url || account?.avatar || ""} alt="Logo" className="h-5 w-5 rounded object-cover" />
+                                      ) : (
+                                        <span className="flex h-5 w-5 items-center justify-center rounded bg-[#FE6F34] text-black font-extrabold text-[10px]">🧲</span>
+                                      )}
+                                      <span>Build yours free with Magnets</span>
+                                    </button>
+                                  </div>
+
+                                  {/* Footer Navigation Bar */}
+                                  <div className="flex items-center justify-between border-t pt-4 border-zinc-200 dark:border-[#27272A] text-xs text-zinc-400">
+                                    <button
+                                      disabled={selectedSequenceIndex === 0}
+                                      onClick={() => setSelectedSequenceIndex(selectedSequenceIndex - 1)}
+                                      className="flex items-center gap-1 hover:text-white transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                      <ChevronLeft className="h-3.5 w-3.5" />
+                                      <span>Previous</span>
+                                    </button>
+
+                                    <span className="text-[11px] text-zinc-500 font-medium">
+                                      Swipe on mobile - Email {selectedSequenceIndex + 2} of {sequenceEmails.length + 1}
+                                    </span>
+
+                                    <button
+                                      disabled={selectedSequenceIndex === sequenceEmails.length - 1}
+                                      onClick={() => setSelectedSequenceIndex(selectedSequenceIndex + 1)}
+                                      className="flex items-center gap-1 hover:text-white transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                      <span>Next</span>
+                                      <ChevronRight className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+
+                                </div>
+                              );
+                            })()}
+                          </div>
+
                         </div>
                       )}
 
@@ -1786,19 +2411,19 @@ export default function EditLeadMagnetPage() {
               {/* TAB 4: AFTER SIGNUP */}
               {activeTab === "after" && (
                 <div className="space-y-4">
-                  {/* Canvas Outer Wrapper */}
-                  <div className="rounded-2xl border border-zinc-200/70 dark:border-zinc-200/70 bg-[#F9F9FB] dark:bg-[#F9F9FB] p-3 sm:p-5 text-zinc-900 dark:text-zinc-900">
+                  {/* Canvas Outer Wrapper - Adapts dynamically to Brand Theme Mode */}
+                  <div className={`rounded-2xl border p-3 sm:p-5 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#0E0E10] text-white" : "border-zinc-200/70 bg-[#F9F9FB] text-zinc-900"}`}>
                     <div className="mx-auto max-w-4xl space-y-4">
 
-                      {/* Top Options Card */}
-                      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white p-4 sm:p-6 shadow-xs text-zinc-900 dark:text-zinc-900 space-y-4">
+                      {/* Top Options Card - Left Panel Background (#18181B) in Dark Mode */}
+                      <div className={`rounded-2xl border p-4 sm:p-6 shadow-xs space-y-4 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
                         <div className="flex items-start gap-3">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white text-zinc-700 dark:text-zinc-700 shadow-xs">
+                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] text-white" : "border-zinc-200 bg-white text-zinc-700"}`}>
                             <Check className="h-4 w-4 stroke-[2.5px]" />
                           </div>
                           <div>
-                            <h3 className="text-base font-extrabold text-zinc-900 dark:text-zinc-900">What happens after someone opts in?</h3>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-0.5">
+                            <h3 className={`text-base font-extrabold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>What happens after someone opts in?</h3>
+                            <p className="text-xs text-zinc-400 mt-0.5">
                               Keep it simple: show a confirmation, take them straight to another URL, or give them a useful next step on a short page.
                             </p>
                           </div>
@@ -1811,13 +2436,15 @@ export default function EditLeadMagnetPage() {
                             onClick={() => setAfterSignupOption("standard")}
                             className={`p-3.5 sm:p-4 rounded-xl text-left transition cursor-pointer ${afterSignupOption === "standard"
                               ? "bg-[#0066B2] text-white border border-transparent shadow-md"
-                              : "bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 hover:border-[#0066B2]"
+                              : ((account?.themeMode || "light") === "dark"
+                                ? "bg-[#121216] border border-[#27272A] text-white hover:border-[#0066B2]"
+                                : "bg-white border border-zinc-200 text-zinc-900 hover:border-[#0066B2]")
                               }`}
                           >
-                            <h4 className={`text-xs sm:text-sm font-extrabold ${afterSignupOption === "standard" ? "text-white" : "text-zinc-900 dark:text-zinc-900"}`}>
+                            <h4 className={`text-xs sm:text-sm font-extrabold ${afterSignupOption === "standard" ? "text-white" : ((account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900")}`}>
                               Standard confirmation
                             </h4>
-                            <p className={`text-[11px] sm:text-xs mt-1 leading-snug ${afterSignupOption === "standard" ? "text-white/90" : "text-zinc-500 dark:text-zinc-500"}`}>
+                            <p className={`text-[11px] sm:text-xs mt-1 leading-snug ${afterSignupOption === "standard" ? "text-white/90" : "text-zinc-400"}`}>
                               Show the email confirmation message.
                             </p>
                           </button>
@@ -1827,13 +2454,15 @@ export default function EditLeadMagnetPage() {
                             onClick={() => setAfterSignupOption("elsewhere")}
                             className={`p-3.5 sm:p-4 rounded-xl text-left transition cursor-pointer ${afterSignupOption === "elsewhere"
                               ? "bg-[#0066B2] text-white border border-transparent shadow-md"
-                              : "bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 hover:border-[#0066B2]"
+                              : ((account?.themeMode || "light") === "dark"
+                                ? "bg-[#121216] border border-[#27272A] text-white hover:border-[#0066B2]"
+                                : "bg-white border border-zinc-200 text-zinc-900 hover:border-[#0066B2]")
                               }`}
                           >
-                            <h4 className={`text-xs sm:text-sm font-extrabold ${afterSignupOption === "elsewhere" ? "text-white" : "text-zinc-900 dark:text-zinc-900"}`}>
+                            <h4 className={`text-xs sm:text-sm font-extrabold ${afterSignupOption === "elsewhere" ? "text-white" : ((account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900")}`}>
                               Send them elsewhere
                             </h4>
-                            <p className={`text-[11px] sm:text-xs mt-1 leading-snug ${afterSignupOption === "elsewhere" ? "text-white/90" : "text-zinc-500 dark:text-zinc-500"}`}>
+                            <p className={`text-[11px] sm:text-xs mt-1 leading-snug ${afterSignupOption === "elsewhere" ? "text-white/90" : "text-zinc-400"}`}>
                               Open a URL as soon as the form is submitted.
                             </p>
                           </button>
@@ -1843,19 +2472,21 @@ export default function EditLeadMagnetPage() {
                             onClick={() => setAfterSignupOption("custom")}
                             className={`p-3.5 sm:p-4 rounded-xl text-left transition cursor-pointer ${afterSignupOption === "custom"
                               ? "bg-[#0066B2] text-white border border-transparent shadow-md"
-                              : "bg-white dark:bg-white border border-zinc-200 dark:border-zinc-200 text-zinc-900 dark:text-zinc-900 hover:border-[#0066B2]"
+                              : ((account?.themeMode || "light") === "dark"
+                                ? "bg-[#121216] border border-[#27272A] text-white hover:border-[#0066B2]"
+                                : "bg-white border border-zinc-200 text-zinc-900 hover:border-[#0066B2]")
                               }`}
                           >
-                            <h4 className={`text-xs sm:text-sm font-extrabold ${afterSignupOption === "custom" ? "text-white" : "text-zinc-900 dark:text-zinc-900"}`}>
+                            <h4 className={`text-xs sm:text-sm font-extrabold ${afterSignupOption === "custom" ? "text-white" : ((account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900")}`}>
                               Custom next step
                             </h4>
-                            <p className={`text-[11px] sm:text-xs mt-1 leading-snug ${afterSignupOption === "custom" ? "text-white/90" : "text-zinc-500 dark:text-zinc-500"}`}>
+                            <p className={`text-[11px] sm:text-xs mt-1 leading-snug ${afterSignupOption === "custom" ? "text-white/90" : "text-zinc-400"}`}>
                               Show your own message, video, or offer.
                             </p>
                           </button>
                         </div>
 
-                        <p className="text-xs text-zinc-500 dark:text-zinc-500 font-medium">
+                        <p className="text-xs text-zinc-400 font-medium">
                           A quiz funnel is available with Custom next step.
                         </p>
 
@@ -1863,8 +2494,8 @@ export default function EditLeadMagnetPage() {
 
                         {/* Dynamic Panel 2: Destination URL when "elsewhere" is selected */}
                         {afterSignupOption === "elsewhere" && (
-                          <div className="pt-3 space-y-1.5 border-t border-zinc-100 dark:border-zinc-100">
-                            <label className="text-xs font-bold text-zinc-700 dark:text-zinc-700 flex items-center gap-1.5">
+                          <div className={`pt-3 space-y-1.5 border-t ${(account?.themeMode || "light") === "dark" ? "border-[#27272A]" : "border-zinc-100"}`}>
+                            <label className={`text-xs font-bold flex items-center gap-1.5 ${(account?.themeMode || "light") === "dark" ? "text-zinc-200" : "text-zinc-700"}`}>
                               <ExternalLink className="h-3.5 w-3.5 text-[#0066B2]" />
                               <span>Destination URL</span>
                             </label>
@@ -1873,9 +2504,9 @@ export default function EditLeadMagnetPage() {
                               value={destinationUrl}
                               onChange={(e) => setDestinationUrl(e.target.value)}
                               placeholder="https://your-site.com/next-step"
-                              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-[#0066B2]"
+                              className={`w-full rounded-xl border px-3.5 py-2 text-xs outline-none transition ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] text-white placeholder:text-zinc-500 focus:border-[#0066B2]" : "border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-[#0066B2]"}`}
                             />
-                            <p className="text-xs text-zinc-400 dark:text-zinc-400">
+                            <p className="text-xs text-zinc-400">
                               They will be taken here straight after a successful signup.
                             </p>
                           </div>
@@ -1883,31 +2514,31 @@ export default function EditLeadMagnetPage() {
 
                         {/* Dynamic Panel 3: Custom Next Step fields when "custom" is selected */}
                         {afterSignupOption === "custom" && (
-                          <div className="pt-3 space-y-3 border-t border-zinc-100 dark:border-zinc-100">
+                          <div className={`pt-3 space-y-3 border-t ${(account?.themeMode || "light") === "dark" ? "border-[#27272A]" : "border-zinc-100"}`}>
                             <div>
-                              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-700 block mb-1">Heading</label>
+                              <label className={`text-xs font-semibold block mb-1 ${(account?.themeMode || "light") === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Heading</label>
                               <input
                                 type="text"
                                 value={customHeading}
                                 onChange={(e) => setCustomHeading(e.target.value)}
                                 placeholder="You are in. Here is what to do next."
-                                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#0066B2]"
+                                className={`w-full rounded-xl border px-3.5 py-2 text-xs outline-none transition ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] text-white placeholder:text-zinc-500 focus:border-[#0066B2]" : "border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-[#0066B2]"}`}
                               />
                             </div>
 
                             <div>
-                              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-700 block mb-1">Message</label>
+                              <label className={`text-xs font-semibold block mb-1 ${(account?.themeMode || "light") === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Message</label>
                               <textarea
                                 rows={2}
                                 value={customMessage}
                                 onChange={(e) => setCustomMessage(e.target.value)}
                                 placeholder="Set expectations, introduce an offer, or explain the next step."
-                                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white p-2.5 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#0066B2] resize-none"
+                                className={`w-full rounded-xl border p-2.5 text-xs outline-none resize-none transition ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] text-white placeholder:text-zinc-500 focus:border-[#0066B2]" : "border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-[#0066B2]"}`}
                               />
                             </div>
 
                             <div>
-                              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-700 flex items-center gap-1.5 mb-1">
+                              <label className={`text-xs font-semibold flex items-center gap-1.5 mb-1 ${(account?.themeMode || "light") === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
                                 <span>🎥 Loom or YouTube URL</span>
                               </label>
                               <input
@@ -1915,29 +2546,29 @@ export default function EditLeadMagnetPage() {
                                 value={videoUrl}
                                 onChange={(e) => setVideoUrl(e.target.value)}
                                 placeholder="https://www.loom.com/share/..."
-                                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#0066B2]"
+                                className={`w-full rounded-xl border px-3.5 py-2 text-xs outline-none transition ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] text-white placeholder:text-zinc-500 focus:border-[#0066B2]" : "border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-[#0066B2]"}`}
                               />
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
-                                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-700 block mb-1">Button label</label>
+                                <label className={`text-xs font-semibold block mb-1 ${(account?.themeMode || "light") === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Button label</label>
                                 <input
                                   type="text"
                                   value={buttonLabel}
                                   onChange={(e) => setButtonLabel(e.target.value)}
                                   placeholder="Book a call"
-                                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#0066B2]"
+                                  className={`w-full rounded-xl border px-3.5 py-2 text-xs outline-none transition ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] text-white placeholder:text-zinc-500 focus:border-[#0066B2]" : "border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-[#0066B2]"}`}
                                 />
                               </div>
                               <div>
-                                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-700 block mb-1">Button URL</label>
+                                <label className={`text-xs font-semibold block mb-1 ${(account?.themeMode || "light") === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Button URL</label>
                                 <input
                                   type="url"
                                   value={buttonUrl}
                                   onChange={(e) => setButtonUrl(e.target.value)}
                                   placeholder="https://cal.com/..."
-                                  className="w-full rounded-xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-900 outline-none focus:border-[#0066B2]"
+                                  className={`w-full rounded-xl border px-3.5 py-2 text-xs outline-none transition ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#121216] text-white placeholder:text-zinc-500 focus:border-[#0066B2]" : "border-zinc-200 bg-white text-zinc-900 placeholder:text-zinc-400 focus:border-[#0066B2]"}`}
                                 />
                               </div>
                             </div>
@@ -1946,15 +2577,15 @@ export default function EditLeadMagnetPage() {
 
                       </div>
 
-                      {/* Bottom Card: Quiz Funnel Card */}
-                      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-200 bg-white dark:bg-white p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+                      {/* Bottom Card: Quiz Funnel Card - Left Panel Background (#18181B) in Dark Mode */}
+                      <div className={`rounded-2xl border p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-100 text-zinc-700 dark:text-zinc-700">
+                          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${(account?.themeMode || "light") === "dark" ? "bg-[#121216] text-zinc-200" : "bg-zinc-100 text-zinc-700"}`}>
                             <FileText className="h-4.5 w-4.5" />
                           </div>
                           <div>
-                            <h4 className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-900">Add a quiz funnel</h4>
-                            <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-500 mt-0.5">
+                            <h4 className={`text-xs sm:text-sm font-bold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>Add a quiz funnel</h4>
+                            <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
                               Ask a short series of questions after signup. Save every answer, then optionally route people based on their responses.
                             </p>
                           </div>
@@ -1963,8 +2594,8 @@ export default function EditLeadMagnetPage() {
                         <button
                           onClick={() => setQuizFunnelEnabled(!quizFunnelEnabled)}
                           className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold transition cursor-pointer shrink-0 border ${quizFunnelEnabled
-                            ? "bg-emerald-50 dark:bg-emerald-50 text-emerald-700 dark:text-emerald-700 border-emerald-300 dark:border-emerald-300"
-                            : "bg-[#F4F4F6] dark:bg-[#F4F4F6] text-zinc-600 dark:text-zinc-600 border-zinc-200 dark:border-zinc-200"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700/60"
+                            : "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-[#25252B] dark:text-zinc-300 dark:border-[#27272A]"
                             }`}
                         >
                           <span className={`h-2.5 w-2.5 rounded-full ${quizFunnelEnabled ? "bg-emerald-500" : "bg-zinc-400"}`} />
@@ -2065,6 +2696,159 @@ export default function EditLeadMagnetPage() {
           page={{ ...page, headline, subheadline }}
           account={account}
         />
+      )}
+
+      {/* Functional Sequence Preview Modal */}
+      {showSequencePreviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-6 animate-in fade-in duration-200">
+          <div className="flex flex-col w-full max-w-5xl h-[85vh] rounded-2xl border border-[#27272A] bg-[#121216] text-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+
+            {/* Modal Top Header Bar */}
+            <div className="flex items-center justify-between border-b border-[#27272A] px-6 py-4 bg-[#18181C]">
+              <div className="min-w-0 pr-4">
+                <h3 className="text-sm font-extrabold text-white truncate">
+                  {previewSequenceIndex === 0
+                    ? (emailSubject || "Untitled email")
+                    : (sequenceEmails[previewSequenceIndex - 1]?.subject || "Untitled email")}
+                </h3>
+                <p className="text-xs text-zinc-400 truncate mt-0.5">
+                  {previewSequenceIndex === 0
+                    ? (emailPreviewText || "No preview text yet")
+                    : (sequenceEmails[previewSequenceIndex - 1]?.previewText || "No preview text yet")}
+                </p>
+              </div>
+
+              {/* Right Toggle & Close */}
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center rounded-lg border border-[#27272A] bg-[#121216] p-1 text-xs">
+                  <button
+                    onClick={() => setPreviewDeviceMode("desktop")}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-bold transition cursor-pointer ${
+                      previewDeviceMode === "desktop" ? "bg-[#272730] text-white" : "text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    <Monitor className="h-3.5 w-3.5" />
+                    <span>Desktop</span>
+                  </button>
+                  <button
+                    onClick={() => setPreviewDeviceMode("mobile")}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-bold transition cursor-pointer ${
+                      previewDeviceMode === "mobile" ? "bg-[#272730] text-white" : "text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    <Smartphone className="h-3.5 w-3.5" />
+                    <span>Mobile</span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setShowSequencePreviewModal(false)}
+                  className="rounded-lg border border-[#27272A] bg-[#1E1E24] px-4 py-1.5 text-xs font-bold text-zinc-300 hover:bg-[#272730] hover:text-white transition cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Main Body */}
+            <div className="flex flex-1 min-h-0">
+              {/* Left Sidebar List */}
+              <div className="w-64 border-r border-[#27272A] bg-[#141418] p-4 flex flex-col gap-2 overflow-y-auto shrink-0">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-500 mb-2">Sequence Preview</span>
+
+                {/* Email 1: Delivery Email */}
+                <div
+                  onClick={() => setPreviewSequenceIndex(0)}
+                  className={`rounded-xl p-3 flex items-center justify-between transition cursor-pointer ${
+                    previewSequenceIndex === 0
+                      ? "bg-[#FE6F34] text-white shadow-md font-bold"
+                      : "bg-[#1B1B20] text-zinc-300 hover:bg-[#24242A] border border-[#27272A]"
+                  }`}
+                >
+                  <div className="min-w-0 pr-2">
+                    <span className="block text-xs font-extrabold truncate">Email 1</span>
+                    <span className={`block text-[11px] truncate mt-0.5 ${previewSequenceIndex === 0 ? "text-white/80" : "text-zinc-400"}`}>
+                      {emailSubject || "Untitled email"}
+                    </span>
+                  </div>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${previewSequenceIndex === 0 ? "bg-white/20 text-white" : "bg-zinc-800/40 text-zinc-400"}`}>
+                    0m
+                  </span>
+                </div>
+
+                {/* Follow-up Emails (Email 2, Email 3, etc.) */}
+                {sequenceEmails.map((item, idx) => {
+                  const seqIndex = idx + 1;
+                  const isSelected = previewSequenceIndex === seqIndex;
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => setPreviewSequenceIndex(seqIndex)}
+                      className={`rounded-xl p-3 flex items-center justify-between transition cursor-pointer ${
+                        isSelected
+                          ? "bg-[#FE6F34] text-white shadow-md font-bold"
+                          : "bg-[#1B1B20] text-zinc-300 hover:bg-[#24242A] border border-[#27272A]"
+                      }`}
+                    >
+                      <div className="min-w-0 pr-2">
+                        <span className="block text-xs font-extrabold truncate">Email {idx + 2}</span>
+                        <span className={`block text-[11px] truncate mt-0.5 ${isSelected ? "text-white/80" : "text-zinc-400"}`}>
+                          {item.subject || "Untitled email"}
+                        </span>
+                      </div>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isSelected ? "bg-white/20 text-white" : "bg-zinc-800/40 text-zinc-400"}`}>
+                        {item.delayDays}{item.delayUnit === "minutes" ? "m" : "h"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Right Preview Canvas */}
+              <div className="flex-1 bg-[#EBEAE6] p-4 sm:p-8 flex items-start justify-center overflow-y-auto">
+                <div className={`w-full transition-all duration-300 my-auto ${previewDeviceMode === "mobile" ? "max-w-xs" : "max-w-xl"}`}>
+                  <div className="rounded-2xl bg-white text-zinc-900 shadow-2xl overflow-hidden border border-zinc-200">
+                    
+                    {/* Inner Email Body Content */}
+                    <div className="p-6 sm:p-8 space-y-6">
+                      <div className="text-xs text-zinc-800 whitespace-pre-wrap leading-relaxed">
+                        {(() => {
+                          const rawBody = previewSequenceIndex === 0
+                            ? emailBody
+                            : (sequenceEmails[previewSequenceIndex - 1]?.body || "");
+                          return (rawBody || "No email body written yet.")
+                            .replace(/\{name\}/g, "John");
+                        })()}
+                      </div>
+
+                      {/* Sequence Opt-out footer */}
+                      <div className="pt-6 border-t border-zinc-100 text-center">
+                        <p className="text-[11px] text-zinc-500">
+                          Don&apos;t want these follow-up emails?{" "}
+                          <span className="underline cursor-pointer text-zinc-700 hover:text-black">Stop this sequence</span>.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Black Magnet Footer Banner */}
+                    <div className="bg-[#0B0F19] p-5 text-center flex items-center justify-center">
+                      <button className="flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-black text-zinc-900 shadow-md hover:bg-zinc-100 transition cursor-pointer">
+                        {account?.logo || account?.avatar_url || account?.avatar ? (
+                          <img src={account?.logo || account?.avatar_url || account?.avatar || ""} alt="Logo" className="h-5 w-5 rounded object-cover" />
+                        ) : (
+                          <span className="flex h-5 w-5 items-center justify-center rounded bg-[#FE6F34] text-black font-extrabold text-[10px]">🧲</span>
+                        )}
+                        <span>Build yours free with Magnets</span>
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
       )}
     </DashboardShell>
   );

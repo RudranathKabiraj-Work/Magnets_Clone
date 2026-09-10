@@ -271,7 +271,11 @@ export default function ResourcesPage() {
   const storagePercentage = Math.min(100, Math.round((totalSizeBytes / maxStorageBytes) * 100));
 
   const filteredResources = resources
-    .filter((r) => {
+    .filter((r: any) => {
+      // Exclude page presentation assets/lead magnet images if marked as page assets
+      if (r.isPageAsset === true || r.type === "page_asset" || (r.name && r.name.startsWith("page_asset_"))) {
+        return false;
+      }
       const matchesSearch = r.name.toLowerCase().includes(searchQuery.toLowerCase());
       if (!matchesSearch) return false;
       if (activeCategory === "all") return true;
@@ -625,30 +629,42 @@ export default function ResourcesPage() {
           </div>
         )}
 
-        {/* Floating Toast Notification Container */}
-        <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full">
-          {toasts.map((toast) => (
-            <div
-              key={toast.id}
-              className={`pointer-events-auto flex items-center gap-3 rounded-2xl p-4 text-xs font-medium shadow-xl backdrop-blur-md border transition-all animate-in slide-in-from-bottom-5 duration-300 ${toast.type === "success"
-                ? "bg-emerald-950/90 border-emerald-500/30 text-emerald-100"
-                : toast.type === "error"
-                  ? "bg-red-950/90 border-red-500/30 text-red-100"
-                  : "bg-zinc-900/90 border-zinc-700/40 text-zinc-100"
-                }`}
-            >
-              {toast.type === "success" && <Check className="h-4 w-4 shrink-0 text-emerald-400" />}
-              {toast.type === "error" && <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />}
-              {toast.type === "info" && <Sparkles className="h-4 w-4 shrink-0 text-amber-400" />}
-              <span className="flex-1 leading-snug">{toast.message}</span>
-              <button
-                onClick={() => removeToast(toast.id)}
-                className="text-zinc-400 hover:text-white transition cursor-pointer"
+        {/* Floating Toast Notification Container — Glassmorphic Right Stack */}
+        <div className="fixed bottom-5 right-5 z-50 pointer-events-none max-w-sm w-full flex flex-col-reverse gap-2 items-end">
+          {toasts.map((toast, idx) => {
+            const reverseIdx = toasts.length - 1 - idx;
+            const translateY = -reverseIdx * 6;
+            const scale = Math.max(0.88, 1 - reverseIdx * 0.04);
+
+            return (
+              <div
+                key={toast.id}
+                style={{
+                  transform: `translate3d(0, ${translateY}px, 0) scale(${scale})`,
+                  transformOrigin: "bottom right",
+                  zIndex: 100 - reverseIdx,
+                }}
+                className={`w-full pointer-events-auto flex items-center gap-3 rounded-2xl p-4 text-xs font-bold shadow-2xl backdrop-blur-2xl border transition-all duration-300 ease-out animate-in fade-in slide-in-from-bottom-4 ring-1 ring-white/10 ${toast.type === "success"
+                  ? "bg-emerald-950/50 border-emerald-500/40 text-emerald-100 shadow-black/80"
+                  : toast.type === "error"
+                    ? "bg-red-950/50 border-red-500/40 text-red-100 shadow-black/80"
+                    : "bg-black/60 border-white/20 text-white shadow-black/80"
+                  }`}
               >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ))}
+                {toast.type === "success" && <Check className="h-4 w-4 shrink-0 text-emerald-400" />}
+                {toast.type === "error" && <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />}
+                {toast.type === "info" && <Sparkles className="h-4 w-4 shrink-0 text-amber-400" />}
+                <span className="flex-1 leading-snug">{toast.message}</span>
+                <button
+                  type="button"
+                  onClick={() => removeToast(toast.id)}
+                  className="text-zinc-400 hover:text-white transition cursor-pointer p-0.5 rounded-md hover:bg-white/10"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </DashboardShell>

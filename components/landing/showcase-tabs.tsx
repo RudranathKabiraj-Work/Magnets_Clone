@@ -133,12 +133,12 @@ export default function ShowcaseTabs() {
             <span className="h-3 w-3 rounded-full bg-emerald-400/80 inline-block" />
             <span className="ml-2 text-xs font-mono font-semibold text-zinc-400 dark:text-zinc-500 hidden sm:inline">leadmagnets.app/live-preview</span>
           </div>
-          <div className="flex items-center gap-1 bg-zinc-100 dark:bg-[#1C1C20] p-1 rounded-xl text-xs font-semibold">
+          <div className="flex items-center gap-1 bg-zinc-100 dark:bg-[#1C1C20] p-1 rounded-xl text-xs font-semibold max-w-full overflow-x-auto no-scrollbar">
             <button
               type="button"
               aria-label="Show Opt-In Builder demo"
               onClick={() => { setIsAutoPlaying(false); setActiveTab("builder"); }}
-              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${activeTab === "builder" ? "bg-white dark:bg-[#2A2A30] text-[#0066B2] dark:text-[#38BDF8] shadow-md font-bold" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"}`}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${activeTab === "builder" ? "bg-white dark:bg-[#2A2A30] text-[#0066B2] dark:text-[#38BDF8] shadow-md font-bold" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"}`}
             >
               ⚡ Opt-In Builder
             </button>
@@ -146,7 +146,7 @@ export default function ShowcaseTabs() {
               type="button"
               aria-label="Show Resource Delivery demo"
               onClick={() => { setIsAutoPlaying(false); setActiveTab("delivery"); }}
-              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${activeTab === "delivery" ? "bg-white dark:bg-[#2A2A30] text-[#0066B2] dark:text-[#38BDF8] shadow-md font-bold" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"}`}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${activeTab === "delivery" ? "bg-white dark:bg-[#2A2A30] text-[#0066B2] dark:text-[#38BDF8] shadow-md font-bold" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"}`}
             >
               📧 Resource Delivery
             </button>
@@ -154,7 +154,7 @@ export default function ShowcaseTabs() {
               type="button"
               aria-label="Show Email Sequences demo"
               onClick={() => { setIsAutoPlaying(false); setActiveTab("sequence"); }}
-              className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${activeTab === "sequence" ? "bg-white dark:bg-[#2A2A30] text-[#0066B2] dark:text-[#38BDF8] shadow-md font-bold" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"}`}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${activeTab === "sequence" ? "bg-white dark:bg-[#2A2A30] text-[#0066B2] dark:text-[#38BDF8] shadow-md font-bold" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"}`}
             >
               🔄 Email Sequences
             </button>

@@ -468,21 +468,21 @@ export default function DashboardShell({
       )}
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col bg-[#FAFAFA] dark:bg-[#0E0E10]">
-        <header className="dashboard-chrome sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-ink-200 bg-white px-4 sm:px-6 md:hidden">
+        <header className="dashboard-chrome sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-ink-200 bg-white dark:bg-[#18181B] dark:border-white/10 px-4 sm:px-6 md:hidden transition-colors">
           <div className="flex items-center gap-3">
             <button
               aria-label="Open menu"
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-ink-200 text-ink-700 md:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-ink-200 dark:border-white/10 text-ink-700 dark:text-zinc-300 md:hidden hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
               onClick={() => setMenuOpen(true)}
             >
               <Menu className="h-4 w-4" aria-hidden="true" />
             </button>
-            <h1 className="text-sm font-semibold text-ink-950 sm:text-base">{title}</h1>
+            <h1 className="text-sm font-semibold text-ink-950 dark:text-white sm:text-base">{title}</h1>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowHelp(true)}
-              className="flex h-9 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-ink-600 transition hover:text-ink-950"
+              className="flex h-9 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-ink-600 dark:text-zinc-300 transition hover:text-ink-950 dark:hover:text-white"
             >
               <CircleHelp className="h-4 w-4" aria-hidden="true" />
               Help

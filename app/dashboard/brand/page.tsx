@@ -85,7 +85,7 @@ export default function BrandPage() {
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem("currentUserAccount", JSON.stringify(updatedAccount));
-        } catch (_) {}
+        } catch (_) { }
       }
       triggerToast("Brand settings saved successfully!");
     } catch (err) {
@@ -94,7 +94,7 @@ export default function BrandPage() {
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem("currentUserAccount", JSON.stringify(updatedAccount));
-        } catch (_) {}
+        } catch (_) { }
       }
       triggerToast("Brand settings saved successfully!");
     } finally {
@@ -115,6 +115,7 @@ export default function BrandPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("isPageAsset", "true");
       if (account?.email) {
         formData.append("userEmail", account.email);
       }
@@ -299,11 +300,10 @@ export default function BrandPage() {
                           type="button"
                           onClick={() => setBrandColor(c.hex)}
                           title={c.name}
-                          className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer ${
-                            brandColor.toLowerCase() === c.hex.toLowerCase()
+                          className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer ${brandColor.toLowerCase() === c.hex.toLowerCase()
                               ? "border-zinc-900 dark:border-white scale-110 shadow-xs"
                               : "border-transparent"
-                          }`}
+                            }`}
                           style={{ backgroundColor: c.hex }}
                         />
                       ))}

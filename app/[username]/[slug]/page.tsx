@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import MagnetSignupForm from "@/components/magnet-signup-form";
 import AnalyticsAndExitIntent from "@/components/analytics-and-exit-intent";
 import { dbConnect } from "@/lib/mongodb";
@@ -69,21 +70,63 @@ export default async function MagnetPageRoute({
 }) {
   await dbConnect();
 
-  let pageDoc = await MagnetPageModel.findOne({
-    $or: [{ id: params.slug }, { slug: params.slug }]
-  });
-  if (!pageDoc) notFound();
-
   const decodedUsername = decodeURIComponent(params.username || "");
   const escapedUsername = decodedUsername.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-  const cleanUserEmail = pageDoc.userEmail ? pageDoc.userEmail.trim().toLowerCase() : null;
 
-  let accountDoc = await AccountModel.findOne({
-    $or: [
-      ...(escapedUsername ? [{ username: { $regex: new RegExp(`^${escapedUsername}$`, "i") } }] : []),
-      ...(cleanUserEmail ? [{ email: cleanUserEmail }] : [])
-    ]
-  });
+  let accountDoc = await AccountModel.findOne(
+    escapedUsername ? { username: { $regex: new RegExp(`^${escapedUsername}$`, "i") } } : {}
+  );
+
+  let pageDoc = null;
+  if (accountDoc && accountDoc.email) {
+    pageDoc = await MagnetPageModel.findOne({
+      userEmail: accountDoc.email.trim().toLowerCase(),
+      $or: [{ id: params.slug }, { slug: params.slug }]
+    });
+  }
+
+  if (!pageDoc) {
+    pageDoc = await MagnetPageModel.findOne({
+      $or: [{ id: params.slug }, { slug: params.slug }]
+    });
+  }
+
+  // Cookie session check to identify if the current viewer is the logged-in owner
+  const cookieStore = cookies();
+  const sessionToken =
+    cookieStore.get("session_token")?.value ||
+    cookieStore.get("next-auth.session-token")?.value ||
+    cookieStore.get("__Secure-next-auth.session-token")?.value;
+
+  const isOwner = Boolean(sessionToken);
+  const isDraftMode = pageDoc.status === "draft";
+
+  // Draft Access Protection: If page is in Draft and viewer is NOT the logged-in owner, block public access
+  if (isDraftMode && !isOwner) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-[#FAFAFA] dark:bg-[#0E0E10] px-4 text-center">
+        <div className="max-w-md space-y-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#18181B] p-8 shadow-xl">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold text-zinc-900 dark:text-white">Page Not Published Yet</h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            This lead magnet is currently in <span className="font-bold text-amber-600 dark:text-amber-400">Draft</span> mode and is not visible to the public. If you are the owner, please switch the status to Published inside your dashboard.
+          </p>
+          <a
+            href="/dashboard/leadmagnets"
+            className="inline-flex h-10 items-center justify-center rounded-xl bg-[#0066B2] hover:bg-[#005799] px-5 text-xs font-bold text-white transition shadow-md"
+          >
+            Go to Dashboard
+          </a>
+        </div>
+      </main>
+    );
+  }
+
+  const cleanUserEmail = pageDoc.userEmail ? pageDoc.userEmail.trim().toLowerCase() : null;
 
   if (!accountDoc && cleanUserEmail) {
     accountDoc = await AccountModel.findOne({ email: cleanUserEmail });
@@ -131,7 +174,7 @@ export default async function MagnetPageRoute({
 
   return (
     <main
-      className={`flex min-h-screen flex-col transition-colors duration-300 ${themeMode === "dark" ? "dark bg-[#0E0E10] text-white" : "light bg-[#FAFAFA] text-zinc-900"}`}
+      className="flex min-h-screen flex-col font-sans transition-colors duration-300 relative"
       style={{
         colorScheme: themeMode === "dark" ? "dark" : "light",
         backgroundColor: themeMode === "dark" ? "#0E0E10" : "#FAFAFA",
@@ -141,6 +184,15 @@ export default async function MagnetPageRoute({
           : `radial-gradient(circle at 0% 0%, ${brandColor}15 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}0c 0%, transparent 40%)`
       }}
     >
+      {/* Draft Preview Mode Top Banner for Logged-In Owner */}
+      {isDraftMode && isOwner && (
+        <div className="sticky top-0 z-50 flex items-center justify-center gap-2 bg-amber-500 text-black px-4 py-2 text-xs font-bold shadow-md border-b border-amber-600">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>⚠️ Draft Preview Mode — This magnet is not yet published. Only you can view this page.</span>
+        </div>
+      )}
       <AnalyticsAndExitIntent
         ga4Id={accountDoc?.ga4MeasurementId}
         pixelId={accountDoc?.metaPixelId}
@@ -264,6 +316,7 @@ export default async function MagnetPageRoute({
                   customPromptQuestion={page.customPromptQuestion}
                   customPromptPlaceholder={page.customPromptPlaceholder}
                   enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
+                  username={params.username}
                 />
                 <p className={`mt-3 flex items-center justify-center gap-1.5 text-xs ${themeMode === "dark" ? "text-zinc-500" : "text-ink-500"
                   }`}>

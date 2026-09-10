@@ -106,6 +106,24 @@ export function clearAuthCookie(res: NextResponse): NextResponse {
     path: "/",
     maxAge: 0,
   });
+  res.cookies.set({
+    name: "next-auth.session-token",
+    value: "",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  res.cookies.set({
+    name: "__Secure-next-auth.session-token",
+    value: "",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
 
   return res;
 }

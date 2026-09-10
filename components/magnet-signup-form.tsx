@@ -5,6 +5,9 @@ import { useState } from "react";
 
 export default function MagnetSignupForm({
   cta,
+  formTitle,
+  formSubtitle,
+  formButtonText,
   deliverable,
   accent,
   pageId,
@@ -17,8 +20,12 @@ export default function MagnetSignupForm({
   customPromptQuestion,
   customPromptPlaceholder,
   enableAiPersonalizedDeliverable,
+  username,
 }: {
   cta: string;
+  formTitle?: string;
+  formSubtitle?: string;
+  formButtonText?: string;
   deliverable: string;
   accent: string;
   pageId: string;
@@ -31,6 +38,7 @@ export default function MagnetSignupForm({
   customPromptQuestion?: string;
   customPromptPlaceholder?: string;
   enableAiPersonalizedDeliverable?: boolean;
+  username?: string;
 }) {
   const [done, setDone] = useState(false);
   const [name, setName] = useState("");
@@ -48,24 +56,29 @@ export default function MagnetSignupForm({
     try {
       let customDeliverable = deliverable;
 
-      // Feature 2: If AI personalization is enabled and user provided an answer, generate custom deliverable
+      // Feature 2: If AI personalization is enabled and user provided an answer, generate custom deliverable with 1.5s max timeout
       if (enableAiPersonalizedDeliverable && customAnswer.trim()) {
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 1500);
+
           const aiRes = await fetch("/api/data", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            signal: controller.signal,
             body: JSON.stringify({
               action: "generateAiPersonalizedDeliverable",
               data: { prompt: customAnswer.trim(), deliverableName: deliverable },
             }),
           });
+          clearTimeout(timeoutId);
           const aiData = await aiRes.json();
           if (aiData.success && aiData.personalizedDeliverable) {
             customDeliverable = aiData.personalizedDeliverable;
             setPersonalizedOutput(aiData.personalizedDeliverable);
           }
         } catch (err) {
-          console.error("AI personalization error:", err);
+          console.error("AI personalization skipped/timed out:", err);
         }
       }
 
@@ -91,9 +104,16 @@ export default function MagnetSignupForm({
       });
 
       if (res.ok) {
+        const json = await res.json();
+        if (json.downloadUrl) {
+          setDownloadUrl(json.downloadUrl);
+        }
         setDone(true);
-        const resData = await res.json().catch(() => ({}));
-        const finalLead = resData.lead || newLead;
+        const finalLead = {
+          ...newLead,
+          deliverable: customDeliverable,
+          downloadUrl: json.downloadUrl || null,
+        };
 
         // Update local storage pages signups counter & leads cache instantly
         try {
@@ -116,28 +136,31 @@ export default function MagnetSignupForm({
           }
         } catch (_) { }
 
-        // First check if an uploaded resource URL is already saved in page data or local storage
+        // Notify any open dashboard / editor tabs instantly
         try {
-          const cachedResources = localStorage.getItem("currentUserResources");
-          if (cachedResources) {
-            const list = JSON.parse(cachedResources);
-            if (Array.isArray(list) && list.length > 0 && list[0].url) {
-              setDownloadUrl(list[0].url);
-              return;
-            }
+          if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+            const bc = new BroadcastChannel("leadmagnets_live_sync");
+            bc.postMessage({ type: "STATS_UPDATED", pageId });
+            bc.close();
           }
-        } catch (_) { }
+        } catch (_) {}
 
-        // Fallback fetch from database
-        const fetchUrl = pageOwnerEmail ? `/api/data?email=${encodeURIComponent(pageOwnerEmail)}` : "/api/data";
-        fetch(fetchUrl)
-          .then((r) => r.json())
-          .then((data) => {
-            if (data && data.resources && data.resources.length > 0) {
-              setDownloadUrl(data.resources[0].url);
-            }
-          })
-          .catch(() => { });
+        // Construct redirect URL to thank-you page
+        const targetUser = username || "u";
+        const targetSlug = pageSlug || pageId;
+        const queryParams = new URLSearchParams();
+        if (email) queryParams.set("email", email.trim());
+        if (name) queryParams.set("name", name.trim());
+        if (customAnswer) queryParams.set("answer", customAnswer.trim());
+        if (customDeliverable && customDeliverable !== deliverable) {
+          queryParams.set("aiOutput", customDeliverable);
+        }
+
+        const thankYouRoute = `/${encodeURIComponent(targetUser)}/${encodeURIComponent(targetSlug)}/thank-you?${queryParams.toString()}`;
+        
+        // Instant smooth redirect to Thank You page
+        window.location.href = thankYouRoute;
+        return;
       }
     } catch (err) {
       console.error("Failed to submit lead", err);
@@ -162,9 +185,8 @@ export default function MagnetSignupForm({
           </p>
 
           <a
-            href={downloadUrl || "/r/v5am4lu"}
+            href={downloadUrl || "#"}
             target="_blank"
-            download
             rel="noopener noreferrer"
             className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-[#0066B2] hover:bg-[#005799] px-4 py-3 text-xs font-bold text-white shadow-md transition-all active:scale-98 cursor-pointer w-full text-center"
           >
@@ -185,9 +207,9 @@ export default function MagnetSignupForm({
               : `linear-gradient(135deg, ${brandColor}${Math.round((0.08 + ((highlightIntensity ?? 100) / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(22, 22, 25, 0.95) 60%)`
           }}
         >
-          <p className="text-base font-extrabold text-center">{cta || "Download for free now"}</p>
+          <p className="text-xl font-extrabold text-center">{formTitle || cta || "Download for free"}</p>
           <p className="text-xs text-[#9B9085] text-center mt-1.5 leading-normal">
-            By opting in you consent to receive this resource by email.
+            {formSubtitle || "By opting in you consent to receive this resource by email."}
           </p>
           <form
             onSubmit={handleSubmit}
@@ -244,9 +266,10 @@ export default function MagnetSignupForm({
             <button
               type="submit"
               disabled={loading}
-              className="w-full min-h-11 inline-flex items-center justify-center rounded-xl bg-[#0066B2] hover:bg-[#005799] px-4 py-2.5 text-sm font-bold text-white transition-all shadow-md active:scale-98 disabled:opacity-50 cursor-pointer"
+              style={{ backgroundColor: brandColor }}
+              className="w-full min-h-11 inline-flex items-center justify-center rounded-xl hover:opacity-90 px-4 py-2.5 text-sm font-bold text-white transition-all shadow-md active:scale-98 disabled:opacity-50 cursor-pointer"
             >
-              {loading ? "Sending..." : cta}
+              {loading ? "Sending..." : (formButtonText || cta || "Send it to me")}
             </button>
           </form>
         </div>

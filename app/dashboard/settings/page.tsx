@@ -101,7 +101,7 @@ export default function AccountSettingsPage() {
           setLeadAlertsEnabled(data.account.leadAlertsEnabled !== false);
           setNotifyEmail(data.account.notifyEmail || data.account.email || "");
         }
-        
+
         const pList = data.pages || localPages || [];
         const lList = data.leads || localLeads || [];
         const sList = data.sequences || localSeqs || [];
@@ -378,15 +378,14 @@ export default function AccountSettingsPage() {
                   key={t.id}
                   type="button"
                   onClick={() => setActiveTab(t.id as any)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    isActive
-                      ? t.danger
-                        ? "bg-red-500 text-white shadow-sm"
-                        : "bg-[#0066B2] text-white shadow-sm"
-                      : t.danger
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isActive
+                    ? t.danger
+                      ? "bg-red-500 text-white shadow-sm"
+                      : "bg-[#0066B2] text-white shadow-sm"
+                    : t.danger
                       ? "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40"
                       : "text-zinc-600 dark:text-zinc-400 hover:bg-white dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
-                  }`}
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{t.label}</span>
@@ -588,14 +587,12 @@ export default function AccountSettingsPage() {
                       <button
                         type="button"
                         onClick={() => setLeadAlertsEnabled(!leadAlertsEnabled)}
-                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                          leadAlertsEnabled ? "bg-[#0066B2]" : "bg-zinc-300 dark:bg-zinc-700"
-                        }`}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${leadAlertsEnabled ? "bg-[#0066B2]" : "bg-zinc-300 dark:bg-zinc-700"
+                          }`}
                       >
                         <span
-                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                            leadAlertsEnabled ? "translate-x-5" : "translate-x-0"
-                          }`}
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${leadAlertsEnabled ? "translate-x-5" : "translate-x-0"
+                            }`}
                         />
                       </button>
                     </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-export default function ThreeMagnet3DCanvas() {
+export default function ThreeMagnet3DCanvas({ brandColor = "#0066B2" }: { brandColor?: string }) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,16 +58,18 @@ export default function ThreeMagnet3DCanvas() {
         bevelEnabled: true,
         bevelThickness: 0.4,
         bevelSize: 0.4,
-        bevelSegments: 8,
+        bevelSegments: 6,
       };
 
       const magnetGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
       magnetGeometry.center();
 
+      const themeColor = new THREE.Color(brandColor);
+
       const bodyMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0x1d4ed8,
-        emissive: 0x1e3a8a,
-        emissiveIntensity: 0.35,
+        color: themeColor,
+        emissive: themeColor,
+        emissiveIntensity: 0.25,
         metalness: 0.2,
         roughness: 0.1,
         transmission: 0.75,
@@ -171,11 +173,11 @@ export default function ThreeMagnet3DCanvas() {
         currentX += (targetX - currentX) * 0.05;
         currentY += (targetY - currentY) * 0.05;
 
-        magnetGroup.rotation.y = -0.4 + elapsed * 0.3 + currentX;
-        magnetGroup.rotation.x = 0.4 + Math.sin(elapsed * 0.8) * 0.15 + currentY;
-        magnetGroup.position.y = 1 + Math.sin(elapsed * 1.5) * 0.6;
+        magnetGroup.rotation.y = -0.4 + currentX;
+        magnetGroup.rotation.x = 0.4 + currentY;
+        magnetGroup.position.y = 1;
 
-        sparkles.rotation.y = elapsed * 0.1;
+        sparkles.rotation.y = currentX * 0.2;
 
         renderer.render(scene, camera);
       };

@@ -26,7 +26,7 @@ export default function AnalyticsAndExitIntent({
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  // Favicon dynamic injection
+  // Favicon dynamic injection & Live stats sync broadcast
   useEffect(() => {
     if (faviconUrl && typeof window !== "undefined") {
       let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
@@ -37,6 +37,15 @@ export default function AnalyticsAndExitIntent({
       }
       link.href = faviconUrl;
     }
+
+    // Broadcast page view event to open editor tabs
+    try {
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        const bc = new BroadcastChannel("leadmagnets_live_sync");
+        bc.postMessage({ type: "STATS_UPDATED" });
+        bc.close();
+      }
+    } catch (_) {}
   }, [faviconUrl]);
 
   // Exit-Intent detection (detect cursor moving to top of window)

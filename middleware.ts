@@ -4,7 +4,10 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host") || "";
-  const token = request.cookies.get("session_token")?.value;
+  const token =
+    request.cookies.get("session_token")?.value ||
+    request.cookies.get("next-auth.session-token")?.value ||
+    request.cookies.get("__Secure-next-auth.session-token")?.value;
 
   // Custom domain detection (non-primary domains)
   const isPrimaryDomain =

@@ -3,6 +3,7 @@ import { dbConnect } from "@/lib/mongodb";
 import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationModel, ResourceModel } from "@/lib/models";
 import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations } from "@/lib/data";
 import { sendInstantLeadAlert } from "@/lib/email-alerts";
+import { clearAuthCookie } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -87,8 +88,8 @@ export async function POST(req: Request) {
 
     if (action === "deletePage") {
       const { id } = data;
-      const filter = normEmail 
-        ? { id, userEmail: { $regex: new RegExp(`^${normEmail}$`, "i") } } 
+      const filter = normEmail
+        ? { id, userEmail: { $regex: new RegExp(`^${normEmail}$`, "i") } }
         : { id };
       await MagnetPageModel.deleteOne(filter);
       return NextResponse.json({ success: true });
@@ -203,8 +204,8 @@ export async function POST(req: Request) {
       if (!account) {
         return NextResponse.json({ error: "Account not found." }, { status: 400 });
       }
-      const dbPassword = account.password || "password123";
-      if (dbPassword !== password) {
+      // Require password check only if a password is set on the account (Google OAuth users do not have a password set)
+      if (account.password && account.password !== password) {
         return NextResponse.json({ error: "Incorrect password." }, { status: 400 });
       }
       const normDelEmail = email.trim().toLowerCase();
@@ -214,7 +215,9 @@ export async function POST(req: Request) {
       await SequenceModel.deleteMany({ userEmail: normDelEmail });
       await IntegrationModel.deleteMany({ userEmail: normDelEmail });
       await ResourceModel.deleteMany({ userEmail: normDelEmail });
-      return NextResponse.json({ success: true });
+      const res = NextResponse.json({ success: true });
+      clearAuthCookie(res);
+      return res;
     }
 
     if (action === "login") {
@@ -339,103 +342,107 @@ export async function POST(req: Request) {
         }
       }
 
-      // Check owner account alert preferences & send instant alert email
+      // Fire owner account alerts & third-party webhooks asynchronously in background without blocking HTTP response
       if (ownerEmail) {
-        const ownerAccount = await AccountModel.findOne({ email: ownerEmail.trim().toLowerCase() });
-        const alertsEnabled = ownerAccount ? ownerAccount.leadAlertsEnabled !== false : true;
-        const targetInbox = (ownerAccount && ownerAccount.notifyEmail) ? ownerAccount.notifyEmail : ownerEmail;
+        queueMicrotask(async () => {
+          try {
+            const ownerAccount = await AccountModel.findOne({ email: ownerEmail.trim().toLowerCase() });
+            const alertsEnabled = ownerAccount ? ownerAccount.leadAlertsEnabled !== false : true;
+            const targetInbox = (ownerAccount && ownerAccount.notifyEmail) ? ownerAccount.notifyEmail : ownerEmail;
 
-        if (alertsEnabled) {
-          sendInstantLeadAlert({
-            ownerEmail: targetInbox,
-            leadEmail: data.email,
-            leadName: data.name,
-            pageTitle: pageTitle,
-            signedUpAt: data.signedUpAt || new Date().toLocaleString(),
-            customAnswer: data.customAnswer,
-          }).catch((err) => console.error("Lead Alert Background Error:", err));
-        }
+            if (alertsEnabled) {
+              sendInstantLeadAlert({
+                ownerEmail: targetInbox,
+                leadEmail: data.email,
+                leadName: data.name,
+                pageTitle: pageTitle,
+                signedUpAt: data.signedUpAt || new Date().toLocaleString(),
+                customAnswer: data.customAnswer,
+              }).catch((err) => console.error("Lead Alert Background Error:", err));
+            }
 
-        // Dispatch Slack incoming webhook notification if configured
-        if (ownerAccount?.slackWebhookUrl) {
-          fetch(ownerAccount.slackWebhookUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              text: `🚀 *New Lead Alert!*\n*Name:* ${data.name}\n*Email:* ${data.email}\n*Lead Magnet:* ${pageTitle}`,
-            }),
-          }).catch((err) => console.error("Slack Webhook dispatch error:", err));
-        }
+            // Dispatch Slack incoming webhook notification if configured
+            if (ownerAccount?.slackWebhookUrl) {
+              fetch(ownerAccount.slackWebhookUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  text: `🚀 *New Lead Alert!*\n*Name:* ${data.name}\n*Email:* ${data.email}\n*Lead Magnet:* ${pageTitle}`,
+                }),
+              }).catch((err) => console.error("Slack Webhook dispatch error:", err));
+            }
 
-        // Dispatch Zapier Catch Hook payload if configured
-        if (ownerAccount?.zapierWebhookUrl) {
-          fetch(ownerAccount.zapierWebhookUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              event: "new_lead",
-              lead_id: createdLead.id || data.id,
-              name: data.name,
-              email: data.email,
-              lead_magnet_title: pageTitle,
-              signed_up_at: data.signedUpAt || new Date().toISOString(),
-              custom_answer: data.customAnswer || "",
-            }),
-          }).catch((err) => console.error("Zapier Webhook dispatch error:", err));
-        }
+            // Dispatch Zapier Catch Hook payload if configured
+            if (ownerAccount?.zapierWebhookUrl) {
+              fetch(ownerAccount.zapierWebhookUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  event: "new_lead",
+                  lead_id: createdLead.id || data.id,
+                  name: data.name,
+                  email: data.email,
+                  lead_magnet_title: pageTitle,
+                  signed_up_at: data.signedUpAt || new Date().toISOString(),
+                  custom_answer: data.customAnswer || "",
+                }),
+              }).catch((err) => console.error("Zapier Webhook dispatch error:", err));
+            }
 
-        // Sync lead to Pipedrive CRM if API Token configured
-        if (ownerAccount?.pipedriveApiToken) {
-          const apiToken = ownerAccount.pipedriveApiToken.trim();
-          fetch(`https://api.pipedrive.com/v1/persons?api_token=${encodeURIComponent(apiToken)}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: data.name || "Lead Subscriber",
-              email: [{ value: data.email, primary: true }],
-            }),
-          }).catch((err) => console.error("Pipedrive API sync error:", err));
-        }
+            // Sync lead to Pipedrive CRM if API Token configured
+            if (ownerAccount?.pipedriveApiToken) {
+              const apiToken = ownerAccount.pipedriveApiToken.trim();
+              fetch(`https://api.pipedrive.com/v1/persons?api_token=${encodeURIComponent(apiToken)}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  name: data.name || "Lead Subscriber",
+                  email: [{ value: data.email, primary: true }],
+                }),
+              }).catch((err) => console.error("Pipedrive API sync error:", err));
+            }
 
-        // Sync lead to Kit (ConvertKit) via Tag subscription
-        if (ownerAccount?.kitApiKey || ownerAccount?.kitConnected) {
-          const kitKey = (ownerAccount.kitApiKey || "").trim();
-          if (kitKey) {
-            (async () => {
-              try {
-                const tagsRes = await fetch(`https://api.convertkit.com/v3/tags?api_secret=${encodeURIComponent(kitKey)}&api_key=${encodeURIComponent(kitKey)}`);
-                const tagsData = await tagsRes.json();
-                let tagId = tagsData.tags && tagsData.tags[0] ? tagsData.tags[0].id : null;
+            // Sync lead to Kit (ConvertKit) via Tag subscription
+            if (ownerAccount?.kitApiKey || ownerAccount?.kitConnected) {
+              const kitKey = (ownerAccount.kitApiKey || "").trim();
+              if (kitKey) {
+                try {
+                  const tagsRes = await fetch(`https://api.convertkit.com/v3/tags?api_secret=${encodeURIComponent(kitKey)}&api_key=${encodeURIComponent(kitKey)}`);
+                  const tagsData = await tagsRes.json();
+                  let tagId = tagsData.tags && tagsData.tags[0] ? tagsData.tags[0].id : null;
 
-                if (!tagId) {
-                  const createTagRes = await fetch("https://api.convertkit.com/v3/tags", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ api_secret: kitKey, api_key: kitKey, tag: { name: "LeadMagnets Signups" } }),
-                  });
-                  const createTagData = await createTagRes.json();
-                  tagId = createTagData.tag ? createTagData.tag.id : null;
+                  if (!tagId) {
+                    const createTagRes = await fetch("https://api.convertkit.com/v3/tags", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ api_secret: kitKey, api_key: kitKey, tag: { name: "LeadMagnets Signups" } }),
+                    });
+                    const createTagData = await createTagRes.json();
+                    tagId = createTagData.tag ? createTagData.tag.id : null;
+                  }
+
+                  if (tagId) {
+                    await fetch(`https://api.convertkit.com/v3/tags/${tagId}/subscribe`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        api_secret: kitKey,
+                        api_key: kitKey,
+                        email: data.email,
+                        first_name: data.name || "",
+                        fields: { lead_magnet: pageTitle },
+                      }),
+                    });
+                  }
+                } catch (err) {
+                  console.error("Kit Tag Sync Error:", err);
                 }
-
-                if (tagId) {
-                  await fetch(`https://api.convertkit.com/v3/tags/${tagId}/subscribe`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      api_secret: kitKey,
-                      api_key: kitKey,
-                      email: data.email,
-                      first_name: data.name || "",
-                      fields: { lead_magnet: pageTitle },
-                    }),
-                  });
-                }
-              } catch (err) {
-                console.error("Kit Tag Sync Error:", err);
               }
-            })();
+            }
+          } catch (err) {
+            console.error("Background lead alerts error:", err);
           }
-        }
+        });
       }
 
       return NextResponse.json({ success: true, lead: createdLead });

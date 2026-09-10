@@ -53,6 +53,8 @@ export async function POST(req: NextRequest) {
 
     const downloadRouteUrl = `${req.nextUrl.origin}/r/${id}`;
 
+    const isPageAsset = formData.get("isPageAsset") === "true";
+
     const newResource = {
       id,
       userEmail: userEmail ? userEmail.trim().toLowerCase() : undefined,
@@ -62,6 +64,8 @@ export async function POST(req: NextRequest) {
       url: downloadRouteUrl,
       fileUrl: publicFileUrl,
       fileExt: originalExt,
+      isPageAsset: isPageAsset,
+      type: isPageAsset ? "page_asset" : "deliverable",
     };
 
     // Save metadata in DB

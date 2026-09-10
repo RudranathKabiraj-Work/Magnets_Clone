@@ -113,7 +113,29 @@ function OnboardingContent() {
           setLoadingProfile(false);
         });
     } else {
-      setLoadingProfile(false);
+      fetch("/api/auth/me")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.authenticated && data.user) {
+            const acc = data.user;
+            const firstName = (acc.name || "there").split(" ")[0];
+            setUserName(firstName);
+            const slug = acc.username || firstName.toLowerCase().replace(/[^a-z0-9]/g, "") || "your-workspace";
+            setUserSlug(slug);
+            if (!businessName) {
+              setBusinessName(`${firstName}'s Workspace`);
+            }
+            if (typeof window !== "undefined" && data.email) {
+              safeSetItem("currentUserEmail", data.email.trim().toLowerCase());
+              safeSetItem("currentUserAccount", JSON.stringify(acc));
+            }
+          }
+          setLoadingProfile(false);
+        })
+        .catch((err) => {
+          console.error(err);
+          setLoadingProfile(false);
+        });
     }
   }, [email]);
 
@@ -146,6 +168,9 @@ function OnboardingContent() {
       other: "Resource Pack",
     };
 
+    const userEmail = (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null) || email || "";
+    const normUserEmail = userEmail.trim().toLowerCase();
+
     const newPage = {
       id: pageId,
       name: pageName.trim(),
@@ -163,16 +188,22 @@ function OnboardingContent() {
       socialSharingImage: null,
       checkEmailUnique: false,
       customDomain: null,
+      userEmail: normUserEmail,
     };
 
     try {
       const res = await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "addPage", data: newPage }),
+        body: JSON.stringify({ action: "addPage", data: newPage, email: normUserEmail }),
       });
 
       if (res.ok) {
+        if (typeof window !== "undefined") {
+          const existingPages = JSON.parse(localStorage.getItem("currentUserPages") || "[]");
+          const updatedPages = [newPage, ...existingPages.filter((p: any) => p.id !== pageId)];
+          safeSetItem("currentUserPages", JSON.stringify(updatedPages));
+        }
         router.push(`/dashboard/leadmagnets/${pageId}`);
       } else {
         alert("Failed to create page. Please try again.");
