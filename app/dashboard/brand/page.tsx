@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { Palette, Check, Upload, Sun, Moon, Trash2, Loader2 } from "lucide-react";
-import { syncWithDatabase, saveAccount, loadAccount } from "@/lib/store";
-import type { Account } from "@/lib/data";
+import { syncWithDatabase, saveAccount, loadAccount, loadPages } from "@/lib/store";
+import type { Account, MagnetPage } from "@/lib/data";
 
 export default function BrandPage() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -14,6 +14,7 @@ export default function BrandPage() {
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   const [highlightIntensity, setHighlightIntensity] = useState<number>(100);
   const [logo, setLogo] = useState<string | null>(null);
+  const [latestPage, setLatestPage] = useState<MagnetPage | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -50,6 +51,13 @@ export default function BrandPage() {
       setHighlightIntensity(localAccount.highlightIntensity ?? 100);
       setLogo(localAccount.logo || null);
     }
+
+    const localPages = loadPages();
+    if (localPages && localPages.length > 0) {
+      const active = localPages.find((p) => p.status === "live") || localPages[0];
+      setLatestPage(active);
+    }
+
     setLoading(false);
 
     // Sync in background silently
@@ -61,6 +69,10 @@ export default function BrandPage() {
         setThemeMode(data.account.themeMode || "light");
         setHighlightIntensity(data.account.highlightIntensity ?? 100);
         setLogo(data.account.logo || null);
+      }
+      if (data && data.pages && data.pages.length > 0) {
+        const active = data.pages.find((p: any) => p.status === "live") || data.pages[0];
+        setLatestPage(active);
       }
     });
   }, []);
@@ -413,7 +425,7 @@ export default function BrandPage() {
                   <div className="p-5 md:p-6">
                     {/* Header brand name / logo */}
                     <div className="flex items-center gap-3 mb-8 justify-center">
-                      <div className="h-11 w-11 rounded-xl border border-dashed border-[#a1a1aa]/45 flex items-center justify-center bg-transparent overflow-hidden">
+                      <div className={`h-11 w-11 rounded-xl flex items-center justify-center bg-transparent overflow-hidden ${logo ? "border-none" : "border border-dashed border-[#a1a1aa]/45"}`}>
                         {logo ? (
                           <img src={logo} alt="Logo" className="h-full w-full object-cover" />
                         ) : (
@@ -446,30 +458,45 @@ export default function BrandPage() {
                         {/* Left Details */}
                         <div className="md:col-span-7 flex flex-col justify-between h-full py-1">
                           <h3 className="text-xl md:text-3xl font-extrabold leading-tight tracking-tight">
-                            101 Winning Viral Templates That Get Results
+                            {latestPage?.headline || latestPage?.name || "101 Winning Viral Templates That Get Results"}
                           </h3>
 
-                          <p className={`text-sm font-semibold leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
-                            Stop staring at a blank page. Start creating content that actually connects.
-                          </p>
+                          {latestPage?.subheadline ? (
+                            <p className={`text-sm font-semibold leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
+                              {latestPage.subheadline}
+                            </p>
+                          ) : (
+                            <p className={`text-sm font-semibold leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
+                              Stop staring at a blank page. Start creating content that actually connects.
+                            </p>
+                          )}
 
-                          <p className={`text-xs leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
-                            You know what works on LinkedIn. You've seen the posts that blow up.
-                            <span className="block mt-2.5">
-                              That&apos;s where these templates come in. Real structures pulled from posts that actually performed.
-                            </span>
-                          </p>
+                          {latestPage?.pitch ? (
+                            <p className={`text-xs leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                              {latestPage.pitch}
+                            </p>
+                          ) : (
+                            <p className={`text-xs leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                              You know what works on LinkedIn. You&apos;ve seen the posts that blow up.
+                              <span className="block mt-2.5">
+                                That&apos;s where these templates come in. Real structures pulled from posts that actually performed.
+                              </span>
+                            </p>
+                          )}
 
                           <div className="space-y-3 pt-2">
                             <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
-                              This playbook breaks down:
+                              {latestPage?.bulletsTitle || "This playbook breaks down:"}
                             </p>
                             <ul className="space-y-3">
-                              {[
-                                "101 fill-in-the-blank templates for every content scenario",
-                                "Proven structures for storytelling, advice, and transformation posts",
-                                "Ready-to-use formats that let you focus on your message"
-                              ].map((item, idx) => (
+                              {(latestPage?.bullets && latestPage.bullets.length > 0
+                                ? latestPage.bullets
+                                : [
+                                  "101 fill-in-the-blank templates for every content scenario",
+                                  "Proven structures for storytelling, advice, and transformation posts",
+                                  "Ready-to-use formats that let you focus on your message"
+                                ]
+                              ).map((item, idx) => (
                                 <li key={idx} className="flex items-start gap-2 text-xs">
                                   <span
                                     className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 transition-all duration-300"
@@ -492,14 +519,20 @@ export default function BrandPage() {
 
                         {/* Right CTA Form & Media Placeholder */}
                         <div className="md:col-span-5 space-y-3">
-                          {/* Media Placeholder Card */}
-                          <div
-                            className="rounded-xl border aspect-[16/11] w-full flex items-center justify-center transition-all duration-300"
-                            style={{
-                              borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.5) * 255).toString(16).padStart(2, '0')}`,
-                              backgroundColor: `${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')}`
-                            }}
-                          />
+                          {/* Media Placeholder or Actual Image */}
+                          {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
+                            <div className="rounded-xl border aspect-[16/11] w-full overflow-hidden shadow-xs border-zinc-200 dark:border-zinc-800">
+                              <img src={latestPage.imageUrl} alt="Lead magnet media" className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div
+                              className="rounded-xl border aspect-[16/11] w-full flex items-center justify-center transition-all duration-300"
+                              style={{
+                                borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.5) * 255).toString(16).padStart(2, '0')}`,
+                                backgroundColor: `${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')}`
+                              }}
+                            />
+                          )}
 
                           {/* Signup Card */}
                           <div
@@ -515,15 +548,15 @@ export default function BrandPage() {
                                 : `linear-gradient(135deg, ${brandColor}${Math.round((0.08 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(22, 22, 25, 0.95) 60%)`
                             }}
                           >
-                            <p className="text-lg font-semibold text-center">Download for free now</p>
+                            <p className="text-lg font-semibold text-center">{latestPage?.formTitle || "Download for free now"}</p>
                             <p className={`text-[11px] text-center mt-1 leading-normal ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
-                              By opting in you consent to receive <br /> this resource by email.
+                              {latestPage?.formSubtitle || "By opting in you consent to receive this resource by email."}
                             </p>
 
                             <div className="mt-4 space-y-2.5">
                               <input
                                 type="text"
-                                placeholder="Name"
+                                placeholder={latestPage?.namePlaceholder || "Name"}
                                 className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition pointer-events-none select-none ${themeMode === "dark"
                                   ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
                                   : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
@@ -535,7 +568,7 @@ export default function BrandPage() {
                               />
                               <input
                                 type="email"
-                                placeholder="Email"
+                                placeholder={latestPage?.emailPlaceholder || "Email"}
                                 className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition pointer-events-none select-none ${themeMode === "dark"
                                   ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
                                   : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
@@ -550,7 +583,7 @@ export default function BrandPage() {
                                 className="w-full rounded-md py-2.5 text-xs font-bold text-white transition duration-200 active:scale-95 shadow-md"
                                 style={{ backgroundColor: brandColor }}
                               >
-                                Get the templates
+                                {latestPage?.formButtonText || latestPage?.cta || "Send it to me"}
                               </button>
                             </div>
                           </div>

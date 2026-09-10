@@ -204,7 +204,7 @@ export default async function MagnetPageRoute({
       />
       <header className="mx-auto flex h-16 w-full max-w-6xl items-center justify-center px-4 sm:px-6 relative">
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-lg border border-dashed border-[#a1a1aa]/45 flex items-center justify-center bg-transparent overflow-hidden">
+          <div className={`h-9 w-9 rounded-lg flex items-center justify-center bg-transparent overflow-hidden ${logo ? "border-none" : "border border-dashed border-[#a1a1aa]/45"}`}>
             {logo ? (
               <img src={logo} alt="Logo" className="h-full w-full object-cover" />
             ) : (

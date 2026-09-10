@@ -86,7 +86,7 @@ export default async function ThankYouPage({
       {/* Header */}
       <header className="mx-auto flex h-12 w-full max-w-6xl items-center justify-center px-4 shrink-0 relative pt-2">
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg border border-dashed border-[#a1a1aa]/45 flex items-center justify-center bg-transparent overflow-hidden">
+          <div className={`h-7 w-7 rounded-lg flex items-center justify-center bg-transparent overflow-hidden ${logo ? "border-none" : "border border-dashed border-[#a1a1aa]/45"}`}>
             {logo ? (
               <img src={logo} alt="Logo" className="h-full w-full object-cover" />
             ) : (

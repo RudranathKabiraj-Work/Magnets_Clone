@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       LeadModel.find(userFilter).lean(),
       SequenceModel.find(userFilter).lean(),
       IntegrationModel.find(userFilter).lean(),
-      ResourceModel.find(userFilter).lean(),
+      ResourceModel.find({ userEmail: normEmail, isPageAsset: { $ne: true }, type: { $ne: "page_asset" } }).lean(),
     ]);
 
     let finalLeads = leads;

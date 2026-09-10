@@ -68,8 +68,10 @@ export async function POST(req: NextRequest) {
       type: isPageAsset ? "page_asset" : "deliverable",
     };
 
-    // Save metadata in DB
-    await ResourceModel.create(newResource);
+    // Save metadata in DB only if this is a deliverable resource, NOT a page asset
+    if (!isPageAsset) {
+      await ResourceModel.create(newResource);
+    }
 
     return NextResponse.json({ success: true, data: newResource });
   } catch (error: any) {

@@ -64,7 +64,7 @@ export default function ResourcesPage() {
     }
 
     // Load local data instantly
-    const localResources = loadResources();
+    const localResources = loadResources().filter((r: any) => !r.isPageAsset && r.type !== "page_asset");
     const localAccount = loadAccount();
     if (localResources.length > 0) setResources(localResources);
     if (localAccount) setAccount(localAccount);
@@ -74,8 +74,9 @@ export default function ResourcesPage() {
     syncWithDatabase().then((data) => {
       if (data) {
         setAccount(data.account);
-        if (data.resources && data.resources.length > 0) {
-          setResources(data.resources);
+        if (data.resources) {
+          const filtered = data.resources.filter((r: any) => !r.isPageAsset && r.type !== "page_asset");
+          setResources(filtered);
         }
       }
     });

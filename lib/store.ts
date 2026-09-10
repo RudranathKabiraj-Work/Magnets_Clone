@@ -331,7 +331,10 @@ export async function syncWithDatabase(): Promise<{
       if (data.sequences) safeSetItem("currentUserSequences", JSON.stringify(data.sequences));
       if (data.leads) safeSetItem("currentUserLeads", JSON.stringify(data.leads));
       if (data.integrations) safeSetItem("currentUserIntegrations", JSON.stringify(data.integrations));
-      if (data.resources) safeSetItem("currentUserResources", JSON.stringify(data.resources));
+      if (data.resources) {
+        const cleanResources = data.resources.filter((r: any) => !r.isPageAsset && r.type !== "page_asset");
+        safeSetItem("currentUserResources", JSON.stringify(cleanResources));
+      }
     }
     return data;
   } catch (error) {

@@ -735,8 +735,7 @@ export default function EditLeadMagnetPage() {
     bulletsTitle, formTitle, formSubtitle, formButtonText
   ]);
 
-  const handleGoBack = (e?: React.MouseEvent) => {
-    if (e) e.preventDefault();
+  const handleGoBack = () => {
     if (page) {
       const next = {
         ...page,
@@ -773,7 +772,6 @@ export default function EditLeadMagnetPage() {
       const all = loadPages().map((p) => (p.id === next.id ? next : p));
       savePages(all);
     }
-    router.push("/dashboard/leadmagnets");
   };
 
   if (!page) {
@@ -1091,14 +1089,14 @@ export default function EditLeadMagnetPage() {
             <div className={`flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:px-6 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#18181B] text-white" : "border-zinc-200 bg-zinc-50/80 text-zinc-900"}`}>
               {/* Left Back link & Page Name/Slug */}
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
+                <Link
+                  href="/dashboard/leadmagnets"
                   onClick={handleGoBack}
                   className="flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-[#27272A] bg-white dark:bg-[#1E1E24] px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#27272A] active:scale-95 transition-all shadow-xs cursor-pointer"
                 >
                   <ArrowLeft className="h-3.5 w-3.5 stroke-[2.5px]" />
                   <span>Lead magnets</span>
-                </button>
+                </Link>
                 <div className="flex flex-col justify-center">
                   <span className={`text-xs font-black uppercase tracking-wide leading-tight ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>{page.name}</span>
                   <span className={`text-[11px] leading-none mt-0.5 ${(account?.themeMode || "light") === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>/{page.slug}</span>
@@ -1309,9 +1307,9 @@ export default function EditLeadMagnetPage() {
                     {/* Brand Name Header */}
                     <div className="mb-6 flex items-center justify-center">
                       <div className="flex items-center gap-2.5">
-                        <div className="h-9 w-9 rounded-lg border border-dashed border-[#a1a1aa]/45 flex items-center justify-center bg-transparent overflow-hidden">
-                          {account?.logo || account?.avatar_url ? (
-                            <img src={account.logo || account.avatar_url || ""} alt="Logo" className="h-full w-full object-cover" />
+                        <div className={`h-9 w-9 rounded-lg flex items-center justify-center bg-transparent overflow-hidden ${account?.logo || account?.avatar_url || account?.avatar ? "border-none" : "border border-dashed border-[#a1a1aa]/45"}`}>
+                          {account?.logo || account?.avatar_url || account?.avatar ? (
+                            <img src={account?.logo || account?.avatar_url || account?.avatar || ""} alt="Logo" className="h-full w-full object-cover" />
                           ) : (
                             <div className="h-4 w-4 rounded-sm border border-dashed border-[#a1a1aa]" />
                           )}
