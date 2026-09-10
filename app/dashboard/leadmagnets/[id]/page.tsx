@@ -40,7 +40,6 @@ import {
   Pencil,
   AlertTriangle,
   Sparkles,
-  GripVertical,
 } from "lucide-react";
 import { useEffect, useState, useRef, useCallback } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
@@ -916,150 +915,23 @@ export default function EditLeadMagnetPage() {
     setBullets(bullets.filter((_, i) => i !== index));
   };
 
-  // Block Email Body Editor with Drag & Drop Up/Down Reordering, Plus Add, and Trash Delete
+  // Plain Email Body Editor field
   const renderEmailBlockEditor = (
     val: string,
     onValChange: (next: string) => void,
     isDisabled = false
   ) => {
-    const blocks = val ? val.split("\n\n") : [""];
     return (
-      <div data-block-container className="space-y-2.5">
-        {blocks.map((blockText, idx) => (
-          <div
-            key={idx}
-            draggable={!isDisabled}
-            onDragStart={(e) => {
-              e.dataTransfer.setData("text/plain", idx.toString());
-            }}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              const sourceIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
-              if (isNaN(sourceIdx) || sourceIdx === idx) return;
-              const updated = [...blocks];
-              const [moved] = updated.splice(sourceIdx, 1);
-              updated.splice(idx, 0, moved);
-              onValChange(updated.join("\n\n"));
-            }}
-            className={`group flex items-center gap-2.5 rounded-xl border px-3 py-2.5 shadow-2xs transition-all ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] focus-within:border-zinc-500 hover:border-zinc-600" : "border-zinc-200 bg-white focus-within:border-zinc-400 hover:border-zinc-300"}`}
-          >
-            {/* Left Controls: Plus + Drag Handle (Reveals on Hover / Focus) */}
-            <div className="flex items-center gap-1 shrink-0 text-zinc-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150">
-              <button
-                type="button"
-                disabled={isDisabled}
-                onClick={(e) => {
-                  const updated = [...blocks];
-                  updated.splice(idx + 1, 0, "");
-                  onValChange(updated.join("\n\n"));
-                  const currentEditor = e.currentTarget.closest("[data-block-container]");
-                  setTimeout(() => {
-                    if (currentEditor) {
-                      const textareas = currentEditor.querySelectorAll("textarea");
-                      const nextTextarea = textareas[idx + 1] as HTMLTextAreaElement;
-                      if (nextTextarea) nextTextarea.focus();
-                    }
-                  }, 40);
-                }}
-                className="p-1 rounded hover:bg-zinc-800 hover:text-white transition cursor-pointer disabled:opacity-40"
-                title="Add block below (+)"
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </button>
-
-              <span
-                className="p-1 rounded hover:bg-zinc-800 hover:text-white transition cursor-grab active:cursor-grabbing text-zinc-400"
-                title="Drag to reorder block up/down"
-              >
-                <GripVertical className="h-4 w-4" />
-              </span>
-            </div>
-
-            {/* Multiline Block Textarea (Press Enter to jump to next text field, Shift+Enter for newline) */}
-            <textarea
-              disabled={isDisabled}
-              rows={Math.max(1, blockText.split("\n").length)}
-              value={blockText}
-              onChange={(e) => {
-                const updated = [...blocks];
-                updated[idx] = e.target.value;
-                onValChange(updated.join("\n\n"));
-                e.target.style.height = "auto";
-                e.target.style.height = `${e.target.scrollHeight}px`;
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  const updated = [...blocks];
-                  updated.splice(idx + 1, 0, "");
-                  onValChange(updated.join("\n\n"));
-                  const currentEditor = e.currentTarget.closest("[data-block-container]");
-                  setTimeout(() => {
-                    if (currentEditor) {
-                      const textareas = currentEditor.querySelectorAll("textarea");
-                      const nextTextarea = textareas[idx + 1] as HTMLTextAreaElement;
-                      if (nextTextarea) nextTextarea.focus();
-                    }
-                  }, 40);
-                } else if (e.key === "Backspace" && blockText === "" && blocks.length > 1) {
-                  e.preventDefault();
-                  const updated = blocks.filter((_, i) => i !== idx);
-                  onValChange(updated.join("\n\n"));
-                  const currentEditor = e.currentTarget.closest("[data-block-container]");
-                  setTimeout(() => {
-                    if (currentEditor) {
-                      const textareas = currentEditor.querySelectorAll("textarea");
-                      const prevTargetIdx = Math.max(0, idx - 1);
-                      const prevTextarea = textareas[prevTargetIdx] as HTMLTextAreaElement;
-                      if (prevTextarea) {
-                        prevTextarea.focus();
-                        const len = prevTextarea.value.length;
-                        prevTextarea.setSelectionRange(len, len);
-                      }
-                    }
-                  }, 40);
-                }
-              }}
-              placeholder="Start writing, or press / for blocks. Use {name} for the recipient."
-              className={`flex-1 text-xs outline-none bg-transparent resize-none overflow-hidden leading-relaxed py-0.5 ${(account?.themeMode || "light") === "dark" ? "text-white placeholder:text-zinc-500" : "text-zinc-900 placeholder:text-zinc-400"}`}
-              ref={(el) => {
-                if (el) {
-                  el.style.height = "auto";
-                  el.style.height = `${el.scrollHeight}px`;
-                }
-              }}
-            />
-
-            {/* Right Control: Delete Trash Button (Reveals on Hover / Focus) */}
-            <button
-              type="button"
-              disabled={isDisabled}
-              onClick={(e) => {
-                if (blocks.length <= 1) {
-                  onValChange("");
-                  return;
-                }
-                const updated = blocks.filter((_, i) => i !== idx);
-                onValChange(updated.join("\n\n"));
-                const currentEditor = e.currentTarget.closest("[data-block-container]");
-                setTimeout(() => {
-                  if (currentEditor) {
-                    const textareas = currentEditor.querySelectorAll("textarea");
-                    const prevTargetIdx = Math.max(0, idx - 1);
-                    const prevTextarea = textareas[prevTargetIdx] as HTMLTextAreaElement;
-                    if (prevTextarea) prevTextarea.focus();
-                  }
-                }, 40);
-              }}
-              className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150 p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-[#121216] text-zinc-400 hover:text-red-400 hover:border-red-500/50 transition cursor-pointer disabled:opacity-40"
-              title="Delete block"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ))}
-      </div>
+      <textarea
+        disabled={isDisabled}
+        value={val}
+        onChange={(e) => onValChange(e.target.value)}
+        placeholder="Write your email body content here... Use {name} for subscriber name."
+        rows={10}
+        className={`w-full p-2 bg-transparent outline-none resize-y min-h-[220px] font-sans text-sm leading-relaxed transition ${
+          isDisabled ? "opacity-50 cursor-not-allowed" : ""
+        } ${(account?.themeMode || "light") === "dark" ? "text-zinc-100 placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
+      />
     );
   };
 
