@@ -67,6 +67,17 @@ export async function GET() {
       }
     }
 
+    if (!account && email) {
+      account = {
+        name: name || email.split("@")[0],
+        email: email,
+        username: email.split("@")[0],
+        plan: "Free",
+        brandColor: "#0066B2",
+        logo: null,
+      };
+    }
+
     if (!account) {
       const response = NextResponse.json({ authenticated: false, user: null }, { status: 401 });
       const { clearAuthCookie } = await import("@/lib/auth");

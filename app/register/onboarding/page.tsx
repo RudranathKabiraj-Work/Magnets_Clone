@@ -175,7 +175,23 @@ function OnboardingContent() {
     };
 
     const userEmail = (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null) || email || "";
-    const normUserEmail = userEmail.trim().toLowerCase();
+    let normUserEmail = userEmail.trim().toLowerCase();
+
+    if (!normUserEmail) {
+      try {
+        const meRes = await fetch("/api/auth/me");
+        const meData = await meRes.json();
+        if (meData?.authenticated && meData?.email) {
+          normUserEmail = meData.email.trim().toLowerCase();
+          safeSetItem("currentUserEmail", normUserEmail);
+          if (meData.user) {
+            safeSetItem("currentUserAccount", JSON.stringify(meData.user));
+          }
+        }
+      } catch (err) {
+        console.error("Error checking auth status before creating page:", err);
+      }
+    }
 
     const newPage = {
       id: pageId,

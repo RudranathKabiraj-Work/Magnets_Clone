@@ -8,6 +8,13 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
     }),
   ],
   callbacks: {
@@ -23,7 +30,13 @@ export const authOptions: NextAuthOptions = {
 
         if (!existing) {
           const baseName = user.name || user.email.split("@")[0];
-          const generatedUsername = baseName.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 15) || "user";
+          const rawUsername = baseName.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 15) || "user";
+          let generatedUsername = rawUsername;
+          
+          const existingUsername = await AccountModel.findOne({ username: generatedUsername });
+          if (existingUsername) {
+            generatedUsername = `${rawUsername}${Math.floor(1000 + Math.random() * 9000)}`;
+          }
 
           await AccountModel.create({
             name: user.name || "Google User",
