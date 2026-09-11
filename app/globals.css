@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 /* Lenis Smooth Scroll CSS */
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 
@@ -67,6 +68,7 @@ html.lenis, html.lenis body {
     opacity: 0;
     transform: translateY(14px) scale(0.97);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -77,12 +79,16 @@ html.lenis, html.lenis body {
   0% {
     stroke-dashoffset: 100;
   }
+
   30% {
     stroke-dashoffset: 0;
   }
+
   75% {
-    stroke-dashoffset: 0; /* Holds completely drawn & visible for 2.5s pause */
+    stroke-dashoffset: 0;
+    /* Holds completely drawn & visible for 2.5s pause */
   }
+
   100% {
     stroke-dashoffset: -100;
   }
@@ -97,6 +103,7 @@ html.lenis, html.lenis body {
   0% {
     background-position: 0% 0%;
   }
+
   100% {
     background-position: 0% 200%;
   }
@@ -113,12 +120,15 @@ html.lenis, html.lenis body {
     top: 0%;
     opacity: 0.2;
   }
+
   15% {
     opacity: 1;
   }
+
   85% {
     opacity: 1;
   }
+
   100% {
     top: 96%;
     opacity: 0.2;
@@ -137,6 +147,7 @@ html.lenis, html.lenis body {
   0% {
     transform: translateX(0%);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -146,6 +157,7 @@ html.lenis, html.lenis body {
   0% {
     transform: translateX(-50%);
   }
+
   100% {
     transform: translateX(0%);
   }
@@ -169,8 +181,8 @@ html.lenis, html.lenis body {
 }
 
 .marquee-mask {
-  mask-image: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
-  -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 15%, rgba(0, 0, 0, 1) 85%, rgba(0, 0, 0, 0) 100%);
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 15%, rgba(0, 0, 0, 1) 85%, rgba(0, 0, 0, 0) 100%);
 }
 
 .conversion-banner-bg {
@@ -298,7 +310,7 @@ html.light .conversion-banner-bg {
   padding-left: 0;
 }
 
-.email-rich-editor ul[data-email-list-style="dash"] > li:before {
+.email-rich-editor ul[data-email-list-style="dash"]>li:before {
   content: "–";
   display: inline-block;
   width: 1rem;
@@ -587,7 +599,7 @@ html.light .conversion-banner-bg {
   border-color: #343439;
 }
 
-.dark .app-theme .divide-ink-200 > :not([hidden]) ~ :not([hidden]) {
+.dark .app-theme .divide-ink-200> :not([hidden])~ :not([hidden]) {
   border-color: #343439;
 }
 
@@ -691,6 +703,7 @@ html.light .conversion-banner-bg {
   0% {
     transform: translateX(-120%);
   }
+
   to {
     transform: translateX(220%);
   }
@@ -743,7 +756,7 @@ textarea {
   color: #d8d3cc !important;
 }
 
-.optional-connections-drawer[open] > summary .optional-connections-chevron {
+.optional-connections-drawer[open]>summary .optional-connections-chevron {
   transform: rotate(180deg);
 }
 
@@ -990,7 +1003,7 @@ textarea {
 }
 
 .prose-leadmagnets p:first-child,
-.prose-leadmagnets > :first-child {
+.prose-leadmagnets> :first-child {
   margin-top: 0;
 }
 
@@ -998,13 +1011,16 @@ textarea {
   @page {
     margin: 14mm;
   }
+
   body:has(.quiz-results-page) * {
     visibility: hidden !important;
   }
+
   body:has(.quiz-results-page) .quiz-results-report,
   body:has(.quiz-results-page) .quiz-results-report * {
     visibility: visible !important;
   }
+
   body:has(.quiz-results-page) .quiz-results-report {
     position: absolute;
     inset: 0;
@@ -1012,6 +1028,7 @@ textarea {
     border: 0 !important;
     box-shadow: none !important;
   }
+
   .quiz-results-actions {
     display: none !important;
   }

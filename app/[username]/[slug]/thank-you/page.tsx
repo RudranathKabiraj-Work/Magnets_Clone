@@ -75,9 +75,8 @@ export default async function ThankYouPage({
 
   return (
     <main
-      className={`min-h-screen lg:h-screen lg:max-h-screen font-sans transition-colors duration-300 relative flex flex-col justify-between overflow-y-auto lg:overflow-hidden ${
-        themeMode === "dark" ? "bg-[#0E0E10] text-white" : "bg-[#FAFAFA] text-[#18181b]"
-      }`}
+      className={`min-h-screen lg:h-screen lg:max-h-screen font-sans transition-colors duration-300 relative flex flex-col justify-between overflow-y-auto lg:overflow-hidden ${themeMode === "dark" ? "bg-[#0E0E10] text-white" : "bg-[#FAFAFA] text-[#18181b]"
+        }`}
       style={{
         colorScheme: themeMode === "dark" ? "dark" : "light",
         backgroundImage:
@@ -96,7 +95,7 @@ export default async function ThankYouPage({
               <div className="h-3.5 w-3.5 rounded-sm border border-dashed border-[#a1a1aa]" />
             )}
           </div>
-          <span className="text-xs sm:text-sm font-extrabold tracking-wider uppercase">{businessName}</span>
+          <span className={`text-xs sm:text-sm font-extrabold tracking-wider uppercase ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>{businessName}</span>
         </div>
       </header>
 

@@ -269,9 +269,8 @@ export default function ThankYouAnimatedContent({
           />
 
           <div
-            className={`relative flex h-12 w-12 p-2.5 items-center justify-center rounded-2xl shadow-xl border backdrop-blur-xl ${
-              isDark ? "bg-[#141417]/90 border-white/10" : "bg-white/90 border-zinc-200"
-            }`}
+            className={`relative flex h-12 w-12 p-2.5 items-center justify-center rounded-2xl shadow-xl border backdrop-blur-xl ${isDark ? "bg-[#141417]/90 border-white/10" : "bg-white/90 border-zinc-200"
+              }`}
             style={{
               boxShadow: `0 12px 28px -6px ${brandColor}45`,
             }}
@@ -292,11 +291,10 @@ export default function ThankYouAnimatedContent({
           transition={{ duration: 0.4, delay: 0.15 }}
           className="space-y-1.5 max-w-2xl"
         >
-          <div className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-extrabold tracking-wide uppercase shadow-sm border backdrop-blur-md ${
-            isDark
+          <div className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-extrabold tracking-wide uppercase shadow-sm border backdrop-blur-md ${isDark
               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
               : "bg-sky-500/15 text-sky-800 border-sky-600/40 shadow-xs"
-          }`}>
+            }`}>
             <span className="relative flex h-2 w-2">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isDark ? "bg-emerald-500" : "bg-sky-500"}`}></span>
               <span className={`relative inline-flex rounded-full h-2 w-2 ${isDark ? "bg-emerald-500" : "bg-sky-600"}`}></span>
@@ -322,11 +320,10 @@ export default function ThankYouAnimatedContent({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.4 }}
-          className={`w-full max-w-xl rounded-2xl border py-2 px-4 flex items-center justify-between text-xs backdrop-blur-xl transition-all ${
-            isDark
+          className={`w-full max-w-xl rounded-2xl border py-2 px-4 flex items-center justify-between text-xs backdrop-blur-xl transition-all ${isDark
               ? "bg-[#12131a]/75 border-white/10 text-zinc-300 shadow-lg"
               : "bg-white/90 border-zinc-300 text-zinc-900 shadow-md"
-          }`}
+            }`}
           style={{
             boxShadow: isDark
               ? "0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1)"
@@ -369,11 +366,10 @@ export default function ThankYouAnimatedContent({
           initial={{ y: 25, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className={`rounded-xl border p-5 sm:p-6 space-y-4 backdrop-blur-xl relative overflow-hidden transition-all ${
-            isDark
+          className={`rounded-xl border p-5 sm:p-6 space-y-4 backdrop-blur-xl relative overflow-hidden transition-all ${isDark
               ? "bg-[#111218]/80 border-white/10 text-white shadow-xl"
               : "bg-white/85 border-zinc-200 text-zinc-900 shadow-md"
-          }`}
+            }`}
           style={{
             boxShadow: isDark
               ? `0 15px 35px -10px ${brandColor}30`
@@ -428,11 +424,11 @@ export default function ThankYouAnimatedContent({
             </motion.button>
           </div>
 
-          <div className="mt-3.5 flex items-center justify-between text-xs font-medium text-zinc-400 pt-2.5 border-t border-zinc-200/40 dark:border-white/10">
-            <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+          <div className={`mt-3.5 flex items-center justify-between text-xs font-medium pt-2.5 border-t ${isDark ? "text-zinc-400 border-white/10" : "text-zinc-600 border-zinc-200/60"}`}>
+            <span className={`flex items-center gap-1.5 font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
               <ShieldCheck className="h-4 w-4" /> 100% Virus-Free & Direct Link
             </span>
-            <span className="flex items-center gap-1.5 text-zinc-400">
+            <span className={`flex items-center gap-1.5 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
               <Lock className="h-3.5 w-3.5" /> SSL Secured
             </span>
           </div>
@@ -444,11 +440,10 @@ export default function ThankYouAnimatedContent({
             initial={{ y: 25, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className={`rounded-2xl border p-5 space-y-3.5 backdrop-blur-2xl transition-all ${
-              isDark
+            className={`rounded-2xl border p-5 space-y-3.5 backdrop-blur-2xl transition-all ${isDark
                 ? "bg-[#111218]/80 border-amber-500/30 text-white shadow-xl"
                 : "bg-gradient-to-br from-amber-500/10 via-white/85 to-white/75 border-amber-500/30 text-zinc-900 shadow-md"
-            }`}
+              }`}
             style={{
               boxShadow: isDark
                 ? `0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15)`
@@ -484,9 +479,8 @@ export default function ThankYouAnimatedContent({
             </div>
 
             <div
-              className={`p-3.5 rounded-xl text-xs font-mono leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto border shadow-inner ${
-                isDark ? "bg-[#0A0A0C]/70 text-zinc-200 border-white/5" : "bg-zinc-50/70 text-zinc-800 border-zinc-200"
-              }`}
+              className={`p-3.5 rounded-xl text-xs font-mono leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto border shadow-inner ${isDark ? "bg-[#0A0A0C]/70 text-zinc-200 border-white/5" : "bg-zinc-50/70 text-zinc-800 border-zinc-200"
+                }`}
             >
               {aiPersonalizedOutput}
             </div>
@@ -498,11 +492,10 @@ export default function ThankYouAnimatedContent({
           initial={{ y: 25, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.35 }}
-          className={`rounded-xl border p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 backdrop-blur-xl transition-all ${
-            isDark
+          className={`rounded-xl border p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 backdrop-blur-xl transition-all ${isDark
               ? "bg-[#111218]/80 border-white/10 text-white shadow-lg"
               : "bg-white/85 border-zinc-200 text-zinc-900 shadow-sm"
-          }`}
+            }`}
           style={{
             boxShadow: isDark
               ? `0 10px 25px -5px rgba(0, 0, 0, 0.4)`
@@ -514,8 +507,8 @@ export default function ThankYouAnimatedContent({
               <Share2 className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-xs sm:text-sm font-extrabold truncate">Spread the Word & Help Others</h3>
-              <p className={`text-xs ${isDark ? "text-zinc-400" : "text-zinc-500"} truncate`}>
+              <h3 className={`text-xs sm:text-sm font-extrabold truncate ${isDark ? "text-white" : "text-zinc-900"}`}>Spread the Word & Help Others</h3>
+              <p className={`text-xs ${isDark ? "text-zinc-400" : "text-zinc-600"} truncate`}>
                 Know colleagues or friends who would benefit from this free guide?
               </p>
             </div>
@@ -531,7 +524,7 @@ export default function ThankYouAnimatedContent({
               className="h-9 w-9 rounded-lg flex items-center justify-center bg-black text-white hover:bg-zinc-800 border border-white/15 transition-all hover:scale-105 shadow-sm cursor-pointer shrink-0"
             >
               <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
             </a>
 
@@ -544,7 +537,7 @@ export default function ThankYouAnimatedContent({
               className="h-9 w-9 rounded-lg flex items-center justify-center bg-[#0A66C2] text-white hover:bg-[#084e96] border border-white/10 transition-all hover:scale-105 shadow-sm cursor-pointer shrink-0"
             >
               <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
               </svg>
             </a>
 
@@ -552,9 +545,8 @@ export default function ThankYouAnimatedContent({
               onClick={handleCopyShareLink}
               title={copiedLink ? "Link Copied!" : "Copy Page Link"}
               aria-label="Copy Page Link"
-              className={`h-9 w-9 rounded-lg flex items-center justify-center border transition-all hover:scale-105 shadow-sm cursor-pointer shrink-0 ${
-                isDark ? "border-white/15 bg-white/10 hover:bg-white/20 text-white" : "border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-zinc-800"
-              }`}
+              className={`h-9 w-9 rounded-lg flex items-center justify-center border transition-all hover:scale-105 shadow-sm cursor-pointer shrink-0 ${isDark ? "border-white/15 bg-white/10 hover:bg-white/20 text-white" : "border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-zinc-800"
+                }`}
             >
               {copiedLink ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
             </button>
@@ -565,9 +557,8 @@ export default function ThankYouAnimatedContent({
         <div className="text-center pt-1">
           <a
             href={`/${username}/${magnetSlug}`}
-            className={`inline-flex items-center gap-1.5 text-xs font-bold hover:underline transition-colors ${
-              isDark ? "text-zinc-400 hover:text-white" : "text-zinc-600 hover:text-black"
-            }`}
+            className={`inline-flex items-center gap-1.5 text-xs font-bold hover:underline transition-colors ${isDark ? "text-zinc-400 hover:text-white" : "text-zinc-600 hover:text-black"
+              }`}
           >
             <ExternalLink className="h-3.5 w-3.5" />
             View Original Magnet Page
@@ -583,9 +574,8 @@ export default function ThankYouAnimatedContent({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className={`w-full max-w-md rounded-3xl border p-6 shadow-2xl relative space-y-5 ${
-                isDark ? "bg-[#141417] border-white/15 text-white" : "bg-white border-zinc-200 text-zinc-900"
-              }`}
+              className={`w-full max-w-md rounded-3xl border p-6 shadow-2xl relative space-y-5 ${isDark ? "bg-[#141417] border-white/15 text-white" : "bg-white border-zinc-200 text-zinc-900"
+                }`}
             >
               <button
                 onClick={() => setShowBookingModal(false)}
@@ -627,13 +617,12 @@ export default function ThankYouAnimatedContent({
                           <button
                             key={d}
                             onClick={() => setSelectedDate(d)}
-                            className={`py-2 px-3 rounded-xl text-xs font-bold border transition ${
-                              selectedDate === d
+                            className={`py-2 px-3 rounded-xl text-xs font-bold border transition ${selectedDate === d
                                 ? "bg-[#0066B2] text-white border-sky-400"
                                 : isDark
-                                ? "bg-[#1C1C22] border-white/10 text-zinc-300 hover:border-white/20"
-                                : "bg-zinc-100 border-zinc-200 text-zinc-800 hover:bg-zinc-200"
-                            }`}
+                                  ? "bg-[#1C1C22] border-white/10 text-zinc-300 hover:border-white/20"
+                                  : "bg-zinc-100 border-zinc-200 text-zinc-800 hover:bg-zinc-200"
+                              }`}
                           >
                             {d}
                           </button>
@@ -648,13 +637,12 @@ export default function ThankYouAnimatedContent({
                           <button
                             key={t}
                             onClick={() => setSelectedTime(t)}
-                            className={`py-2 px-3 rounded-xl text-xs font-bold border transition ${
-                              selectedTime === t
+                            className={`py-2 px-3 rounded-xl text-xs font-bold border transition ${selectedTime === t
                                 ? "bg-[#0066B2] text-white border-sky-400"
                                 : isDark
-                                ? "bg-[#1C1C22] border-white/10 text-zinc-300 hover:border-white/20"
-                                : "bg-zinc-100 border-zinc-200 text-zinc-800 hover:bg-zinc-200"
-                            }`}
+                                  ? "bg-[#1C1C22] border-white/10 text-zinc-300 hover:border-white/20"
+                                  : "bg-zinc-100 border-zinc-200 text-zinc-800 hover:bg-zinc-200"
+                              }`}
                           >
                             {t}
                           </button>

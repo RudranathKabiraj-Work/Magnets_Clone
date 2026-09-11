@@ -136,13 +136,13 @@ export default async function MagnetPageRoute({
   if (!accountDoc && cleanUserEmail) {
     try {
       accountDoc = await AccountModel.findOne({ email: cleanUserEmail });
-    } catch (_) {}
+    } catch (_) { }
   }
 
   if (!accountDoc) {
     try {
       accountDoc = await AccountModel.findOne({});
-    } catch (_) {}
+    } catch (_) { }
   }
 
   if (!pageDoc) {
@@ -217,7 +217,7 @@ export default async function MagnetPageRoute({
               <div className="h-4 w-4 rounded-sm border border-dashed border-[#a1a1aa]" />
             )}
           </div>
-          <span className="text-sm font-bold tracking-wider uppercase">
+          <span className={`text-sm font-bold tracking-wider uppercase ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>
             {businessName}
           </span>
         </div>
@@ -325,7 +325,6 @@ export default async function MagnetPageRoute({
                   enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
                   customFormFields={page.customFormFields}
                   username={params.username}
-                  isVariantB={isVariantB}
                 />
                 <p className={`mt-3 flex items-center justify-center gap-1.5 text-xs ${themeMode === "dark" ? "text-zinc-500" : "text-ink-500"
                   }`}>
