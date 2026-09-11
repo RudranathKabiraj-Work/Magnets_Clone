@@ -288,8 +288,10 @@ export function saveResources(resources: any[]) {
     body: JSON.stringify({ action: "saveResources", data: resources }),
   }).catch(console.error);
 }
+let inFlightSyncPromise: Promise<any> | null = null;
+let inFlightSyncEmail: string | null = null;
 
-export async function syncWithDatabase(): Promise<{
+export async function syncUserData(): Promise<{
   account: Account;
   pages: MagnetPage[];
   sequences: Sequence[];
@@ -312,33 +314,51 @@ export async function syncWithDatabase(): Promise<{
       }
     }
     if (!email) return null;
-    const url = `/api/data?email=${encodeURIComponent(email)}`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (data && typeof window !== "undefined") {
-      if (data.account && data.account.email) {
-        if (data.account.email.toLowerCase() === email.toLowerCase()) {
-          safeSetItem("currentUserAccount", JSON.stringify(data.account));
-          safeSetItem("currentUserEmail", data.account.email);
-        }
-      }
 
-      if (data.pages && Array.isArray(data.pages)) {
-        safeSetItem("currentUserPages", JSON.stringify(data.pages));
-      }
-
-      if (data.sequences) safeSetItem("currentUserSequences", JSON.stringify(data.sequences));
-      if (data.leads) safeSetItem("currentUserLeads", JSON.stringify(data.leads));
-      if (data.integrations) safeSetItem("currentUserIntegrations", JSON.stringify(data.integrations));
-      if (data.resources) {
-        const cleanResources = data.resources.filter((r: any) => !r.isPageAsset && r.type !== "page_asset");
-        safeSetItem("currentUserResources", JSON.stringify(cleanResources));
-      }
+    const normEmail = email.toLowerCase();
+    if (inFlightSyncPromise && inFlightSyncEmail === normEmail) {
+      return inFlightSyncPromise;
     }
-    return data;
+
+    inFlightSyncEmail = normEmail;
+    inFlightSyncPromise = (async () => {
+      try {
+        const url = `/api/data?email=${encodeURIComponent(email!)}`;
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (data && typeof window !== "undefined") {
+          if (data.account && data.account.email) {
+            if (data.account.email.toLowerCase() === normEmail) {
+              safeSetItem("currentUserAccount", JSON.stringify(data.account));
+              safeSetItem("currentUserEmail", data.account.email);
+            }
+          }
+
+          if (data.pages && Array.isArray(data.pages)) {
+            safeSetItem("currentUserPages", JSON.stringify(data.pages));
+          }
+
+          if (data.sequences) safeSetItem("currentUserSequences", JSON.stringify(data.sequences));
+          if (data.leads) safeSetItem("currentUserLeads", JSON.stringify(data.leads));
+          if (data.integrations) safeSetItem("currentUserIntegrations", JSON.stringify(data.integrations));
+          if (data.resources) {
+            const cleanResources = data.resources.filter((r: any) => !r.isPageAsset && r.type !== "page_asset");
+            safeSetItem("currentUserResources", JSON.stringify(cleanResources));
+          }
+        }
+        return data;
+      } finally {
+        inFlightSyncPromise = null;
+        inFlightSyncEmail = null;
+      }
+    })();
+
+    return inFlightSyncPromise;
   } catch (error) {
     console.error("Failed to sync database", error);
     return null;
   }
 }
+
+export const syncWithDatabase = syncUserData;

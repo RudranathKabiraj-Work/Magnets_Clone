@@ -2,6 +2,7 @@
 
 import { ArrowRight, Check, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
+import { type CustomFormField } from "@/lib/data";
 
 export default function MagnetSignupForm({
   cta,
@@ -20,6 +21,7 @@ export default function MagnetSignupForm({
   customPromptQuestion,
   customPromptPlaceholder,
   enableAiPersonalizedDeliverable,
+  customFormFields = [],
   username,
 }: {
   cta: string;
@@ -38,15 +40,21 @@ export default function MagnetSignupForm({
   customPromptQuestion?: string;
   customPromptPlaceholder?: string;
   enableAiPersonalizedDeliverable?: boolean;
+  customFormFields?: CustomFormField[];
   username?: string;
 }) {
   const [done, setDone] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [customAnswer, setCustomAnswer] = useState("");
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({});
   const [personalizedOutput, setPersonalizedOutput] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const handleCustomFieldChange = (fieldId: string, val: any) => {
+    setCustomFieldValues((prev) => ({ ...prev, [fieldId]: val }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +103,7 @@ export default function MagnetSignupForm({
         signedUpAt: `${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} at ${new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}`,
         tags: enableAiPersonalizedDeliverable ? ["ai-personalized"] : [],
         customAnswer: customAnswer.trim(),
+        customFields: customFieldValues,
       };
 
       const res = await fetch("/api/data", {
@@ -169,6 +178,12 @@ export default function MagnetSignupForm({
     }
   };
 
+  const inputStyle = {
+    backgroundColor: themeMode === "dark" ? "#18181C" : "#ffffff",
+    color: themeMode === "dark" ? "#ffffff" : "#09090b",
+    borderColor: themeMode === "dark" ? "#252529" : "#d4d4d8"
+  };
+
   return (
     <>
       {done ? (
@@ -221,13 +236,179 @@ export default function MagnetSignupForm({
               disabled={loading}
               onChange={(e) => setName(e.target.value)}
               placeholder="Name"
-              style={{
-                backgroundColor: themeMode === "dark" ? "#18181C" : "#ffffff",
-                color: themeMode === "dark" ? "#ffffff" : "#09090b",
-                borderColor: themeMode === "dark" ? "#252529" : "#e4e4e7"
-              }}
+              style={inputStyle}
               className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
             />
+            <input
+              type="email"
+              required
+              value={email}
+              disabled={loading}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              style={inputStyle}
+              className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
+            />
+
+            {/* Interactive Optional Fields Picker for Visitors */}
+            <div className={`mt-2 rounded-xl border p-3 text-left transition-colors duration-200 ${themeMode === "dark" ? "border-white/10 bg-black/30" : "border-zinc-200/80 bg-zinc-50/70"}`}>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 block mb-1.5">
+                ✨ Optional Information (Click to add)
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {!customFormFields.some(f => f.id === "field_phone") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!customFormFields.some(f => f.id === "field_phone")) {
+                        customFormFields.push({ id: "field_phone", type: "text", label: "Phone Number", placeholder: "+1 (555) 000-0000", required: false });
+                        setCustomFieldValues(prev => ({ ...prev }));
+                      }
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/10 hover:bg-indigo-500/10 hover:text-indigo-500 transition cursor-pointer"
+                  >
+                    + Phone Number
+                  </button>
+                )}
+                {!customFormFields.some(f => f.id === "field_company") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!customFormFields.some(f => f.id === "field_company")) {
+                        customFormFields.push({ id: "field_company", type: "text", label: "Company Name", placeholder: "Acme Inc.", required: false });
+                        setCustomFieldValues(prev => ({ ...prev }));
+                      }
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/10 hover:bg-indigo-500/10 hover:text-indigo-500 transition cursor-pointer"
+                  >
+                    + Company Name
+                  </button>
+                )}
+                {!customFormFields.some(f => f.id === "field_team_size") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!customFormFields.some(f => f.id === "field_team_size")) {
+                        customFormFields.push({ id: "field_team_size", type: "select", label: "Company Size", placeholder: "Select company size", required: false, options: ["1-10 employees", "11-50 employees", "51-200 employees", "201+ employees"] });
+                        setCustomFieldValues(prev => ({ ...prev }));
+                      }
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/10 hover:bg-indigo-500/10 hover:text-indigo-500 transition cursor-pointer"
+                  >
+                    + Company Size
+                  </button>
+                )}
+                {!customFormFields.some(f => f.id === "field_notes") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!customFormFields.some(f => f.id === "field_notes")) {
+                        customFormFields.push({ id: "field_notes", type: "textarea", label: "Additional Notes", placeholder: "Tell us about your project...", required: false });
+                        setCustomFieldValues(prev => ({ ...prev }));
+                      }
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/10 hover:bg-indigo-500/10 hover:text-indigo-500 transition cursor-pointer"
+                  >
+                    + Notes / Message
+                  </button>
+                )}
+              </div>
+            </div>
+            {customFormFields && customFormFields.length > 0 && (
+              <div className="space-y-3">
+                {customFormFields.map((field) => (
+                  <div key={field.id} className="space-y-1">
+                    <label
+                      style={{ color: themeMode === "dark" ? "#ffffff" : "#09090b" }}
+                      className="text-xs font-black flex items-center justify-between tracking-wide"
+                    >
+                      <span className="flex items-center gap-1">
+                        {field.label}
+                        {field.required ? (
+                          <span className="text-rose-500 font-extrabold text-xs ml-0.5" title="Required field">*</span>
+                        ) : (
+                          <span className="text-[10px] font-normal text-zinc-500 dark:text-zinc-400 ml-1.5">(optional)</span>
+                        )}
+                      </span>
+                    </label>
+
+                    {field.type === "text" && (
+                      <input
+                        type="text"
+                        required={field.required}
+                        value={customFieldValues[field.id] || ""}
+                        disabled={loading}
+                        onChange={(e) => handleCustomFieldChange(field.id, e.target.value)}
+                        placeholder={field.placeholder || field.label}
+                        style={inputStyle}
+                        className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm font-semibold outline-none transition shadow-xs placeholder:text-zinc-800 dark:placeholder:text-zinc-400 focus:border-[#0066B2]"
+                      />
+                    )}
+
+                    {field.type === "number" && (
+                      <input
+                        type="number"
+                        required={field.required}
+                        value={customFieldValues[field.id] || ""}
+                        disabled={loading}
+                        onChange={(e) => handleCustomFieldChange(field.id, e.target.value)}
+                        placeholder={field.placeholder || field.label}
+                        style={inputStyle}
+                        className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm font-semibold outline-none transition shadow-xs placeholder:text-zinc-800 dark:placeholder:text-zinc-400 focus:border-[#0066B2]"
+                      />
+                    )}
+
+                    {field.type === "textarea" && (
+                      <textarea
+                        rows={2}
+                        required={field.required}
+                        value={customFieldValues[field.id] || ""}
+                        disabled={loading}
+                        onChange={(e) => handleCustomFieldChange(field.id, e.target.value)}
+                        placeholder={field.placeholder || field.label}
+                        style={inputStyle}
+                        className="w-full rounded-xl border px-3.5 py-2.5 text-sm font-semibold outline-none transition shadow-xs placeholder:text-zinc-800 dark:placeholder:text-zinc-400 focus:border-[#0066B2]"
+                      />
+                    )}
+
+                    {field.type === "select" && (
+                      <select
+                        required={field.required}
+                        value={customFieldValues[field.id] || ""}
+                        disabled={loading}
+                        onChange={(e) => handleCustomFieldChange(field.id, e.target.value)}
+                        style={inputStyle}
+                        className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs focus:border-[#0066B2]"
+                      >
+                        <option value="">{field.placeholder || `Select ${field.label}...`}</option>
+                        {(field.options || []).map((opt, idx) => (
+                          <option key={idx} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+
+                    {field.type === "checkbox" && (
+                      <label className="flex items-center gap-2.5 pt-1 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          required={field.required}
+                          checked={!!customFieldValues[field.id]}
+                          disabled={loading}
+                          onChange={(e) => handleCustomFieldChange(field.id, e.target.checked)}
+                          className="h-4 w-4 rounded border-zinc-300 text-[#0066B2] focus:ring-[#0066B2]"
+                        />
+                        <span className="text-xs text-zinc-600 dark:text-zinc-300 font-medium">
+                          {field.placeholder || field.label}
+                        </span>
+                      </label>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             {enableAiPersonalizedDeliverable && (
               <div className="space-y-1">
                 <label className="text-[11px] font-semibold text-[#0066B2] flex items-center gap-1">
@@ -240,29 +421,12 @@ export default function MagnetSignupForm({
                   disabled={loading}
                   onChange={(e) => setCustomAnswer(e.target.value)}
                   placeholder={customPromptPlaceholder || "e.g. Scaling outreach, Lead generation"}
-                  style={{
-                    backgroundColor: themeMode === "dark" ? "#18181C" : "#ffffff",
-                    color: themeMode === "dark" ? "#ffffff" : "#09090b",
-                    borderColor: themeMode === "dark" ? "#252529" : "#e4e4e7"
-                  }}
+                  style={inputStyle}
                   className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
                 />
               </div>
             )}
-            <input
-              type="email"
-              required
-              value={email}
-              disabled={loading}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              style={{
-                backgroundColor: themeMode === "dark" ? "#18181C" : "#ffffff",
-                color: themeMode === "dark" ? "#ffffff" : "#09090b",
-                borderColor: themeMode === "dark" ? "#252529" : "#e4e4e7"
-              }}
-              className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
-            />
+
             <button
               type="submit"
               disabled={loading}

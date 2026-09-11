@@ -12,6 +12,9 @@ interface Props {
   pageTitle: string;
   ctaText?: string;
   brandColor?: string;
+  pageId?: string;
+  isVariantB?: boolean;
+  isOwner?: boolean;
 }
 
 export default function AnalyticsAndExitIntent({
@@ -22,11 +25,14 @@ export default function AnalyticsAndExitIntent({
   pageTitle,
   ctaText = "Get instant access",
   brandColor = "#0066B2",
+  pageId,
+  isVariantB = false,
+  isOwner = false,
 }: Props) {
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  // Favicon dynamic injection & Live stats sync broadcast
+  // Favicon dynamic injection & Live async view tracking beacon
   useEffect(() => {
     if (faviconUrl && typeof window !== "undefined") {
       let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
@@ -38,15 +44,35 @@ export default function AnalyticsAndExitIntent({
       link.href = faviconUrl;
     }
 
-    // Broadcast page view event to open editor tabs
-    try {
-      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-        const bc = new BroadcastChannel("leadmagnets_live_sync");
-        bc.postMessage({ type: "STATS_UPDATED" });
-        bc.close();
+    // Async background view tracking using navigator.sendBeacon for zero-block tab load completion
+    if (pageId && typeof window !== "undefined") {
+      const payload = JSON.stringify({ pageId, isVariantB, isOwner });
+      let sent = false;
+      if (typeof navigator !== "undefined" && "sendBeacon" in navigator) {
+        try {
+          const blob = new Blob([payload], { type: "application/json" });
+          sent = navigator.sendBeacon("/api/track-view", blob);
+        } catch (_) {}
       }
-    } catch (_) {}
-  }, [faviconUrl]);
+      if (!sent) {
+        fetch("/api/track-view", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+        }).catch(console.error);
+      }
+
+      // Broadcast page view event to open editor tabs
+      try {
+        if ("BroadcastChannel" in window) {
+          const bc = new BroadcastChannel("leadmagnets_live_sync");
+          bc.postMessage({ type: "STATS_UPDATED" });
+          bc.close();
+        }
+      } catch (_) {}
+    }
+  }, [faviconUrl, pageId, isVariantB, isOwner]);
 
   // Exit-Intent detection (detect cursor moving to top of window)
   useEffect(() => {
@@ -73,14 +99,14 @@ export default function AnalyticsAndExitIntent({
 
   return (
     <>
-      {/* Google Analytics 4 Script */}
+      {/* Google Analytics 4 Script - lazyOnload strategy to prevent blocking browser tab load */}
       {ga4Id && ga4Id.trim() !== "" && (
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga4Id.trim())}`}
-            strategy="afterInteractive"
+            strategy="lazyOnload"
           />
-          <Script id="ga4-init" strategy="afterInteractive">
+          <Script id="ga4-init" strategy="lazyOnload">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
@@ -91,9 +117,9 @@ export default function AnalyticsAndExitIntent({
         </>
       )}
 
-      {/* Meta (Facebook) Pixel Script */}
+      {/* Meta (Facebook) Pixel Script - lazyOnload strategy */}
       {pixelId && pixelId.trim() !== "" && (
-        <Script id="meta-pixel-init" strategy="afterInteractive">
+        <Script id="meta-pixel-init" strategy="lazyOnload">
           {`
             !function(f,b,e,v,n,t,s)
             {if(f.fbq)return;n=f.fbq=function(){n.callMethod?

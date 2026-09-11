@@ -86,6 +86,7 @@ const MagnetPageSchema = new Schema({
   namePlaceholder: { type: String, default: "Name" },
   emailPlaceholder: { type: String, default: "Email" },
   formButtonText: { type: String, default: "Send it to me" },
+  customFormFields: { type: Array, default: [] },
 });
 
 // Lead Schema
@@ -94,8 +95,8 @@ const LeadSchema = new Schema({
   userEmail: { type: String, lowercase: true, trim: true, index: true },
   name: { type: String, required: true },
   email: { type: String, required: true },
-  page: { type: String, required: true },
-  pageId: { type: String, required: true },
+  page: { type: String, required: true, index: true },
+  pageId: { type: String, required: true, index: true },
   status: { type: String, enum: ["new", "delivered", "opened", "replied", "stopped"], default: "new" },
   source: { type: String, enum: ["leadmagnets", "magnets", "custom-domain", "integration"], default: "leadmagnets" },
   signedUpAt: { type: String, required: true },
@@ -103,9 +104,13 @@ const LeadSchema = new Schema({
   sequenceStep: { type: String },
   tags: { type: [String], default: [] },
   customAnswer: { type: String, default: "" },
+  customFields: { type: Schema.Types.Mixed, default: {} },
   deviceType: { type: String, enum: ["desktop", "mobile"], default: "desktop" },
   referrer: { type: String, default: "Direct" },
 });
+
+LeadSchema.index({ userEmail: 1, pageId: 1 });
+LeadSchema.index({ userEmail: 1, page: 1 });
 
 // Sequence Email Schema
 const SequenceEmailSchema = new Schema({

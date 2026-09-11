@@ -142,6 +142,23 @@ export default async function LeadDetail({ params }: { params: { id: string } })
               </div>
             </section>
 
+            {/* Custom Field Responses */}
+            {lead.customFields && Object.keys(lead.customFields).length > 0 && (
+              <section className="rounded-2xl border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
+                <h3 className="text-sm font-semibold text-ink-950 dark:text-white flex items-center gap-1.5">
+                  <span>Custom Form Responses</span>
+                </h3>
+                <div className="mt-3 space-y-2 text-xs">
+                  {Object.entries(lead.customFields).map(([key, val]) => (
+                    <div key={key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 p-2 rounded-lg bg-zinc-50 dark:bg-ink-950 border border-zinc-100 dark:border-ink-800">
+                      <span className="font-medium text-ink-600 dark:text-ink-400 capitalize">{key.replace("field_", "").replace("_", " ")}</span>
+                      <span className="font-bold text-ink-900 dark:text-white">{String(val)}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             <section className="rounded-2xl border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
               <h3 className="text-sm font-semibold text-ink-950 dark:text-white">Notes</h3>
               <textarea

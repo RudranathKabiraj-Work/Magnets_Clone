@@ -68,27 +68,32 @@ export default async function MagnetPageRoute({
 }: {
   params: { username: string; slug: string };
 }) {
-  await dbConnect();
+  let accountDoc: any = null;
+  let pageDoc: any = null;
 
-  const decodedUsername = decodeURIComponent(params.username || "");
-  const escapedUsername = decodedUsername.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+  try {
+    await dbConnect();
+    const decodedUsername = decodeURIComponent(params.username || "");
+    const escapedUsername = decodedUsername.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 
-  let accountDoc = await AccountModel.findOne(
-    escapedUsername ? { username: { $regex: new RegExp(`^${escapedUsername}$`, "i") } } : {}
-  );
+    accountDoc = await AccountModel.findOne(
+      escapedUsername ? { username: { $regex: new RegExp(`^${escapedUsername}$`, "i") } } : {}
+    );
 
-  let pageDoc = null;
-  if (accountDoc && accountDoc.email) {
-    pageDoc = await MagnetPageModel.findOne({
-      userEmail: accountDoc.email.trim().toLowerCase(),
-      $or: [{ id: params.slug }, { slug: params.slug }]
-    });
-  }
+    if (accountDoc && accountDoc.email) {
+      pageDoc = await MagnetPageModel.findOne({
+        userEmail: accountDoc.email.trim().toLowerCase(),
+        $or: [{ id: params.slug }, { slug: params.slug }]
+      });
+    }
 
-  if (!pageDoc) {
-    pageDoc = await MagnetPageModel.findOne({
-      $or: [{ id: params.slug }, { slug: params.slug }]
-    });
+    if (!pageDoc) {
+      pageDoc = await MagnetPageModel.findOne({
+        $or: [{ id: params.slug }, { slug: params.slug }]
+      });
+    }
+  } catch (err) {
+    console.warn("MongoDB connection fallback in MagnetPageRoute:", err);
   }
 
   // Cookie session check to identify if the current viewer is the logged-in owner
@@ -99,7 +104,7 @@ export default async function MagnetPageRoute({
     cookieStore.get("__Secure-next-auth.session-token")?.value;
 
   const isOwner = Boolean(sessionToken);
-  const isDraftMode = pageDoc.status === "draft";
+  const isDraftMode = pageDoc?.status === "draft";
 
   // Draft Access Protection: If page is in Draft and viewer is NOT the logged-in owner, block public access
   if (isDraftMode && !isOwner) {
@@ -126,44 +131,42 @@ export default async function MagnetPageRoute({
     );
   }
 
-  const cleanUserEmail = pageDoc.userEmail ? pageDoc.userEmail.trim().toLowerCase() : null;
+  const cleanUserEmail = pageDoc?.userEmail ? pageDoc.userEmail.trim().toLowerCase() : null;
 
   if (!accountDoc && cleanUserEmail) {
-    accountDoc = await AccountModel.findOne({ email: cleanUserEmail });
+    try {
+      accountDoc = await AccountModel.findOne({ email: cleanUserEmail });
+    } catch (_) {}
   }
 
   if (!accountDoc) {
-    accountDoc = await AccountModel.findOne({});
+    try {
+      accountDoc = await AccountModel.findOne({});
+    } catch (_) {}
   }
 
-  // Increment views
-  pageDoc.views = (pageDoc.views || 0) + 1;
-  if (pageDoc.views > 0) {
-    pageDoc.conversionRate = parseFloat(((pageDoc.signups / pageDoc.views) * 100).toFixed(1));
+  if (!pageDoc) {
+    notFound();
   }
-  await pageDoc.save();
 
   const page = JSON.parse(JSON.stringify(pageDoc)) as MagnetPage;
 
-  // A/B Split Test Logic (50/50 Cookie / Deterministic Random Split)
+  // A/B Split Test Variant Selection
   let activeHeadline = page.headline;
   let activeImageUrl = page.imageUrl;
   let activeVariantLabel: "Control" | "Variant B" = "Control";
+  let isVariantB = false;
 
   if (page.testStarted && page.hasVariantB) {
     const variantBText = page.variantBTitle && page.variantBTitle.trim() !== "" ? page.variantBTitle : page.headline;
     const variantBImg = page.variantBImage && page.variantBImage.trim() !== "" ? page.variantBImage : page.imageUrl;
 
-    const isVariantB = Math.random() < 0.5;
+    isVariantB = Math.random() < 0.5;
     if (isVariantB) {
       activeHeadline = variantBText;
       activeImageUrl = variantBImg;
       activeVariantLabel = "Variant B";
-      pageDoc.variantBViews = (pageDoc.variantBViews || 0) + 1;
-    } else {
-      pageDoc.variantAViews = (pageDoc.variantAViews || 0) + 1;
     }
-    await pageDoc.save();
   }
 
   const themeMode = (accountDoc?.themeMode as "light" | "dark") || "light";
@@ -184,6 +187,18 @@ export default async function MagnetPageRoute({
           : `radial-gradient(circle at 0% 0%, ${brandColor}15 0%, transparent 40%), radial-gradient(circle at 100% 100%, ${brandColor}0c 0%, transparent 40%)`
       }}
     >
+      <AnalyticsAndExitIntent
+        ga4Id={accountDoc?.ga4MeasurementId}
+        pixelId={accountDoc?.metaPixelId}
+        faviconUrl={accountDoc?.faviconUrl}
+        ogImageUrl={accountDoc?.ogImageUrl}
+        pageTitle={page.name}
+        ctaText={page.cta}
+        brandColor={brandColor}
+        pageId={page.id}
+        isVariantB={isVariantB}
+        isOwner={isOwner}
+      />
       {/* Draft Preview Mode Top Banner for Logged-In Owner */}
       {isDraftMode && isOwner && (
         <div className="sticky top-0 z-50 flex items-center justify-center gap-2 bg-amber-500 text-black px-4 py-2 text-xs font-bold shadow-md border-b border-amber-600">
@@ -193,15 +208,6 @@ export default async function MagnetPageRoute({
           <span>⚠️ Draft Preview Mode — This magnet is not yet published. Only you can view this page.</span>
         </div>
       )}
-      <AnalyticsAndExitIntent
-        ga4Id={accountDoc?.ga4MeasurementId}
-        pixelId={accountDoc?.metaPixelId}
-        faviconUrl={accountDoc?.faviconUrl}
-        ogImageUrl={accountDoc?.ogImageUrl}
-        pageTitle={page.name || "Lead Magnet"}
-        ctaText={page.cta}
-        brandColor={brandColor}
-      />
       <header className="mx-auto flex h-16 w-full max-w-6xl items-center justify-center px-4 sm:px-6 relative">
         <div className="flex items-center gap-2.5">
           <div className={`h-9 w-9 rounded-lg flex items-center justify-center bg-transparent overflow-hidden ${logo ? "border-none" : "border border-dashed border-[#a1a1aa]/45"}`}>
@@ -253,34 +259,32 @@ export default async function MagnetPageRoute({
                 {page.subheadline}
               </p>
 
-              <div className="space-y-4 pt-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
-                  {page.bulletsTitle || page.pitch || "What they will learn"}
-                </p>
-                <ul className="space-y-4">
-                  {(page.bullets && page.bullets.length > 0 ? page.bullets : [
-                    "101 fill-in-the-blank templates for every content scenario",
-                    "Proven structures for storytelling, advice, and transformation posts",
-                    "Ready-to-use formats that let you focus on your message"
-                  ]).map((line, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5 text-sm">
-                      <span
-                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 shadow-sm transition-all duration-300"
-                        style={{
-                          backgroundColor: brandColor,
-                          opacity: 0.4 + (highlightIntensity / 100) * 0.6,
-                          boxShadow: highlightIntensity > 30 ? `0 0 ${Math.round(12 * (highlightIntensity / 100))}px ${brandColor}${Math.round((highlightIntensity / 100) * 0.7 * 255).toString(16).padStart(2, '0')}` : 'none'
-                        }}
-                      >
-                        <CheckIcon className="h-3 w-3 text-white" />
-                      </span>
-                      <span className={themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}>
-                        {line}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {page.bullets && page.bullets.length > 0 && (
+                <div className="space-y-4 pt-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
+                    {page.bulletsTitle || page.pitch || "What they will learn"}
+                  </p>
+                  <ul className="space-y-4">
+                    {page.bullets.map((line, idx) => (
+                      <li key={idx} className="flex items-start gap-2.5 text-sm">
+                        <span
+                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 shadow-sm transition-all duration-300"
+                          style={{
+                            backgroundColor: brandColor,
+                            opacity: 0.4 + (highlightIntensity / 100) * 0.6,
+                            boxShadow: highlightIntensity > 30 ? `0 0 ${Math.round(12 * (highlightIntensity / 100))}px ${brandColor}${Math.round((highlightIntensity / 100) * 0.7 * 255).toString(16).padStart(2, '0')}` : 'none'
+                          }}
+                        >
+                          <CheckIcon className="h-3 w-3 text-white" />
+                        </span>
+                        <span className={themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}>
+                          {line}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Right Media Placeholder & Form Column */}
@@ -304,6 +308,9 @@ export default async function MagnetPageRoute({
               <div className="w-full">
                 <MagnetSignupForm
                   cta={page.cta}
+                  formTitle={page.formTitle}
+                  formSubtitle={page.formSubtitle}
+                  formButtonText={page.formButtonText}
                   deliverable={page.deliverable}
                   accent={page.accent}
                   pageId={page.id}
@@ -316,6 +323,7 @@ export default async function MagnetPageRoute({
                   customPromptQuestion={page.customPromptQuestion}
                   customPromptPlaceholder={page.customPromptPlaceholder}
                   enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
+                  customFormFields={page.customFormFields}
                   username={params.username}
                 />
                 <p className={`mt-3 flex items-center justify-center gap-1.5 text-xs ${themeMode === "dark" ? "text-zinc-500" : "text-ink-500"

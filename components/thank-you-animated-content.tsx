@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Aurora from "./aurora";
 import {
   CheckCircle2,
   Download,
@@ -109,6 +110,7 @@ export default function ThankYouAnimatedContent({
   const [copiedAi, setCopiedAi] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloadCompleted, setDownloadCompleted] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [selectedTime, setSelectedTime] = useState("10:00 AM");
@@ -157,6 +159,7 @@ export default function ThankYouAnimatedContent({
     const targetUrl = downloadUrl || `/r/${magnetSlug}`;
 
     try {
+      setDownloadCompleted(true);
       if (targetUrl.startsWith("http")) {
         const res = await fetch(targetUrl);
         const blob = await res.blob();
@@ -197,47 +200,80 @@ export default function ThankYouAnimatedContent({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-5 py-3 px-4 sm:px-6 relative">
+    <div className="w-full max-w-4xl mx-auto space-y-3.5 py-1 px-4 sm:px-6 relative">
       {/* Confetti Explosion Component */}
       <ConfettiCanvas brandColor={brandColor} />
 
-      {/* Floating Animated Background Orbs */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/3 w-[600px] h-[300px] pointer-events-none z-0">
-        <motion.div
-          animate={{
-            scale: [1, 1.15, 1],
-            opacity: [0.3, 0.55, 0.3],
-          }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="w-full h-full rounded-full blur-[110px]"
-          style={{
-            background: `radial-gradient(circle, ${brandColor}55 0%, rgba(56, 189, 248, 0.2) 50%, transparent 80%)`,
-          }}
-        />
-      </div>
+      {/* Background Layer: WebGL Aurora in Dark mode, Soft Mesh Glows in Light mode */}
+      {isDark ? (
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-55">
+          <Aurora
+            colorStops={[brandColor, "#38BDF8", brandColor]}
+            blend={0.7}
+            amplitude={1.2}
+            speed={0.4}
+            lightMode={false}
+          />
+        </div>
+      ) : (
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#FAFAFA]">
+          {/* Top Brand Mesh Radial Gradient */}
+          <div
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[500px]"
+            style={{
+              background: `radial-gradient(circle at 50% 0%, ${brandColor}22 0%, rgba(56, 189, 248, 0.12) 45%, transparent 75%)`,
+            }}
+          />
+          {/* Animated Soft Floating Light Orbs */}
+          <motion.div
+            animate={{
+              x: [0, 40, 0],
+              y: [0, -30, 0],
+              scale: [1, 1.12, 1],
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-10 left-1/4 w-[450px] h-[450px] rounded-full blur-[110px] opacity-60"
+            style={{
+              background: `radial-gradient(circle, ${brandColor}30 0%, rgba(56, 189, 248, 0.15) 60%, transparent 80%)`,
+            }}
+          />
+          <motion.div
+            animate={{
+              x: [0, -40, 0],
+              y: [0, 30, 0],
+              scale: [1, 1.15, 1],
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-20 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px] opacity-50"
+            style={{
+              background: `radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, ${brandColor}20 60%, transparent 80%)`,
+            }}
+          />
+        </div>
+      )}
 
       {/* Top Hero Checkmark Badge */}
       <motion.div
         initial={{ scale: 0.85, opacity: 0, y: -15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 220, damping: 18, delay: 0.05 }}
-        className="flex flex-col items-center text-center space-y-3 relative z-10"
+        className="flex flex-col items-center text-center space-y-2 relative z-10"
       >
         <div className="relative flex items-center justify-center">
           {/* Multi-layered Pulsing Rings */}
           <motion.div
             animate={{ scale: [1, 1.35, 1], opacity: [0.2, 0.55, 0.2] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute h-20 w-20 rounded-full blur-xl"
+            className="absolute h-14 w-14 rounded-full blur-xl"
             style={{ backgroundColor: brandColor }}
           />
 
           <div
-            className={`relative flex h-16 w-16 p-3.5 items-center justify-center rounded-2xl shadow-2xl border backdrop-blur-xl ${
+            className={`relative flex h-12 w-12 p-2.5 items-center justify-center rounded-2xl shadow-xl border backdrop-blur-xl ${
               isDark ? "bg-[#141417]/90 border-white/10" : "bg-white/90 border-zinc-200"
             }`}
             style={{
-              boxShadow: `0 16px 36px -8px ${brandColor}45`,
+              boxShadow: `0 12px 28px -6px ${brandColor}45`,
             }}
           >
             <motion.div
@@ -245,7 +281,7 @@ export default function ThankYouAnimatedContent({
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.2 }}
             >
-              <CheckCircle2 className="h-9 w-9" style={{ color: brandColor }} />
+              <CheckCircle2 className="h-7 w-7" style={{ color: brandColor }} />
             </motion.div>
           </div>
         </div>
@@ -256,24 +292,28 @@ export default function ThankYouAnimatedContent({
           transition={{ duration: 0.4, delay: 0.15 }}
           className="space-y-1.5 max-w-2xl"
         >
-          <div className="inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-extrabold tracking-wide uppercase shadow-sm border backdrop-blur-md bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+          <div className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-extrabold tracking-wide uppercase shadow-sm border backdrop-blur-md ${
+            isDark
+              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+              : "bg-sky-500/15 text-sky-800 border-sky-600/40 shadow-xs"
+          }`}>
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isDark ? "bg-emerald-500" : "bg-sky-500"}`}></span>
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${isDark ? "bg-emerald-500" : "bg-sky-600"}`}></span>
             </span>
             Access Confirmed & Delivered
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
+          <h1 className={`text-2xl sm:text-3xl font-black tracking-tight leading-tight ${isDark ? "text-white" : "text-zinc-950"}`}>
             You're All Set{subscriberName ? `, ${subscriberName}` : ""}! 🎉
           </h1>
 
-          <p className={`text-sm sm:text-base leading-relaxed font-medium ${isDark ? "text-zinc-300" : "text-zinc-600"}`}>
+          <p className={`text-xs sm:text-sm leading-relaxed font-medium ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
             We've dispatched your copy of{" "}
-            <span className="font-extrabold text-zinc-900 dark:text-white underline decoration-brand-blue" style={{ textDecorationColor: brandColor }}>
+            <span className={`font-extrabold underline ${isDark ? "text-white" : "text-zinc-950"}`} style={{ textDecorationColor: brandColor }}>
               "{pageName}"
             </span>{" "}
-            to <span className="font-bold underline" style={{ textDecorationColor: brandColor }}>{subscriberEmail || "your inbox"}</span>.
+            to <span className={`font-bold underline ${isDark ? "text-white" : "text-zinc-950"}`} style={{ textDecorationColor: brandColor }}>{subscriberEmail || "your inbox"}</span>.
           </p>
         </motion.div>
 
@@ -282,57 +322,65 @@ export default function ThankYouAnimatedContent({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.4 }}
-          className={`w-full max-w-xl rounded-xl border py-2 px-4 flex items-center justify-between text-xs backdrop-blur-md ${
-            isDark ? "bg-[#18181C]/70 border-white/5 text-zinc-400" : "bg-white/80 border-zinc-200 text-zinc-600 shadow-xs"
+          className={`w-full max-w-xl rounded-2xl border py-2 px-4 flex items-center justify-between text-xs backdrop-blur-xl transition-all ${
+            isDark
+              ? "bg-[#12131a]/75 border-white/10 text-zinc-300 shadow-lg"
+              : "bg-white/90 border-zinc-300 text-zinc-900 shadow-md"
           }`}
+          style={{
+            boxShadow: isDark
+              ? "0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1)"
+              : "0 4px 15px -3px rgba(0, 0, 0, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9)",
+          }}
         >
           <div className="flex items-center gap-1.5">
-            <div className="h-4 w-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[9px]">
+            <div className="h-4 w-4 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-extrabold text-[9px]">
               ✓
             </div>
-            <span className="font-semibold text-zinc-800 dark:text-zinc-200 text-[10px]">1. Signed Up</span>
+            <span className={`font-extrabold text-[11px] ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>1. Signed Up</span>
           </div>
 
           <div className="h-0.5 flex-1 mx-2 bg-gradient-to-r from-emerald-500 to-emerald-500" />
 
           <div className="flex items-center gap-1.5">
-            <div className="h-4 w-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[9px]">
+            <div className="h-4 w-4 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-extrabold text-[9px]">
               ✓
             </div>
-            <span className="font-semibold text-zinc-800 dark:text-zinc-200 text-[10px]">2. Asset Generated</span>
+            <span className={`font-extrabold text-[11px] ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>2. Asset Generated</span>
           </div>
 
-          <div className="h-0.5 flex-1 mx-2 bg-gradient-to-r from-emerald-500 to-sky-500" />
+          <div className={`h-0.5 flex-1 mx-2 transition-all duration-500 ${downloadCompleted ? "bg-emerald-500" : "bg-gradient-to-r from-emerald-500 to-sky-500"}`} />
 
           <div className="flex items-center gap-1.5">
-            <div className="h-4 w-4 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-[9px]">
-              ⚡
+            <div className={`h-4 w-4 rounded-full flex items-center justify-center font-extrabold text-[9px] transition-colors duration-300 ${downloadCompleted ? "bg-emerald-500/20 text-emerald-500" : "bg-sky-500/20 text-sky-500"}`}>
+              {downloadCompleted ? "✓" : "⚡"}
             </div>
-            <span className="font-bold text-sky-400 text-[10px]">3. Instant Download</span>
+            <span className={`text-[11px] font-extrabold transition-colors duration-300 ${downloadCompleted ? (isDark ? "text-emerald-400" : "text-emerald-600") : (isDark ? "text-zinc-200" : "text-zinc-950")}`}>
+              3. Instant Download {downloadCompleted ? "(Completed)" : ""}
+            </span>
           </div>
         </motion.div>
       </motion.div>
 
       {/* Main Content Cards Container */}
-      <div className="max-w-2xl mx-auto space-y-5 relative z-10">
+      <div className="max-w-2xl mx-auto space-y-3.5 relative z-10">
         {/* Compact Premium Download Box */}
         <motion.div
           initial={{ y: 25, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          whileHover={{ y: -3, transition: { duration: 0.2 } }}
-          className={`rounded-2xl border p-5 sm:p-6 shadow-2xl relative overflow-hidden backdrop-blur-2xl transition-all duration-300 ${
+          className={`rounded-xl border p-5 sm:p-6 space-y-4 backdrop-blur-xl relative overflow-hidden transition-all ${
             isDark
-              ? "bg-[#0c0c0f]/45 border-white/15 text-white"
-              : "bg-white/45 border-white/70 text-zinc-900 shadow-lg"
+              ? "bg-[#111218]/80 border-white/10 text-white shadow-xl"
+              : "bg-white/85 border-zinc-200 text-zinc-900 shadow-md"
           }`}
           style={{
             boxShadow: isDark
-              ? `0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15), 0 0 20px ${brandColor}20`
-              : `0 15px 30px -10px ${brandColor}25, inset 0 1px 1px 0 rgba(255, 255, 255, 0.6)`,
+              ? `0 15px 35px -10px ${brandColor}30`
+              : `0 15px 30px -10px ${brandColor}15`,
           }}
         >
-          {/* Shimmer top gradient accent */}
+          {/* Subtle Top Accent Line */}
           <div
             className="absolute top-0 left-0 right-0 h-1"
             style={{
@@ -340,51 +388,47 @@ export default function ThankYouAnimatedContent({
             }}
           />
 
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div className="space-y-1">
-              <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest text-sky-400">
-                <Zap className="h-3.5 w-3.5 fill-sky-400" /> Direct High-Speed Download
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-sky-400" />
+              <span className="text-xs font-black uppercase tracking-wider text-sky-400">
+                Direct High-Speed Download
               </span>
-              <h2 className="text-lg sm:text-xl font-black tracking-tight flex items-center gap-2">
-                <FileText className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
-                {deliverableName || "Instant Digital Package"}
-              </h2>
-              <p className={`text-xs ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
-                Your file is verified, encrypted, and ready for instant save.
-              </p>
             </div>
-
-            <span className="shrink-0 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 backdrop-blur-md">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Ready
-            </span>
           </div>
 
           {/* Shimmer CTA Download Button */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleDownloadClick}
-            disabled={downloading}
-            className="w-full relative group overflow-hidden rounded-xl py-3.5 px-5 font-black text-sm text-white shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2.5 border border-white/20"
-            style={{
-              backgroundColor: brandColor,
-              boxShadow: `0 8px 20px -4px ${brandColor}70`,
-            }}
-          >
-            {/* Button Light Shimmer Effect */}
-            <motion.div
-              animate={{ x: ["-100%", "200%"] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
-            />
+          <div className="flex justify-center w-full pt-1">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleDownloadClick}
+              disabled={downloading}
+              className="w-full max-w-md relative group overflow-hidden rounded-lg py-2.5 px-5 font-bold text-sm text-white shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 border border-white/20"
+              style={{
+                backgroundColor: brandColor,
+                boxShadow: `0 4px 14px -3px ${brandColor}60`,
+              }}
+            >
+              {/* Button Light Shimmer Effect */}
+              <motion.div
+                animate={{ x: ["-100%", "200%"] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
+              />
 
-            <Download className={`h-4.5 w-4.5 ${downloading ? "animate-bounce" : "group-hover:translate-y-0.5 transition-transform"}`} />
-            <span className="tracking-wide text-sm">
-              {downloading ? "Preparing Download..." : `Download "${deliverableName}" Now`}
-            </span>
-          </motion.button>
+              {downloadCompleted ? (
+                <Check className="h-4 w-4 text-emerald-300" />
+              ) : (
+                <Download className={`h-4 w-4 ${downloading ? "animate-bounce" : "group-hover:translate-y-0.5 transition-transform"}`} />
+              )}
+              <span className="tracking-wide text-sm font-semibold truncate">
+                {downloading ? "Preparing Download..." : downloadCompleted ? `✓ File Downloaded ("${deliverableName}")` : `Download "${deliverableName}" Now`}
+              </span>
+            </motion.button>
+          </div>
 
-          <div className="mt-3.5 flex items-center justify-between text-xs font-medium text-zinc-400 pt-2.5 border-t border-zinc-100 dark:border-white/10">
+          <div className="mt-3.5 flex items-center justify-between text-xs font-medium text-zinc-400 pt-2.5 border-t border-zinc-200/40 dark:border-white/10">
             <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
               <ShieldCheck className="h-4 w-4" /> 100% Virus-Free & Direct Link
             </span>
@@ -400,16 +444,15 @@ export default function ThankYouAnimatedContent({
             initial={{ y: 25, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            whileHover={{ y: -3, transition: { duration: 0.2 } }}
-            className={`rounded-2xl border p-5 shadow-xl space-y-3.5 backdrop-blur-2xl ${
+            className={`rounded-2xl border p-5 space-y-3.5 backdrop-blur-2xl transition-all ${
               isDark
-                ? "bg-[#0c0c0f]/45 border-amber-500/30 text-white"
-                : "bg-gradient-to-br from-amber-500/10 via-white/50 to-white/40 border-amber-500/30 text-zinc-900"
+                ? "bg-[#111218]/80 border-amber-500/30 text-white shadow-xl"
+                : "bg-gradient-to-br from-amber-500/10 via-white/85 to-white/75 border-amber-500/30 text-zinc-900 shadow-md"
             }`}
             style={{
               boxShadow: isDark
-                ? `0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15)`
-                : `0 15px 30px -10px rgba(0,0,0,0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.6)`,
+                ? `0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15)`
+                : `0 15px 30px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9)`,
             }}
           >
             <div className="flex items-center justify-between border-b border-amber-500/20 pb-2.5">
@@ -455,55 +498,65 @@ export default function ThankYouAnimatedContent({
           initial={{ y: 25, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.35 }}
-          whileHover={{ y: -3, transition: { duration: 0.2 } }}
-          className={`rounded-2xl border p-4 sm:p-5 space-y-3 backdrop-blur-2xl ${
-            isDark ? "bg-[#0c0c0f]/45 border-white/15" : "bg-white/45 border-white/70 shadow-md"
+          className={`rounded-xl border p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 backdrop-blur-xl transition-all ${
+            isDark
+              ? "bg-[#111218]/80 border-white/10 text-white shadow-lg"
+              : "bg-white/85 border-zinc-200 text-zinc-900 shadow-sm"
           }`}
           style={{
             boxShadow: isDark
-              ? `0 20px 40px -10px rgba(0, 0, 0, 0.6), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15)`
-              : `0 15px 30px -10px rgba(0,0,0,0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.6)`,
+              ? `0 10px 25px -5px rgba(0, 0, 0, 0.4)`
+              : `0 8px 20px -5px rgba(0, 0, 0, 0.05)`,
           }}
         >
-          <div className="flex items-center gap-2.5">
-            <div className="h-7 w-7 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-8 w-8 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0 border border-sky-400/20">
               <Share2 className="h-4 w-4" />
             </div>
-            <div>
-              <h3 className="text-xs sm:text-sm font-extrabold">Spread the Word & Help Others</h3>
-              <p className={`text-xs ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
+            <div className="min-w-0">
+              <h3 className="text-xs sm:text-sm font-extrabold truncate">Spread the Word & Help Others</h3>
+              <p className={`text-xs ${isDark ? "text-zinc-400" : "text-zinc-500"} truncate`}>
                 Know colleagues or friends who would benefit from this free guide?
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 pt-1">
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
             <a
               href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this free resource: ${pageName}`)}&url=${encodeURIComponent(shareUrl)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-extrabold bg-black text-white hover:bg-zinc-800 border border-white/10 transition shadow-xs cursor-pointer"
+              title="Share on X"
+              aria-label="Share on X"
+              className="h-9 w-9 rounded-lg flex items-center justify-center bg-black text-white hover:bg-zinc-800 border border-white/15 transition-all hover:scale-105 shadow-sm cursor-pointer shrink-0"
             >
-              Share on 𝕏
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
             </a>
 
             <a
               href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-extrabold bg-[#0A66C2] text-white hover:bg-[#084e96] transition shadow-xs cursor-pointer"
+              title="Share on LinkedIn"
+              aria-label="Share on LinkedIn"
+              className="h-9 w-9 rounded-lg flex items-center justify-center bg-[#0A66C2] text-white hover:bg-[#084e96] border border-white/10 transition-all hover:scale-105 shadow-sm cursor-pointer shrink-0"
             >
-              Share on LinkedIn
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+              </svg>
             </a>
 
             <button
               onClick={handleCopyShareLink}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-extrabold border transition shadow-xs cursor-pointer ${
-                isDark ? "border-white/15 hover:bg-white/10 text-white" : "border-zinc-300 hover:bg-zinc-100 text-zinc-800"
+              title={copiedLink ? "Link Copied!" : "Copy Page Link"}
+              aria-label="Copy Page Link"
+              className={`h-9 w-9 rounded-lg flex items-center justify-center border transition-all hover:scale-105 shadow-sm cursor-pointer shrink-0 ${
+                isDark ? "border-white/15 bg-white/10 hover:bg-white/20 text-white" : "border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-zinc-800"
               }`}
             >
-              {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-              {copiedLink ? "Link Copied!" : "Copy Page Link"}
+              {copiedLink ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
             </button>
           </div>
         </motion.div>

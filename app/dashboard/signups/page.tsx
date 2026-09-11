@@ -1074,6 +1074,39 @@ export default function SignupsPage() {
                   <span className="font-semibold text-zinc-900 dark:text-white">{selectedLead.signedUpAt}</span>
                 </div>
 
+                {/* Custom Optional Form Fields Section */}
+                {selectedLead.customFields && Object.keys(selectedLead.customFields).length > 0 && (
+                  <div className="pt-2 pb-1 space-y-2 border-b border-zinc-100 dark:border-white/5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 block">
+                      📋 Optional Contact Information
+                    </span>
+                    {Object.entries(selectedLead.customFields).map(([key, value]) => {
+                      if (!value) return null;
+                      const labelMap: Record<string, string> = {
+                        field_phone: "Phone Number",
+                        field_company: "Company Name",
+                        field_team_size: "Company Size",
+                        field_notes: "Notes / Message",
+                      };
+                      const label = labelMap[key] || key.replace(/^field_/, "").replace(/_/g, " ");
+                      return (
+                        <div key={key} className="flex justify-between py-1 text-xs">
+                          <span className="text-zinc-500 dark:text-[#9B9085] capitalize">{label}</span>
+                          <span className="font-semibold text-zinc-900 dark:text-white max-w-[240px] text-right break-words">{String(value)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Custom AI Prompt Answer */}
+                {selectedLead.customAnswer && (
+                  <div className="py-2 border-b border-zinc-100 dark:border-white/5 space-y-1">
+                    <span className="text-[11px] font-bold text-amber-500 dark:text-amber-400 block">✨ Visitor Prompt Answer</span>
+                    <p className="text-xs italic text-zinc-700 dark:text-zinc-300 bg-amber-500/5 p-2 rounded-lg border border-amber-500/10">"{selectedLead.customAnswer}"</p>
+                  </div>
+                )}
+
                 {/* Sequence Delivery Breakdown Card */}
                 {(() => {
                   const page = magnetPages.find((p) => p.id === selectedLead.pageId || p.name === selectedLead.page);

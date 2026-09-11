@@ -1,3 +1,12 @@
+export interface CustomFormField {
+  id: string;
+  type: "text" | "select" | "textarea" | "number" | "checkbox";
+  label: string;
+  placeholder?: string;
+  required: boolean;
+  options?: string[];
+}
+
 export type MagnetStatus = "draft" | "live" | "paused";
 
 export interface MagnetPage {
@@ -53,6 +62,7 @@ export interface MagnetPage {
   emailPlaceholder?: string;
   formButtonText?: string;
   userEmail?: string;
+  customFormFields?: CustomFormField[];
 }
 
 export interface Lead {
@@ -68,6 +78,7 @@ export interface Lead {
   sequenceStep?: string;
   tags: string[];
   customAnswer?: string;
+  customFields?: Record<string, any>;
   deviceType?: "desktop" | "mobile";
   referrer?: string;
 }

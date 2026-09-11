@@ -99,36 +99,37 @@ export default function EditLeadMagnetPage() {
     const localAcc = loadAccount();
     if (localAcc) setAccount(localAcc);
     const localP = loadPages().find((p) => p.id === params.id);
-    if (localP) setPage(localP);
+    if (localP) {
+      setPage(localP);
+      if (localP.customFormFields && localP.customFormFields.length > 0) {
+        setCustomFormFields(localP.customFormFields);
+      }
+    }
 
-    // Poll latest views & stats from database in real time without resetting user-edited form fields
-    const interval = setInterval(() => {
-      syncWithDatabase().then((data) => {
-        if (data && data.pages) {
-          const updated = data.pages.find((p: any) => p.id === params.id);
-          if (updated) {
-            setPage((prev) => {
-              if (!prev) return updated;
-              if (
-                prev.views === updated.views &&
-                prev.signups === updated.signups &&
-                prev.conversionRate === updated.conversionRate
-              ) {
-                return prev;
-              }
-              return {
-                ...prev,
-                views: updated.views,
-                signups: updated.signups,
-                conversionRate: updated.conversionRate,
-              };
-            });
-          }
+    // Load latest stats from database once on mount
+    syncWithDatabase().then((data) => {
+      if (data && data.pages) {
+        const updated = data.pages.find((p: any) => p.id === params.id);
+        if (updated) {
+          setPage((prev) => {
+            if (!prev) return updated;
+            if (
+              prev.views === updated.views &&
+              prev.signups === updated.signups &&
+              prev.conversionRate === updated.conversionRate
+            ) {
+              return prev;
+            }
+            return {
+              ...prev,
+              views: updated.views,
+              signups: updated.signups,
+              conversionRate: updated.conversionRate,
+            };
+          });
         }
-      });
-    }, 2000);
-
-    return () => clearInterval(interval);
+      }
+    });
   }, [params.id]);
 
   // Modal & Menu States
@@ -219,6 +220,10 @@ export default function EditLeadMagnetPage() {
   const [customPromptQuestion, setCustomPromptQuestion] = useState(page?.customPromptQuestion || "What is your main goal or bottleneck?");
   const [customPromptPlaceholder, setCustomPromptPlaceholder] = useState(page?.customPromptPlaceholder || "e.g. Scaling outreach, Lead generation");
   const [enableAiPersonalizedDeliverable, setEnableAiPersonalizedDeliverable] = useState(page?.enableAiPersonalizedDeliverable || false);
+
+  // Dynamic Custom Form Fields Builder State
+  const [customFormFields, setCustomFormFields] = useState<import("@/lib/data").CustomFormField[]>(page?.customFormFields || []);
+  const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
 
   // After Signup State (Tab 4: After Signup)
   const [afterSignupOption, setAfterSignupOption] = useState<"standard" | "elsewhere" | "custom">(page?.afterSignupOption || "standard");
@@ -336,8 +341,8 @@ export default function EditLeadMagnetPage() {
       };
     }
 
-    // 2. Fallback window focus & 2.5s interval polling
-    const intervalId = setInterval(syncStats, 2500);
+    // 2. Editor-scoped live tracking timer (3s) & window focus refresh
+    const intervalId = setInterval(syncStats, 3000);
     const handleFocus = () => syncStats();
     window.addEventListener("focus", handleFocus);
 
@@ -427,22 +432,32 @@ export default function EditLeadMagnetPage() {
   const [testStarted, setTestStarted] = useState(page?.testStarted || false);
   const [variantBImage, setVariantBImage] = useState<string | null>(page?.variantBImage !== undefined ? page.variantBImage : null);
   const [variantBTitle, setVariantBTitle] = useState(page?.variantBTitle || "");
+  const [uploadingVariantB, setUploadingVariantB] = useState(false);
+  const [uploadProgressVariantB, setUploadProgressVariantB] = useState(0);
   const variantBFileInputRef = useRef<HTMLInputElement>(null);
+  const hasPopulatedVariantB = useRef(false);
 
-  // Sync A/B testing state cleanly whenever page object updates
+  // Populate A/B testing state ONCE on initial load to prevent background stats polling from overwriting edits
   useEffect(() => {
-    if (page) {
+    if (page && (!hasPopulatedVariantB.current || page.id !== params.id)) {
+      hasPopulatedVariantB.current = true;
       setHasVariantB(Boolean(page.hasVariantB));
       setTestStarted(Boolean(page.testStarted));
       setVariantBImage(page.variantBImage !== undefined ? page.variantBImage : null);
       setVariantBTitle(page.variantBTitle || "");
     }
-  }, [page?.id, page?.hasVariantB, page?.testStarted, page?.variantBTitle, page?.variantBImage]);
+  }, [page?.id]);
 
   const handleVariantBImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputTarget = e.target;
     const file = inputTarget.files?.[0];
     if (file) {
+      // 1. Instant local optimistic preview (0ms latency)
+      const localPreviewUrl = URL.createObjectURL(file);
+      setVariantBImage(localPreviewUrl);
+
+      setUploadingVariantB(true);
+      setUploadProgressVariantB(5);
       try {
         const formData = new FormData();
         formData.append("file", file);
@@ -451,31 +466,90 @@ export default function EditLeadMagnetPage() {
           formData.append("userEmail", account.email);
         }
 
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
+        const json = await new Promise<any>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", "/api/upload");
+
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const percent = Math.round((event.loaded / event.total) * 90);
+              setUploadProgressVariantB(Math.max(5, percent));
+            }
+          };
+
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                setUploadProgressVariantB(100);
+                resolve(JSON.parse(xhr.responseText));
+              } catch (err) {
+                reject(err);
+              }
+            } else {
+              reject(new Error(`Upload failed (${xhr.status})`));
+            }
+          };
+
+          xhr.onerror = () => reject(new Error("Network error"));
+          xhr.send(formData);
         });
 
-        if (res.ok) {
-          const json = await res.json();
-          if (json?.data?.fileUrl) {
-            setVariantBImage(json.data.fileUrl);
-          } else {
-            const compressed = await compressImage(file);
-            setVariantBImage(compressed);
-          }
+        let finalUrl: string | null = null;
+        if (json?.data?.fileUrl) {
+          finalUrl = json.data.fileUrl;
         } else {
-          const compressed = await compressImage(file);
-          setVariantBImage(compressed);
+          finalUrl = await compressImage(file);
+        }
+
+        if (finalUrl) {
+          // Preload remote image in background before swapping from local blob preview
+          try {
+            const preloader = new Image();
+            preloader.src = finalUrl;
+            await new Promise((res) => {
+              preloader.onload = res;
+              preloader.onerror = res;
+            });
+          } catch (_) {}
+
+          setVariantBImage(finalUrl);
+          setPage((prev) => (prev ? { ...prev, variantBImage: finalUrl } : prev));
+
+          const userEmail = account?.email || (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null);
+          if (page?.id) {
+            const updatedP = { ...(page || {}), variantBImage: finalUrl };
+            const all = loadPages().map((p) => (p.id === page.id ? updatedP : p));
+            savePages(all);
+            if (userEmail) {
+              fetch("/api/data", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email: userEmail,
+                  action: "update",
+                  pageId: page.id,
+                  updates: { variantBImage: finalUrl }
+                })
+              }).catch(() => {});
+            }
+          }
         }
       } catch (err) {
         console.error("Variant B image upload error", err);
         try {
           const compressed = await compressImage(file);
-          setVariantBImage(compressed);
+          if (compressed) {
+            setVariantBImage(compressed);
+            setPage((prev) => (prev ? { ...prev, variantBImage: compressed } : prev));
+          }
         } catch (_) { }
+      } finally {
+        setTimeout(() => {
+          setUploadingVariantB(false);
+          setUploadProgressVariantB(0);
+        }, 300);
+        inputTarget.value = "";
       }
-      inputTarget.value = "";
     }
   };
 
@@ -709,6 +783,7 @@ export default function EditLeadMagnetPage() {
           customPromptQuestion,
           customPromptPlaceholder,
           enableAiPersonalizedDeliverable,
+          customFormFields,
           bulletsTitle,
           formTitle,
           formSubtitle,
@@ -731,7 +806,7 @@ export default function EditLeadMagnetPage() {
     afterSignupOption, destinationUrl, customHeading, customMessage, videoUrl, buttonLabel, buttonUrl, quizFunnelEnabled,
     hasVariantB, testStarted, variantBImage, variantBTitle,
     customPromptQuestion, customPromptPlaceholder, enableAiPersonalizedDeliverable,
-    bulletsTitle, formTitle, formSubtitle, formButtonText
+    customFormFields, bulletsTitle, formTitle, formSubtitle, formButtonText
   ]);
 
   const handleGoBack = () => {
@@ -964,7 +1039,11 @@ export default function EditLeadMagnetPage() {
                 <Link
                   href="/dashboard/leadmagnets"
                   onClick={handleGoBack}
-                  className="flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-[#27272A] bg-white dark:bg-[#1E1E24] px-3 py-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#27272A] active:scale-95 transition-all shadow-xs cursor-pointer"
+                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold active:scale-95 transition-all shadow-xs cursor-pointer ${
+                    (account?.themeMode || "light") === "dark"
+                      ? "border-[#27272A] bg-[#1E1E24] text-zinc-200 hover:bg-[#27272A]"
+                      : "border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-100"
+                  }`}
                 >
                   <ArrowLeft className="h-3.5 w-3.5 stroke-[2.5px]" />
                   <span>Lead magnets</span>
@@ -1008,8 +1087,12 @@ export default function EditLeadMagnetPage() {
                   onClick={handleUndo}
                   disabled={!canUndo}
                   className={`p-1.5 rounded-lg transition ${canUndo
-                    ? "text-zinc-700 dark:text-zinc-300 hover:text-white hover:bg-zinc-800 cursor-pointer"
-                    : "text-zinc-300 dark:text-zinc-700 cursor-not-allowed opacity-40"
+                    ? ((account?.themeMode || "light") === "dark"
+                      ? "text-zinc-300 hover:text-white hover:bg-[#27272A] cursor-pointer"
+                      : "text-zinc-700 hover:text-zinc-900 hover:bg-zinc-200/70 cursor-pointer")
+                    : ((account?.themeMode || "light") === "dark"
+                      ? "text-zinc-600 cursor-not-allowed opacity-40"
+                      : "text-zinc-300 cursor-not-allowed opacity-40")
                     }`}
                   title={canUndo ? "Undo (Ctrl+Z)" : "Nothing to undo"}
                 >
@@ -1019,8 +1102,12 @@ export default function EditLeadMagnetPage() {
                   onClick={handleRedo}
                   disabled={!canRedo}
                   className={`p-1.5 rounded-lg transition ${canRedo
-                    ? "text-zinc-700 dark:text-zinc-300 hover:text-white hover:bg-zinc-800 cursor-pointer"
-                    : "text-zinc-300 dark:text-zinc-700 cursor-not-allowed opacity-40"
+                    ? ((account?.themeMode || "light") === "dark"
+                      ? "text-zinc-300 hover:text-white hover:bg-[#27272A] cursor-pointer"
+                      : "text-zinc-700 hover:text-zinc-900 hover:bg-zinc-200/70 cursor-pointer")
+                    : ((account?.themeMode || "light") === "dark"
+                      ? "text-zinc-600 cursor-not-allowed opacity-40"
+                      : "text-zinc-300 cursor-not-allowed opacity-40")
                     }`}
                   title={canRedo ? "Redo (Ctrl+Y)" : "Nothing to redo"}
                 >
@@ -1032,7 +1119,11 @@ export default function EditLeadMagnetPage() {
                   href={`/${account?.username || "user"}/${page.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
+                  className={`p-1.5 rounded-lg transition cursor-pointer ${
+                    (account?.themeMode || "light") === "dark"
+                      ? "text-zinc-400 hover:text-white hover:bg-[#27272A]"
+                      : "text-zinc-700 hover:text-zinc-900 hover:bg-zinc-200/70"
+                  }`}
                   title="Open live page in new tab"
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -1042,17 +1133,29 @@ export default function EditLeadMagnetPage() {
                 <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setShowMenu(!showMenu)}
-                    className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
+                    className={`p-1.5 rounded-lg transition cursor-pointer ${
+                      (account?.themeMode || "light") === "dark"
+                        ? "text-zinc-400 hover:text-white hover:bg-[#27272A]"
+                        : "text-zinc-700 hover:text-zinc-900 hover:bg-zinc-200/70"
+                    }`}
                     title="More actions"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </button>
 
                   {showMenu && (
-                    <div className="absolute right-0 top-9 w-48 rounded-2xl border border-zinc-200 dark:border-[#27272A] bg-white dark:bg-[#18181C] p-1.5 shadow-xl z-50 text-zinc-800 dark:text-zinc-200 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className={`absolute right-0 top-9 w-48 rounded-2xl border p-1.5 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${
+                      (account?.themeMode || "light") === "dark"
+                        ? "border-[#27272A] bg-[#18181C] text-zinc-200"
+                        : "border-zinc-200 bg-white text-zinc-900"
+                    }`}>
                       <button
                         onClick={handleAnalytics}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-[#27272A] hover:text-white transition cursor-pointer"
+                        className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer ${
+                          (account?.themeMode || "light") === "dark"
+                            ? "text-zinc-300 hover:bg-[#27272A] hover:text-white"
+                            : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
+                        }`}
                       >
                         <BarChart2 className="h-4 w-4 text-zinc-400" />
                         <span>Analytics</span>
@@ -1060,13 +1163,19 @@ export default function EditLeadMagnetPage() {
 
                       <button
                         onClick={handleDownloadQR}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-[#27272A] hover:text-white transition cursor-pointer"
+                        className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer ${
+                          (account?.themeMode || "light") === "dark"
+                            ? "text-zinc-300 hover:bg-[#27272A] hover:text-white"
+                            : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
+                        }`}
                       >
                         <QrCode className="h-4 w-4 text-zinc-400" />
                         <span>Download QR code</span>
                       </button>
 
-                      <div className="my-1 h-px bg-zinc-200 dark:bg-[#27272A]" />
+                      <div className={`my-1 h-px ${
+                        (account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-200"
+                      }`} />
 
                       <button
                         onClick={handleDeletePage}
@@ -1083,11 +1192,15 @@ export default function EditLeadMagnetPage() {
                 <button
                   onClick={() => update({ status: live ? "draft" : "live", publishedAt: live ? page.publishedAt : new Date().toISOString() })}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer shadow-xs ${live
-                    ? "bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700/60"
-                    : "bg-zinc-100 text-zinc-700 border border-zinc-300 dark:bg-[#1E1E24] dark:text-zinc-300 dark:border-[#27272A] hover:bg-zinc-200 dark:hover:bg-[#27272A]"
+                    ? ((account?.themeMode || "light") === "dark"
+                      ? "bg-emerald-950/80 text-emerald-300 border border-emerald-700/60"
+                      : "bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100")
+                    : ((account?.themeMode || "light") === "dark"
+                      ? "bg-[#1E1E24] text-zinc-300 border border-[#27272A] hover:bg-[#27272A]"
+                      : "bg-zinc-100 text-zinc-700 border border-zinc-300 hover:bg-zinc-200")
                     }`}
                 >
-                  <span className={`h-2 w-2 rounded-full ${live ? "bg-emerald-600 dark:bg-emerald-400" : "bg-zinc-500"}`} />
+                  <span className={`h-2 w-2 rounded-full ${live ? "bg-emerald-500" : "bg-zinc-400"}`} />
                   <span>{live ? "Published" : "Draft"}</span>
                 </button>
               </div>
@@ -1434,7 +1547,7 @@ export default function EditLeadMagnetPage() {
                                 }
                               }}
                               placeholder="Download for free"
-                              className={`w-full text-center text-xl sm:text-2xl font-extrabold outline-none border border-transparent hover:border-white/10 focus:border-white/30 rounded-xl py-1.5 px-3 bg-transparent transition-all duration-200 ${(account?.themeMode || "light") === "dark" ? "text-white focus:bg-[#16161A]" : "text-zinc-900 focus:bg-white"}`}
+                              className={`w-full text-center text-xl sm:text-2xl font-extrabold outline-none border border-transparent hover:border-zinc-300 dark:hover:border-white/10 rounded-xl py-1.5 px-3 bg-transparent transition-all duration-200 ${(account?.themeMode || "light") === "dark" ? "text-white focus:bg-[#16161A] focus:border-white/30" : "text-zinc-900 focus:bg-zinc-100 focus:border-zinc-400"}`}
                             />
 
                             {/* Editable Card Subtitle */}
@@ -1459,7 +1572,7 @@ export default function EditLeadMagnetPage() {
                                 }
                               }}
                               placeholder="Pop your email in and we'll send it straight over."
-                              className={`w-full text-center text-xs mt-1 outline-none border border-transparent hover:border-white/10 focus:border-white/30 rounded-xl py-1 px-3 bg-transparent transition-all duration-200 resize-none overflow-hidden ${(account?.themeMode || "light") === "dark" ? "text-zinc-400 focus:bg-[#16161A] focus:text-white" : "text-zinc-500 focus:bg-white focus:text-zinc-900"}`}
+                              className={`w-full text-center text-xs mt-1 outline-none border border-transparent hover:border-zinc-300 dark:hover:border-white/10 rounded-xl py-1 px-3 bg-transparent transition-all duration-200 resize-none overflow-hidden ${(account?.themeMode || "light") === "dark" ? "text-zinc-400 focus:bg-[#16161A] focus:text-white focus:border-white/30" : "text-zinc-500 focus:bg-zinc-100 focus:text-zinc-900 focus:border-zinc-400"}`}
                             />
 
                             <div className="mt-5 space-y-3">
@@ -1478,6 +1591,87 @@ export default function EditLeadMagnetPage() {
                                 readOnly
                                 className={`w-full rounded-xl border px-4 py-3 text-xs outline-none shadow-xs select-none ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/50 text-white placeholder:text-zinc-500" : "border-black/10 bg-white text-zinc-900 placeholder:text-zinc-400"}`}
                               />
+
+                                  {/* Live Editable Custom Form Fields in Card Preview */}
+                                  {customFormFields && customFormFields.length > 0 && (
+                                    <div className="space-y-2.5 text-left">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Custom Form Fields ({customFormFields.length})</span>
+                                      </div>
+                                      {customFormFields.map((field) => (
+                                        <div key={field.id} className="space-y-1 group/f relative">
+                                          <div className="flex items-center justify-between">
+                                            <input
+                                              type="text"
+                                              value={field.label}
+                                              onChange={(e) => {
+                                                const val = e.target.value;
+                                                setCustomFormFields(prev => prev.map(f => f.id === field.id ? { ...f, label: val } : f));
+                                              }}
+                                              className={`text-xs font-extrabold bg-transparent outline-none border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 rounded px-1 -ml-1 transition ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}
+                                            />
+                                            <div className="flex items-center gap-1.5 opacity-80 group-hover/f:opacity-100">
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  setCustomFormFields(prev => prev.map(f => f.id === field.id ? { ...f, required: !f.required } : f));
+                                                }}
+                                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded cursor-pointer transition ${field.required ? "bg-rose-500/10 text-rose-500" : "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"}`}
+                                              >
+                                                {field.required ? "Required" : "Optional"}
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={() => setCustomFormFields(prev => prev.filter(f => f.id !== field.id))}
+                                                className="text-zinc-400 hover:text-rose-500 p-0.5 transition cursor-pointer"
+                                                title="Remove field"
+                                              >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                              </button>
+                                            </div>
+                                          </div>
+
+                                          {field.type === "text" && (
+                                            <input
+                                              type="text"
+                                              value={field.placeholder || ""}
+                                              onChange={(e) => {
+                                                const val = e.target.value;
+                                                setCustomFormFields(prev => prev.map(f => f.id === field.id ? { ...f, placeholder: val } : f));
+                                              }}
+                                              placeholder="Field placeholder..."
+                                              className={`w-full rounded-xl border px-3.5 py-2 text-xs font-semibold outline-none shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/50 text-white placeholder:text-zinc-400" : "border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-700"}`}
+                                            />
+                                          )}
+
+                                          {field.type === "textarea" && (
+                                            <textarea
+                                              rows={2}
+                                              value={field.placeholder || ""}
+                                              onChange={(e) => {
+                                                const val = e.target.value;
+                                                setCustomFormFields(prev => prev.map(f => f.id === field.id ? { ...f, placeholder: val } : f));
+                                              }}
+                                              placeholder="Textarea placeholder..."
+                                              className={`w-full rounded-xl border px-3.5 py-2 text-xs font-semibold outline-none shadow-xs resize-none ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/50 text-white placeholder:text-zinc-400" : "border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-700"}`}
+                                            />
+                                          )}
+
+                                          {field.type === "select" && (
+                                            <select
+                                              disabled
+                                              className={`w-full rounded-xl border px-3.5 py-2 text-xs font-semibold outline-none shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/50 text-white" : "border-zinc-300 bg-white text-zinc-900"}`}
+                                            >
+                                              <option>{field.placeholder || `Select ${field.label}...`}</option>
+                                              {(field.options || []).map((opt, i) => (
+                                                <option key={i}>{opt}</option>
+                                              ))}
+                                            </select>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
 
                               {/* Editable Button CTA Text */}
                               <div className="relative group/btn">
@@ -1503,6 +1697,74 @@ export default function EditLeadMagnetPage() {
                                 />
                               </div>
                             </div>
+                          </div>
+
+                          {/* Dynamic Custom Form Field Creator Panel */}
+                          <div className={`rounded-2xl border p-5 transition ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/30 text-white" : "border-zinc-200 bg-zinc-50 text-zinc-900"}`}>
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                                <Sparkles className="h-3.5 w-3.5" />
+                                <span>Custom Form Fields Builder</span>
+                              </h4>
+                            </div>
+
+                            {/* Quick Field Preset Buttons */}
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2 font-medium">Quick Presets:</p>
+                            <div className="flex flex-wrap gap-1.5 mb-4">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (customFormFields.some(f => f.id === "field_company")) return;
+                                  setCustomFormFields(prev => [...prev, { id: "field_company", type: "text", label: "Company Name", placeholder: "Acme Inc.", required: false }]);
+                                }}
+                                className="px-2.5 py-1 rounded-lg text-xs font-medium border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-400 transition cursor-pointer"
+                              >
+                                + Company Name
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (customFormFields.some(f => f.id === "field_phone")) return;
+                                  setCustomFormFields(prev => [...prev, { id: "field_phone", type: "text", label: "Phone Number", placeholder: "+1 (555) 000-0000", required: false }]);
+                                }}
+                                className="px-2.5 py-1 rounded-lg text-xs font-medium border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-400 transition cursor-pointer"
+                              >
+                                + Phone Number
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (customFormFields.some(f => f.id === "field_team_size")) return;
+                                  setCustomFormFields(prev => [...prev, { id: "field_team_size", type: "select", label: "Company Size", placeholder: "Select company size", required: false, options: ["1-10 employees", "11-50 employees", "51-200 employees", "201+ employees"] }]);
+                                }}
+                                className="px-2.5 py-1 rounded-lg text-xs font-medium border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-400 transition cursor-pointer"
+                              >
+                                + Company Size Dropdown
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (customFormFields.some(f => f.id === "field_notes")) return;
+                                  setCustomFormFields(prev => [...prev, { id: "field_notes", type: "textarea", label: "Additional Notes", placeholder: "Tell us about your project...", required: false }]);
+                                }}
+                                className="px-2.5 py-1 rounded-lg text-xs font-medium border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-400 transition cursor-pointer"
+                              >
+                                + Notes / Message
+                              </button>
+                            </div>
+
+                            {/* Add Custom Field Form */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newId = `field_${Date.now()}`;
+                                setCustomFormFields(prev => [...prev, { id: newId, type: "text", label: "New Field", placeholder: "Enter answer...", required: false }]);
+                              }}
+                              className="w-full py-2.5 rounded-xl border border-dashed border-indigo-500/40 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-400 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                              <span>Add Custom Input Field</span>
+                            </button>
                           </div>
                         </div>
 
@@ -1535,7 +1797,11 @@ export default function EditLeadMagnetPage() {
                         </div>
 
                         <button
-                          onClick={() => setTestStarted(!testStarted)}
+                          onClick={() => {
+                            const nextVal = !testStarted;
+                            setTestStarted(nextVal);
+                            update({ testStarted: nextVal });
+                          }}
                           className={`flex items-center gap-2 rounded-xl border px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer shadow-2xs ${(account?.themeMode || "light") === "dark" ? "border-[#2E2E35] bg-[#222228] text-zinc-300 hover:bg-[#2A2A32]" : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50"}`}
                         >
                           <span className={`h-2 w-2 rounded-full ${testStarted ? "bg-emerald-500" : "bg-zinc-400"}`} />
@@ -1605,7 +1871,7 @@ export default function EditLeadMagnetPage() {
                       {hasVariantB && (
                         <div className={`group animate-card-pop-in rounded-2xl border overflow-hidden shadow-xs transition-all duration-300 ${(account?.themeMode || "light") === "dark" ? "border-[#2E2E35] bg-[#1D1D22] hover:border-zinc-600" : "border-zinc-200 bg-white hover:border-zinc-300"}`}>
                           {/* Top Media Area */}
-                          <div className={`relative h-64 sm:h-72 w-full flex flex-col items-center justify-center border-b ${(account?.themeMode || "light") === "dark" ? "bg-[#141418] border-[#27272C]" : "bg-zinc-50 border-zinc-100"}`}>
+                          <div className={`relative h-64 sm:h-72 w-full flex flex-col items-center justify-center border-b overflow-hidden ${(account?.themeMode || "light") === "dark" ? "bg-[#141418] border-[#27272C]" : "bg-zinc-50 border-zinc-100"}`}>
                             <div className="absolute top-4 left-4 z-10">
                               <span className={`inline-flex items-center rounded-full px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-wider ${(account?.themeMode || "light") === "dark" ? "bg-[#27272D] text-zinc-200" : "bg-zinc-200 text-zinc-800"}`}>
                                 VERSION B · 50%
@@ -1620,13 +1886,30 @@ export default function EditLeadMagnetPage() {
                               className="hidden"
                             />
 
+                            {/* Loading Overlay with 0% to 100% Progress Bar */}
+                            {uploadingVariantB && (
+                              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md text-white p-4 space-y-2.5 animate-in fade-in duration-200">
+                                <div className="flex items-center gap-2">
+                                  <Loader2 className="h-5 w-5 animate-spin text-sky-400" />
+                                  <span className="text-xs font-extrabold tracking-wide">
+                                    Uploading... {uploadProgressVariantB}%
+                                  </span>
+                                </div>
+                                <div className="w-full max-w-[180px] h-2 bg-white/20 rounded-full overflow-hidden shadow-inner">
+                                  <div
+                                    className="h-full bg-gradient-to-r from-sky-400 to-emerald-400 transition-all duration-200 ease-out"
+                                    style={{ width: `${uploadProgressVariantB}%` }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+
                             {(() => {
                               const activeVariantBImage = (variantBImage && variantBImage.trim() !== "") ? variantBImage : imageUrl;
                               return activeVariantBImage && activeVariantBImage.trim() !== "" ? (
                                 <img
                                   src={activeVariantBImage}
                                   alt="Variant B media"
-                                  onError={() => setVariantBImage(null)}
                                   className="h-full w-full object-cover"
                                 />
                               ) : (
@@ -1638,27 +1921,33 @@ export default function EditLeadMagnetPage() {
                             })()}
 
                             {/* Hover Actions Container */}
-                            <div className="absolute bottom-4 right-4 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <div className={`absolute bottom-4 right-4 flex items-center gap-2 z-20 transition-opacity duration-200 ${uploadingVariantB ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
                               <button
                                 type="button"
+                                disabled={uploadingVariantB}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   variantBFileInputRef.current?.click();
                                 }}
-                                className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold shadow-md border transition cursor-pointer pointer-events-auto active:scale-95 ${(account?.themeMode || "light") === "dark" ? "bg-[#25252B] hover:bg-[#2E2E36] text-zinc-200 border-[#2E2E35]" : "bg-white hover:bg-zinc-50 text-zinc-800 border-zinc-200"}`}
+                                className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold shadow-md border transition cursor-pointer pointer-events-auto active:scale-95 disabled:opacity-75 ${(account?.themeMode || "light") === "dark" ? "bg-[#25252B] hover:bg-[#2E2E36] text-zinc-200 border-[#2E2E35]" : "bg-white hover:bg-zinc-50 text-zinc-800 border-zinc-200"}`}
                               >
-                                <ImageIcon className="h-4 w-4 text-zinc-400" />
-                                <span>Replace</span>
+                                {uploadingVariantB ? (
+                                  <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
+                                ) : (
+                                  <ImageIcon className="h-4 w-4 text-zinc-400" />
+                                )}
+                                <span>{uploadingVariantB ? "Uploading..." : "Replace"}</span>
                               </button>
                               <button
                                 type="button"
+                                disabled={uploadingVariantB}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setHasVariantB(false);
                                   setVariantBImage(null);
                                   setVariantBTitle("");
                                 }}
-                                className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold text-red-500 shadow-md border transition cursor-pointer pointer-events-auto active:scale-95 ${(account?.themeMode || "light") === "dark" ? "bg-[#25252B] hover:bg-red-950/40 border-[#2E2E35]" : "bg-white hover:bg-red-50 border-zinc-200"}`}
+                                className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold text-red-500 shadow-md border transition cursor-pointer pointer-events-auto active:scale-95 disabled:opacity-50 ${(account?.themeMode || "light") === "dark" ? "bg-[#25252B] hover:bg-red-950/40 border-[#2E2E35]" : "bg-white hover:bg-red-50 border-zinc-200"}`}
                                 title="Remove Version B split test"
                               >
                                 <Trash2 className="h-4 w-4 text-red-400" />
@@ -1925,13 +2214,14 @@ export default function EditLeadMagnetPage() {
                     </div>
 
                     {/* Bottom Banner Card */}
-                    <div className="mt-6 mx-auto max-w-4xl rounded-2xl bg-[#080B12] p-6 flex items-center justify-center shadow-lg">
-                      <button className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold shadow-md transition cursor-pointer ${(account?.themeMode || "light") === "dark" ? "bg-[#181C26] text-white border border-[#272D3C] hover:bg-[#202534]" : "bg-white text-zinc-900 hover:bg-zinc-100"}`}>
-                        {account?.logo || account?.avatar_url || account?.avatar ? (
-                          <img src={account?.logo || account?.avatar_url || account?.avatar || ""} alt="Logo" className="h-5 w-5 rounded object-cover" />
-                        ) : (
-                          <span className="flex h-5 w-5 items-center justify-center rounded bg-[#FE6F34] text-black font-extrabold text-[10px]">🧲</span>
-                        )}
+                    <div className={`mt-6 mx-auto max-w-4xl rounded-2xl p-6 flex items-center justify-center shadow-lg transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "bg-[#080B12]" : "bg-zinc-100/90 border border-zinc-200"}`}>
+                      <button className={`flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-xs font-bold shadow-md transition cursor-pointer ${(account?.themeMode || "light") === "dark" ? "bg-[#181C26] text-white border border-[#272D3C] hover:bg-[#202534]" : "bg-white text-zinc-900 border border-zinc-200 hover:bg-zinc-50"}`}>
+                        <img
+                          key={(account?.themeMode || "light")}
+                          src={(account?.themeMode || "light") === "dark" ? "/brand/gemini-logo-dark.png" : "/brand/gemini-logo.png"}
+                          alt="LeadMagnets"
+                          className="h-5 w-5 object-contain shrink-0"
+                        />
                         <span>Build yours free with LeadMagnets</span>
                       </button>
                     </div>
@@ -2054,7 +2344,7 @@ export default function EditLeadMagnetPage() {
                                     key={item.id}
                                     onClick={() => setSelectedSequenceIndex(idx)}
                                     className={`rounded-xl p-3 flex items-center justify-between transition cursor-pointer ${isSelected
-                                      ? "bg-[#FE6F34] text-white shadow-md font-bold"
+                                      ? "bg-[#0066B2] text-white shadow-md font-bold"
                                       : ((account?.themeMode || "light") === "dark"
                                         ? "bg-[#1B1B20] text-zinc-300 hover:bg-[#24242A] border border-[#27272A]"
                                         : "bg-white text-zinc-800 hover:bg-zinc-100 border border-zinc-200")
@@ -2068,7 +2358,7 @@ export default function EditLeadMagnetPage() {
                                         {item.subject || "Untitled email"}
                                       </span>
                                     </div>
-                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isSelected ? "bg-white/20 text-white" : "bg-zinc-800/40 text-zinc-400"}`}>
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isSelected ? "bg-white/20 text-white" : ((account?.themeMode || "light") === "dark" ? "bg-zinc-800/40 text-zinc-400" : "bg-zinc-100 text-zinc-500")}`}>
                                       {item.delayDays}{item.delayUnit === "minutes" ? "m" : "h"}
                                     </span>
                                   </div>
@@ -2088,7 +2378,7 @@ export default function EditLeadMagnetPage() {
                                   {/* Editor Top Bar */}
                                   <div className="flex items-center justify-between border-b pb-4 border-zinc-200 dark:border-[#27272A]">
                                     <div className="flex items-center gap-2">
-                                      <Mail className="h-4 w-4 text-[#FE6F34]" />
+                                      <Mail className="h-4 w-4 text-[#0066B2]" />
                                       <h4 className={`text-sm sm:text-base font-extrabold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>
                                         Email {selectedSequenceIndex + 2}
                                       </h4>

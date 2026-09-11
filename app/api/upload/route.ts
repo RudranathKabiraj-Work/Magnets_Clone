@@ -4,6 +4,14 @@ import path from "path";
 import { dbConnect } from "@/lib/mongodb";
 import { ResourceModel } from "@/lib/models";
 import { put } from "@vercel/blob";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
+});
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +32,43 @@ export async function POST(req: NextRequest) {
 
     let publicFileUrl = "";
 
-    // 1. If Vercel Blob token is configured, upload directly to Vercel Blob Cloud
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    // 1. Upload to Cloudinary if configured
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
+      try {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        const isImage = file.type.startsWith("image/");
+
+        const uploadResult = await new Promise<any>((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              resource_type: "auto",
+              public_id: safeFilename.replace(/\.[^/.]+$/, ""),
+              folder: "leadmagnets",
+              transformation: isImage ? [{ quality: "auto", fetch_format: "auto" }] : undefined,
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          uploadStream.end(buffer);
+        });
+
+        if (uploadResult && uploadResult.secure_url) {
+          publicFileUrl = uploadResult.secure_url;
+          if (isImage && publicFileUrl.includes("/image/upload/") && !publicFileUrl.includes("/f_auto,q_auto/")) {
+            publicFileUrl = publicFileUrl.replace("/image/upload/", "/image/upload/f_auto,q_auto/");
+          }
+        }
+      } catch (cloudinaryErr) {
+        console.warn("Cloudinary upload warning, falling back:", cloudinaryErr);
+      }
+    }
+
+    // 2. Fallback to Vercel Blob if Cloudinary failed or is missing
+    if (!publicFileUrl && process.env.BLOB_READ_WRITE_TOKEN) {
       try {
         const blob = await put(safeFilename, file, {
           access: "public",
