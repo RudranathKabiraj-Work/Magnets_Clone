@@ -132,7 +132,7 @@ export default function DashboardShell({
     email: activeEmail,
     plan: rawAccount?.plan || "Free",
     brandColor: rawAccount?.brandColor || "#0066B2",
-    avatar: rawAccount?.avatar || rawAccount?.logo || null,
+    avatar: rawAccount?.avatar || (rawAccount?.logo && !rawAccount.logo.includes("googleusercontent.com") ? rawAccount.logo : null),
   };
 
   if (mounted && isAuthenticated === false) {

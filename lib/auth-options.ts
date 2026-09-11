@@ -45,10 +45,24 @@ export const authOptions: NextAuthOptions = {
             password: "",
             plan: "Free",
             brandColor: "#0066B2",
-            logo: user.image || null,
+            logo: null,
+            avatar: user.image || null,
             joinedAt: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
             isNewAccount: true,
           });
+        } else {
+          let modified = false;
+          if (user.image && existing.avatar !== user.image) {
+            existing.avatar = user.image;
+            modified = true;
+          }
+          if (existing.logo && (existing.logo === user.image || existing.logo.includes("googleusercontent.com"))) {
+            existing.logo = null;
+            modified = true;
+          }
+          if (modified) {
+            await existing.save();
+          }
         }
         return true;
       } catch (err) {

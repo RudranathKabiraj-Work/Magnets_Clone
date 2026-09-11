@@ -22,12 +22,18 @@ export async function GET() {
       }
     }
 
+    let nextAuthImage: string | null = null;
     // Fallback to NextAuth session if custom app token is missing or invalid
-    if (!email) {
+    if (!email || true) {
       const nextAuthSession = await getServerSession(authOptions);
       if (nextAuthSession?.user?.email) {
-        email = nextAuthSession.user.email.trim().toLowerCase();
-        name = nextAuthSession.user.name || undefined;
+        if (!email) {
+          email = nextAuthSession.user.email.trim().toLowerCase();
+          name = nextAuthSession.user.name || undefined;
+        }
+        if (nextAuthSession.user.image) {
+          nextAuthImage = nextAuthSession.user.image;
+        }
       }
     }
 
@@ -35,10 +41,29 @@ export async function GET() {
       return NextResponse.json({ authenticated: false, user: null }, { status: 401 });
     }
 
-    let account = null;
+    let account: any = null;
     try {
       await dbConnect();
       account = await AccountModel.findOne({ email }).lean();
+
+      // Clean up legacy logo if it contains Google user avatar
+      if (account) {
+        let needsUpdate = false;
+        const updateObj: any = {};
+        if (nextAuthImage && (!account.avatar || account.avatar !== nextAuthImage)) {
+          updateObj.avatar = nextAuthImage;
+          account.avatar = nextAuthImage;
+          needsUpdate = true;
+        }
+        if (account.logo && (account.logo.includes("googleusercontent.com") || account.logo === nextAuthImage)) {
+          updateObj.logo = null;
+          account.logo = null;
+          needsUpdate = true;
+        }
+        if (needsUpdate) {
+          await AccountModel.updateOne({ email }, { $set: updateObj });
+        }
+      }
     } catch (e) {
       console.warn("Could not query DB for account in /api/auth/me:", e);
     }
@@ -55,6 +80,7 @@ export async function GET() {
           plan: "Free",
           brandColor: "#0066B2",
           logo: null,
+          avatar: nextAuthImage || null,
           joinedAt: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
           isNewAccount: true,
         };
@@ -75,6 +101,7 @@ export async function GET() {
         plan: "Free",
         brandColor: "#0066B2",
         logo: null,
+        avatar: nextAuthImage || null,
       };
     }
 
