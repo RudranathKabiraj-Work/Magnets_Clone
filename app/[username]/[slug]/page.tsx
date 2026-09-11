@@ -325,6 +325,7 @@ export default async function MagnetPageRoute({
                   enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
                   customFormFields={page.customFormFields}
                   username={params.username}
+                  isVariantB={isVariantB}
                 />
                 <p className={`mt-3 flex items-center justify-center gap-1.5 text-xs ${themeMode === "dark" ? "text-zinc-500" : "text-ink-500"
                   }`}>

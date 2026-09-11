@@ -23,6 +23,7 @@ export default function MagnetSignupForm({
   enableAiPersonalizedDeliverable,
   customFormFields = [],
   username,
+  isVariantB = false,
 }: {
   cta: string;
   formTitle?: string;
@@ -42,6 +43,7 @@ export default function MagnetSignupForm({
   enableAiPersonalizedDeliverable?: boolean;
   customFormFields?: CustomFormField[];
   username?: string;
+  isVariantB?: boolean;
 }) {
   const [done, setDone] = useState(false);
   const [name, setName] = useState("");
@@ -64,29 +66,26 @@ export default function MagnetSignupForm({
     try {
       let customDeliverable = deliverable;
 
-      // Feature 2: If AI personalization is enabled and user provided an answer, generate custom deliverable with 1.5s max timeout
       if (enableAiPersonalizedDeliverable && customAnswer.trim()) {
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 1500);
-
-          const aiRes = await fetch("/api/data", {
+          const aiRes = await fetch("/api/ai/generate-magnet", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            signal: controller.signal,
             body: JSON.stringify({
-              action: "generateAiPersonalizedDeliverable",
-              data: { prompt: customAnswer.trim(), deliverableName: deliverable },
+              prompt: customAnswer.trim(),
+              deliverableTitle: deliverable,
+              pageTitle: pageName,
             }),
           });
-          clearTimeout(timeoutId);
-          const aiData = await aiRes.json();
-          if (aiData.success && aiData.personalizedDeliverable) {
-            customDeliverable = aiData.personalizedDeliverable;
-            setPersonalizedOutput(aiData.personalizedDeliverable);
+          if (aiRes.ok) {
+            const aiData = await aiRes.json();
+            if (aiData.content) {
+              customDeliverable = aiData.content;
+              setPersonalizedOutput(aiData.content);
+            }
           }
         } catch (err) {
-          console.error("AI personalization skipped/timed out:", err);
+          console.warn("AI generation failed, using default deliverable", err);
         }
       }
 
@@ -104,6 +103,7 @@ export default function MagnetSignupForm({
         tags: enableAiPersonalizedDeliverable ? ["ai-personalized"] : [],
         customAnswer: customAnswer.trim(),
         customFields: customFieldValues,
+        isVariantB: Boolean(isVariantB),
       };
 
       const res = await fetch("/api/data", {
@@ -132,6 +132,11 @@ export default function MagnetSignupForm({
             const targetPage = pagesList.find((p: any) => p.id === pageId || p.name === pageName);
             if (targetPage) {
               targetPage.signups = (targetPage.signups || 0) + 1;
+              if (isVariantB) {
+                targetPage.variantBSignups = (targetPage.variantBSignups || 0) + 1;
+              } else {
+                targetPage.variantASignups = (targetPage.variantASignups || 0) + 1;
+              }
               localStorage.setItem("currentUserPages", JSON.stringify(pagesList));
             }
           }

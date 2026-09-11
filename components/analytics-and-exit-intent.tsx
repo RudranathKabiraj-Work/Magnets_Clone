@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Script from "next/script";
 import { Sparkles, X, Gift, ArrowRight } from "lucide-react";
 
@@ -31,6 +31,7 @@ export default function AnalyticsAndExitIntent({
 }: Props) {
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const hasTrackedView = useRef(false);
 
   // Favicon dynamic injection & Live async view tracking beacon
   useEffect(() => {
@@ -45,7 +46,8 @@ export default function AnalyticsAndExitIntent({
     }
 
     // Async background view tracking using navigator.sendBeacon for zero-block tab load completion
-    if (pageId && typeof window !== "undefined") {
+    if (pageId && typeof window !== "undefined" && !hasTrackedView.current) {
+      hasTrackedView.current = true;
       const payload = JSON.stringify({ pageId, isVariantB, isOwner });
       let sent = false;
       if (typeof navigator !== "undefined" && "sendBeacon" in navigator) {

@@ -335,6 +335,11 @@ export async function POST(req: Request) {
         const page = await MagnetPageModel.findOne({ id: data.pageId });
         if (page) {
           page.signups = (page.signups || 0) + 1;
+          if (data.isVariantB) {
+            page.variantBSignups = (page.variantBSignups || 0) + 1;
+          } else {
+            page.variantASignups = (page.variantASignups || 0) + 1;
+          }
           if (page.views > 0) {
             page.conversionRate = parseFloat(((page.signups / page.views) * 100).toFixed(1));
           }
