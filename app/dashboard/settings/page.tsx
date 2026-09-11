@@ -53,10 +53,6 @@ export default function AccountSettingsPage() {
   const sequencesLimit = planConfig.sequencesLimit;
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
-      window.location.href = "/login";
-      return;
-    }
 
     // Load local data instantly
     const localAccount = loadAccount();

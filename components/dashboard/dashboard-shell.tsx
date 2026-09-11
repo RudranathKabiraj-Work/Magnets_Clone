@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
 import type { Account } from "@/lib/data";
-import { isSessionValid, loadAccount } from "@/lib/store";
+import { isSessionValid, loadAccount, setSessionExpiry } from "@/lib/store";
 
 const mobileNav = [
   { href: "/dashboard/leadmagnets", label: "Lead magnets", icon: FileText },
@@ -96,6 +96,7 @@ export default function DashboardShell({
           .then((data) => {
             if (data.authenticated && data.email) {
               localStorage.setItem("currentUserEmail", data.email);
+              setSessionExpiry(7);
               if (data.user) {
                 localStorage.setItem("currentUserAccount", JSON.stringify(data.user));
                 setCurrentAccount(data.user);

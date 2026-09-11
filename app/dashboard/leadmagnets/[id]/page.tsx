@@ -589,10 +589,6 @@ export default function EditLeadMagnetPage() {
   const hasPopulatedForm = useRef(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
-      window.location.href = "/login";
-      return;
-    }
 
     syncWithDatabase().then((data) => {
       if (data) {

@@ -80,10 +80,6 @@ export default function SignupsPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
-      window.location.href = "/login";
-      return;
-    }
 
     // Load local data instantly
     const localLeads = loadLeads();

@@ -58,10 +58,6 @@ export default function ResourcesPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
-      window.location.href = "/login";
-      return;
-    }
 
     // Load local data instantly
     const localResources = loadResources().filter((r: any) => !r.isPageAsset && r.type !== "page_asset");

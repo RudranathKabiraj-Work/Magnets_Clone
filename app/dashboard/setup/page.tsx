@@ -47,10 +47,6 @@ export default function WorkspaceSetupPage() {
   });
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
-      window.location.href = "/login";
-      return;
-    }
 
     // Load local data instantly
     const localAccount = loadAccount();

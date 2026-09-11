@@ -76,10 +76,6 @@ export default function SequenceEditor() {
   }
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
-      window.location.href = "/login";
-      return;
-    }
 
     const localAcc = loadAccount();
     if (localAcc) setAccount(localAcc);

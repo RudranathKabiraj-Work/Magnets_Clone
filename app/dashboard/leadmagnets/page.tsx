@@ -105,10 +105,6 @@ export default function PagesPage() {
   }, [selectedPageId, pages, filtered]);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
-      window.location.href = "/login";
-      return;
-    }
 
     const localPages = loadPages();
     const localAccount = loadAccount();

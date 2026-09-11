@@ -29,10 +29,6 @@ export default function NewSequence() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("currentUserEmail")) {
-      window.location.href = "/login";
-      return;
-    }
 
     const localAccount = loadAccount();
     if (localAccount) setAccount(localAccount);
