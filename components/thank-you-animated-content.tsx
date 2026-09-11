@@ -204,9 +204,9 @@ export default function ThankYouAnimatedContent({
       {/* Confetti Explosion Component */}
       <ConfettiCanvas brandColor={brandColor} />
 
-      {/* Background Layer: WebGL Aurora in Dark mode, Soft Mesh Glows in Light mode */}
+      {/* Background Layer: WebGL Aurora in Dark mode, Clean Ambient Brand Glow in Light mode */}
       {isDark ? (
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-55">
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-50">
           <Aurora
             colorStops={[brandColor, "#38BDF8", brandColor]}
             blend={0.7}
@@ -217,36 +217,36 @@ export default function ThankYouAnimatedContent({
         </div>
       ) : (
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#FAFAFA]">
-          {/* Top Brand Mesh Radial Gradient */}
+          {/* Subtle Top Brand Radial Glow */}
           <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[500px]"
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] transition-all duration-500"
             style={{
-              background: `radial-gradient(circle at 50% 0%, ${brandColor}22 0%, rgba(56, 189, 248, 0.12) 45%, transparent 75%)`,
+              background: `radial-gradient(circle at 50% 0%, ${brandColor}18 0%, ${brandColor}05 45%, transparent 75%)`,
             }}
           />
-          {/* Animated Soft Floating Light Orbs */}
+          {/* Soft Floating Light Glow Orbs */}
           <motion.div
             animate={{
-              x: [0, 40, 0],
-              y: [0, -30, 0],
-              scale: [1, 1.12, 1],
+              x: [0, 30, 0],
+              y: [0, -20, 0],
+              scale: [1, 1.08, 1],
             }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-10 left-1/4 w-[450px] h-[450px] rounded-full blur-[110px] opacity-60"
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-12 left-1/3 w-[500px] h-[500px] rounded-full blur-[130px] opacity-40 pointer-events-none"
             style={{
-              background: `radial-gradient(circle, ${brandColor}30 0%, rgba(56, 189, 248, 0.15) 60%, transparent 80%)`,
+              background: `radial-gradient(circle, ${brandColor}20 0%, transparent 70%)`,
             }}
           />
           <motion.div
             animate={{
-              x: [0, -40, 0],
-              y: [0, 30, 0],
-              scale: [1, 1.15, 1],
+              x: [0, -30, 0],
+              y: [0, 20, 0],
+              scale: [1, 1.05, 1],
             }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-20 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px] opacity-50"
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-28 right-1/4 w-[450px] h-[450px] rounded-full blur-[120px] opacity-30 pointer-events-none"
             style={{
-              background: `radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, ${brandColor}20 60%, transparent 80%)`,
+              background: `radial-gradient(circle, #38BDF820 0%, transparent 70%)`,
             }}
           />
         </div>
