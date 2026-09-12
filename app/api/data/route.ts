@@ -180,6 +180,7 @@ export async function POST(req: Request) {
         existing.notifyEmail = data.notifyEmail !== undefined ? data.notifyEmail : existing.notifyEmail;
         existing.themeMode = data.themeMode || existing.themeMode;
         existing.highlightIntensity = data.highlightIntensity ?? existing.highlightIntensity;
+        existing.templateId = data.templateId || existing.templateId;
         existing.slackWebhookUrl = data.slackWebhookUrl !== undefined ? data.slackWebhookUrl : existing.slackWebhookUrl;
         existing.zapierWebhookUrl = data.zapierWebhookUrl !== undefined ? data.zapierWebhookUrl : existing.zapierWebhookUrl;
         existing.pipedriveApiToken = data.pipedriveApiToken !== undefined ? data.pipedriveApiToken : existing.pipedriveApiToken;

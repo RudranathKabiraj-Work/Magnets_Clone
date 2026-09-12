@@ -56,7 +56,7 @@ export default function NewPage() {
       bullets: data.bullets,
       updatedAt: "Just now",
       publishedAt: null,
-      template: data.template || "classic",
+      template: (account?.templateId as any) || data.template || "template1",
       accent: data.accent || "#FE6F34",
     };
 
@@ -96,7 +96,7 @@ export default function NewPage() {
       deliverable: "Describe what people receive",
       updatedAt: "Just now",
       publishedAt: null,
-      template: "classic",
+      template: (account?.templateId as any) || "template1",
       accent: "#FE6F34",
     };
     const next = [page, ...loadPages()];

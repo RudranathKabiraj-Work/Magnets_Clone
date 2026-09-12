@@ -28,7 +28,8 @@ import {
   Zap,
   ArrowUpRight,
   Filter,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
@@ -54,6 +55,7 @@ export default function PagesPage() {
   // Modal State for 'Create a magnet' popup
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newName, setNewName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const newSlug = useMemo(() => {
     return newName
@@ -741,6 +743,9 @@ export default function PagesPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                if (isCreating) return;
+                setIsCreating(true);
+
                 const cleanSlug = newSlug;
                 const newId = `page-${Date.now()}`;
                 const newMagnetPage: MagnetPage = {
@@ -752,19 +757,17 @@ export default function PagesPage() {
                   subheadline: "",
                   cta: "Get instant access",
                   deliverable: "Instant Access",
-                  accent: "#0066B2",
+                  accent: account?.brandColor || "#0066B2",
                   views: 0,
                   signups: 0,
                   conversionRate: 0,
                   updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
                   publishedAt: null,
-                  template: "classic"
+                  template: (account?.templateId as any) || "template1"
                 };
 
                 const nextPages = [newMagnetPage, ...pages];
-                setPages(nextPages);
                 savePages(nextPages);
-                setShowCreateModal(false);
                 router.push(`/dashboard/leadmagnets/${newId}`);
               }}
               className="space-y-4"
@@ -820,17 +823,28 @@ export default function PagesPage() {
               <div className="pt-3 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
+                  disabled={isCreating}
                   onClick={() => setShowCreateModal(false)}
-                  className="rounded-xl border border-[#0066B2]/30 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-[#0066B2]/35 dark:bg-[#222228] dark:text-white dark:hover:bg-[#2c2c34] transition-all cursor-pointer"
+                  className="rounded-xl border border-[#0066B2]/30 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-[#0066B2]/35 dark:bg-[#222228] dark:text-white dark:hover:bg-[#2c2c34] transition-all cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005799] dark:bg-[#0066B2] dark:text-white dark:hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
+                  disabled={isCreating}
+                  className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005799] dark:bg-[#0066B2] dark:text-white dark:hover:bg-[#005799] transition-all cursor-pointer shadow-sm disabled:opacity-50"
                 >
-                  <span>+</span>
-                  <span>Create page</span>
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>+</span>
+                      <span>Create page</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

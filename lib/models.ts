@@ -14,6 +14,7 @@ const AccountSchema = new Schema({
   termsOfService: { type: String, default: "" },
   themeMode: { type: String, default: "light" },
   highlightIntensity: { type: Number, default: 100 },
+  templateId: { type: String, default: "template1" },
   slackWebhookUrl: { type: String, default: "" },
   zapierWebhookUrl: { type: String, default: "" },
   pipedriveApiToken: { type: String, default: "" },

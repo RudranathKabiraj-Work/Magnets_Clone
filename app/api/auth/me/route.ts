@@ -82,6 +82,7 @@ export async function GET() {
           logo: null,
           avatar: nextAuthImage || null,
           joinedAt: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+          templateId: "template1",
           isNewAccount: true,
         };
         account = await AccountModel.create(newAcc);

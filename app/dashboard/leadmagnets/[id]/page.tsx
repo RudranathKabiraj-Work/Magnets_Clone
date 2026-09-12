@@ -123,32 +123,45 @@ export default function EditLeadMagnetPage() {
     const localP = loadPages().find((p) => p.id === params.id);
     if (localP) {
       setPage(localP);
+      const pTpl = (localP.template as string);
+      if (pTpl && pTpl !== "classic" && pTpl !== "template1") {
+        setTemplateId(pTpl);
+      } else if (localAcc?.templateId) {
+        setTemplateId(localAcc.templateId);
+      }
       if (localP.customFormFields && localP.customFormFields.length > 0) {
         setCustomFormFields(localP.customFormFields);
       }
     }
 
-    // Load latest stats from database once on mount
+    // Load latest stats & account from database once on mount
     syncWithDatabase().then((data) => {
-      if (data && data.pages) {
-        const updated = data.pages.find((p: any) => p.id === params.id);
-        if (updated) {
-          setPage((prev) => {
-            if (!prev) return updated;
-            if (
-              prev.views === updated.views &&
-              prev.signups === updated.signups &&
-              prev.conversionRate === updated.conversionRate
-            ) {
-              return prev;
+      if (data) {
+        if (data.account) {
+          setAccount(data.account);
+          if (data.account.templateId) {
+            const currentP = loadPages().find((p) => p.id === params.id);
+            const curTpl = (currentP?.template as string);
+            if (!curTpl || curTpl === "classic" || curTpl === "template1") {
+              setTemplateId(data.account.templateId);
             }
-            return {
-              ...prev,
-              views: updated.views,
-              signups: updated.signups,
-              conversionRate: updated.conversionRate,
-            };
-          });
+          }
+        }
+        if (data.pages) {
+          const updated = data.pages.find((p: any) => p.id === params.id);
+          if (updated) {
+            setPage((prev) => {
+              if (!prev) return updated;
+              return {
+                ...prev,
+                ...updated,
+              };
+            });
+            const upTpl = (updated.template as string);
+            if (upTpl && upTpl !== "classic" && upTpl !== "template1") {
+              setTemplateId(upTpl);
+            }
+          }
         }
       }
     });
@@ -212,6 +225,7 @@ export default function EditLeadMagnetPage() {
   const initialEmailBody = page?.emailBody || "Hey {name},\n\nThank you for requesting this resource! Click the link below to get instant access.\n\nEnjoy!";
 
   // Page Content State (Tab 1: Landing)
+  const [templateId, setTemplateId] = useState<string>(page?.template || account?.templateId || "template1");
   const [headline, setHeadline] = useState(initialHeadline);
   const [subheadline, setSubheadline] = useState(initialSubheadline);
   const [pitch, setPitch] = useState(initialPitch);
@@ -842,6 +856,7 @@ export default function EditLeadMagnetPage() {
           formSubtitle,
           formButtonText,
           cta: formButtonText,
+          template: (templateId as any),
           updatedAt: "Just now"
         };
         setPage(next);
@@ -1393,337 +1408,524 @@ export default function EditLeadMagnetPage() {
                     </div>
 
                     {/* Canvas Main Card - 100% Synced with Public Page formula */}
-                    <div
-                      className={`mx-auto max-w-6xl rounded-2xl border p-6 md:p-8 shadow-2xl transition-all duration-300 backdrop-blur-md ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}
-                      style={{
-                        borderColor: account?.brandColor
-                          ? `${account.brandColor}${Math.round((0.15 + ((account?.highlightIntensity ?? 100) / 100) * 0.65) * 255).toString(16).padStart(2, '0')}`
-                          : "#0066B230",
-                        boxShadow: ((account?.highlightIntensity ?? 100) > 10 && account?.brandColor)
-                          ? `0 16px 40px -10px ${account.brandColor}${Math.round(((account?.highlightIntensity ?? 100) / 100) * 0.45 * 255).toString(16).padStart(2, '0')}`
-                          : "0 4px 12px rgba(0,0,0,0.05)",
-                        background: (account?.themeMode || "light") === "light"
-                          ? `linear-gradient(135deg, ${account?.brandColor || "#0066B2"}${Math.round((0.02 + ((account?.highlightIntensity ?? 100) / 100) * 0.25) * 255).toString(16).padStart(2, '0')} 0%, rgba(255, 255, 255, 0.95) 50%)`
-                          : `linear-gradient(135deg, ${account?.brandColor || "#0066B2"}${Math.round((0.05 + ((account?.highlightIntensity ?? 100) / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(18, 18, 20, 0.95) 50%)`
-                      }}
-                    >
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-                        {/* Left Column: Copy & Bullets */}
-                        <div className="lg:col-span-7 space-y-6">
-                          {/* Headline */}
-                          <div>
-                            <textarea
-                              ref={headlineRef}
-                              rows={1}
-                              value={headline}
-                              onChange={(e) => {
-                                setHeadline(e.target.value);
-                                e.target.style.height = "auto";
-                                e.target.style.height = `${e.target.scrollHeight + 24}px`;
-                              }}
-                              placeholder="BDA"
-                              className={`w-full text-3xl sm:text-5xl font-black bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text transition-all duration-150 resize-none overflow-hidden leading-snug ${(account?.themeMode || "light") === "dark" ? "text-white hover:bg-white/5 focus:border-white/20 focus:!bg-black/30" : "text-zinc-900 hover:bg-black/5 focus:border-black/20 focus:!bg-white"}`}
+                    {templateId === "template2" ? (
+                      /* TEMPLATE 2: Lead Capture Split Panel Layout */
+                      <div
+                        className={`mx-auto max-w-6xl rounded-2xl border transition-all duration-300 overflow-hidden shadow-2xl ${(account?.themeMode || "light") === "dark" ? "bg-[#111827] text-white border-zinc-800" : "bg-white text-zinc-900 border-zinc-200"}`}
+                        style={{
+                          borderColor: account?.brandColor
+                            ? `${account.brandColor}${Math.round((0.25 + ((account?.highlightIntensity ?? 100) / 100) * 0.55) * 255).toString(16).padStart(2, '0')}`
+                            : "#0066B240",
+                          boxShadow: `0 16px 40px -10px ${account?.brandColor || "#0066B2"}${Math.round(((account?.highlightIntensity ?? 100) / 100) * 0.25 * 255).toString(16).padStart(2, '0')}`
+                        }}
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
+                          {/* Left Panel: Cover Image + Gradient Scrim + Bullets (~60%) */}
+                          <div className="md:col-span-7 relative flex flex-col justify-end p-6 md:p-8 overflow-hidden min-h-[260px] md:min-h-full bg-zinc-900 text-white">
+                            <img
+                              src={imageUrl || "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80"}
+                              alt="Lead capture cover"
+                              className="absolute inset-0 w-full h-full object-cover opacity-50"
                             />
-                          </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0c16] via-[#0a0c16]/60 to-transparent pointer-events-none" />
 
-                          {/* Subheadline */}
-                          <div>
-                            <textarea
-                              ref={subheadlineRef}
-                              rows={1}
-                              value={subheadline}
-                              onChange={(e) => {
-                                setSubheadline(e.target.value);
-                                e.target.style.height = "auto";
-                                e.target.style.height = `${e.target.scrollHeight + 24}px`;
-                              }}
-                              placeholder="Short subhead. say what they will get"
-                              className={`w-full text-sm sm:text-base font-semibold bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text transition-all duration-150 resize-none overflow-hidden leading-relaxed ${(account?.themeMode || "light") === "dark" ? "text-zinc-300 hover:bg-white/5 focus:border-white/20 focus:!bg-black/30" : "text-zinc-600 hover:bg-black/5 focus:border-black/20 focus:!bg-white"}`}
-                            />
-                          </div>
+                            <div className="relative z-10 space-y-3">
+                              <textarea
+                                ref={headlineRef}
+                                rows={1}
+                                value={headline}
+                                onChange={(e) => {
+                                  setHeadline(e.target.value);
+                                  e.target.style.height = "auto";
+                                  e.target.style.height = `${e.target.scrollHeight}px`;
+                                }}
+                                placeholder="Build forms that convert"
+                                className="w-full text-2xl md:text-3xl font-extrabold bg-transparent outline-none border-none text-white placeholder:text-white/60 resize-none leading-tight"
+                              />
 
-                          {/* Pitch */}
-                          <div>
-                            <textarea
-                              ref={pitchRef}
-                              rows={1}
-                              value={pitch}
-                              onChange={(e) => {
-                                setPitch(e.target.value);
-                                e.target.style.height = "auto";
-                                e.target.style.height = `${e.target.scrollHeight + 24}px`;
-                              }}
-                              placeholder="Write a short pitch. Press Enter twice to start a new paragraph."
-                              className={`w-full text-xs sm:text-sm bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text transition-all duration-150 resize-none overflow-hidden leading-relaxed ${(account?.themeMode || "light") === "dark" ? "text-zinc-400 hover:bg-white/5 focus:border-white/20 focus:!bg-black/30" : "text-zinc-500 hover:bg-black/5 focus:border-black/20 focus:!bg-white"}`}
-                            />
-                          </div>
+                              <textarea
+                                ref={subheadlineRef}
+                                rows={1}
+                                value={subheadline}
+                                onChange={(e) => {
+                                  setSubheadline(e.target.value);
+                                  e.target.style.height = "auto";
+                                  e.target.style.height = `${e.target.scrollHeight}px`;
+                                }}
+                                placeholder="The friendly form builder for growing teams"
+                                className="w-full text-xs md:text-sm font-semibold bg-transparent outline-none border-none text-white/90 placeholder:text-white/50 resize-none leading-relaxed"
+                              />
 
-                          {/* Bullets List Section */}
-                          <div className={`group relative rounded-2xl border border-transparent p-3.5 transition-all duration-200 space-y-3 ${(account?.themeMode || "light") === "dark" ? "hover:border-white/10 hover:bg-white/5" : "hover:border-black/10 hover:bg-black/5"}`}>
-                            {/* Floating Pencil Edit Badge */}
-                            <div className={`absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer ${(account?.themeMode || "light") === "dark" ? "bg-white text-black" : "bg-black text-white"}`}>
-                              <Pencil className="h-3.5 w-3.5" />
+                              <textarea
+                                ref={pitchRef}
+                                rows={1}
+                                value={pitch}
+                                onChange={(e) => {
+                                  setPitch(e.target.value);
+                                  e.target.style.height = "auto";
+                                  e.target.style.height = `${e.target.scrollHeight}px`;
+                                }}
+                                placeholder="Tell readers why they need this..."
+                                className="w-full text-[11px] bg-transparent outline-none border-none text-white/70 placeholder:text-white/40 resize-none leading-relaxed"
+                              />
+
+                              {bullets && bullets.length > 0 && (
+                                <ul className="space-y-2 pt-3 border-t border-white/10">
+                                  {bullets.map((item, idx) => (
+                                    <li key={idx} className="flex items-center gap-2 text-xs text-white/90">
+                                      <span style={{ color: account?.brandColor || "#a5b4fc" }}>
+                                        <Check className="w-4 h-4 shrink-0" />
+                                      </span>
+                                      <input
+                                        type="text"
+                                        value={item}
+                                        onChange={(e) => {
+                                          const updated = [...bullets];
+                                          updated[idx] = e.target.value;
+                                          setBullets(updated);
+                                        }}
+                                        className="w-full bg-transparent outline-none text-xs text-white"
+                                      />
+                                      <button onClick={() => removeBullet(idx)} className="text-white/40 hover:text-white">
+                                        <X className="w-3.5 h-3.5" />
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
                             </div>
+                          </div>
 
-                            {/* Card Title Input */}
-                            <div>
+                          {/* Right Panel: Form (~40%) */}
+                          <div className={`md:col-span-5 p-6 md:p-8 flex flex-col justify-center border-t md:border-t-0 md:border-l ${(account?.themeMode || "light") === "dark" ? "border-zinc-800 bg-[#18181B]" : "border-zinc-200 bg-white"}`}>
+                            <div className="space-y-3">
                               <input
                                 type="text"
-                                value={bulletsTitle}
-                                onChange={(e) => setBulletsTitle(e.target.value)}
-                                placeholder="What they will learn"
-                                className={`w-full text-xs sm:text-sm font-bold bg-transparent outline-none border-b border-transparent rounded-lg px-2 py-1 transition-all duration-150 placeholder:font-normal ${(account?.themeMode || "light") === "dark" ? "text-zinc-200 hover:border-white/20 focus:border-white/40 placeholder:text-zinc-500" : "text-zinc-800 hover:border-black/20 focus:border-black/40 placeholder:text-zinc-400"}`}
+                                value={formTitle}
+                                onChange={(e) => setFormTitle(e.target.value)}
+                                className="w-full text-center text-lg font-bold bg-transparent outline-none"
                               />
-                            </div>
+                              <input
+                                type="text"
+                                value={formSubtitle}
+                                onChange={(e) => setFormSubtitle(e.target.value)}
+                                className="w-full text-center text-xs text-zinc-400 bg-transparent outline-none"
+                              />
 
-                            {bullets.length === 0 ? (
-                              <p className="text-xs italic text-zinc-400">
-                                No bullets yet. click + to add one.
-                              </p>
-                            ) : (
-                              <ul className="space-y-3">
-                                {bullets.map((b, idx) => (
-                                  <li key={idx} className="group relative flex items-center gap-3">
-                                    <span
-                                      className="flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full text-white font-bold shadow-xs transition-colors"
-                                      style={{ backgroundColor: account?.brandColor || "#0066B2" }}
-                                    >
-                                      <Check className="h-3.5 w-3.5 stroke-[3px]" />
-                                    </span>
-                                    <input
-                                      type="text"
-                                      value={b}
-                                      onChange={(e) => {
-                                        const updated = [...bullets];
-                                        updated[idx] = e.target.value;
-                                        setBullets(updated);
-                                      }}
-                                      className={`w-full text-xs sm:text-sm font-semibold bg-transparent outline-none border-none ring-0 rounded-xl px-3 py-1.5 transition-all duration-150 ${(account?.themeMode || "light") === "dark" ? "text-zinc-200 hover:bg-white/5 focus:bg-black/30 focus:border focus:border-white/20" : "text-zinc-800 hover:bg-black/5 focus:bg-white focus:border focus:border-black/20"}`}
-                                    />
-                                    <button
-                                      onClick={() => removeBullet(idx)}
-                                      className="text-zinc-400 hover:text-zinc-600 transition p-1 shrink-0"
-                                      title="Remove bullet"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </button>
-                                  </li>
+                              <div className="space-y-2 pt-2">
+                                <input type="text" placeholder="Name *" readOnly className="w-full rounded-lg border px-3 py-2 text-xs opacity-60" />
+                                <input type="email" placeholder="Email *" readOnly className="w-full rounded-lg border px-3 py-2 text-xs opacity-60" />
+
+                                {customFormFields.map((field) => (
+                                  <div key={field.id} className="space-y-1">
+                                    <span className="text-[10px] text-zinc-400 font-bold">{field.label}</span>
+                                    <input type="text" placeholder={field.placeholder || ""} readOnly className="w-full rounded-lg border px-3 py-2 text-xs opacity-60" />
+                                  </div>
                                 ))}
-                              </ul>
-                            )}
-
-                            {/* Add Bullet Button & Inline Form */}
-                            {showAddBullet ? (
-                              <div className="flex items-center gap-2 pt-1">
-                                <input
-                                  type="text"
-                                  autoFocus
-                                  value={newBulletText}
-                                  onChange={(e) => setNewBulletText(e.target.value)}
-                                  onKeyDown={(e) => e.key === "Enter" && addBullet()}
-                                  placeholder="Type bullet point..."
-                                  className={`w-full rounded-xl border px-3 py-1.5 text-xs outline-none ${(account?.themeMode || "light") === "dark" ? "border-white/20 bg-black/40 text-white focus:border-white/50" : "border-black/20 bg-white text-zinc-900 focus:border-black/50"}`}
-                                />
-                                <button
-                                  onClick={addBullet}
-                                  style={{ backgroundColor: account?.brandColor || "#0066B2" }}
-                                  className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-white hover:opacity-90 transition shrink-0"
-                                >
-                                  Add
-                                </button>
-                                <button
-                                  onClick={() => setShowAddBullet(false)}
-                                  className="p-1.5 text-zinc-400 hover:text-zinc-600"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
                               </div>
-                            ) : (
+
                               <button
-                                onClick={() => setShowAddBullet(true)}
-                                className={`inline-flex items-center gap-1.5 rounded-xl border border-dashed px-3.5 py-1.5 text-xs font-semibold transition shadow-2xs cursor-pointer ${(account?.themeMode || "light") === "dark" ? "border-white/20 text-zinc-300 hover:border-white/40 bg-white/5" : "border-black/20 text-zinc-700 hover:border-black/40 bg-black/5"}`}
+                                type="button"
+                                className="w-full rounded-xl py-3 px-4 text-xs font-bold text-white shadow-md transition duration-200 mt-2"
+                                style={{ backgroundColor: account?.brandColor || "#0066B2" }}
                               >
-                                <Plus className="h-3.5 w-3.5" />
-                                <span>Add bullet</span>
+                                {formButtonText || "Get early access"}
                               </button>
-                            )}
+                            </div>
                           </div>
                         </div>
+                      </div>
+                    ) : templateId === "template3" ? (
+                      /* TEMPLATE 3: Glassmorphic Editorial Luxury Hero */
+                      <div
+                        className={`mx-auto max-w-6xl rounded-3xl border overflow-hidden transition-all duration-300 relative ${(account?.themeMode || "light") === "dark" ? "bg-[#0B0F17] text-white border-zinc-800" : "bg-gradient-to-br from-slate-900 via-zinc-900 to-black text-white border-zinc-800"}`}
+                        style={{
+                          boxShadow: `0 24px 60px -12px ${account?.brandColor || "#0066B2"}${Math.round((0.35 + ((account?.highlightIntensity ?? 100) / 100) * 0.4) * 255).toString(16).padStart(2, '0')}`
+                        }}
+                      >
+                        <div className="relative z-10 p-6 md:p-10">
+                          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                            <div className="lg:col-span-7 space-y-4">
+                              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-semibold text-white/90">
+                                <span className="flex h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: account?.brandColor || "#0066B2" }} />
+                                <span>{bulletsTitle || "VIP Exclusive Access"}</span>
+                              </div>
 
-                        {/* Right Column: Media Dropzone & Form Card */}
-                        <div className="lg:col-span-5 space-y-4">
-                          {/* Image Dropzone */}
-                          <div className="rounded-2xl transition">
-                            <input
-                              type="file"
-                              ref={fileInputRef}
-                              onChange={handleImageUpload}
-                              accept="image/*"
-                              className="hidden"
-                            />
-                            <AnimatePresence mode="wait">
-                              {uploadProgress !== null ? (
-                                <motion.div
-                                  key="progress"
-                                  initial={{ opacity: 0, scale: 0.98 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0.98 }}
-                                  transition={{ duration: 0.15 }}
-                                  className={`rounded-2xl border-2 border-dashed p-6 text-center flex flex-col items-center justify-center min-h-[140px] ${(account?.themeMode || "light") === "dark" ? "border-[#0066B2]/50 bg-[#0066B2]/10 text-white" : "border-[#0066B2]/50 bg-[#EFF6FF] text-zinc-900"}`}
-                                >
-                                  <div className="w-full max-w-xs space-y-3">
-                                    <div className="flex items-center justify-between text-xs font-bold">
-                                      <span className="flex items-center gap-2 text-[#0066B2] dark:text-[#38BDF8]">
-                                        {uploadProgress === 100 ? (
-                                          <Check className="h-4 w-4 text-emerald-500" />
-                                        ) : (
-                                          <Loader2 className="h-4 w-4 animate-spin" />
-                                        )}
-                                        {uploadProgress === 100 ? "Image uploaded!" : "Uploading image..."}
-                                      </span>
-                                      <span className="font-mono text-[#0066B2] dark:text-[#38BDF8]">{uploadProgress}%</span>
+                              <textarea
+                                ref={headlineRef}
+                                rows={1}
+                                value={headline}
+                                onChange={(e) => setHeadline(e.target.value)}
+                                className="w-full text-3xl md:text-4xl font-black bg-transparent outline-none text-white leading-tight"
+                              />
+
+                              <textarea
+                                ref={subheadlineRef}
+                                rows={1}
+                                value={subheadline}
+                                onChange={(e) => setSubheadline(e.target.value)}
+                                className="w-full text-xs md:text-sm bg-transparent outline-none text-zinc-300 leading-relaxed"
+                              />
+
+                              {bullets && bullets.length > 0 && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                                  {bullets.map((item, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 p-2 rounded-xl bg-white/5 border border-white/10 text-xs text-zinc-200">
+                                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-white text-[10px]" style={{ backgroundColor: account?.brandColor || "#0066B2" }}>✓</span>
+                                      <input type="text" value={item} onChange={(e) => { const u = [...bullets]; u[idx] = e.target.value; setBullets(u); }} className="bg-transparent outline-none text-xs text-white w-full" />
                                     </div>
-                                    <div className="h-2 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                                      <div
-                                        className="h-full bg-[#0066B2] dark:bg-[#38BDF8] rounded-full transition-all duration-150 ease-out"
-                                        style={{ width: `${uploadProgress}%` }}
-                                      />
-                                    </div>
-                                    <p className="text-[11px] text-zinc-400">Optimizing media assets...</p>
-                                  </div>
-                                </motion.div>
-                              ) : imageUrl ? (
-                                <motion.div
-                                  key="image"
-                                  initial={{ opacity: 0, scale: 0.98 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0.98 }}
-                                  transition={{ duration: 0.2 }}
-                                  className={`relative group rounded-2xl overflow-hidden border shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/20" : "border-black/10 bg-white"}`}
-                                >
-                                  <img src={imageUrl} alt="Uploaded magnet media" className="w-full object-cover max-h-72 rounded-2xl" />
-                                  <div className="absolute bottom-4 right-4 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        fileInputRef.current?.click();
-                                      }}
-                                      className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-black px-3.5 py-2 text-xs font-bold text-white shadow-md border border-white/20 transition cursor-pointer pointer-events-auto"
-                                    >
-                                      <ImageIcon className="h-4 w-4 text-zinc-400" />
-                                      <span>Replace</span>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setImageUrl(null);
-                                      }}
-                                      className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-red-950/80 px-3.5 py-2 text-xs font-bold text-red-400 shadow-md border border-white/20 transition cursor-pointer pointer-events-auto"
-                                    >
-                                      <Trash2 className="h-4 w-4 text-red-400" />
-                                      <span>Remove</span>
-                                    </button>
-                                  </div>
-                                </motion.div>
-                              ) : (
-                                <motion.div
-                                  key="dropzone"
-                                  initial={{ opacity: 0, scale: 0.98 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0.98 }}
-                                  transition={{ duration: 0.15 }}
-                                  className={`rounded-2xl border-2 border-dashed p-6 text-center transition ${(account?.themeMode || "light") === "dark" ? "border-white/15 bg-black/20 text-white hover:border-white/30" : "border-black/15 bg-white text-zinc-900 hover:border-black/30"}`}
-                                >
-                                  <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="flex flex-col items-center justify-center w-full py-4 cursor-pointer"
-                                  >
-                                    <ImageIcon className="h-7 w-7 text-zinc-400 mb-2" />
-                                    <span className="text-xs font-bold">Add an image</span>
-                                    <span className="text-[11px] text-zinc-400 mt-0.5">PNG, JPG, WebP, or GIF. 10 MB max.</span>
-                                  </button>
-                                </motion.div>
+                                  ))}
+                                </div>
                               )}
-                            </AnimatePresence>
+                            </div>
+
+                            <div className="lg:col-span-5">
+                              <div className="rounded-2xl p-6 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl space-y-3">
+                                <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} className="w-full text-center text-base font-bold bg-transparent text-white outline-none" />
+                                <input type="text" value={formSubtitle} onChange={(e) => setFormSubtitle(e.target.value)} className="w-full text-center text-xs text-zinc-300 bg-transparent outline-none" />
+                                <input type="text" placeholder="Name *" readOnly className="w-full rounded-xl bg-black/40 border border-white/15 px-3 py-2 text-xs text-white outline-none" />
+                                <input type="email" placeholder="Email *" readOnly className="w-full rounded-xl bg-black/40 border border-white/15 px-3 py-2 text-xs text-white outline-none" />
+                                <button type="button" className="w-full rounded-xl py-3 text-xs font-bold text-white shadow-xl mt-2" style={{ backgroundColor: account?.brandColor || "#0066B2" }}>
+                                  {formButtonText || "Get Instant Access"}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* TEMPLATE 1 / Default: Modern Split Layout */
+                      <div
+                        className={`mx-auto max-w-6xl rounded-2xl border p-6 md:p-8 shadow-2xl transition-all duration-300 backdrop-blur-md ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}
+                        style={{
+                          borderColor: account?.brandColor
+                            ? `${account.brandColor}${Math.round((0.15 + ((account?.highlightIntensity ?? 100) / 100) * 0.65) * 255).toString(16).padStart(2, '0')}`
+                            : "#0066B230",
+                          boxShadow: ((account?.highlightIntensity ?? 100) > 10 && account?.brandColor)
+                            ? `0 16px 40px -10px ${account.brandColor}${Math.round(((account?.highlightIntensity ?? 100) / 100) * 0.45 * 255).toString(16).padStart(2, '0')}`
+                            : "0 4px 12px rgba(0,0,0,0.05)",
+                          background: (account?.themeMode || "light") === "light"
+                            ? `linear-gradient(135deg, ${account?.brandColor || "#0066B2"}${Math.round((0.02 + ((account?.highlightIntensity ?? 100) / 100) * 0.25) * 255).toString(16).padStart(2, '0')} 0%, rgba(255, 255, 255, 0.95) 50%)`
+                            : `linear-gradient(135deg, ${account?.brandColor || "#0066B2"}${Math.round((0.05 + ((account?.highlightIntensity ?? 100) / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(18, 18, 20, 0.95) 50%)`
+                        }}
+                      >
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+                          {/* Left Column: Copy & Bullets */}
+                          <div className="lg:col-span-7 space-y-6">
+                            {/* Headline */}
+                            <div>
+                              <textarea
+                                ref={headlineRef}
+                                rows={1}
+                                value={headline}
+                                onChange={(e) => {
+                                  setHeadline(e.target.value);
+                                  e.target.style.height = "auto";
+                                  e.target.style.height = `${e.target.scrollHeight + 24}px`;
+                                }}
+                                placeholder="BDA"
+                                className={`w-full text-3xl sm:text-5xl font-black bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text transition-all duration-150 resize-none overflow-hidden leading-snug ${(account?.themeMode || "light") === "dark" ? "text-white hover:bg-white/5 focus:border-white/20 focus:!bg-black/30" : "text-zinc-900 hover:bg-black/5 focus:border-black/20 focus:!bg-white"}`}
+                              />
+                            </div>
+
+                            {/* Subheadline */}
+                            <div>
+                              <textarea
+                                ref={subheadlineRef}
+                                rows={1}
+                                value={subheadline}
+                                onChange={(e) => {
+                                  setSubheadline(e.target.value);
+                                  e.target.style.height = "auto";
+                                  e.target.style.height = `${e.target.scrollHeight + 24}px`;
+                                }}
+                                placeholder="Short subhead. say what they will get"
+                                className={`w-full text-sm sm:text-base font-semibold bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text transition-all duration-150 resize-none overflow-hidden leading-relaxed ${(account?.themeMode || "light") === "dark" ? "text-zinc-300 hover:bg-white/5 focus:border-white/20 focus:!bg-black/30" : "text-zinc-600 hover:bg-black/5 focus:border-black/20 focus:!bg-white"}`}
+                              />
+                            </div>
+
+                            {/* Pitch */}
+                            <div>
+                              <textarea
+                                ref={pitchRef}
+                                rows={1}
+                                value={pitch}
+                                onChange={(e) => {
+                                  setPitch(e.target.value);
+                                  e.target.style.height = "auto";
+                                  e.target.style.height = `${e.target.scrollHeight + 24}px`;
+                                }}
+                                placeholder="Write a short pitch. Press Enter twice to start a new paragraph."
+                                className={`w-full text-xs sm:text-sm bg-transparent outline-none border-none ring-0 shadow-none rounded-xl px-3 py-3 cursor-text transition-all duration-150 resize-none overflow-hidden leading-relaxed ${(account?.themeMode || "light") === "dark" ? "text-zinc-400 hover:bg-white/5 focus:border-white/20 focus:!bg-black/30" : "text-zinc-500 hover:bg-black/5 focus:border-black/20 focus:!bg-white"}`}
+                              />
+                            </div>
+
+                            {/* Bullets List Section */}
+                            <div className={`group relative rounded-2xl border border-transparent p-3.5 transition-all duration-200 space-y-3 ${(account?.themeMode || "light") === "dark" ? "hover:border-white/10 hover:bg-white/5" : "hover:border-black/10 hover:bg-black/5"}`}>
+                              {/* Floating Pencil Edit Badge */}
+                              <div className={`absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer ${(account?.themeMode || "light") === "dark" ? "bg-white text-black" : "bg-black text-white"}`}>
+                                <Pencil className="h-3.5 w-3.5" />
+                              </div>
+
+                              {/* Card Title Input */}
+                              <div>
+                                <input
+                                  type="text"
+                                  value={bulletsTitle}
+                                  onChange={(e) => setBulletsTitle(e.target.value)}
+                                  placeholder="What they will learn"
+                                  className={`w-full text-xs sm:text-sm font-bold bg-transparent outline-none border-b border-transparent rounded-lg px-2 py-1 transition-all duration-150 placeholder:font-normal ${(account?.themeMode || "light") === "dark" ? "text-zinc-200 hover:border-white/20 focus:border-white/40 placeholder:text-zinc-500" : "text-zinc-800 hover:border-black/20 focus:border-black/40 placeholder:text-zinc-400"}`}
+                                />
+                              </div>
+
+                              {bullets.length === 0 ? (
+                                <p className="text-xs italic text-zinc-400">
+                                  No bullets yet. click + to add one.
+                                </p>
+                              ) : (
+                                <ul className="space-y-3">
+                                  {bullets.map((b, idx) => (
+                                    <li key={idx} className="group relative flex items-center gap-3">
+                                      <span
+                                        className="flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full text-white font-bold shadow-xs transition-colors"
+                                        style={{ backgroundColor: account?.brandColor || "#0066B2" }}
+                                      >
+                                        <Check className="h-3.5 w-3.5 stroke-[3px]" />
+                                      </span>
+                                      <input
+                                        type="text"
+                                        value={b}
+                                        onChange={(e) => {
+                                          const updated = [...bullets];
+                                          updated[idx] = e.target.value;
+                                          setBullets(updated);
+                                        }}
+                                        className={`w-full text-xs sm:text-sm font-semibold bg-transparent outline-none border-none ring-0 rounded-xl px-3 py-1.5 transition-all duration-150 ${(account?.themeMode || "light") === "dark" ? "text-zinc-200 hover:bg-white/5 focus:bg-black/30 focus:border focus:border-white/20" : "text-zinc-800 hover:bg-black/5 focus:bg-white focus:border focus:border-black/20"}`}
+                                      />
+                                      <button
+                                        onClick={() => removeBullet(idx)}
+                                        className="text-zinc-400 hover:text-zinc-600 transition p-1 shrink-0"
+                                        title="Remove bullet"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+
+                              {/* Add Bullet Button & Inline Form */}
+                              {showAddBullet ? (
+                                <div className="flex items-center gap-2 pt-1">
+                                  <input
+                                    type="text"
+                                    autoFocus
+                                    value={newBulletText}
+                                    onChange={(e) => setNewBulletText(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && addBullet()}
+                                    placeholder="Type bullet point..."
+                                    className={`w-full rounded-xl border px-3 py-1.5 text-xs outline-none ${(account?.themeMode || "light") === "dark" ? "border-white/20 bg-black/40 text-white focus:border-white/50" : "border-black/20 bg-white text-zinc-900 focus:border-black/50"}`}
+                                  />
+                                  <button
+                                    onClick={addBullet}
+                                    style={{ backgroundColor: account?.brandColor || "#0066B2" }}
+                                    className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-white hover:opacity-90 transition shrink-0"
+                                  >
+                                    Add
+                                  </button>
+                                  <button
+                                    onClick={() => setShowAddBullet(false)}
+                                    className="p-1.5 text-zinc-400 hover:text-zinc-600"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setShowAddBullet(true)}
+                                  className={`inline-flex items-center gap-1.5 rounded-xl border border-dashed px-3.5 py-1.5 text-xs font-semibold transition shadow-2xs cursor-pointer ${(account?.themeMode || "light") === "dark" ? "border-white/20 text-zinc-300 hover:border-white/40 bg-white/5" : "border-black/20 text-zinc-700 hover:border-black/40 bg-black/5"}`}
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                  <span>Add bullet</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
 
-                          {/* Signup Form Card - Fully Editable Title, Subtitle & Button CTA (Except Name & Email Inputs) */}
-                          <div
-                            className="rounded-2xl border p-6 text-center shadow-lg transition-all duration-200 backdrop-blur-md"
-                            style={{
-                              borderColor: (account?.themeMode || "light") === "dark"
-                                ? (account?.brandColor ? `${account.brandColor}40` : "rgba(255, 255, 255, 0.15)")
-                                : (account?.brandColor ? `${account.brandColor}30` : "#FFD0BD"),
-                              backgroundColor: (account?.themeMode || "light") === "dark"
-                                ? "rgba(10, 10, 12, 0.6)"
-                                : "rgba(255, 255, 255, 0.85)"
-                            }}
-                          >
-                            {/* Editable Card Title */}
-                            <input
-                              type="text"
-                              value={formTitle}
-                              onChange={(e) => setFormTitle(e.target.value)}
-                              onFocus={(e) => {
-                                if (e.target.value === "Download for free") {
-                                  setFormTitle("");
-                                } else {
-                                  e.target.select();
-                                }
-                              }}
-                              onBlur={(e) => {
-                                if (!e.target.value.trim()) {
-                                  setFormTitle("Download for free");
-                                }
-                              }}
-                              placeholder="Download for free"
-                              className={`w-full text-center text-xl sm:text-2xl font-extrabold outline-none border border-transparent hover:border-zinc-300 dark:hover:border-white/10 rounded-xl py-1.5 px-3 bg-transparent transition-all duration-200 ${(account?.themeMode || "light") === "dark" ? "text-white focus:bg-[#16161A] focus:border-white/30" : "text-zinc-900 focus:bg-zinc-100 focus:border-zinc-400"}`}
-                            />
+                          {/* Right Column: Media Dropzone & Form Card */}
+                          <div className="lg:col-span-5 space-y-4">
+                            {/* Image Dropzone */}
+                            <div className="rounded-2xl transition">
+                              <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleImageUpload}
+                                accept="image/*"
+                                className="hidden"
+                              />
+                              <AnimatePresence mode="wait">
+                                {uploadProgress !== null ? (
+                                  <motion.div
+                                    key="progress"
+                                    initial={{ opacity: 0, scale: 0.98 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.98 }}
+                                    transition={{ duration: 0.15 }}
+                                    className={`rounded-2xl border-2 border-dashed p-6 text-center flex flex-col items-center justify-center min-h-[140px] ${(account?.themeMode || "light") === "dark" ? "border-[#0066B2]/50 bg-[#0066B2]/10 text-white" : "border-[#0066B2]/50 bg-[#EFF6FF] text-zinc-900"}`}
+                                  >
+                                    <div className="w-full max-w-xs space-y-3">
+                                      <div className="flex items-center justify-between text-xs font-bold">
+                                        <span className="flex items-center gap-2 text-[#0066B2] dark:text-[#38BDF8]">
+                                          {uploadProgress === 100 ? (
+                                            <Check className="h-4 w-4 text-emerald-500" />
+                                          ) : (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                          )}
+                                          {uploadProgress === 100 ? "Image uploaded!" : "Uploading image..."}
+                                        </span>
+                                        <span className="font-mono text-[#0066B2] dark:text-[#38BDF8]">{uploadProgress}%</span>
+                                      </div>
+                                      <div className="h-2 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                                        <div
+                                          className="h-full bg-[#0066B2] dark:bg-[#38BDF8] rounded-full transition-all duration-150 ease-out"
+                                          style={{ width: `${uploadProgress}%` }}
+                                        />
+                                      </div>
+                                      <p className="text-[11px] text-zinc-400">Optimizing media assets...</p>
+                                    </div>
+                                  </motion.div>
+                                ) : imageUrl ? (
+                                  <motion.div
+                                    key="image"
+                                    initial={{ opacity: 0, scale: 0.98 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.98 }}
+                                    transition={{ duration: 0.2 }}
+                                    className={`relative group rounded-2xl overflow-hidden border shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/20" : "border-black/10 bg-white"}`}
+                                  >
+                                    <img src={imageUrl} alt="Uploaded magnet media" className="w-full object-cover max-h-72 rounded-2xl" />
+                                    <div className="absolute bottom-4 right-4 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          fileInputRef.current?.click();
+                                        }}
+                                        className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-black px-3.5 py-2 text-xs font-bold text-white shadow-md border border-white/20 transition cursor-pointer pointer-events-auto"
+                                      >
+                                        <ImageIcon className="h-4 w-4 text-zinc-400" />
+                                        <span>Replace</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setImageUrl(null);
+                                        }}
+                                        className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-red-950/80 px-3.5 py-2 text-xs font-bold text-red-400 shadow-md border border-white/20 transition cursor-pointer pointer-events-auto"
+                                      >
+                                        <Trash2 className="h-4 w-4 text-red-400" />
+                                        <span>Remove</span>
+                                      </button>
+                                    </div>
+                                  </motion.div>
+                                ) : (
+                                  <motion.div
+                                    key="dropzone"
+                                    initial={{ opacity: 0, scale: 0.98 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.98 }}
+                                    transition={{ duration: 0.15 }}
+                                    className={`rounded-2xl border-2 border-dashed p-6 text-center transition ${(account?.themeMode || "light") === "dark" ? "border-white/15 bg-black/20 text-white hover:border-white/30" : "border-black/15 bg-white text-zinc-900 hover:border-black/30"}`}
+                                  >
+                                    <button
+                                      onClick={() => fileInputRef.current?.click()}
+                                      className="flex flex-col items-center justify-center w-full py-4 cursor-pointer"
+                                    >
+                                      <ImageIcon className="h-7 w-7 text-zinc-400 mb-2" />
+                                      <span className="text-xs font-bold">Add an image</span>
+                                      <span className="text-[11px] text-zinc-400 mt-0.5">PNG, JPG, WebP, or GIF. 10 MB max.</span>
+                                    </button>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
 
-                            {/* Editable Card Subtitle */}
-                            <textarea
-                              rows={1}
-                              value={formSubtitle}
-                              onChange={(e) => {
-                                setFormSubtitle(e.target.value);
-                                e.target.style.height = "auto";
-                                e.target.style.height = `${e.target.scrollHeight}px`;
+                            {/* Signup Form Card - Fully Editable Title, Subtitle & Button CTA (Except Name & Email Inputs) */}
+                            <div
+                              className="rounded-2xl border p-6 text-center shadow-lg transition-all duration-200 backdrop-blur-md"
+                              style={{
+                                borderColor: (account?.themeMode || "light") === "dark"
+                                  ? (account?.brandColor ? `${account.brandColor}40` : "rgba(255, 255, 255, 0.15)")
+                                  : (account?.brandColor ? `${account.brandColor}30` : "#FFD0BD"),
+                                backgroundColor: (account?.themeMode || "light") === "dark"
+                                  ? "rgba(10, 10, 12, 0.6)"
+                                  : "rgba(255, 255, 255, 0.85)"
                               }}
-                              onFocus={(e) => {
-                                if (e.target.value === "Pop your email in and we'll send it straight over.") {
-                                  setFormSubtitle("");
-                                } else {
-                                  e.target.select();
-                                }
-                              }}
-                              onBlur={(e) => {
-                                if (!e.target.value.trim()) {
-                                  setFormSubtitle("Pop your email in and we'll send it straight over.");
-                                }
-                              }}
-                              placeholder="Pop your email in and we'll send it straight over."
-                              className={`w-full text-center text-xs mt-1 outline-none border border-transparent hover:border-zinc-300 dark:hover:border-white/10 rounded-xl py-1 px-3 bg-transparent transition-all duration-200 resize-none overflow-hidden ${(account?.themeMode || "light") === "dark" ? "text-zinc-400 focus:bg-[#16161A] focus:text-white focus:border-white/30" : "text-zinc-500 focus:bg-zinc-100 focus:text-zinc-900 focus:border-zinc-400"}`}
-                            />
-
-                            <div className="mt-5 space-y-3">
-                              {/* Non-editable Preview Input: Name */}
+                            >
+                              {/* Editable Card Title */}
                               <input
                                 type="text"
-                                placeholder="Name"
-                                readOnly
-                                className={`w-full rounded-xl border px-4 py-3 text-xs outline-none shadow-xs select-none ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/50 text-white placeholder:text-zinc-500" : "border-black/10 bg-white text-zinc-900 placeholder:text-zinc-400"}`}
+                                value={formTitle}
+                                onChange={(e) => setFormTitle(e.target.value)}
+                                onFocus={(e) => {
+                                  if (e.target.value === "Download for free") {
+                                    setFormTitle("");
+                                  } else {
+                                    e.target.select();
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  if (!e.target.value.trim()) {
+                                    setFormTitle("Download for free");
+                                  }
+                                }}
+                                placeholder="Download for free"
+                                className={`w-full text-center text-xl sm:text-2xl font-extrabold outline-none border border-transparent hover:border-zinc-300 dark:hover:border-white/10 rounded-xl py-1.5 px-3 bg-transparent transition-all duration-200 ${(account?.themeMode || "light") === "dark" ? "text-white focus:bg-[#16161A] focus:border-white/30" : "text-zinc-900 focus:bg-zinc-100 focus:border-zinc-400"}`}
                               />
 
-                              {/* Non-editable Preview Input: Email */}
-                              <input
-                                type="email"
-                                placeholder="Email"
-                                readOnly
-                                className={`w-full rounded-xl border px-4 py-3 text-xs outline-none shadow-xs select-none ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/50 text-white placeholder:text-zinc-500" : "border-black/10 bg-white text-zinc-900 placeholder:text-zinc-400"}`}
+                              {/* Editable Card Subtitle */}
+                              <textarea
+                                rows={1}
+                                value={formSubtitle}
+                                onChange={(e) => {
+                                  setFormSubtitle(e.target.value);
+                                  e.target.style.height = "auto";
+                                  e.target.style.height = `${e.target.scrollHeight}px`;
+                                }}
+                                onFocus={(e) => {
+                                  if (e.target.value === "Pop your email in and we'll send it straight over.") {
+                                    setFormSubtitle("");
+                                  } else {
+                                    e.target.select();
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  if (!e.target.value.trim()) {
+                                    setFormSubtitle("Pop your email in and we'll send it straight over.");
+                                  }
+                                }}
+                                placeholder="Pop your email in and we'll send it straight over."
+                                className={`w-full text-center text-xs mt-1 outline-none border border-transparent hover:border-zinc-300 dark:hover:border-white/10 rounded-xl py-1 px-3 bg-transparent transition-all duration-200 resize-none overflow-hidden ${(account?.themeMode || "light") === "dark" ? "text-zinc-400 focus:bg-[#16161A] focus:text-white focus:border-white/30" : "text-zinc-500 focus:bg-zinc-100 focus:text-zinc-900 focus:border-zinc-400"}`}
                               />
+
+                              <div className="mt-5 space-y-3">
+                                {/* Non-editable Preview Input: Name */}
+                                <input
+                                  type="text"
+                                  placeholder="Name"
+                                  readOnly
+                                  className={`w-full rounded-xl border px-4 py-3 text-xs outline-none shadow-xs select-none ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/50 text-white placeholder:text-zinc-500" : "border-black/10 bg-white text-zinc-900 placeholder:text-zinc-400"}`}
+                                />
+
+                                {/* Non-editable Preview Input: Email */}
+                                <input
+                                  type="email"
+                                  placeholder="Email"
+                                  readOnly
+                                  className={`w-full rounded-xl border px-4 py-3 text-xs outline-none shadow-xs select-none ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/50 text-white placeholder:text-zinc-500" : "border-black/10 bg-white text-zinc-900 placeholder:text-zinc-400"}`}
+                                />
 
                                   {/* Live Editable Custom Form Fields in Card Preview */}
                                   {customFormFields && customFormFields.length > 0 && (
@@ -1806,31 +2008,31 @@ export default function EditLeadMagnetPage() {
                                     </div>
                                   )}
 
-                              {/* Editable Button CTA Text */}
-                              <div className="relative group/btn">
-                                <input
-                                  type="text"
-                                  value={formButtonText}
-                                  onChange={(e) => setFormButtonText(e.target.value)}
-                                  onFocus={(e) => {
-                                    if (e.target.value === "Send it to me") {
-                                      setFormButtonText("");
-                                    } else {
-                                      e.target.select();
-                                    }
-                                  }}
-                                  onBlur={(e) => {
-                                    if (!e.target.value.trim()) {
-                                      setFormButtonText("Send it to me");
-                                    }
-                                  }}
-                                  placeholder="Send it to me"
-                                  style={{ backgroundColor: account?.brandColor || "#0066B2" }}
-                                  className="w-full text-center rounded-xl px-4 py-3.5 text-xs font-extrabold text-white shadow-lg transition duration-150 outline-none border-2 border-transparent hover:border-white/40 focus:border-white cursor-text"
-                                />
+                                {/* Editable Button CTA Text */}
+                                <div className="relative group/btn">
+                                  <input
+                                    type="text"
+                                    value={formButtonText}
+                                    onChange={(e) => setFormButtonText(e.target.value)}
+                                    onFocus={(e) => {
+                                      if (e.target.value === "Send it to me") {
+                                        setFormButtonText("");
+                                      } else {
+                                        e.target.select();
+                                      }
+                                    }}
+                                    onBlur={(e) => {
+                                      if (!e.target.value.trim()) {
+                                        setFormButtonText("Send it to me");
+                                      }
+                                    }}
+                                    placeholder="Send it to me"
+                                    style={{ backgroundColor: account?.brandColor || "#0066B2" }}
+                                    className="w-full text-center rounded-xl px-4 py-3.5 text-xs font-extrabold text-white shadow-lg transition duration-150 outline-none border-2 border-transparent hover:border-white/40 focus:border-white cursor-text"
+                                  />
+                                </div>
                               </div>
                             </div>
-                          </div>
 
                           {/* Dynamic Custom Form Field Creator Panel */}
                           <div className={`rounded-2xl border p-5 transition ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/30 text-white" : "border-zinc-200 bg-zinc-50 text-zinc-900"}`}>
@@ -1900,9 +2102,9 @@ export default function EditLeadMagnetPage() {
                             </button>
                           </div>
                         </div>
-
                       </div>
                     </div>
+                    )}
 
                     {/* Canvas Footer */}
                     <div className="mt-8 text-center text-xs text-zinc-400">
