@@ -5,7 +5,7 @@ const AccountSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   username: { type: String, required: true, unique: true },
-  password: { type: String, default: "password123" }, // Default seed password
+  password: { type: String, default: "" },
   plan: { type: String, default: "Free" },
   brandColor: { type: String, default: "#0066B2" },
   logo: { type: String, default: null },

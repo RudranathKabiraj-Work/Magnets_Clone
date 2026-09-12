@@ -88,13 +88,14 @@ export function loadSequences(): Sequence[] {
 }
 
 export function saveSequences(sequences: Sequence[]) {
+  const email = typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null;
   if (typeof window !== "undefined") {
     safeSetItem("currentUserSequences", JSON.stringify(sequences));
   }
   fetch("/api/data", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "saveSequences", data: sequences }),
+    body: JSON.stringify({ action: "saveSequences", data: sequences, email }),
   }).catch(console.error);
 }
 
@@ -216,13 +217,14 @@ export function loadIntegrations(): Integration[] {
 }
 
 export function saveIntegrations(integrations: Integration[]) {
+  const email = typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null;
   if (typeof window !== "undefined") {
     safeSetItem("currentUserIntegrations", JSON.stringify(integrations));
   }
   fetch("/api/data", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "saveIntegrations", data: integrations }),
+    body: JSON.stringify({ action: "saveIntegrations", data: integrations, email }),
   }).catch(console.error);
 }
 
@@ -279,13 +281,14 @@ export function loadResources(): any[] {
 }
 
 export function saveResources(resources: any[]) {
+  const email = typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null;
   if (typeof window !== "undefined") {
     safeSetItem("currentUserResources", JSON.stringify(resources));
   }
   fetch("/api/data", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "saveResources", data: resources }),
+    body: JSON.stringify({ action: "saveResources", data: resources, email }),
   }).catch(console.error);
 }
 let inFlightSyncPromise: Promise<any> | null = null;

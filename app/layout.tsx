@@ -89,6 +89,8 @@ const themeScript = `
 `;
 
 
+import NextTopLoader from "nextjs-toploader";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -103,6 +105,18 @@ export default function RootLayout({
         <link rel="preload" as="image" href="/brand/custom-logo.webp" type="image/webp" />
       </head>
       <body className="antialiased font-sans">
+        <NextTopLoader
+          color="#0066B2"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={2.5}
+          crawl={true}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+          shadow={false}
+          zIndex={99999}
+        />
         <SmoothScroll />
         <div className="contents app-theme">{children}</div>
       </body>

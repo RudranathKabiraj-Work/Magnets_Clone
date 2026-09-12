@@ -255,88 +255,10 @@ export default function MagnetSignupForm({
               className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
             />
 
-            {/* Interactive Optional Fields Picker for Visitors */}
-            <div className={`mt-2 rounded-xl border p-3 text-left transition-colors duration-200 ${themeMode === "dark" ? "border-white/10 bg-black/30" : "border-zinc-200/80 bg-zinc-50/70"}`}>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 block mb-1.5">
-                ✨ Optional Information (Click to add)
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {!customFormFields.some(f => f.id === "field_phone") && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!customFormFields.some(f => f.id === "field_phone")) {
-                        customFormFields.push({ id: "field_phone", type: "text", label: "Phone Number", placeholder: "+1 (555) 000-0000", required: false });
-                        setCustomFieldValues(prev => ({ ...prev }));
-                      }
-                    }}
-                    className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/10 hover:bg-indigo-500/10 hover:text-indigo-500 transition cursor-pointer"
-                  >
-                    + Phone Number
-                  </button>
-                )}
-                {!customFormFields.some(f => f.id === "field_company") && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!customFormFields.some(f => f.id === "field_company")) {
-                        customFormFields.push({ id: "field_company", type: "text", label: "Company Name", placeholder: "Acme Inc.", required: false });
-                        setCustomFieldValues(prev => ({ ...prev }));
-                      }
-                    }}
-                    className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/10 hover:bg-indigo-500/10 hover:text-indigo-500 transition cursor-pointer"
-                  >
-                    + Company Name
-                  </button>
-                )}
-                {!customFormFields.some(f => f.id === "field_team_size") && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!customFormFields.some(f => f.id === "field_team_size")) {
-                        customFormFields.push({ id: "field_team_size", type: "select", label: "Company Size", placeholder: "Select company size", required: false, options: ["1-10 employees", "11-50 employees", "51-200 employees", "201+ employees"] });
-                        setCustomFieldValues(prev => ({ ...prev }));
-                      }
-                    }}
-                    className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/10 hover:bg-indigo-500/10 hover:text-indigo-500 transition cursor-pointer"
-                  >
-                    + Company Size
-                  </button>
-                )}
-                {!customFormFields.some(f => f.id === "field_notes") && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!customFormFields.some(f => f.id === "field_notes")) {
-                        customFormFields.push({ id: "field_notes", type: "textarea", label: "Additional Notes", placeholder: "Tell us about your project...", required: false });
-                        setCustomFieldValues(prev => ({ ...prev }));
-                      }
-                    }}
-                    className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/10 hover:bg-indigo-500/10 hover:text-indigo-500 transition cursor-pointer"
-                  >
-                    + Notes / Message
-                  </button>
-                )}
-              </div>
-            </div>
             {customFormFields && customFormFields.length > 0 && (
               <div className="space-y-3">
                 {customFormFields.map((field) => (
                   <div key={field.id} className="space-y-1">
-                    <label
-                      style={{ color: themeMode === "dark" ? "#ffffff" : "#09090b" }}
-                      className="text-xs font-black flex items-center justify-between tracking-wide"
-                    >
-                      <span className="flex items-center gap-1">
-                        {field.label}
-                        {field.required ? (
-                          <span className="text-rose-500 font-extrabold text-xs ml-0.5" title="Required field">*</span>
-                        ) : (
-                          <span className="text-[10px] font-normal text-zinc-500 dark:text-zinc-400 ml-1.5">(optional)</span>
-                        )}
-                      </span>
-                    </label>
-
                     {field.type === "text" && (
                       <input
                         type="text"
@@ -344,9 +266,9 @@ export default function MagnetSignupForm({
                         value={customFieldValues[field.id] || ""}
                         disabled={loading}
                         onChange={(e) => handleCustomFieldChange(field.id, e.target.value)}
-                        placeholder={field.placeholder || field.label}
+                        placeholder={`${field.label}${field.required ? " *" : ""}`}
                         style={inputStyle}
-                        className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm font-semibold outline-none transition shadow-xs placeholder:text-zinc-800 dark:placeholder:text-zinc-400 focus:border-[#0066B2]"
+                        className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
                       />
                     )}
 
@@ -357,9 +279,9 @@ export default function MagnetSignupForm({
                         value={customFieldValues[field.id] || ""}
                         disabled={loading}
                         onChange={(e) => handleCustomFieldChange(field.id, e.target.value)}
-                        placeholder={field.placeholder || field.label}
+                        placeholder={`${field.label}${field.required ? " *" : ""}`}
                         style={inputStyle}
-                        className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm font-semibold outline-none transition shadow-xs placeholder:text-zinc-800 dark:placeholder:text-zinc-400 focus:border-[#0066B2]"
+                        className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
                       />
                     )}
 
@@ -370,9 +292,9 @@ export default function MagnetSignupForm({
                         value={customFieldValues[field.id] || ""}
                         disabled={loading}
                         onChange={(e) => handleCustomFieldChange(field.id, e.target.value)}
-                        placeholder={field.placeholder || field.label}
+                        placeholder={`${field.label}${field.required ? " *" : ""}`}
                         style={inputStyle}
-                        className="w-full rounded-xl border px-3.5 py-2.5 text-sm font-semibold outline-none transition shadow-xs placeholder:text-zinc-800 dark:placeholder:text-zinc-400 focus:border-[#0066B2]"
+                        className="w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
                       />
                     )}
 
@@ -383,9 +305,9 @@ export default function MagnetSignupForm({
                         disabled={loading}
                         onChange={(e) => handleCustomFieldChange(field.id, e.target.value)}
                         style={inputStyle}
-                        className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs focus:border-[#0066B2]"
+                        className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
                       >
-                        <option value="">{field.placeholder || `Select ${field.label}...`}</option>
+                        <option value="">{`${field.label}${field.required ? " *" : ""}`}</option>
                         {(field.options || []).map((opt, idx) => (
                           <option key={idx} value={opt}>
                             {opt}
@@ -405,7 +327,7 @@ export default function MagnetSignupForm({
                           className="h-4 w-4 rounded border-zinc-300 text-[#0066B2] focus:ring-[#0066B2]"
                         />
                         <span className="text-xs text-zinc-600 dark:text-zinc-300 font-medium">
-                          {field.placeholder || field.label}
+                          {field.label} {field.required && <span className="text-rose-500">*</span>}
                         </span>
                       </label>
                     )}

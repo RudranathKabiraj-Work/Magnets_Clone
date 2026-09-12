@@ -312,3 +312,18 @@ export function getLead(id: string) {
 export function getSequence(id: string) {
   return sequences.find((s) => s.id === id);
 }
+
+export function getAppUrl(): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+  }
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
+  }
+  return "https://magnets-jade.vercel.app";
+}
+
+export function getAppDomain(): string {
+  const url = getAppUrl();
+  return url.replace(/^https?:\/\//, "");
+}

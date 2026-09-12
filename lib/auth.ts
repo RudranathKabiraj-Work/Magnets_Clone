@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-options";
 import crypto from "crypto";
 
 const JWT_SECRET = process.env.JWT_SECRET || "leadmagnets_secret_key_2026_auth_secure_key";
@@ -126,4 +129,25 @@ export function clearAuthCookie(res: NextResponse): NextResponse {
   });
 
   return res;
+}
+
+export async function getAuthenticatedUserEmail(): Promise<string | null> {
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+    if (token) {
+      const session = verifySessionToken(token);
+      if (session?.email) {
+        return session.email.trim().toLowerCase();
+      }
+    }
+
+    const nextAuthSession = await getServerSession(authOptions);
+    if (nextAuthSession?.user?.email) {
+      return nextAuthSession.user.email.trim().toLowerCase();
+    }
+  } catch (err) {
+    console.error("Error retrieving authenticated user email:", err);
+  }
+  return null;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import {
   UploadCloud,
@@ -22,7 +23,8 @@ import {
   X,
   Send,
   Loader2,
-  Plus
+  Plus,
+  ChevronDown
 } from "lucide-react";
 import { syncWithDatabase, loadResources, loadAccount } from "@/lib/store";
 import type { Account } from "@/lib/data";
@@ -52,7 +54,11 @@ export default function ResourcesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<"all" | "docs" | "images" | "media" | "archives">("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "size" | "name">("newest");
+  const [isSortOpen, setIsSortOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [selectedResourceIds, setSelectedResourceIds] = useState<string[]>([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [resourceToDelete, setResourceToDelete] = useState<Resource | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -182,6 +188,7 @@ export default function ResourcesPage() {
           }
           return updated;
         });
+        setSelectedResourceIds((prev) => prev.filter((id) => id !== resourceToDelete.id));
         addToast("info", `Resource "${resourceToDelete.name}" deleted.`);
       } else {
         addToast("error", "Failed to delete resource");
@@ -192,6 +199,40 @@ export default function ResourcesPage() {
     } finally {
       setIsDeleting(false);
       setResourceToDelete(null);
+    }
+  };
+
+  const confirmBulkDelete = async () => {
+    if (selectedResourceIds.length === 0) return;
+    setIsBulkDeleting(true);
+
+    try {
+      let successCount = 0;
+      for (const id of selectedResourceIds) {
+        const res = await fetch("/api/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "deleteResource", data: { id } }),
+        });
+        if (res.ok) successCount++;
+      }
+
+      setResources((prev) => {
+        const updated = prev.filter((r) => !selectedResourceIds.includes(r.id));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("currentUserResources", JSON.stringify(updated));
+        }
+        return updated;
+      });
+
+      addToast("info", `Deleted ${successCount} hosted resource(s).`);
+      setSelectedResourceIds([]);
+    } catch (err) {
+      console.error("Failed to bulk delete resources", err);
+      addToast("error", "Error deleting selected resources.");
+    } finally {
+      setIsBulkDeleting(false);
+      setShowBulkDeleteModal(false);
     }
   };
 
@@ -449,8 +490,18 @@ export default function ResourcesPage() {
                 ))}
               </div>
 
-              {/* Search & Sort */}
+              {/* Search, Bulk Action & Sort */}
               <div className="flex items-center gap-2">
+                {selectedResourceIds.length > 0 && (
+                  <button
+                    onClick={() => setShowBulkDeleteModal(true)}
+                    className="flex items-center gap-1.5 rounded-xl bg-red-600 hover:bg-red-700 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-all cursor-pointer animate-in fade-in zoom-in-95 duration-150"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Delete Selected ({selectedResourceIds.length})</span>
+                  </button>
+                )}
+
                 <div className="relative flex-1 sm:w-64">
                   <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-400" />
                   <input
@@ -467,21 +518,66 @@ export default function ResourcesPage() {
                   )}
                 </div>
 
-                <select
-                  value={sortBy}
-                  onChange={(e: any) => setSortBy(e.target.value)}
-                  className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-700 focus:border-[#0066B2] focus:outline-none dark:border-[#2e2e38] dark:bg-[#18181B] dark:text-zinc-300 cursor-pointer"
-                >
-                  <option value="newest">Sort: Newest</option>
-                  <option value="oldest">Sort: Oldest</option>
-                  <option value="size">Sort: File Size</option>
-                  <option value="name">Sort: Name (A-Z)</option>
-                </select>
+                {/* Custom Glassy Sort Dropdown */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsSortOpen((prev) => !prev);
+                    }}
+                    className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200/80 bg-white/70 px-3.5 py-2 text-xs font-semibold text-zinc-700 shadow-xs backdrop-blur-md transition-all hover:bg-white/90 focus:outline-none dark:border-white/10 dark:bg-[#18181B]/80 dark:text-zinc-200 dark:hover:bg-[#222226] cursor-pointer"
+                  >
+                    <span>
+                      Sort: {sortBy === "newest" ? "Newest" : sortBy === "oldest" ? "Oldest" : sortBy === "size" ? "File Size" : "Name (A-Z)"}
+                    </span>
+                    <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-300 ${isSortOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  <AnimatePresence>
+                    {isSortOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setIsSortOpen(false)} />
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.96, y: -6 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                          transition={{ type: "spring", damping: 28, stiffness: 400 }}
+                          className="absolute right-0 mt-1.5 z-50 w-44 rounded-xl border border-zinc-200/60 bg-white/85 p-1 shadow-md backdrop-blur-xl dark:border-white/10 dark:bg-[#18181F]/95 dark:text-white dark:shadow-[0_4px_16px_rgba(0,0,0,0.35)]"
+                        >
+                          {[
+                            { id: "newest", label: "Sort: Newest" },
+                            { id: "oldest", label: "Sort: Oldest" },
+                            { id: "size", label: "Sort: File Size" },
+                            { id: "name", label: "Sort: Name (A-Z)" },
+                          ].map((opt) => (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSortBy(opt.id as any);
+                                setIsSortOpen(false);
+                              }}
+                              className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-150 cursor-pointer ${sortBy === opt.id
+                                ? "bg-zinc-100 text-zinc-900 font-bold dark:bg-white/10 dark:text-[#38BDF8] dark:border dark:border-white/10"
+                                : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5"
+                                }`}
+                            >
+                              <span>{opt.label}</span>
+                              {sortBy === opt.id && <Check className="h-3.5 w-3.5 text-current shrink-0" />}
+                            </button>
+                          ))}
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Resources Table */}
+          {/* Resources Table Container */}
           {resources.length > 0 && (
             <div className="mt-4">
               {filteredResources.length === 0 ? (
@@ -502,6 +598,21 @@ export default function ResourcesPage() {
                     <table className="min-w-full divide-y divide-zinc-200/80 dark:divide-[#2e2e38]">
                       <thead className="bg-[#F8FBFF] dark:bg-[#151518]">
                         <tr>
+                          <th className="px-4 py-3.5 text-center w-10">
+                            <input
+                              type="checkbox"
+                              checked={filteredResources.length > 0 && selectedResourceIds.length === filteredResources.length}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedResourceIds(filteredResources.map((r) => r.id));
+                                } else {
+                                  setSelectedResourceIds([]);
+                                }
+                              }}
+                              className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#202026] text-[#0066B2] focus:ring-[#0066B2] cursor-pointer"
+                              title="Select All On Page"
+                            />
+                          </th>
                           <th className="px-6 py-3.5 text-left text-[11px] font-semibold tracking-wider text-zinc-500 dark:text-[#9B9085] uppercase">Resource Name</th>
                           <th className="px-6 py-3.5 text-left text-[11px] font-semibold tracking-wider text-zinc-500 dark:text-[#9B9085] uppercase">Size</th>
                           <th className="px-6 py-3.5 text-left text-[11px] font-semibold tracking-wider text-zinc-500 dark:text-[#9B9085] uppercase">Uploaded Date & Time</th>
@@ -512,9 +623,24 @@ export default function ResourcesPage() {
                         {filteredResources.map((resource) => {
                           const badge = getFileBadge(resource.name);
                           const isCopied = copiedId === resource.id;
+                          const isSelected = selectedResourceIds.includes(resource.id);
 
                           return (
-                            <tr key={resource.id} className="hover:bg-[#EFF6FF]/40 dark:hover:bg-[#1C1C22]/60 transition-colors">
+                            <tr key={resource.id} className={`transition-colors ${isSelected ? "bg-[#EFF6FF] dark:bg-[#0066B2]/10" : "hover:bg-[#EFF6FF]/40 dark:hover:bg-[#1C1C22]/60"}`}>
+                              <td className="px-4 py-4 text-center w-10">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedResourceIds((prev) => [...prev, resource.id]);
+                                    } else {
+                                      setSelectedResourceIds((prev) => prev.filter((id) => id !== resource.id));
+                                    }
+                                  }}
+                                  className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#202026] text-[#0066B2] focus:ring-[#0066B2] cursor-pointer"
+                                />
+                              </td>
                               <td className="whitespace-nowrap px-6 py-4">
                                 <div className="flex items-center gap-3">
                                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${badge.bg}`}>
@@ -593,38 +719,105 @@ export default function ResourcesPage() {
           )}
         </div>
 
-        {/* Delete Confirmation Modal */}
-        {resourceToDelete && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-[#18181B] shadow-2xl border border-zinc-200 dark:border-[#2e2e38]">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400">
-                <AlertCircle className="h-6 w-6" />
-              </div>
-              <h3 className="mt-4 text-lg font-bold text-zinc-900 dark:text-white">Delete Hosted Resource?</h3>
-              <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-[#9B9085]">
-                Are you sure you want to delete <strong className="text-zinc-900 dark:text-white">{resourceToDelete.name}</strong>? Any active lead magnet forms or emails linking to this file link will no longer be able to access it.
-              </p>
+        {/* Bulk Delete Confirmation Modal */}
+        <AnimatePresence>
+          {showBulkDeleteModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+              onClick={() => setShowBulkDeleteModal(false)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 8 }}
+                transition={{ type: "spring", damping: 25, stiffness: 350 }}
+                className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-[#18181B] shadow-2xl border border-zinc-200 dark:border-[#2e2e38]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400">
+                  <AlertCircle className="h-6 w-6" />
+                </div>
+                <h3 className="mt-4 text-lg font-bold text-zinc-900 dark:text-white">
+                  Delete {selectedResourceIds.length} Selected Resources?
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-[#9B9085]">
+                  Are you sure you want to delete <strong className="text-zinc-900 dark:text-white">{selectedResourceIds.length} hosted resources</strong>? Any active lead magnet forms or emails linking to these file links will no longer be able to access them.
+                </p>
 
-              <div className="mt-6 flex items-center justify-end gap-3">
-                <button
-                  disabled={isDeleting}
-                  onClick={() => setResourceToDelete(null)}
-                  className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 dark:hover:bg-[#282830] transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={isDeleting}
-                  onClick={confirmDelete}
-                  className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 transition cursor-pointer shadow-sm"
-                >
-                  {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                  <span>Delete Resource</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+                <div className="mt-6 flex items-center justify-end gap-3">
+                  <button
+                    disabled={isBulkDeleting}
+                    onClick={() => setShowBulkDeleteModal(false)}
+                    className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={isBulkDeleting}
+                    onClick={confirmBulkDelete}
+                    className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 transition cursor-pointer shadow-sm"
+                  >
+                    {isBulkDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    <span>Delete {selectedResourceIds.length} Resources</span>
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Delete Confirmation Modal */}
+        <AnimatePresence>
+          {resourceToDelete && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+              onClick={() => setResourceToDelete(null)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 8 }}
+                transition={{ type: "spring", damping: 25, stiffness: 350 }}
+                className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-[#18181B] shadow-2xl border border-zinc-200 dark:border-[#2e2e38]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400">
+                  <AlertCircle className="h-6 w-6" />
+                </div>
+                <h3 className="mt-4 text-lg font-bold text-zinc-900 dark:text-white">Delete Hosted Resource?</h3>
+                <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-[#9B9085]">
+                  Are you sure you want to delete <strong className="text-zinc-900 dark:text-white">{resourceToDelete.name}</strong>? Any active lead magnet forms or emails linking to this file link will no longer be able to access it.
+                </p>
+
+                <div className="mt-6 flex items-center justify-end gap-3">
+                  <button
+                    disabled={isDeleting}
+                    onClick={() => setResourceToDelete(null)}
+                    className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 dark:hover:bg-[#282830] transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={isDeleting}
+                    onClick={confirmDelete}
+                    className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 transition cursor-pointer shadow-sm"
+                  >
+                    {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    <span>Delete Resource</span>
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Floating Toast Notification Container — Glassmorphic Right Stack */}
         <div className="fixed bottom-5 right-5 z-50 pointer-events-none max-w-sm w-full flex flex-col-reverse gap-2 items-end">

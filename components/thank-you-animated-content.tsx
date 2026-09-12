@@ -395,12 +395,10 @@ export default function ThankYouAnimatedContent({
 
           {/* Shimmer CTA Download Button */}
           <div className="flex justify-center w-full pt-1">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               onClick={handleDownloadClick}
               disabled={downloading}
-              className="w-full max-w-md relative group overflow-hidden rounded-lg py-2.5 px-5 font-bold text-sm text-white shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 border border-white/20"
+              className="w-full max-w-md relative overflow-hidden rounded-xl py-3 px-5 font-bold text-sm text-white shadow-md transition-all duration-200 hover:scale-[1.015] active:scale-[0.985] cursor-pointer flex items-center justify-center gap-2 border border-white/20 select-none"
               style={{
                 backgroundColor: brandColor,
                 boxShadow: `0 4px 14px -3px ${brandColor}60`,
@@ -410,18 +408,18 @@ export default function ThankYouAnimatedContent({
               <motion.div
                 animate={{ x: ["-100%", "200%"] }}
                 transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
+                className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12 pointer-events-none"
               />
 
               {downloadCompleted ? (
-                <Check className="h-4 w-4 text-emerald-300" />
+                <Check className="h-4 w-4 text-emerald-300 shrink-0 pointer-events-none" />
               ) : (
-                <Download className={`h-4 w-4 ${downloading ? "animate-bounce" : "group-hover:translate-y-0.5 transition-transform"}`} />
+                <Download className={`h-4 w-4 shrink-0 pointer-events-none ${downloading ? "animate-bounce" : ""}`} />
               )}
-              <span className="tracking-wide text-sm font-semibold truncate">
-                {downloading ? "Preparing Download..." : downloadCompleted ? `✓ File Downloaded ("${deliverableName}")` : `Download "${deliverableName}" Now`}
+              <span className="tracking-wide text-sm font-semibold truncate pointer-events-none">
+                {downloading ? "Preparing Download..." : downloadCompleted ? `File Downloaded ("${deliverableName}")` : `Download "${deliverableName}" Now`}
               </span>
-            </motion.button>
+            </button>
           </div>
 
           <div className={`mt-3.5 flex items-center justify-between text-xs font-medium pt-2.5 border-t ${isDark ? "text-zinc-400 border-white/10" : "text-zinc-600 border-zinc-200/60"}`}>

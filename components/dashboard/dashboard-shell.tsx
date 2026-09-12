@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink, ListChecks, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
 import type { Account } from "@/lib/data";
+import { motion, AnimatePresence } from "framer-motion";
 import { isSessionValid, loadAccount, setSessionExpiry } from "@/lib/store";
+import { signOut } from "next-auth/react";
 
 const mobileNav = [
   { href: "/dashboard/leadmagnets", label: "Lead magnets", icon: FileText },
@@ -35,6 +37,21 @@ export default function DashboardShell({
   const [showHelp, setShowHelp] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    }
+    if (showProfileMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showProfileMenu]);
   const [searchQuery, setSearchQuery] = useState("");
   const [dark, setDark] = useState(false);
   const [showCreateMagnetModal, setShowCreateMagnetModal] = useState(false);
@@ -44,16 +61,51 @@ export default function DashboardShell({
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
 
+  const toggleTheme = () => {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    document.documentElement.classList.toggle("light", !next);
+    document.documentElement.dataset.theme = next ? "dark" : "light";
+    document.documentElement.style.colorScheme = next ? "dark" : "light";
+    try {
+      localStorage.setItem("leadmagnets-theme", next ? "dark" : "light");
+    } catch (_) { }
+  };
+
   const openGmailCompose = (type: "bug" | "feature") => {
-    const email = "support@magnets.com";
-    const subject = type === "bug" ? "[Bug Report] Issue on Magnets" : "[Feature Request] Suggestion for Magnets";
+    const email = "hello@leadmagnets.so";
+    const subject = type === "bug" ? "[Bug Report] Issue on LeadMagnets" : "[Feature Request] Suggestion for LeadMagnets";
     const body = type === "bug"
-      ? `Hi Support Team,\n\nI encountered the following issue on ${typeof window !== "undefined" ? window.location.href : ""}:\n\n1. What happened:\n2. Expected behavior:\n`
+      ? `Hi Support Team,\n\nI encountered the following issue:\n\n`
       : `Hi Support Team,\n\nI would like to request the following feature:\n\n`;
 
     const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     if (typeof window !== "undefined") {
-      window.open(gmailUrl, "_blank", "noopener,noreferrer");
+      const win = window.open(gmailUrl, "_blank", "noopener,noreferrer");
+      if (!win) {
+        window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      }
+    }
+  };
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.clear();
+      } catch (_) { }
+    }
+
+    try {
+      fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    } catch (_) { }
+
+    try {
+      signOut({ callbackUrl: "/login", redirect: false }).catch(() => {});
+    } catch (_) { }
+
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
     }
   };
 
@@ -147,26 +199,6 @@ export default function DashboardShell({
     );
   }
 
-  const toggleTheme = () => {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    document.documentElement.dataset.theme = next ? "dark" : "light";
-    document.documentElement.style.colorScheme = next ? "dark" : "light";
-    try {
-      localStorage.setItem("leadmagnets-theme", next ? "dark" : "light");
-    } catch (_) { }
-  };
-
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" }).catch(console.error);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("currentUserEmail");
-      localStorage.removeItem("currentUserAccount");
-    }
-    router.push("/login");
-  };
-
   const helpTopics = {
     learn: {
       title: "LEARN",
@@ -239,15 +271,6 @@ export default function DashboardShell({
 
   return (
     <div className="dashboard-canvas flex min-h-screen relative">
-      {/* Top progress indicator bar */}
-      {navigatingTarget && (
-        <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-gradient-to-r from-[#0066B2] via-[#38BDF8] to-[#0066B2] animate-pulse" />
-      )}
-
-      {/* Click outside to close profile menu */}
-      {showProfileMenu && (
-        <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setShowProfileMenu(false)} />
-      )}
 
       <aside className="shadow-sm hidden h-screen w-[14.5rem] shrink-0 flex-col border-r border-[#E0EDFB] bg-[#F0F7FF] text-zinc-900 sticky top-0 md:flex z-50 dark:border-white/10 dark:bg-[#18181B] dark:text-[#9B9085]">
         <div className="flex shrink-0 items-center border-b border-[#E0EDFB] px-3.5 py-2.5 dark:border-white/10">
@@ -260,19 +283,15 @@ export default function DashboardShell({
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             const isDividerAfter = idx === 2; // Divider after Signups
 
-            const linkClass = `group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition ${active
-              ? "bg-[#0066B2] text-white font-bold shadow-xs dark:bg-[#0066B2]/15 dark:text-white"
-              : "text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#25252a] dark:hover:text-white"
-              }`;
-
             if (item.isModal) {
               return (
                 <div key={item.href}>
                   <button
+                    type="button"
                     onClick={() => setShowHelp(true)}
-                    className="group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#25252a] dark:hover:text-white"
+                    className="group flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#25252a] dark:hover:text-white cursor-pointer"
                   >
-                    <item.icon className={`h-4 w-4 shrink-0 transition-all duration-200 group-hover:scale-115 group-hover:-translate-y-0.5 ${active ? "text-white dark:text-white" : "text-zinc-500 group-hover:text-zinc-900 dark:text-[#9B9085] dark:group-hover:text-white"}`} aria-hidden="true" />
+                    <item.icon className="h-4 w-4 shrink-0 text-zinc-500 group-hover:text-zinc-900 dark:text-[#9B9085] dark:group-hover:text-white" aria-hidden="true" />
                     {item.label}
                   </button>
                   {isDividerAfter && <div className="my-2.5 border-t border-[#E0EDFB] dark:border-white/10" />}
@@ -284,18 +303,25 @@ export default function DashboardShell({
               <div key={item.href}>
                 <Link
                   href={item.href}
-                  className={linkClass}
+                  className={`relative group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${active
+                    ? "text-white font-bold dark:text-white"
+                    : "text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#25252a] dark:hover:text-white"
+                    }`}
                   onClick={() => {
                     if (pathname !== item.href) {
                       setNavigatingTarget(item.href);
                     }
                   }}
                 >
-                  <item.icon className={`h-4 w-4 shrink-0 transition-all duration-200 group-hover:scale-115 group-hover:-translate-y-0.5 ${active ? "text-white dark:text-white" : "text-zinc-500 group-hover:text-zinc-900 dark:text-[#9B9085] dark:group-hover:text-white"}`} aria-hidden="true" />
-                  <span className="flex-1">{item.label}</span>
-                  {navigatingTarget === item.href && (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-current opacity-80" />
+                  {active && (
+                    <motion.div
+                      layoutId="leftPanelActivePill"
+                      transition={{ type: "spring", stiffness: 600, damping: 38 }}
+                      className="absolute inset-0 rounded-lg bg-[#0066B2] shadow-xs dark:bg-[#0066B2]/20 dark:border dark:border-[#0066B2]/40"
+                    />
                   )}
+                  <item.icon className={`h-4 w-4 shrink-0 relative z-10 ${active ? "text-white" : "text-zinc-500 group-hover:text-zinc-900 dark:text-[#9B9085] dark:group-hover:text-white"}`} aria-hidden="true" />
+                  <span className="flex-1 relative z-10">{item.label}</span>
                 </Link>
                 {isDividerAfter && <div className="my-2.5 border-t border-[#E0EDFB] dark:border-white/10" />}
               </div>
@@ -303,88 +329,71 @@ export default function DashboardShell({
           })}
         </nav>
         <div className="border-t border-[#E0EDFB] px-3.5 py-2.5 dark:border-white/10">
-          <div className="relative">
+          <div ref={profileMenuRef} className="relative">
             {/* Profile Popover Menu */}
-            {showProfileMenu && (
-              <div
-                className="absolute bottom-full mb-2 left-0 w-52 rounded-xl border border-[#E0EDFB] bg-white p-1.5 shadow-2xl z-[70] text-zinc-900 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2 duration-150 dark:border-zinc-800 dark:bg-[#191919] dark:text-white"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleTheme();
-                    setShowProfileMenu(false);
-                  }}
-                  onClick={() => {
-                    toggleTheme();
-                    setShowProfileMenu(false);
-                  }}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+            <AnimatePresence>
+              {showProfileMenu && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 4 }}
+                  transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ transformOrigin: "bottom left" }}
+                  className="absolute bottom-full mb-2 left-0 w-52 rounded-xl border border-[#E0EDFB] bg-white p-1.5 shadow-xl z-[70] text-zinc-900 flex flex-col gap-0.5 dark:border-zinc-800/80 dark:bg-[#18181b] dark:text-white dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)]"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {dark ? (
-                    <>
-                      <Sun className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Light mode
-                    </>
-                  ) : (
-                    <>
-                      <Moon className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Dark mode
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowProfileMenu(false);
-                    openGmailCompose("bug");
-                  }}
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    openGmailCompose("bug");
-                  }}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
-                >
-                  <Bug className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Report a bug
-                </button>
-                <button
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowProfileMenu(false);
-                    openGmailCompose("feature");
-                  }}
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    openGmailCompose("feature");
-                  }}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
-                >
-                  <Sparkles className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Request a feature
-                </button>
-                <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
-                <button
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowProfileMenu(false);
-                    handleLogout();
-                  }}
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    handleLogout();
-                  }}
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 transition w-full dark:text-rose-400 dark:hover:bg-rose-950/30 cursor-pointer"
-                >
-                  <LogOut className="h-4 w-4 text-rose-500" /> Sign out
-                </button>
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      toggleTheme();
+                      setShowProfileMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                  >
+                    {dark ? (
+                      <>
+                        <Sun className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Light mode
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Dark mode
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      openGmailCompose("bug");
+                      setShowProfileMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                  >
+                    <Bug className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Report a bug
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      openGmailCompose("feature");
+                      setShowProfileMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                  >
+                    <Sparkles className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Request a feature
+                  </button>
+                  <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 transition w-full dark:text-rose-400 dark:hover:bg-rose-950/30 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4 text-rose-500" /> Sign out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
@@ -558,7 +567,20 @@ export default function DashboardShell({
             </div>
           </div>
         </header>
-        <main className="min-w-0 flex-1 bg-[#FAFAF8] dark:bg-[#0E0E10]">{children}</main>
+        <main className="min-w-0 flex-1 bg-[#FAFAF8] dark:bg-[#0E0E10] overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 8, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.99 }}
+              transition={{ duration: 0.10, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full h-full"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </main>
       </div>
 
 

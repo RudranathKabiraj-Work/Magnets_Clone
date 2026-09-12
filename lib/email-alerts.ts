@@ -57,7 +57,7 @@ export async function sendInstantLeadAlert(payload: LeadAlertPayload): Promise<{
         </div>
 
         <div style="text-align: center; margin-top: 28px;">
-          <a href="http://localhost:3000/dashboard/signups" style="background-color: #0066B2; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 2px 8px rgba(0, 102, 178, 0.25);">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/signups" style="background-color: #0066B2; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 2px 8px rgba(0, 102, 178, 0.25);">
             View All Subscribers →
           </a>
         </div>
@@ -70,8 +70,8 @@ export async function sendInstantLeadAlert(payload: LeadAlertPayload): Promise<{
     </div>
   `;
 
-  if (!resendApiKey) {
-    console.log("ℹ️ [Instant Lead Alert] Simulated email dispatch to", ownerEmail, "for lead:", leadEmail);
+  if (!resendApiKey || resendApiKey === "re_123456789" || !resendApiKey.startsWith("re_")) {
+    console.log("ℹ️ [Instant Lead Alert] Skipping live email dispatch (No valid RESEND_API_KEY set). Simulated alert for lead:", leadEmail, "owner:", ownerEmail);
     return { success: true };
   }
 
@@ -85,7 +85,7 @@ export async function sendInstantLeadAlert(payload: LeadAlertPayload): Promise<{
       body: JSON.stringify({
         from: "alerts@resend.dev",
         to: [ownerEmail.trim()],
-        subject: `🎉 New Lead: ${leadEmail} on ${pageTitle || "Lead Magnet"}`,
+        subject: `🎉 New Lead: ${leadEmail} on ${pageTitle || "LeadMagnet"}`,
         html: htmlContent,
       }),
     });

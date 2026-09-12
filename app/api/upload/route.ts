@@ -13,16 +13,36 @@ cloudinary.config({
   secure: true,
 });
 
+import { getAuthenticatedUserEmail } from "@/lib/auth";
+
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const sessionEmail = await getAuthenticatedUserEmail();
+    if (!sessionEmail) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
     await dbConnect();
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+
+    // 15MB file size limit
+    const MAX_FILE_SIZE = 15 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: "File size exceeds maximum allowed limit of 15MB" }, { status: 400 });
+    }
+
+    // Prevent executable / hazardous script uploads
+    const disallowedExtensions = [".exe", ".bat", ".cmd", ".sh", ".php", ".js", ".jsx", ".ts", ".tsx", ".html", ".htm", ".vbs", ".ps1"];
+    const ext = path.extname(file.name).toLowerCase();
+    if (disallowedExtensions.includes(ext)) {
+      return NextResponse.json({ error: "File type not permitted for upload" }, { status: 400 });
     }
 
     const id = Math.random().toString(36).substring(2, 9);

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { Sparkles, Globe, Plug, FileText, ChevronDown, ChevronUp, Check, Mail, Calendar, Slack, Zap, Copy, RefreshCw, Loader2, Eye, EyeOff } from "lucide-react";
 import { syncWithDatabase, saveAccount, loadAccount } from "@/lib/store";
-import type { Account } from "@/lib/data";
+import { type Account, getAppUrl, getAppDomain } from "@/lib/data";
 
 export default function WorkspaceSetupPage() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -23,6 +23,13 @@ export default function WorkspaceSetupPage() {
   const [cnameError, setCnameError] = useState("");
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [appBaseUrl, setAppBaseUrl] = useState("https://magnets-jade.vercel.app");
+
+  useEffect(() => {
+    setAppBaseUrl(getAppUrl());
+  }, []);
+
+  const appDisplayDomain = appBaseUrl.replace(/^https?:\/\//, "");
   const [showSlackUrl, setShowSlackUrl] = useState(false);
   const [showZapierUrl, setShowZapierUrl] = useState(false);
   const [showPipedriveToken, setShowPipedriveToken] = useState(false);
@@ -90,11 +97,15 @@ export default function WorkspaceSetupPage() {
   }, []);
 
   const handleSave = async (overrides?: Partial<Account>) => {
-    if (!account) return;
+    const email = (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null) || account?.email || "";
+    const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+    if (!cleanUsername) return;
+
     setSaving(true);
     const updatedAccount: Account = {
-      ...account,
-      username: username.trim().toLowerCase().replace(/[^a-z0-9-]/g, ""),
+      ...(account || { email, name: "Workspace", username: cleanUsername, plan: "Free" as const, joinedAt: "Just now" }),
+      email: email || account?.email || "",
+      username: cleanUsername,
       privacyPolicy: privacyPolicy.trim(),
       termsOfService: termsOfService.trim(),
       customDomain: rootDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, ""),
@@ -109,11 +120,20 @@ export default function WorkspaceSetupPage() {
       substackPublication: substackPublication.trim(),
       ...overrides,
     };
+
     try {
-      await saveAccount(updatedAccount);
-      setAccount(updatedAccount);
+      const res = await saveAccount(updatedAccount);
+      if (res.success && res.account) {
+        setAccount(res.account);
+        if (res.account.username) {
+          setUsername(res.account.username);
+        }
+      } else {
+        setAccount(updatedAccount);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Save account error:", err);
+      setAccount(updatedAccount);
     } finally {
       setSaving(false);
     }
@@ -187,7 +207,7 @@ export default function WorkspaceSetupPage() {
                   <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5 font-mono">
                     {cnameVerified && rootDomain
                       ? `${pageSubdomain}.${rootDomain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "")}`
-                      : `leadmagnets.so/${username}`}
+                      : `${appBaseUrl}/${username}`}
                   </p>
                 </div>
               </div>
@@ -251,7 +271,7 @@ export default function WorkspaceSetupPage() {
                   <div className="flex-1">
                     <div className="flex rounded-xl border border-[#E2E8F0] dark:border-[#0066B2]/30 bg-white dark:bg-[#0E0E10] focus-within:border-[#0066B2] dark:focus-within:border-[#0066B2] transition overflow-hidden">
                       <span className="flex items-center select-none border-r border-[#E2E8F0] bg-[#F0F4F8] px-3.5 py-2.5 text-xs font-mono text-[#0066B2] dark:border-[#0066B2]/30 dark:bg-[#18181C] dark:text-[#38BDF8] whitespace-nowrap">
-                        leadmagnets.so/
+                        {appBaseUrl}/
                       </span>
                       <input
                         type="text"
@@ -265,9 +285,22 @@ export default function WorkspaceSetupPage() {
                     <p className="mt-2 text-xs text-zinc-400 dark:text-[#9B9085]">Lowercase letters, numbers, and hyphens.</p>
                   </div>
                   {/* Share this link card */}
-                  <div className="rounded-xl border border-[#0066B2]/30 bg-[#F8FBFF] p-4 shrink-0 md:w-64 dark:border-[#0066B2]/35 dark:bg-[#0E0E10]">
-                    <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8] mb-2">SHARE THIS LINK</p>
-                    <p className="text-xs font-mono font-semibold text-zinc-900 dark:text-white">leadmagnets.so/{username}</p>
+                  <div className="rounded-xl border border-[#0066B2]/30 bg-[#F8FBFF] p-4 shrink-0 md:min-w-[320px] dark:border-[#0066B2]/35 dark:bg-[#0E0E10]">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">SHARE THIS LINK</p>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${appBaseUrl}/${username}`);
+                          setCopiedField("shareUrl");
+                          setTimeout(() => setCopiedField(null), 2000);
+                        }}
+                        className="inline-flex items-center gap-1 text-[10px] font-medium text-[#0066B2] hover:underline dark:text-[#38BDF8] cursor-pointer"
+                      >
+                        {copiedField === "shareUrl" ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                        {copiedField === "shareUrl" ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                    <p className="text-xs font-mono font-semibold text-zinc-900 dark:text-white select-all break-all">{appBaseUrl}/{username}</p>
                   </div>
                 </div>
               </div>

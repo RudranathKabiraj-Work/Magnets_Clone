@@ -3,17 +3,19 @@ import { dbConnect } from "@/lib/mongodb";
 import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationModel, ResourceModel } from "@/lib/models";
 import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations } from "@/lib/data";
 import { sendInstantLeadAlert } from "@/lib/email-alerts";
-import { clearAuthCookie } from "@/lib/auth";
+import { clearAuthCookie, getAuthenticatedUserEmail } from "@/lib/auth";
+import { hashPassword, comparePassword } from "@/lib/auth-helpers";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
     await dbConnect();
+    const authEmail = await getAuthenticatedUserEmail();
 
     const { searchParams } = new URL(req.url);
     const email = searchParams.get("email");
-    const normEmail = email ? email.trim().toLowerCase() : null;
+    const normEmail = authEmail || (email ? email.trim().toLowerCase() : null);
 
     if (!normEmail) {
       return NextResponse.json({
@@ -70,18 +72,39 @@ export async function POST(req: Request) {
     await dbConnect();
     const body = await req.json();
     const { action, data, email } = body;
-    const normEmail = email ? email.trim().toLowerCase() : (body.userEmail || "").trim().toLowerCase();
+
+    const authEmail = await getAuthenticatedUserEmail();
+
+    const publicActions = [
+      "addLead",
+      "checkEmail",
+      "login",
+      "resetPassword",
+      "sendVerificationEmail",
+      "sendForgotPasswordEmail",
+      "verifyEmailToken",
+      "saveAccount"
+    ];
+
+    if (!authEmail && !publicActions.includes(action)) {
+      return NextResponse.json({ error: "Unauthorized. Please log in to perform this action." }, { status: 401 });
+    }
+
+    const normEmail = authEmail || (email ? email.trim().toLowerCase() : (body.userEmail || "").trim().toLowerCase());
 
     if (action === "savePages") {
-      if (Array.isArray(data)) {
-        for (const item of data) {
+      if (Array.isArray(data) && data.length > 0) {
+        const ops = data.map((item: any) => {
           const itemEmail = normEmail || item.userEmail || "";
-          await MagnetPageModel.findOneAndUpdate(
-            { id: item.id },
-            { ...item, userEmail: itemEmail },
-            { upsert: true, returnDocument: 'after' }
-          );
-        }
+          return {
+            updateOne: {
+              filter: { id: item.id },
+              update: { $set: { ...item, userEmail: itemEmail } },
+              upsert: true,
+            },
+          };
+        });
+        await MagnetPageModel.bulkWrite(ops);
       }
       return NextResponse.json({ success: true });
     }
@@ -106,15 +129,18 @@ export async function POST(req: Request) {
     }
 
     if (action === "saveSequences") {
-      if (Array.isArray(data)) {
-        for (const item of data) {
+      if (Array.isArray(data) && data.length > 0) {
+        const ops = data.map((item: any) => {
           const itemEmail = normEmail || item.userEmail || "";
-          await SequenceModel.findOneAndUpdate(
-            { id: item.id },
-            { ...item, userEmail: itemEmail },
-            { upsert: true, returnDocument: 'after' }
-          );
-        }
+          return {
+            updateOne: {
+              filter: { id: item.id },
+              update: { $set: { ...item, userEmail: itemEmail } },
+              upsert: true,
+            },
+          };
+        });
+        await SequenceModel.bulkWrite(ops);
       }
       return NextResponse.json({ success: true });
     }
@@ -176,7 +202,7 @@ export async function POST(req: Request) {
         existing.spfVerified = data.spfVerified !== undefined ? data.spfVerified : existing.spfVerified;
         existing.dkimVerified = data.dkimVerified !== undefined ? data.dkimVerified : existing.dkimVerified;
         if (data.password) {
-          existing.password = data.password;
+          existing.password = await hashPassword(data.password);
         }
         account = await existing.save();
       } else {
@@ -188,6 +214,9 @@ export async function POST(req: Request) {
           uniqueUsername = `${username.slice(0, 15 - String(count).length)}${count}`;
         }
         data.username = uniqueUsername;
+        if (data.password) {
+          data.password = await hashPassword(data.password);
+        }
         account = await AccountModel.create(data);
       }
       return NextResponse.json({ success: true, account });
@@ -204,9 +233,11 @@ export async function POST(req: Request) {
       if (!account) {
         return NextResponse.json({ error: "Account not found." }, { status: 400 });
       }
-      // Require password check only if a password is set on the account (Google OAuth users do not have a password set)
-      if (account.password && account.password !== password) {
-        return NextResponse.json({ error: "Incorrect password." }, { status: 400 });
+      if (account.password) {
+        const { isValid } = await comparePassword(password, account.password);
+        if (!isValid) {
+          return NextResponse.json({ error: "Incorrect password." }, { status: 400 });
+        }
       }
       const normDelEmail = email.trim().toLowerCase();
       await AccountModel.deleteOne({ email: normDelEmail });
@@ -226,10 +257,17 @@ export async function POST(req: Request) {
       if (!account) {
         return NextResponse.json({ error: "No account found with this email. Sign up instead." }, { status: 400 });
       }
-      const dbPassword = account.password || "password123";
-      if (dbPassword !== password) {
+      const { isValid, needsRehash } = await comparePassword(password, account.password);
+      if (!isValid) {
         return NextResponse.json({ error: "Incorrect password." }, { status: 400 });
       }
+
+      // Seamlessly upgrade legacy plain-text passwords to bcrypt hashes
+      if (needsRehash) {
+        account.password = await hashPassword(password);
+        await account.save();
+      }
+
       return NextResponse.json({ success: true, account });
     }
 
@@ -239,11 +277,13 @@ export async function POST(req: Request) {
       if (!account) {
         return NextResponse.json({ error: "Account not found." }, { status: 400 });
       }
-      const dbPassword = account.password || "password123";
-      if (dbPassword !== currentPassword) {
-        return NextResponse.json({ error: "Current password is incorrect." }, { status: 400 });
+      if (account.password) {
+        const { isValid } = await comparePassword(currentPassword, account.password);
+        if (!isValid) {
+          return NextResponse.json({ error: "Current password is incorrect." }, { status: 400 });
+        }
       }
-      account.password = newPassword;
+      account.password = await hashPassword(newPassword);
       await account.save();
       return NextResponse.json({ success: true });
     }
@@ -293,6 +333,21 @@ export async function POST(req: Request) {
     if (action === "addLead") {
       let ownerEmail = normEmail || data.userEmail;
       let pageTitle = data.page || "Lead Magnet";
+
+      // Prevent duplicate lead submissions for the same email & page
+      if (data.email && (data.pageId || data.page)) {
+        const leadQuery: any = {
+          email: data.email.trim().toLowerCase(),
+        };
+        if (data.pageId) leadQuery.pageId = data.pageId;
+        else if (data.page) leadQuery.page = data.page;
+
+        const existingLead = await LeadModel.findOne(leadQuery);
+        if (existingLead) {
+          return NextResponse.json({ success: true, lead: existingLead, alreadySubscribed: true });
+        }
+      }
+
       if (data.pageId || data.page || data.pageSlug) {
         const query: any[] = [];
         if (data.pageId) query.push({ id: data.pageId });
@@ -463,11 +518,11 @@ export async function POST(req: Request) {
         const kitKey = apiKey.trim();
         // Fetch account info if API Secret was provided
         const accountRes = await fetch(`https://api.convertkit.com/v3/account?api_secret=${encodeURIComponent(kitKey)}`);
-        const accountData = await accountRes.json();
+        const accountData = (await accountRes.json().catch(() => null)) || {};
         const accountName = accountData.name || accountData.primary_email_address;
 
         const tagsRes = await fetch(`https://api.convertkit.com/v3/tags?api_secret=${encodeURIComponent(kitKey)}&api_key=${encodeURIComponent(kitKey)}`);
-        const tagsData = await tagsRes.json();
+        const tagsData = (await tagsRes.json().catch(() => null)) || {};
 
         if (tagsRes.ok && Array.isArray(tagsData.tags)) {
           let tagId = tagsData.tags[0]?.id;
@@ -477,7 +532,7 @@ export async function POST(req: Request) {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ api_secret: kitKey, api_key: kitKey, tag: { name: "LeadMagnets Signups" } }),
             });
-            const createTagData = await createTagRes.json();
+            const createTagData = (await createTagRes.json().catch(() => null)) || {};
             tagId = createTagData.tag?.id;
           }
 
@@ -512,7 +567,7 @@ export async function POST(req: Request) {
 
       try {
         const pdRes = await fetch(`https://api.pipedrive.com/v1/users/me?api_token=${encodeURIComponent(apiToken.trim())}`);
-        const pdData = await pdRes.json();
+        const pdData = (await pdRes.json().catch(() => null)) || {};
         if (pdRes.ok && pdData.success) {
           return NextResponse.json({ success: true, user: pdData.data?.name || "Pipedrive User" });
         } else {
@@ -635,9 +690,18 @@ export async function POST(req: Request) {
     }
 
     if (action === "saveIntegrations") {
-      await IntegrationModel.deleteMany({});
+      if (normEmail) {
+        await IntegrationModel.deleteMany({ userEmail: normEmail });
+      }
       if (Array.isArray(data) && data.length > 0) {
-        await IntegrationModel.insertMany(data);
+        const docs = data.map((item: any) => {
+          const { _id, ...cleanItem } = item;
+          return {
+            ...cleanItem,
+            userEmail: normEmail || item.userEmail || "",
+          };
+        });
+        await IntegrationModel.insertMany(docs);
       }
       return NextResponse.json({ success: true });
     }
@@ -738,7 +802,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Password reset token is invalid or has expired." }, { status: 400 });
       }
 
-      account.password = newPassword;
+      account.password = await hashPassword(newPassword);
       account.resetPasswordToken = null;
       account.resetPasswordExpires = null;
       await account.save();

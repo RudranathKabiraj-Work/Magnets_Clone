@@ -40,7 +40,28 @@ import {
   Pencil,
   AlertTriangle,
   Sparkles,
+  Strikethrough,
+  Eraser,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Video,
+  Table as TableIcon,
+  Link2,
+  Minus,
+  MoreVertical,
 } from "lucide-react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import LinkExtension from "@tiptap/extension-link";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
+import ImageExtension from "@tiptap/extension-image";
+import { Table as TableExtension } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { TextAlign } from "@tiptap/extension-text-align";
 import { useEffect, useState, useRef, useCallback } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { type MagnetPage, type Account } from "@/lib/data";
@@ -206,6 +227,40 @@ export default function EditLeadMagnetPage() {
   const [emailSubject, setEmailSubject] = useState(initialEmailSubject);
   const [emailPreviewText, setEmailPreviewText] = useState(initialEmailPreviewText);
   const [emailBody, setEmailBody] = useState(initialEmailBody);
+
+  // Production-grade Tiptap Rich Text Editor instance for Delivery Email
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3] },
+      }),
+      TextStyle,
+      Color,
+      ImageExtension,
+      TableExtension.configure({ resizable: true }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      LinkExtension.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: "text-[#0066B2] dark:text-[#38BDF8] underline font-medium",
+        },
+      }),
+    ],
+    content: emailBody,
+    onUpdate: ({ editor }) => {
+      setEmailBody(editor.getHTML());
+    },
+  });
+
+  // Sync external changes into Tiptap editor content if changed programmatically
+  useEffect(() => {
+    if (editor && emailBody && editor.getHTML() !== emailBody && !editor.isFocused) {
+      editor.commands.setContent(emailBody);
+    }
+  }, [emailBody, editor]);
 
   // Sequence State (Tab 3: Sequence)
   const [sequenceEnabled, setSequenceEnabled] = useState(page?.sequenceEnabled || false);
@@ -2079,35 +2134,195 @@ export default function EditLeadMagnetPage() {
 
                         {/* Rich Text Editor Container */}
                         <div className={`rounded-2xl border overflow-hidden shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B]" : "border-zinc-200/90 bg-white"}`}>
-                          {/* Toolbar */}
-                          <div className={`flex flex-wrap items-center gap-3 border-b px-4 py-2.5 text-xs font-semibold ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-zinc-300" : "border-zinc-200 bg-[#F9F9FB] text-zinc-600"}`}>
+                          {/* Toolbar matching exact screenshot design */}
+                          <div className={`flex flex-wrap items-center gap-1.5 border-b px-3 py-2 text-xs font-semibold ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-zinc-300" : "border-zinc-200 bg-[#F9F9FB] text-zinc-600"}`}>
+                            {/* Headings Dropdown: T ⌄ */}
+                            <div className="relative group">
+                              <button
+                                type="button"
+                                title="Headings"
+                                className="flex items-center gap-1 px-2 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer text-zinc-700 dark:text-zinc-200"
+                              >
+                                <Type className="h-3.5 w-3.5" />
+                                <ChevronDown className="h-3 w-3 text-zinc-400" />
+                              </button>
+                              <div className="hidden group-hover:flex flex-col absolute left-0 top-full mt-1 w-32 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50 p-1">
+                                <button type="button" onClick={() => editor?.chain().focus().setParagraph().run()} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Paragraph</button>
+                                <button type="button" onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()} className="text-left px-2.5 py-1.5 text-xs font-bold rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 1</button>
+                                <button type="button" onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()} className="text-left px-2.5 py-1.5 text-xs font-semibold rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 2</button>
+                                <button type="button" onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()} className="text-left px-2.5 py-1.5 text-xs font-medium rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 3</button>
+                              </div>
+                            </div>
+
+                            <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
+
+                            {/* Bold: B */}
                             <button
                               type="button"
-                              onClick={handleUndo}
-                              disabled={!canUndo}
-                              title={canUndo ? "Undo (Ctrl+Z)" : "Nothing to undo"}
-                              className={`p-1 transition ${canUndo ? "hover:text-white cursor-pointer" : "opacity-30 cursor-not-allowed"}`}
+                              onClick={() => editor?.chain().focus().toggleBold().run()}
+                              title="Bold (Ctrl+B)"
+                              className={`p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer ${editor?.isActive("bold") ? "bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8]" : ""}`}
                             >
-                              <Undo2 className="h-3.5 w-3.5" />
+                              <span className="font-extrabold text-sm">B</span>
                             </button>
+
+                            {/* Italic: I */}
                             <button
                               type="button"
-                              onClick={handleRedo}
-                              disabled={!canRedo}
-                              title={canRedo ? "Redo (Ctrl+Y)" : "Nothing to redo"}
-                              className={`p-1 transition ${canRedo ? "hover:text-white cursor-pointer" : "opacity-30 cursor-not-allowed"}`}
+                              onClick={() => editor?.chain().focus().toggleItalic().run()}
+                              title="Italic (Ctrl+I)"
+                              className={`p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer ${editor?.isActive("italic") ? "bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8]" : ""}`}
                             >
-                              <Redo2 className="h-3.5 w-3.5" />
+                              <span className="italic font-serif text-sm">I</span>
                             </button>
+
+                            {/* Strikethrough: S */}
+                            <button
+                              type="button"
+                              onClick={() => editor?.chain().focus().toggleStrike().run()}
+                              title="Strikethrough"
+                              className={`p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer ${editor?.isActive("strike") ? "bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8]" : ""}`}
+                            >
+                              <Strikethrough className="h-3.5 w-3.5" />
+                            </button>
+
+                            {/* Text Color: A */}
+                            <div className="relative group">
+                              <button
+                                type="button"
+                                title="Text Color"
+                                className="flex items-center gap-0.5 p-1.5 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer"
+                              >
+                                <span className="font-extrabold text-xs underline decoration-2 decoration-[#0066B2]">A</span>
+                              </button>
+                              <div className="hidden group-hover:flex gap-1.5 absolute left-0 top-full mt-1 p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50">
+                                {["#18181b", "#0066B2", "#2563eb", "#059669", "#dc2626", "#d97706", "#7c3aed"].map((color) => (
+                                  <button
+                                    key={color}
+                                    type="button"
+                                    onClick={() => editor?.chain().focus().setColor(color).run()}
+                                    className="h-4 w-4 rounded-full border border-black/10 cursor-pointer"
+                                    style={{ backgroundColor: color }}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Clear Format: 🧹 */}
+                            <button
+                              type="button"
+                              onClick={() => editor?.chain().focus().unsetAllMarks().clearNodes().run()}
+                              title="Clear Format"
+                              className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                            >
+                              <Eraser className="h-3.5 w-3.5" />
+                            </button>
+
                             <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
-                            <button type="button" title="Text Size" className="hover:text-white font-serif font-bold transition px-1">Aa</button>
+
+                            {/* Lists: ⋮= ⌄ */}
+                            <div className="relative group">
+                              <button
+                                type="button"
+                                title="Lists"
+                                className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer"
+                              >
+                                <span className="text-xs font-bold">⋮=</span>
+                                <ChevronDown className="h-3 w-3 text-zinc-400" />
+                              </button>
+                              <div className="hidden group-hover:flex flex-col absolute left-0 top-full mt-1 w-36 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50 p-1">
+                                <button type="button" onClick={() => editor?.chain().focus().toggleBulletList().run()} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Bullet List</button>
+                                <button type="button" onClick={() => editor?.chain().focus().toggleOrderedList().run()} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Numbered List</button>
+                              </div>
+                            </div>
+
+                            {/* Alignment: ≡ ⌄ */}
+                            <div className="relative group">
+                              <button
+                                type="button"
+                                title="Text Align"
+                                className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer"
+                              >
+                                <AlignLeft className="h-3.5 w-3.5" />
+                                <ChevronDown className="h-3 w-3 text-zinc-400" />
+                              </button>
+                              <div className="hidden group-hover:flex flex-col absolute left-0 top-full mt-1 w-32 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50 p-1">
+                                <button type="button" onClick={() => editor?.chain().focus().setTextAlign("left").run()} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignLeft className="h-3.5 w-3.5" /> Left</button>
+                                <button type="button" onClick={() => editor?.chain().focus().setTextAlign("center").run()} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignCenter className="h-3.5 w-3.5" /> Center</button>
+                                <button type="button" onClick={() => editor?.chain().focus().setTextAlign("right").run()} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignRight className="h-3.5 w-3.5" /> Right</button>
+                              </div>
+                            </div>
+
                             <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
-                            <button type="button" title="Bold" className="hover:text-white font-black transition px-1">B</button>
-                            <button type="button" title="Italic" className="hover:text-white italic transition px-1">I</button>
-                            <button type="button" title="Quote" className="hover:text-white font-serif transition px-1">”</button>
-                            <button type="button" title="List" className="hover:text-white transition px-1">⋮=</button>
-                            <button type="button" title="Line" className="hover:text-white transition px-1">—</button>
+
+                            {/* Insert Image */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const url = prompt("Enter Image URL:");
+                                if (url && editor) {
+                                  editor.chain().focus().setImage({ src: url }).run();
+                                }
+                              }}
+                              title="Insert Image"
+                              className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                            >
+                              <ImageIcon className="h-3.5 w-3.5" />
+                            </button>
+
+                            {/* Insert Video */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const url = prompt("Enter YouTube / Video Embed URL:");
+                                if (url && editor) {
+                                  editor.chain().focus().insertContent(`<p><iframe src="${url}" width="100%" height="315" frameborder="0" allowfullscreen></iframe></p>`).run();
+                                }
+                              }}
+                              title="Insert Video"
+                              className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                            >
+                              <Video className="h-3.5 w-3.5" />
+                            </button>
+
+                            {/* Insert Table */}
+                            <button
+                              type="button"
+                              onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+                              title="Insert Table"
+                              className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                            >
+                              <TableIcon className="h-3.5 w-3.5" />
+                            </button>
+
+                            {/* Insert Link */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const url = prompt("Enter Hyperlink URL:");
+                                if (url && editor) {
+                                  editor.chain().focus().setLink({ href: url }).run();
+                                }
+                              }}
+                              title="Insert Link"
+                              className={`p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer ${editor?.isActive("link") ? "bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8]" : ""}`}
+                            >
+                              <Link2 className="h-3.5 w-3.5" />
+                            </button>
+
+                            {/* Insert Line */}
+                            <button
+                              type="button"
+                              onClick={() => editor?.chain().focus().setHorizontalRule().run()}
+                              title="Insert Horizontal Divider"
+                              className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+
                             <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
+
+                            {/* + Insert Resource Dropdown Button (100% Untouched connection to Hosted Resources) */}
                             <div className="relative">
                               <button
                                 type="button"
@@ -2133,8 +2348,11 @@ export default function EditLeadMagnetPage() {
                                         key={res.id}
                                         type="button"
                                         onClick={() => {
-                                          const linkText = `\n${res.url}\n`;
-                                          setEmailBody((prev) => prev + linkText);
+                                          if (editor) {
+                                            editor.chain().focus().insertContent(`<p><a href="${res.url}" target="_blank" rel="noopener noreferrer">${res.name} (${res.url})</a></p>`).run();
+                                          } else {
+                                            setEmailBody((prev) => prev + `\n${res.url}\n`);
+                                          }
                                           setShowInsertResourceMenu(false);
                                         }}
                                         className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-[#0066B2]/20 hover:text-[#38BDF8] text-xs transition flex flex-col gap-0.5 cursor-pointer"
@@ -2147,12 +2365,18 @@ export default function EditLeadMagnetPage() {
                                 </div>
                               )}
                             </div>
-                            <button type="button" title="Link" className="hover:text-white transition px-1">🔗</button>
                           </div>
 
-                          {/* Block Email Body Editor */}
-                          <div className="p-3">
-                            {renderEmailBlockEditor(emailBody, setEmailBody, false)}
+                          {/* Tiptap Rich Text Body Editor Container */}
+                          <div className="p-4 min-h-[220px]">
+                            {editor ? (
+                              <EditorContent
+                                editor={editor}
+                                className={`prose dark:prose-invert max-w-none text-sm leading-relaxed outline-none min-h-[200px] ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-800"}`}
+                              />
+                            ) : (
+                              renderEmailBlockEditor(emailBody, setEmailBody, false)
+                            )}
                           </div>
                         </div>
                       </div>

@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
+import { getAuthenticatedUserEmail } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
+    const sessionEmail = await getAuthenticatedUserEmail();
+    if (!sessionEmail) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
     const { topic, targetAudience, format, tone } = await req.json();
 
     if (!topic) {

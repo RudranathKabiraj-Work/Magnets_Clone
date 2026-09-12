@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import {
@@ -530,32 +531,52 @@ export default function SignupsPage() {
                     </button>
                   )}
 
-                  {/* Filter by Magnet */}
+                  {/* Filter by Magnet — Glassy & Smooth Animated Dropdown */}
                   <div className="relative" ref={filterRef}>
                     <button
-                      onClick={() => setFilterOpen((v) => !v)}
-                      className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-medium text-zinc-700 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 hover:border-[#0066B2] dark:hover:border-[#0066B2] transition cursor-pointer"
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFilterOpen((v) => !v);
+                      }}
+                      className="flex items-center gap-2 rounded-xl border border-zinc-200/80 bg-white/70 px-3.5 py-2 text-xs font-semibold text-zinc-700 shadow-xs backdrop-blur-md transition-all hover:bg-white/90 focus:outline-none dark:border-white/10 dark:bg-[#18181B]/80 dark:text-zinc-200 dark:hover:bg-[#222226] cursor-pointer select-none"
                     >
-                      <Filter className="h-3.5 w-3.5 text-[#0066B2]" />
+                      <Filter className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
                       <span className="truncate max-w-[140px]">{filterMagnet}</span>
-                      <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
+                      <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-300 ${filterOpen ? "rotate-180" : ""}`} />
                     </button>
-                    {filterOpen && (
-                      <div className="absolute right-0 sm:left-0 top-full z-20 mt-1.5 w-56 rounded-xl border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#18181B] shadow-xl py-1">
-                        {["All lead magnets", ...uniqueMagnets].map((opt) => (
-                          <button
-                            key={opt}
-                            onClick={() => { setFilterMagnet(opt); setFilterOpen(false); setCurrentPage(1); }}
-                            className={`w-full text-left px-3.5 py-2 text-xs transition cursor-pointer ${filterMagnet === opt
-                                ? "text-[#0066B2] dark:text-[#38BDF8] bg-[#EFF6FF] dark:bg-[#0066B2]/20 font-bold"
-                                : "text-zinc-700 dark:text-[#9B9085] hover:bg-zinc-50 dark:hover:bg-[#25252A] hover:text-zinc-900 dark:hover:text-white"
-                              }`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+
+                    <AnimatePresence>
+                      {filterOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.96, y: -6 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                          transition={{ type: "spring", damping: 28, stiffness: 400 }}
+                          className="absolute right-0 sm:left-0 top-full z-30 mt-1.5 w-56 rounded-xl border border-zinc-200/60 bg-white/85 p-1 shadow-md backdrop-blur-xl dark:border-white/10 dark:bg-[#18181F]/95 dark:text-white dark:shadow-[0_4px_16px_rgba(0,0,0,0.35)]"
+                        >
+                          {["All lead magnets", ...uniqueMagnets].map((opt) => (
+                            <button
+                              key={opt}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFilterMagnet(opt);
+                                setFilterOpen(false);
+                                setCurrentPage(1);
+                              }}
+                              className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150 cursor-pointer ${filterMagnet === opt
+                                ? "bg-zinc-100 text-zinc-900 font-bold dark:bg-white/10 dark:text-[#38BDF8] dark:border dark:border-white/10"
+                                : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5"
+                                }`}
+                            >
+                              <span className="truncate">{opt}</span>
+                              {filterMagnet === opt && <Check className="h-3.5 w-3.5 text-current shrink-0" />}
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Search Bar */}
@@ -935,303 +956,330 @@ export default function SignupsPage() {
         )}
 
         {/* 3. Delete Lead Modal */}
-        {leadToDelete && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-all duration-200"
-            onWheel={(e) => e.stopPropagation()}
-            onTouchMove={(e) => e.stopPropagation()}
-          >
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-[#18181B] shadow-2xl border border-zinc-200 dark:border-[#2e2e38]">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400">
-                <AlertCircle className="h-6 w-6" />
-              </div>
-              <h3 className="mt-4 text-lg font-bold text-zinc-900 dark:text-white">Delete Subscriber?</h3>
-              <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-[#9B9085]">
-                Are you sure you want to delete <strong className="text-zinc-900 dark:text-white">{leadToDelete.email}</strong>? They will be removed from your lead magnet subscriber list.
-              </p>
+        <AnimatePresence>
+          {leadToDelete && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              onClick={() => setLeadToDelete(null)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 8 }}
+                transition={{ type: "spring", damping: 25, stiffness: 350 }}
+                className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-[#18181B] shadow-2xl border border-zinc-200 dark:border-[#2e2e38]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400">
+                  <AlertCircle className="h-6 w-6" />
+                </div>
+                <h3 className="mt-4 text-lg font-bold text-zinc-900 dark:text-white">Delete Subscriber?</h3>
+                <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-[#9B9085]">
+                  Are you sure you want to delete <strong className="text-zinc-900 dark:text-white">{leadToDelete.email}</strong>? They will be removed from your lead magnet subscriber list.
+                </p>
 
-              <div className="mt-6 flex items-center justify-end gap-3">
-                <button
-                  disabled={isDeleting}
-                  onClick={() => setLeadToDelete(null)}
-                  className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={isDeleting}
-                  onClick={confirmDeleteLead}
-                  className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 transition cursor-pointer shadow-sm"
-                >
-                  {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                  <span>Delete Subscriber</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+                <div className="mt-6 flex items-center justify-end gap-3">
+                  <button
+                    disabled={isDeleting}
+                    onClick={() => setLeadToDelete(null)}
+                    className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={isDeleting}
+                    onClick={confirmDeleteLead}
+                    className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 transition cursor-pointer shadow-sm"
+                  >
+                    {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    <span>Delete Subscriber</span>
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* 4. Bulk Delete Confirmation Modal */}
-        {showBulkDeleteModal && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-all duration-200"
-            onWheel={(e) => e.stopPropagation()}
-            onTouchMove={(e) => e.stopPropagation()}
-          >
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-[#18181B] shadow-2xl border border-zinc-200 dark:border-[#2e2e38]">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400">
-                <AlertCircle className="h-6 w-6" />
-              </div>
-              <h3 className="mt-4 text-lg font-bold text-zinc-900 dark:text-white">
-                Delete {selectedLeadIds.length} Selected Subscribers?
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-[#9B9085]">
-                Are you sure you want to delete <strong className="text-zinc-900 dark:text-white">{selectedLeadIds.length} subscribers</strong>? This action cannot be undone and will remove them from your active lead list.
-              </p>
+        <AnimatePresence>
+          {showBulkDeleteModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              onClick={() => setShowBulkDeleteModal(false)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 8 }}
+                transition={{ type: "spring", damping: 25, stiffness: 350 }}
+                className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-[#18181B] shadow-2xl border border-zinc-200 dark:border-[#2e2e38]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400">
+                  <AlertCircle className="h-6 w-6" />
+                </div>
+                <h3 className="mt-4 text-lg font-bold text-zinc-900 dark:text-white">
+                  Delete {selectedLeadIds.length} Selected Subscribers?
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-[#9B9085]">
+                  Are you sure you want to delete <strong className="text-zinc-900 dark:text-white">{selectedLeadIds.length} subscribers</strong>? This action cannot be undone and will remove them from your active lead list.
+                </p>
 
-              <div className="mt-6 flex items-center justify-end gap-3">
-                <button
-                  disabled={isBulkDeleting}
-                  onClick={() => setShowBulkDeleteModal(false)}
-                  className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={isBulkDeleting}
-                  onClick={confirmBulkDelete}
-                  className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 transition cursor-pointer shadow-sm"
-                >
-                  {isBulkDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                  <span>Delete {selectedLeadIds.length} Subscribers</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+                <div className="mt-6 flex items-center justify-end gap-3">
+                  <button
+                    disabled={isBulkDeleting}
+                    onClick={() => setShowBulkDeleteModal(false)}
+                    className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={isBulkDeleting}
+                    onClick={confirmBulkDelete}
+                    className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50 transition cursor-pointer shadow-sm"
+                  >
+                    {isBulkDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    <span>Delete {selectedLeadIds.length} Subscribers</span>
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Lead Details Modal */}
-        {selectedLead && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-all duration-200"
-            onWheel={(e) => e.stopPropagation()}
-            onTouchMove={(e) => e.stopPropagation()}
-            onClick={() => setSelectedLead(null)}
-          >
-            <div
-              className="w-full max-w-lg rounded-2xl border border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] p-6 shadow-2xl relative space-y-4 animate-in fade-in zoom-in-95 duration-200"
-              onClick={(e) => e.stopPropagation()}
+        <AnimatePresence>
+          {selectedLead && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              onClick={() => setSelectedLead(null)}
             >
-              <div className="flex items-center justify-between border-b border-zinc-100 dark:border-white/10 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#38BDF8]/20 dark:text-[#38BDF8] text-sm font-bold uppercase border border-[#0066B2]/20 dark:border-[#38BDF8]/30">
-                    {(selectedLead.name || selectedLead.email || "U").slice(0, 2)}
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-zinc-900 dark:text-white">{selectedLead.name || "Subscriber Details"}</h3>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <p className="text-xs text-zinc-500 dark:text-[#9B9085]">{selectedLead.email}</p>
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${!selectedLead.email.endsWith("@gmail.com") && !selectedLead.email.endsWith("@yahoo.com")
-                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                          : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
-                        }`}>
-                        <Sparkles className="h-2.5 w-2.5" />
-                        {!selectedLead.email.endsWith("@gmail.com") && !selectedLead.email.endsWith("@yahoo.com") ? "🔥 Hot Prospect (80 pts)" : "⚡ Warm Lead (60 pts)"}
-                      </span>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 8 }}
+                transition={{ type: "spring", damping: 25, stiffness: 350 }}
+                className="w-full max-w-lg rounded-2xl border border-zinc-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] p-6 shadow-2xl relative space-y-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-zinc-100 dark:border-white/10 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#38BDF8]/20 dark:text-[#38BDF8] text-sm font-bold uppercase border border-[#0066B2]/20 dark:border-[#38BDF8]/30">
+                      {(selectedLead.name || selectedLead.email || "U").slice(0, 2)}
                     </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedLead(null)}
-                  className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-[#25252A] dark:hover:text-white transition"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="flex justify-between py-2 border-b border-zinc-100 dark:border-white/5">
-                  <span className="text-zinc-500 dark:text-[#9B9085]">Email Address</span>
-                  <span className="font-semibold text-zinc-900 dark:text-white flex items-center gap-1.5">
-                    {selectedLead.email}
-                    <button onClick={() => copyEmailToClipboard(selectedLead.email)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300">
-                      <Copy className="h-3 w-3" />
-                    </button>
-                  </span>
-                </div>
-
-                <div className="flex justify-between py-2 border-b border-zinc-100 dark:border-white/5">
-                  <span className="text-zinc-500 dark:text-[#9B9085]">Lead Magnet</span>
-                  <span className="font-semibold text-zinc-900 dark:text-white max-w-[220px] truncate">{selectedLead.page}</span>
-                </div>
-
-                <div className="flex justify-between py-2 border-b border-zinc-100 dark:border-white/5">
-                  <span className="text-zinc-500 dark:text-[#9B9085]">Signup Date & Time</span>
-                  <span className="font-semibold text-zinc-900 dark:text-white">{selectedLead.signedUpAt}</span>
-                </div>
-
-                {/* Custom Optional Form Fields Section */}
-                {selectedLead.customFields && Object.keys(selectedLead.customFields).length > 0 && (
-                  <div className="pt-2 pb-1 space-y-2 border-b border-zinc-100 dark:border-white/5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-400 block">
-                      📋 Optional Contact Information
-                    </span>
-                    {Object.entries(selectedLead.customFields).map(([key, value]) => {
-                      if (!value) return null;
-                      const labelMap: Record<string, string> = {
-                        field_phone: "Phone Number",
-                        field_company: "Company Name",
-                        field_team_size: "Company Size",
-                        field_notes: "Notes / Message",
-                      };
-                      const label = labelMap[key] || key.replace(/^field_/, "").replace(/_/g, " ");
-                      return (
-                        <div key={key} className="flex justify-between py-1 text-xs">
-                          <span className="text-zinc-500 dark:text-[#9B9085] capitalize">{label}</span>
-                          <span className="font-semibold text-zinc-900 dark:text-white max-w-[240px] text-right break-words">{String(value)}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Custom AI Prompt Answer */}
-                {selectedLead.customAnswer && (
-                  <div className="py-2 border-b border-zinc-100 dark:border-white/5 space-y-1">
-                    <span className="text-[11px] font-bold text-amber-500 dark:text-amber-400 block">✨ Visitor Prompt Answer</span>
-                    <p className="text-xs italic text-zinc-700 dark:text-zinc-300 bg-amber-500/5 p-2 rounded-lg border border-amber-500/10">"{selectedLead.customAnswer}"</p>
-                  </div>
-                )}
-
-                {/* Sequence Delivery Breakdown Card */}
-                {(() => {
-                  const page = magnetPages.find((p) => p.id === selectedLead.pageId || p.name === selectedLead.page);
-                  const activeSequences = loadSequences();
-                  const foundSeq = activeSequences.find((s) => s.id === page?.id || s.pageId === page?.id || (page && s.name.includes(page.name)));
-                  const isEnabled = page ? (page.sequenceEnabled || (page.sequenceEmails && page.sequenceEmails.length > 0)) : false;
-                  const isSeqLive = foundSeq ? foundSeq.status === "live" : isEnabled;
-                  const totalSteps = foundSeq?.emails?.length || page?.sequenceEmails?.length || 2;
-                  const stepsList = foundSeq?.emails || page?.sequenceEmails || [
-                    { id: "1", subject: "Initial Delivery Email", delayLabel: "Instantly" },
-                    { id: "2", subject: "Follow-up Check-in Email", delayLabel: "1 day later" }
-                  ];
-
-                  return (
-                    <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-[#121214] border border-zinc-200 dark:border-white/10 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
-                          <Mail className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
-                          Follow-up Funnel Progress
+                    <div>
+                      <h3 className="text-base font-bold text-zinc-900 dark:text-white">{selectedLead.name || "Subscriber Details"}</h3>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-xs text-zinc-500 dark:text-[#9B9085]">{selectedLead.email}</p>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${!selectedLead.email.endsWith("@gmail.com") && !selectedLead.email.endsWith("@yahoo.com")
+                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                            : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                          }`}>
+                          <Sparkles className="h-2.5 w-2.5" />
+                          {!selectedLead.email.endsWith("@gmail.com") && !selectedLead.email.endsWith("@yahoo.com") ? "🔥 Hot Prospect (80 pts)" : "⚡ Warm Lead (60 pts)"}
                         </span>
-                        {!isSeqLive ? (
-                          <span className="text-[10px] font-bold text-zinc-400 bg-zinc-200 dark:bg-zinc-800 px-2 py-0.5 rounded-full">
-                            Sequence Ended
-                          </span>
-                        ) : selectedLead.status === "stopped" ? (
-                          <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-full">
-                            🛑 Stopped
-                          </span>
-                        ) : selectedLead.status === "completed" || selectedLead.status === "delivered" ? (
-                          <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">
-                            {totalSteps}/{totalSteps} Steps Completed
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                            1/{totalSteps} Steps Delivered
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Step Items List */}
-                      <div className="space-y-1.5 pt-1">
-                        {stepsList.map((step: any, idx: number) => {
-                          const isDone = !isSeqLive ? false : (selectedLead.status === "completed" || selectedLead.status === "delivered" || idx === 0);
-                          return (
-                            <div key={idx} className="flex items-center justify-between text-[11px] bg-white dark:bg-[#18181B] p-2 rounded-lg border border-zinc-100 dark:border-white/5">
-                              <span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-                                {isDone ? (
-                                  <Check className="h-3.5 w-3.5 text-emerald-500" />
-                                ) : (
-                                  <span className="h-3.5 w-3.5 rounded-full border border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400">{idx + 1}</span>
-                                )}
-                                <span className="font-semibold">{step.subject || `Step #${idx + 1}`}</span>
-                              </span>
-                              <span className="text-[10px] text-zinc-400 font-mono">
-                                {step.delayLabel || (idx === 0 ? "Instantly" : `${idx} day later`)}
-                              </span>
-                            </div>
-                          );
-                        })}
                       </div>
                     </div>
-                  );
-                })()}
-
-                {selectedLead.customAnswer && (
-                  <div className="py-2 space-y-1">
-                    <span className="block text-zinc-500 dark:text-[#9B9085]">Custom Form Response</span>
-                    <p className="p-3 rounded-xl bg-zinc-50 dark:bg-[#121214] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white leading-relaxed">
-                      "{selectedLead.customAnswer}"
-                    </p>
                   </div>
-                )}
-              </div>
-
-              <div className="pt-4 border-t border-zinc-100 dark:border-white/10 flex justify-between items-center">
-                <div className="flex items-center gap-2">
                   <button
-                    onClick={async () => {
-                      try {
-                        const res = await fetch("/api/data", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            action: "resendLeadEmail",
-                            data: {
-                              leadId: selectedLead.id,
-                              email: selectedLead.email,
-                              name: selectedLead.name,
-                              pageTitle: selectedLead.page,
-                              ownerEmail: account?.email,
-                            },
-                          }),
-                        });
-                        const data = await res.json();
-                        if (res.ok && data.success) {
-                          addToast("success", `📧 Resource delivery email resent to ${selectedLead.email}!`);
-                        } else {
-                          addToast("error", data.error || "Failed to resend email.");
-                        }
-                      } catch (err: any) {
-                        addToast("error", err.message);
-                      }
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#202026] text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-[#282830] transition cursor-pointer"
+                    onClick={() => setSelectedLead(null)}
+                    className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-[#25252A] dark:hover:text-white transition"
                   >
-                    <Send className="h-3.5 w-3.5 text-emerald-500" /> Resend Email
-                  </button>
-                  <button
-                    onClick={() => {
-                      const target = selectedLead;
-                      setSelectedLead(null);
-                      setLeadToDelete(target);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Delete
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
-                <button
-                  onClick={() => setSelectedLead(null)}
-                  className="px-4 py-2 rounded-xl bg-[#0066B2] text-xs font-semibold text-white hover:bg-[#005799] transition cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+
+                <div className="space-y-3 text-xs">
+                  <div className="grid grid-cols-2 gap-3 py-1 border-b border-zinc-100 dark:border-white/5">
+                    <div>
+                      <span className="block text-zinc-500 dark:text-[#9B9085]">Subscribed On Magnet</span>
+                      <strong className="font-semibold text-zinc-900 dark:text-white block truncate">{selectedLead.page}</strong>
+                    </div>
+                    <div>
+                      <span className="block text-zinc-500 dark:text-[#9B9085]">Signup Date & Time</span>
+                      <strong className="font-semibold text-zinc-900 dark:text-white block">{selectedLead.signedUpAt}</strong>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 py-1 border-b border-zinc-100 dark:border-white/5">
+                    <div>
+                      <span className="block text-zinc-500 dark:text-[#9B9085]">Traffic Source / Referrer</span>
+                      <strong className="font-semibold text-zinc-900 dark:text-white block capitalize">{selectedLead.referrer || "Direct Link"}</strong>
+                    </div>
+                    <div>
+                      <span className="block text-zinc-500 dark:text-[#9B9085]">Device Type</span>
+                      <strong className="font-semibold text-zinc-900 dark:text-white block capitalize">{selectedLead.deviceType || "Desktop"}</strong>
+                    </div>
+                  </div>
+
+                  {selectedLead.customFields && Object.keys(selectedLead.customFields).length > 0 && (
+                    <div className="py-2 border-b border-zinc-100 dark:border-white/5 space-y-1.5">
+                      <span className="font-bold text-zinc-900 dark:text-white block">Form Submissions</span>
+                      {Object.entries(selectedLead.customFields).map(([key, val]) => (
+                        <div key={key} className="flex justify-between items-center bg-zinc-50 dark:bg-[#121214] p-2 rounded-lg">
+                          <span className="text-zinc-500 dark:text-[#9B9085] capitalize">{key}</span>
+                          <span className="font-semibold text-zinc-900 dark:text-white">{String(val)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Custom AI Prompt Answer */}
+                  {selectedLead.customAnswer && (
+                    <div className="py-2 border-b border-zinc-100 dark:border-white/5 space-y-1">
+                      <span className="text-[11px] font-bold text-amber-500 dark:text-amber-400 block">✨ Visitor Prompt Answer</span>
+                      <p className="text-xs italic text-zinc-700 dark:text-zinc-300 bg-amber-500/5 p-2 rounded-lg border border-amber-500/10">"{selectedLead.customAnswer}"</p>
+                    </div>
+                  )}
+
+                  {/* Sequence Delivery Breakdown Card */}
+                  {(() => {
+                    const page = magnetPages.find((p) => p.id === selectedLead.pageId || p.name === selectedLead.page);
+                    const activeSequences = loadSequences();
+                    const foundSeq = activeSequences.find((s) => s.id === page?.id || s.pageId === page?.id || (page && s.name.includes(page.name)));
+                    const isEnabled = page ? (page.sequenceEnabled || (page.sequenceEmails && page.sequenceEmails.length > 0)) : false;
+                    const isSeqLive = foundSeq ? foundSeq.status === "live" : isEnabled;
+                    const totalSteps = foundSeq?.emails?.length || page?.sequenceEmails?.length || 2;
+                    const stepsList = foundSeq?.emails || page?.sequenceEmails || [
+                      { id: "1", subject: "Initial Delivery Email", delayLabel: "Instantly" },
+                      { id: "2", subject: "Follow-up Check-in Email", delayLabel: "1 day later" }
+                    ];
+
+                    return (
+                      <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-[#121214] border border-zinc-200 dark:border-white/10 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                            <Mail className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
+                            Follow-up Funnel Progress
+                          </span>
+                          {!isSeqLive ? (
+                            <span className="text-[10px] font-bold text-zinc-400 bg-zinc-200 dark:bg-zinc-800 px-2 py-0.5 rounded-full">
+                              Sequence Ended
+                            </span>
+                          ) : selectedLead.status === "stopped" ? (
+                            <span className="text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-full">
+                              🛑 Stopped
+                            </span>
+                          ) : selectedLead.status === "completed" || selectedLead.status === "delivered" ? (
+                            <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">
+                              {totalSteps}/{totalSteps} Steps Completed
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                              1/{totalSteps} Steps Delivered
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Step Items List */}
+                        <div className="space-y-1.5 pt-1">
+                          {stepsList.map((step: any, idx: number) => {
+                            const isDone = !isSeqLive ? false : (selectedLead.status === "completed" || selectedLead.status === "delivered" || idx === 0);
+                            return (
+                              <div key={idx} className="flex items-center justify-between text-[11px] bg-white dark:bg-[#18181B] p-2 rounded-lg border border-zinc-100 dark:border-white/5">
+                                <span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+                                  {isDone ? (
+                                    <Check className="h-3.5 w-3.5 text-emerald-500" />
+                                  ) : (
+                                    <span className="h-3.5 w-3.5 rounded-full border border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-400">{idx + 1}</span>
+                                  )}
+                                  <span className="font-semibold">{step.subject || `Step #${idx + 1}`}</span>
+                                </span>
+                                <span className="text-[10px] text-zinc-400 font-mono">
+                                  {step.delayLabel || (idx === 0 ? "Instantly" : `${idx} day later`)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {selectedLead.customAnswer && (
+                    <div className="py-2 space-y-1">
+                      <span className="block text-zinc-500 dark:text-[#9B9085]">Custom Form Response</span>
+                      <p className="p-3 rounded-xl bg-zinc-50 dark:bg-[#121214] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white leading-relaxed">
+                        "{selectedLead.customAnswer}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t border-zinc-100 dark:border-white/10 flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          const res = await fetch("/api/data", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              action: "resendLeadEmail",
+                              data: {
+                                leadId: selectedLead.id,
+                                email: selectedLead.email,
+                                name: selectedLead.name,
+                                pageTitle: selectedLead.page,
+                                ownerEmail: account?.email,
+                              },
+                            }),
+                          });
+                          const data = await res.json();
+                          if (res.ok && data.success) {
+                            addToast("success", `📧 Resource delivery email resent to ${selectedLead.email}!`);
+                          } else {
+                            addToast("error", data.error || "Failed to resend email.");
+                          }
+                        } catch (err: any) {
+                          addToast("error", err.message);
+                        }
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#202026] text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-[#282830] transition cursor-pointer"
+                    >
+                      <Send className="h-3.5 w-3.5 text-emerald-500" /> Resend Email
+                    </button>
+                    <button
+                      onClick={() => {
+                        const target = selectedLead;
+                        setSelectedLead(null);
+                        setLeadToDelete(target);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition cursor-pointer"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Delete
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setSelectedLead(null)}
+                    className="px-4 py-2 rounded-xl bg-[#0066B2] text-xs font-semibold text-white hover:bg-[#005799] transition cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Floating Toast Notification Container */}
         <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full">
