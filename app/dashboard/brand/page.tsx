@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { Palette, Check, Upload, Sun, Moon, Trash2, Loader2 } from "lucide-react";
+import { Palette, Check, Upload, Sun, Moon, Trash2, Loader2, X, ArrowLeft, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { syncWithDatabase, saveAccount, loadAccount, loadPages } from "@/lib/store";
 import type { Account, MagnetPage } from "@/lib/data";
 
@@ -18,6 +19,7 @@ export default function BrandPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -180,7 +182,14 @@ export default function BrandPage() {
           <div className="mb-8">
             <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-900 dark:text-white animate-slide-in">
               Brand
-              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-100 dark:hover:bg-[#18181B]">?</span>
+              <button
+                type="button"
+                onClick={() => setShowHelpModal(true)}
+                className="flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-200 dark:hover:bg-[#18181B] hover:text-zinc-900 dark:hover:text-white transition cursor-pointer"
+                title="Help: How do I update my brand colours?"
+              >
+                ?
+              </button>
             </h2>
             <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Configure logo, color scheme, and appearance of your public pages.</p>
           </div>
@@ -600,6 +609,138 @@ export default function BrandPage() {
           </div>
         </div>
       </div>
+
+      {/* Help Centre Modal with Apple-style smooth spring animation */}
+      <AnimatePresence>
+        {showHelpModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+              onClick={() => setShowHelpModal(false)}
+              className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+            />
+
+            {/* Modal Dialog Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 12 }}
+              transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.9 }}
+              className="relative w-full max-w-3xl rounded-2xl bg-[#141517] text-white border border-zinc-800/90 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden flex flex-col max-h-[90vh] z-10"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-[#16181C]">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0066B2] text-white font-bold shadow-xs">
+                    <Palette className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Help centre</h3>
+                    <p className="text-xs text-zinc-400">Learn the basics or find your next step.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowHelpModal(false)}
+                  className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-white transition cursor-pointer"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Sub-header navigation */}
+              <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-800/60 bg-[#111215] text-xs font-semibold text-zinc-400">
+                <button
+                  type="button"
+                  onClick={() => setShowHelpModal(false)}
+                  className="flex items-center gap-2 hover:text-white transition cursor-pointer"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>All help topics</span>
+                </button>
+                <span className="uppercase tracking-wider text-[10px] text-zinc-500 font-bold">LEARN</span>
+              </div>
+
+              {/* Content Body */}
+              <div className="p-8 space-y-7 overflow-y-auto">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#38BDF8]">
+                      <Palette className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">PAGE APPEARANCE</span>
+                      <h2 className="text-xl font-bold text-white leading-tight">How do I update my brand colours?</h2>
+                    </div>
+                  </div>
+                  <p className="text-sm text-zinc-400 leading-relaxed pl-13">
+                    Brand settings apply to every public lead magnet and to the editor preview.
+                  </p>
+                </div>
+
+                {/* Numbered Steps */}
+                <div className="space-y-5 pl-2">
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#38BDF8] text-xs font-bold mt-0.5">
+                      1
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-semibold text-white">Open your brand settings</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5">Open Brand from the dashboard sidebar.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#38BDF8] text-xs font-bold mt-0.5">
+                      2
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-semibold text-white">Set the identity and colour</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5">Add your business name, upload a logo, and choose the primary colour used across your pages.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#38BDF8] text-xs font-bold mt-0.5">
+                      3
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-semibold text-white">Choose the page style</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5">Choose light or dark page appearance and adjust the highlight intensity.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#38BDF8] text-xs font-bold mt-0.5">
+                      4
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-semibold text-white">Preview and save</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5">Check the preview, then choose Save brand.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Button */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowHelpModal(false)}
+                    className="inline-flex items-center gap-2.5 rounded-xl bg-[#0066B2] px-5 py-3 text-sm font-bold text-white hover:bg-[#005799] transition shadow-lg cursor-pointer"
+                  >
+                    <span>Open Brand settings</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </DashboardShell>
   );
 }

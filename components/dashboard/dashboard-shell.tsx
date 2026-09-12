@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink, ListChecks, Loader2 } from "lucide-react";
+import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Monitor, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink, ListChecks, Loader2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
@@ -54,6 +54,7 @@ export default function DashboardShell({
   }, [showProfileMenu]);
   const [searchQuery, setSearchQuery] = useState("");
   const [dark, setDark] = useState(false);
+  const [themeMode, setThemeMode] = useState<"light" | "dark" | "system">("system");
   const [showCreateMagnetModal, setShowCreateMagnetModal] = useState(false);
   const [createMagnetName, setCreateMagnetName] = useState("");
 
@@ -61,15 +62,22 @@ export default function DashboardShell({
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
 
-  const toggleTheme = () => {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    document.documentElement.classList.toggle("light", !next);
-    document.documentElement.dataset.theme = next ? "dark" : "light";
-    document.documentElement.style.colorScheme = next ? "dark" : "light";
+  const applyThemeMode = (mode: "light" | "dark" | "system") => {
+    setThemeMode(mode);
+    let isDark = false;
+    if (mode === "system") {
+      isDark = typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    } else {
+      isDark = mode === "dark";
+    }
+    setDark(isDark);
+    document.documentElement.classList.toggle("dark", isDark);
+    document.documentElement.classList.toggle("light", !isDark);
+    document.documentElement.dataset.theme = isDark ? "dark" : "light";
+    document.documentElement.style.colorScheme = isDark ? "dark" : "light";
     try {
-      localStorage.setItem("leadmagnets-theme", next ? "dark" : "light");
+      localStorage.setItem("leadmagnets-theme-mode", mode);
+      localStorage.setItem("leadmagnets-theme", isDark ? "dark" : "light");
     } catch (_) { }
   };
 
@@ -119,6 +127,10 @@ export default function DashboardShell({
 
   useEffect(() => {
     setMounted(true);
+    if (typeof window !== "undefined") {
+      const savedMode = (localStorage.getItem("leadmagnets-theme-mode") as "light" | "dark" | "system") || "system";
+      setThemeMode(savedMode);
+    }
     setDark(typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
 
     const loaded = loadAccount();
@@ -342,24 +354,36 @@ export default function DashboardShell({
                   className="absolute bottom-full mb-2 left-0 w-52 rounded-xl border border-[#E0EDFB] bg-white p-1.5 shadow-xl z-[70] text-zinc-900 flex flex-col gap-0.5 dark:border-zinc-800/80 dark:bg-[#18181b] dark:text-white dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)]"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      toggleTheme();
-                      setShowProfileMenu(false);
-                    }}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
-                  >
-                    {dark ? (
-                      <>
-                        <Sun className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Light mode
-                      </>
-                    ) : (
-                      <>
-                        <Moon className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Dark mode
-                      </>
-                    )}
-                  </button>
+                  <div className="relative flex items-center justify-between p-1 bg-zinc-100 dark:bg-zinc-800/70 rounded-xl border border-zinc-200/80 dark:border-zinc-700/50 my-0.5 select-none">
+                    {(["light", "dark", "system"] as const).map((mode) => {
+                      const Icon = mode === "light" ? Sun : mode === "dark" ? Moon : Monitor;
+                      const isActive = themeMode === mode;
+                      return (
+                        <button
+                          key={mode}
+                          type="button"
+                          title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} mode`}
+                          onClick={() => applyThemeMode(mode)}
+                          className={`relative flex-1 flex items-center justify-center py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer z-10 ${
+                            isActive
+                              ? "text-zinc-900 dark:text-white"
+                              : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                          }`}
+                        >
+                          {isActive && (
+                            <motion.div
+                              layoutId="activeThemePillSidebar"
+                              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                              className="absolute inset-0 bg-white dark:bg-zinc-900 rounded-lg shadow-sm"
+                            />
+                          )}
+                          <span className="relative z-10 flex items-center justify-center">
+                            <Icon className="h-4 w-4" />
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
@@ -515,23 +539,36 @@ export default function DashboardShell({
               </button>
               {showProfileMenu && (
                 <div className="absolute right-0 top-10 w-52 rounded-xl border border-[#E0EDFB] bg-white p-1.5 shadow-2xl z-50 text-zinc-900 flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-2 duration-150 dark:border-zinc-800 dark:bg-[#191919] dark:text-white">
-                  <button
-                    onClick={() => {
-                      toggleTheme();
-                      setShowProfileMenu(false);
-                    }}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
-                  >
-                    {dark ? (
-                      <>
-                        <Sun className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Light mode
-                      </>
-                    ) : (
-                      <>
-                        <Moon className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Dark mode
-                      </>
-                    )}
-                  </button>
+                  <div className="relative flex items-center justify-between p-1 bg-zinc-100 dark:bg-zinc-800/70 rounded-xl border border-zinc-200/80 dark:border-zinc-700/50 my-0.5 select-none">
+                    {(["light", "dark", "system"] as const).map((mode) => {
+                      const Icon = mode === "light" ? Sun : mode === "dark" ? Moon : Monitor;
+                      const isActive = themeMode === mode;
+                      return (
+                        <button
+                          key={mode}
+                          type="button"
+                          title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} mode`}
+                          onClick={() => applyThemeMode(mode)}
+                          className={`relative flex-1 flex items-center justify-center py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer z-10 ${
+                            isActive
+                              ? "text-zinc-900 dark:text-white"
+                              : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                          }`}
+                        >
+                          {isActive && (
+                            <motion.div
+                              layoutId="activeThemePillTopbar"
+                              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                              className="absolute inset-0 bg-white dark:bg-zinc-900 rounded-lg shadow-sm"
+                            />
+                          )}
+                          <span className="relative z-10 flex items-center justify-center">
+                            <Icon className="h-4 w-4" />
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
