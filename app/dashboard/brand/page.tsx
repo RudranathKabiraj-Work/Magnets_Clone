@@ -14,6 +14,7 @@ export default function BrandPage() {
   const [brandColor, setBrandColor] = useState("#0066B2");
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   const [highlightIntensity, setHighlightIntensity] = useState<number>(100);
+  const [templateId, setTemplateId] = useState<"template1" | "template2" | "template3">("template1");
   const [logo, setLogo] = useState<string | null>(null);
   const [latestPage, setLatestPage] = useState<MagnetPage | null>(null);
   const [saving, setSaving] = useState(false);
@@ -47,6 +48,7 @@ export default function BrandPage() {
       setBrandColor(localAccount.brandColor || "#0066B2");
       setThemeMode(localAccount.themeMode || "light");
       setHighlightIntensity(localAccount.highlightIntensity ?? 100);
+      setTemplateId(localAccount.templateId || "template1");
       setLogo(localAccount.logo || null);
     }
 
@@ -66,6 +68,7 @@ export default function BrandPage() {
         setBrandColor(data.account.brandColor || "#0066B2");
         setThemeMode(data.account.themeMode || "light");
         setHighlightIntensity(data.account.highlightIntensity ?? 100);
+        setTemplateId(data.account.templateId || "template1");
         setLogo(data.account.logo || null);
       }
       if (data && data.pages && data.pages.length > 0) {
@@ -86,6 +89,7 @@ export default function BrandPage() {
       brandColor: brandColor.trim(),
       themeMode,
       highlightIntensity,
+      templateId,
       logo,
     };
 
@@ -156,13 +160,12 @@ export default function BrandPage() {
     }
   };
 
-
-
   const hasUnsavedChanges =
     businessName !== (account?.name || "") ||
     brandColor !== (account?.brandColor || "#0066B2") ||
     themeMode !== (account?.themeMode || "light") ||
     highlightIntensity !== (account?.highlightIntensity ?? 100) ||
+    templateId !== (account?.templateId || "template1") ||
     logo !== account?.logo;
 
   return (
@@ -410,9 +413,33 @@ export default function BrandPage() {
             {/* Live Preview Panel */}
             <div className="lg:col-span-8">
               <div className="rounded-2xl border border-[#0066B2]/35 bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] p-5 shadow-sm dark:shadow-2xl h-full flex flex-col transition-colors">
-                <div className="flex flex-col gap-1 mb-4 pb-3 border-b border-zinc-200 dark:border-[#2e2e38]/50">
-                  <span className="text-sm font-bold text-zinc-900 dark:text-zinc-200 uppercase tracking-wider">Preview</span>
-                  <span className="text-xs text-zinc-500 dark:text-[#9B9085]">How your brand appears on a full magnet page.</span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-zinc-200 dark:border-[#2e2e38]/50">
+                  <div>
+                    <span className="text-sm font-bold text-zinc-900 dark:text-zinc-200 uppercase tracking-wider">Preview & Template</span>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">Select a layout template and customize your brand appearance.</p>
+                  </div>
+
+                  {/* Template Switcher Buttons */}
+                  <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-[#111113] p-1 rounded-xl border border-zinc-200 dark:border-[#2b2b32]">
+                    {[
+                      { id: "template1", label: "Template 1", desc: "Modern Split" },
+                      { id: "template2", label: "Template 2", desc: "Centered Focus" },
+                      { id: "template3", label: "Template 3", desc: "Hero Banner" },
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setTemplateId(t.id as any)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${templateId === t.id
+                          ? "bg-[#0066B2] text-white shadow-xs font-bold"
+                          : "text-zinc-600 dark:text-[#9B9085] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/60 dark:hover:bg-[#1d1d22]"
+                          }`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: templateId === t.id ? '#ffffff' : '#9CA3AF' }} />
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 {/* Outer frame matching client page background theme mode */}
                 <div

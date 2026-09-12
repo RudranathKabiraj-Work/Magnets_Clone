@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { Sparkles, Globe, Plug, FileText, ChevronDown, ChevronUp, Check, Mail, Calendar, Slack, Zap, Copy, RefreshCw, Loader2, Eye, EyeOff } from "lucide-react";
+import { Sparkles, Globe, Plug, FileText, ChevronDown, ChevronUp, Check, Mail, Calendar, Slack, Zap, Copy, RefreshCw, Loader2, Eye, EyeOff, Settings, X, ArrowLeft, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { syncWithDatabase, saveAccount, loadAccount } from "@/lib/store";
 import { type Account, getAppUrl, getAppDomain } from "@/lib/data";
 
@@ -42,6 +43,7 @@ export default function WorkspaceSetupPage() {
   const [substackPublication, setSubstackPublication] = useState("");
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const [uploadingOgImage, setUploadingOgImage] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   // Accordions — "public-url" open by default, custom-domain always visible inside it
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -172,7 +174,14 @@ export default function WorkspaceSetupPage() {
           <div className="mb-6">
             <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-900 dark:text-white">
               Workspace setup
-              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-xs font-normal text-zinc-500 hover:bg-zinc-100 dark:border-[#2e2e38] dark:text-[#9B9085] dark:hover:bg-[#18181B]">?</span>
+              <button
+                type="button"
+                onClick={() => setShowHelpModal(true)}
+                className="flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-xs font-normal text-zinc-500 hover:bg-zinc-200 dark:border-[#2e2e38] dark:text-[#9B9085] dark:hover:bg-[#18181B] dark:hover:text-white transition cursor-pointer"
+                title="Help: What belongs in Workspace setup?"
+              >
+                ?
+              </button>
             </h2>
             <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
               Manage your publishing address,{" "}
@@ -1788,6 +1797,126 @@ export default function WorkspaceSetupPage() {
 
         </div>
       </div>
+
+      {/* Help Centre Modal with Apple-style smooth spring animation */}
+      <AnimatePresence>
+        {showHelpModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+              onClick={() => setShowHelpModal(false)}
+              className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+            />
+
+            {/* Modal Dialog Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 12 }}
+              transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.9 }}
+              className="relative w-full max-w-3xl rounded-2xl bg-[#141517] text-white border border-zinc-800/90 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden flex flex-col max-h-[90vh] z-10"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-[#16181C]">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0066B2] text-white font-bold shadow-xs">
+                    <Settings className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Help centre</h3>
+                    <p className="text-xs text-zinc-400">Learn the basics or find your next step.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowHelpModal(false)}
+                  className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-white transition cursor-pointer"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Sub-header navigation */}
+              <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-800/60 bg-[#111215] text-xs font-semibold text-zinc-400">
+                <button
+                  type="button"
+                  onClick={() => setShowHelpModal(false)}
+                  className="flex items-center gap-2 hover:text-white transition cursor-pointer"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>All help topics</span>
+                </button>
+                <span className="uppercase tracking-wider text-[10px] text-zinc-500 font-bold">LEARN</span>
+              </div>
+
+              {/* Content Body */}
+              <div className="p-8 space-y-7 overflow-y-auto">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#38BDF8]">
+                      <Settings className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">YOUR ACCOUNT FOUNDATIONS</span>
+                      <h2 className="text-xl font-bold text-white leading-tight">What belongs in Workspace setup?</h2>
+                    </div>
+                  </div>
+                  <p className="text-sm text-zinc-400 leading-relaxed">
+                    Workspace setup controls where your pages live, where emails come from, and which other tools receive new signups. You do not need to connect every option before creating a lead magnet.
+                  </p>
+                </div>
+
+                {/* 5 Feature Cards Grid matching screenshot */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Card 1 */}
+                  <div className="rounded-xl border border-zinc-800/80 bg-[#181A1F] p-4 space-y-1.5">
+                    <h4 className="text-sm font-bold text-white">LeadMagnets URL</h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Choose the included leadmagnets.so address used by your published pages.
+                    </p>
+                  </div>
+
+                  {/* Card 2 */}
+                  <div className="rounded-xl border border-zinc-800/80 bg-[#181A1F] p-4 space-y-1.5">
+                    <h4 className="text-sm font-bold text-white">Custom domain</h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Optionally use a branded page address on a domain you own.
+                    </p>
+                  </div>
+
+                  {/* Card 3 */}
+                  <div className="rounded-xl border border-zinc-800/80 bg-[#181A1F] p-4 space-y-1.5">
+                    <h4 className="text-sm font-bold text-white">Email and scheduling</h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Optionally use your own sender domain or stop a sequence when someone books.
+                    </p>
+                  </div>
+
+                  {/* Card 4 */}
+                  <div className="rounded-xl border border-zinc-800/80 bg-[#181A1F] p-4 space-y-1.5">
+                    <h4 className="text-sm font-bold text-white">Connections</h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Optionally send signups to a newsletter, Slack, Zapier, Kit, or Pipedrive.
+                    </p>
+                  </div>
+
+                  {/* Card 5 */}
+                  <div className="rounded-xl border border-zinc-800/80 bg-[#181A1F] p-4 space-y-1.5 md:col-span-2">
+                    <h4 className="text-sm font-bold text-white">Legal links</h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Add your privacy policy and terms to the footer of every public lead magnet page.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </DashboardShell>
   );
 }

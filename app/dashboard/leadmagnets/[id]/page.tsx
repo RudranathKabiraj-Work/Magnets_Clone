@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -220,6 +221,7 @@ export default function EditLeadMagnetPage() {
   const [formSubtitle, setFormSubtitle] = useState(page?.formSubtitle || "Pop your email in and we'll send it straight over.");
   const [formButtonText, setFormButtonText] = useState(page?.formButtonText || page?.cta || "Send it to me");
   const [imageUrl, setImageUrl] = useState<string | null>(initialImage);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [newBulletText, setNewBulletText] = useState("");
   const [showAddBullet, setShowAddBullet] = useState(false);
 
@@ -979,6 +981,22 @@ export default function EditLeadMagnetPage() {
     const inputTarget = e.target;
     const file = inputTarget.files?.[0];
     if (file) {
+      setUploadProgress(0);
+
+      // Smooth Apple-style progress physics animation loop
+      let targetPercent = 10;
+      let currentPercent = 0;
+      
+      const animationTimer = setInterval(() => {
+        if (currentPercent < targetPercent) {
+          // Smooth deceleration interpolation (ease-out trickle)
+          const diff = targetPercent - currentPercent;
+          const step = Math.max(1, Math.ceil(diff * 0.2));
+          currentPercent = Math.min(targetPercent, currentPercent + step);
+          setUploadProgress(currentPercent);
+        }
+      }, 50);
+
       try {
         const formData = new FormData();
         formData.append("file", file);
@@ -987,43 +1005,61 @@ export default function EditLeadMagnetPage() {
           formData.append("userEmail", account.email);
         }
 
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
+        const uploadedUrl = await new Promise<string>((resolve) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", "/api/upload");
+
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable && event.total > 0) {
+              const raw = Math.round((event.loaded / event.total) * 85);
+              targetPercent = Math.max(targetPercent, Math.min(85, raw));
+            }
+          };
+
+          xhr.onload = async () => {
+            targetPercent = 95;
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const json = JSON.parse(xhr.responseText);
+                resolve(json?.data?.fileUrl || (await compressImage(file)));
+              } catch (_) {
+                resolve(await compressImage(file));
+              }
+            } else {
+              resolve(await compressImage(file));
+            }
+          };
+
+          xhr.onerror = async () => {
+            resolve(await compressImage(file));
+          };
+
+          xhr.send(formData);
         });
 
-        if (res.ok) {
-          const json = await res.json();
-          const uploadedUrl = json?.data?.fileUrl || (await compressImage(file));
-          setImageUrl(uploadedUrl);
-          if (page) {
-            const updated = { ...page, imageUrl: uploadedUrl };
-            setPage(updated);
-            const all = loadPages().map((p) => (p.id === updated.id ? updated : p));
-            savePages(all);
-          }
-        } else {
-          const compressed = await compressImage(file);
-          setImageUrl(compressed);
-          if (page) {
-            const updated = { ...page, imageUrl: compressed };
-            setPage(updated);
-            const all = loadPages().map((p) => (p.id === updated.id ? updated : p));
-            savePages(all);
-          }
+        // Fast client image compression/decoding pre-step
+        const img = new Image();
+        img.src = uploadedUrl;
+        await img.decode().catch(() => {});
+
+        clearInterval(animationTimer);
+        setUploadProgress(100);
+        setImageUrl(uploadedUrl);
+
+        if (page) {
+          const updated = { ...page, imageUrl: uploadedUrl };
+          setPage(updated);
+          const all = loadPages().map((p) => (p.id === updated.id ? updated : p));
+          savePages(all);
         }
+
+        setTimeout(() => {
+          setUploadProgress(null);
+        }, 250);
       } catch (err) {
+        clearInterval(animationTimer);
         console.error("Image upload error", err);
-        try {
-          const compressed = await compressImage(file);
-          setImageUrl(compressed);
-          if (page) {
-            const updated = { ...page, imageUrl: compressed };
-            setPage(updated);
-            const all = loadPages().map((p) => (p.id === updated.id ? updated : p));
-            savePages(all);
-          }
-        } catch (_) { }
+        setUploadProgress(null);
       }
       inputTarget.value = "";
     }
@@ -1526,46 +1562,92 @@ export default function EditLeadMagnetPage() {
                               accept="image/*"
                               className="hidden"
                             />
-                            {imageUrl ? (
-                              <div className={`relative group rounded-2xl overflow-hidden border shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/20" : "border-black/10 bg-white"}`}>
-                                <img src={imageUrl} alt="Uploaded magnet media" className="w-full object-cover max-h-72 rounded-2xl" />
-                                <div className="absolute bottom-4 right-4 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      fileInputRef.current?.click();
-                                    }}
-                                    className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-black px-3.5 py-2 text-xs font-bold text-white shadow-md border border-white/20 transition cursor-pointer pointer-events-auto"
-                                  >
-                                    <ImageIcon className="h-4 w-4 text-zinc-400" />
-                                    <span>Replace</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setImageUrl(null);
-                                    }}
-                                    className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-red-950/80 px-3.5 py-2 text-xs font-bold text-red-400 shadow-md border border-white/20 transition cursor-pointer pointer-events-auto"
-                                  >
-                                    <Trash2 className="h-4 w-4 text-red-400" />
-                                    <span>Remove</span>
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className={`rounded-2xl border-2 border-dashed p-6 text-center transition ${(account?.themeMode || "light") === "dark" ? "border-white/15 bg-black/20 text-white hover:border-white/30" : "border-black/15 bg-white text-zinc-900 hover:border-black/30"}`}>
-                                <button
-                                  onClick={() => fileInputRef.current?.click()}
-                                  className="flex flex-col items-center justify-center w-full py-4 cursor-pointer"
+                            <AnimatePresence mode="wait">
+                              {uploadProgress !== null ? (
+                                <motion.div
+                                  key="progress"
+                                  initial={{ opacity: 0, scale: 0.98 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.98 }}
+                                  transition={{ duration: 0.15 }}
+                                  className={`rounded-2xl border-2 border-dashed p-6 text-center flex flex-col items-center justify-center min-h-[140px] ${(account?.themeMode || "light") === "dark" ? "border-[#0066B2]/50 bg-[#0066B2]/10 text-white" : "border-[#0066B2]/50 bg-[#EFF6FF] text-zinc-900"}`}
                                 >
-                                  <ImageIcon className="h-7 w-7 text-zinc-400 mb-2" />
-                                  <span className="text-xs font-bold">Add an image</span>
-                                  <span className="text-[11px] text-zinc-400 mt-0.5">PNG, JPG, WebP, or GIF. 10 MB max.</span>
-                                </button>
-                              </div>
-                            )}
+                                  <div className="w-full max-w-xs space-y-3">
+                                    <div className="flex items-center justify-between text-xs font-bold">
+                                      <span className="flex items-center gap-2 text-[#0066B2] dark:text-[#38BDF8]">
+                                        {uploadProgress === 100 ? (
+                                          <Check className="h-4 w-4 text-emerald-500" />
+                                        ) : (
+                                          <Loader2 className="h-4 w-4 animate-spin" />
+                                        )}
+                                        {uploadProgress === 100 ? "Image uploaded!" : "Uploading image..."}
+                                      </span>
+                                      <span className="font-mono text-[#0066B2] dark:text-[#38BDF8]">{uploadProgress}%</span>
+                                    </div>
+                                    <div className="h-2 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                                      <div
+                                        className="h-full bg-[#0066B2] dark:bg-[#38BDF8] rounded-full transition-all duration-150 ease-out"
+                                        style={{ width: `${uploadProgress}%` }}
+                                      />
+                                    </div>
+                                    <p className="text-[11px] text-zinc-400">Optimizing media assets...</p>
+                                  </div>
+                                </motion.div>
+                              ) : imageUrl ? (
+                                <motion.div
+                                  key="image"
+                                  initial={{ opacity: 0, scale: 0.98 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.98 }}
+                                  transition={{ duration: 0.2 }}
+                                  className={`relative group rounded-2xl overflow-hidden border shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/20" : "border-black/10 bg-white"}`}
+                                >
+                                  <img src={imageUrl} alt="Uploaded magnet media" className="w-full object-cover max-h-72 rounded-2xl" />
+                                  <div className="absolute bottom-4 right-4 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        fileInputRef.current?.click();
+                                      }}
+                                      className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-black px-3.5 py-2 text-xs font-bold text-white shadow-md border border-white/20 transition cursor-pointer pointer-events-auto"
+                                    >
+                                      <ImageIcon className="h-4 w-4 text-zinc-400" />
+                                      <span>Replace</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setImageUrl(null);
+                                      }}
+                                      className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-red-950/80 px-3.5 py-2 text-xs font-bold text-red-400 shadow-md border border-white/20 transition cursor-pointer pointer-events-auto"
+                                    >
+                                      <Trash2 className="h-4 w-4 text-red-400" />
+                                      <span>Remove</span>
+                                    </button>
+                                  </div>
+                                </motion.div>
+                              ) : (
+                                <motion.div
+                                  key="dropzone"
+                                  initial={{ opacity: 0, scale: 0.98 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.98 }}
+                                  transition={{ duration: 0.15 }}
+                                  className={`rounded-2xl border-2 border-dashed p-6 text-center transition ${(account?.themeMode || "light") === "dark" ? "border-white/15 bg-black/20 text-white hover:border-white/30" : "border-black/15 bg-white text-zinc-900 hover:border-black/30"}`}
+                                >
+                                  <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="flex flex-col items-center justify-center w-full py-4 cursor-pointer"
+                                  >
+                                    <ImageIcon className="h-7 w-7 text-zinc-400 mb-2" />
+                                    <span className="text-xs font-bold">Add an image</span>
+                                    <span className="text-[11px] text-zinc-400 mt-0.5">PNG, JPG, WebP, or GIF. 10 MB max.</span>
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </div>
 
                           {/* Signup Form Card - Fully Editable Title, Subtitle & Button CTA (Except Name & Email Inputs) */}
