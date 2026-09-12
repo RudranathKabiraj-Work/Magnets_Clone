@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ExternalLink,
   Eye,
@@ -296,139 +297,199 @@ export default function PagesPage() {
               <div className="flex items-center gap-2 shrink-0 justify-between sm:justify-end">
                 {/* Status Filter Pills */}
                 <div className="flex items-center p-1 bg-zinc-100 dark:bg-[#1C1C20] rounded-xl text-xs font-semibold">
-                  <button
-                    onClick={() => setStatusFilter("all")}
-                    className={`px-3 py-1 rounded-lg transition-all ${statusFilter === "all" ? "bg-white dark:bg-[#2A2A30] text-zinc-900 dark:text-white shadow-xs" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"}`}
-                  >
-                    All ({total})
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter("live")}
-                    className={`px-3 py-1 rounded-lg transition-all ${statusFilter === "live" ? "bg-white dark:bg-[#2A2A30] text-emerald-600 dark:text-emerald-400 shadow-xs" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"}`}
-                  >
-                    Live ({liveCount})
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter("draft")}
-                    className={`px-3 py-1 rounded-lg transition-all ${statusFilter === "draft" ? "bg-white dark:bg-[#2A2A30] text-zinc-900 dark:text-white shadow-xs" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"}`}
-                  >
-                    Draft ({draftCount})
-                  </button>
+                  {[
+                    { id: "all", label: `All (${total})` },
+                    { id: "live", label: `Live (${liveCount})` },
+                    { id: "draft", label: `Draft (${draftCount})` },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setStatusFilter(tab.id as any)}
+                      className={`relative px-3 py-1 rounded-lg transition-colors duration-200 cursor-pointer ${
+                        statusFilter === tab.id
+                          ? tab.id === "live"
+                            ? "text-emerald-600 dark:text-emerald-400 font-bold"
+                            : "text-zinc-900 dark:text-white font-bold"
+                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                      }`}
+                    >
+                      {statusFilter === tab.id && (
+                        <motion.div
+                          layoutId="activeStatusFilterTab"
+                          className="absolute inset-0 bg-white dark:bg-[#2A2A30] rounded-lg shadow-xs"
+                          transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                        />
+                      )}
+                      <span className="relative z-10">{tab.label}</span>
+                    </button>
+                  ))}
                 </div>
 
                 {/* View Toggles */}
                 <div className="flex items-center p-1 bg-zinc-100 dark:bg-[#1C1C20] rounded-xl">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-white dark:bg-[#2A2A30] text-[#0066B2] dark:text-[#38BDF8] shadow-xs" : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"}`}
+                    className={`relative p-1.5 rounded-lg transition-colors duration-150 cursor-pointer ${
+                      viewMode === "grid" ? "text-[#0066B2] dark:text-[#38BDF8]" : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                    }`}
                     title="Grid View"
                   >
-                    <LayoutGrid className="h-4 w-4" />
+                    {viewMode === "grid" && (
+                      <motion.div
+                        layoutId="activeViewModeTab"
+                        className="absolute inset-0 bg-white dark:bg-[#2A2A30] rounded-lg shadow-xs"
+                        transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                      />
+                    )}
+                    <LayoutGrid className="relative z-10 h-4 w-4" />
                   </button>
+
                   <button
                     onClick={() => setViewMode("table")}
-                    className={`p-1.5 rounded-lg transition-all ${viewMode === "table" ? "bg-white dark:bg-[#2A2A30] text-[#0066B2] dark:text-[#38BDF8] shadow-xs" : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"}`}
+                    className={`relative p-1.5 rounded-lg transition-colors duration-150 cursor-pointer ${
+                      viewMode === "table" ? "text-[#0066B2] dark:text-[#38BDF8]" : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                    }`}
                     title="Table View"
                   >
-                    <List className="h-4 w-4" />
+                    {viewMode === "table" && (
+                      <motion.div
+                        layoutId="activeViewModeTab"
+                        className="absolute inset-0 bg-white dark:bg-[#2A2A30] rounded-lg shadow-xs"
+                        transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                      />
+                    )}
+                    <List className="relative z-10 h-4 w-4" />
                   </button>
                 </div>
               </div>
             </div>
 
             {/* List / Grid Display */}
-            {filtered.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800 bg-white dark:bg-[#141417] p-12 text-center flex flex-col items-center justify-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EFF6FF] dark:bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8] mb-3">
-                  <Sparkles className="h-6 w-6" />
-                </div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">No lead magnets found</h3>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-xs">
-                  {search ? "Try adjusting your search query or clear filters." : "Create your first lead magnet to start collecting emails."}
-                </p>
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="mt-4 flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005799] transition cursor-pointer"
+            <AnimatePresence mode="popLayout">
+              {filtered.length === 0 ? (
+                <motion.div
+                  key="empty-state"
+                  initial={{ opacity: 0, y: 8, scale: 0.99 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.15 }}
+                  className="rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800 bg-white dark:bg-[#141417] p-12 text-center flex flex-col items-center justify-center"
                 >
-                  <Plus className="h-4 w-4" /> Create Lead Magnet
-                </button>
-              </div>
-            ) : viewMode === "grid" ? (
-              /* GRID VIEW */
-              <div className="flex flex-col space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {paginatedItems.map((page) => {
-                    const isSelected = activePage?.id === page.id;
-                    return (
-                      <div
-                        key={page.id}
-                        onClick={() => setSelectedPageId(page.id)}
-                        className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col ${isSelected
-                          ? "border-[#0066B2] dark:border-[#38BDF8] bg-white dark:bg-[#18181C] ring-2 ring-[#0066B2]/20 dark:ring-[#38BDF8]/20 shadow-md"
-                          : "border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs"
-                          }`}
-                      >
-                        {/* Image Thumbnail Container */}
-                        <div className="relative h-40 w-full bg-zinc-100 dark:bg-[#0F0F12] border-b border-zinc-100 dark:border-zinc-800/60 overflow-hidden">
-                          {page.imageUrl && page.imageUrl.trim() !== "" ? (
-                            <img
-                              src={page.imageUrl}
-                              alt={page.name}
-                              className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
-                            />
-                          ) : (
-                            <div className="h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-[#121216] dark:to-[#18181D]">
-                              <ImageIcon className="h-8 w-8 stroke-[1.5px]" />
-                            </div>
-                          )}
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EFF6FF] dark:bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8] mb-3">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-base font-bold text-zinc-900 dark:text-white">No lead magnets found</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-xs">
+                    {search ? "Try adjusting your search query or clear filters." : "Create your first lead magnet to start collecting emails."}
+                  </p>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="mt-4 flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005799] transition cursor-pointer"
+                  >
+                    <Plus className="h-4 w-4" /> Create Lead Magnet
+                  </button>
+                </motion.div>
+              ) : viewMode === "grid" ? (
+                /* GRID VIEW */
+                <motion.div
+                  key={`grid-${statusFilter}-${search}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex flex-col space-y-4"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {paginatedItems.map((page, index) => {
+                      const isSelected = activePage?.id === page.id;
+                      return (
+                        <motion.div
+                          key={page.id}
+                          layout
+                          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.97 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 550,
+                            damping: 34,
+                            mass: 0.5,
+                            delay: index * 0.025
+                          }}
+                          onClick={() => setSelectedPageId(page.id)}
+                          className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col ${isSelected
+                            ? "border-[#0066B2] dark:border-[#38BDF8] bg-white dark:bg-[#18181C] ring-2 ring-[#0066B2]/20 dark:ring-[#38BDF8]/20 shadow-md"
+                            : "border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs"
+                            }`}
+                        >
+                          {/* Image Thumbnail Container */}
+                          <div className="relative h-40 w-full bg-zinc-100 dark:bg-[#0F0F12] border-b border-zinc-100 dark:border-zinc-800/60 overflow-hidden">
+                            {page.imageUrl && page.imageUrl.trim() !== "" ? (
+                              <img
+                                src={page.imageUrl}
+                                alt={page.name}
+                                className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
+                              />
+                            ) : (
+                              <div className="h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-[#121216] dark:to-[#18181D]">
+                                <ImageIcon className="h-8 w-8 stroke-[1.5px]" />
+                              </div>
+                            )}
 
-                          {/* Top Badges */}
-                          <div className="absolute top-3 left-3 flex items-center">
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border ${page.status === "live"
-                                ? "bg-emerald-500/90 text-white border-emerald-400/30"
-                                : "bg-zinc-900/80 text-zinc-300 border-zinc-700/50"
-                                }`}
-                            >
-                              <span className={`h-1.5 w-1.5 rounded-full ${page.status === "live" ? "bg-white animate-pulse" : "bg-zinc-400"}`} />
-                              {page.status === "live" ? "Published" : "Draft"}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Content Section */}
-                        <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                          <div>
-                            <h3 className="text-sm font-bold text-zinc-900 dark:text-white line-clamp-1 group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8] transition">
-                              {page.headline || page.name}
-                            </h3>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1">
-                              {page.subheadline || "No description set yet."}
-                            </p>
-                          </div>
-
-                          {/* Card Footer Actions */}
-                          <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between text-xs">
-                            <span className="text-[11px] font-mono text-zinc-400 truncate max-w-[140px]">/{page.slug}</span>
-
-                            <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                              <Link
-                                href={`/dashboard/leadmagnets/${page.id}`}
-                                className="flex items-center gap-1 rounded-lg bg-[#0066B2]/10 dark:bg-[#0066B2]/20 px-2.5 py-1 text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:bg-[#0066B2] hover:text-white dark:hover:bg-[#0066B2] dark:hover:text-white transition"
+                            {/* Top Badges */}
+                            <div className="absolute top-3 left-3 flex items-center">
+                              <span
+                                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border ${page.status === "live"
+                                  ? "bg-emerald-500/90 text-white border-emerald-400/30"
+                                  : "bg-zinc-900/80 text-zinc-300 border-zinc-700/50"
+                                  }`}
                               >
-                                <Pencil className="h-3 w-3" /> Edit
-                              </Link>
+                                <span className={`h-1.5 w-1.5 rounded-full ${page.status === "live" ? "bg-white animate-pulse" : "bg-zinc-400"}`} />
+                                {page.status === "live" ? "Published" : "Draft"}
+                              </span>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+
+                          {/* Content Section */}
+                          <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                            <div>
+                              <h3 className="text-sm font-bold text-zinc-900 dark:text-white line-clamp-1 group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8] transition">
+                                {page.headline || page.name}
+                              </h3>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1">
+                                {page.subheadline || "No description set yet."}
+                              </p>
+                            </div>
+
+                            {/* Card Footer Actions */}
+                            <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between text-xs">
+                              <span className="text-[11px] font-mono text-zinc-400 truncate max-w-[140px]">/{page.slug}</span>
+
+                              <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                <Link
+                                  href={`/dashboard/leadmagnets/${page.id}`}
+                                  className="flex items-center gap-1 rounded-lg bg-[#0066B2]/10 dark:bg-[#0066B2]/20 px-2.5 py-1 text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:bg-[#0066B2] hover:text-white dark:hover:bg-[#0066B2] dark:hover:text-white transition"
+                                >
+                                  <Pencil className="h-3 w-3" /> Edit
+                                </Link>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
             ) : (
               /* TABLE VIEW */
-              <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] overflow-hidden shadow-xs">
+              <motion.div
+                key={`table-${statusFilter}-${search}`}
+                initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12, scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 350, damping: 28, mass: 0.8 }}
+                className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] overflow-hidden shadow-xs"
+              >
                 <table className="w-full text-left text-xs text-zinc-600 dark:text-zinc-400">
                   <thead className="bg-zinc-50/80 dark:bg-[#1A1A1E] text-zinc-400 dark:text-zinc-500 uppercase font-semibold text-[10px] tracking-wider border-b border-zinc-200/80 dark:border-zinc-800">
                     <tr>
@@ -505,8 +566,9 @@ export default function PagesPage() {
                     })}
                   </tbody>
                 </table>
-              </div>
+              </motion.div>
             )}
+            </AnimatePresence>
 
             {/* Pagination Controls Bar */}
             {totalPagesCount > 1 && (

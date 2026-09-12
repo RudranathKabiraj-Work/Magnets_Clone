@@ -14,7 +14,7 @@ export default function BrandPage() {
   const [brandColor, setBrandColor] = useState("#0066B2");
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   const [highlightIntensity, setHighlightIntensity] = useState<number>(100);
-  const [templateId, setTemplateId] = useState<"template1" | "template2" | "template3">("template1");
+  const [templateId, setTemplateId] = useState<"template1" | "template2" | "template3" | "template4" | "template5" | "template6" | "template7">("template1");
   const [logo, setLogo] = useState<string | null>(null);
   const [latestPage, setLatestPage] = useState<MagnetPage | null>(null);
   const [saving, setSaving] = useState(false);
@@ -166,7 +166,7 @@ export default function BrandPage() {
     themeMode !== (account?.themeMode || "light") ||
     highlightIntensity !== (account?.highlightIntensity ?? 100) ||
     templateId !== (account?.templateId || "template1") ||
-    logo !== account?.logo;
+    logo !== (account?.logo || null);
 
   return (
     <DashboardShell account={account} title="Brand">
@@ -197,7 +197,7 @@ export default function BrandPage() {
             <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Configure logo, color scheme, and appearance of your public pages.</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
             {/* Brand Settings Form */}
             <div className="lg:col-span-4">
@@ -411,36 +411,49 @@ export default function BrandPage() {
             </div>
 
             {/* Live Preview Panel */}
-            <div className="lg:col-span-8">
-              <div className="rounded-2xl border border-[#0066B2]/35 bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] p-5 shadow-sm dark:shadow-2xl h-full flex flex-col transition-colors">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-zinc-200 dark:border-[#2e2e38]/50">
-                  <div>
-                    <span className="text-sm font-bold text-zinc-900 dark:text-zinc-200 uppercase tracking-wider">Preview & Template</span>
-                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">Select a layout template and customize your brand appearance.</p>
-                  </div>
-
-                  {/* Template Switcher Buttons */}
-                  <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-[#111113] p-1 rounded-xl border border-zinc-200 dark:border-[#2b2b32]">
-                    {[
-                      { id: "template1", label: "Template 1", desc: "Modern Split" },
-                      { id: "template2", label: "Template 2", desc: "Centered Focus" },
-                      { id: "template3", label: "Template 3", desc: "Hero Banner" },
-                    ].map((t) => (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => setTemplateId(t.id as any)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${templateId === t.id
-                          ? "bg-[#0066B2] text-white shadow-xs font-bold"
-                          : "text-zinc-600 dark:text-[#9B9085] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/60 dark:hover:bg-[#1d1d22]"
-                          }`}
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: templateId === t.id ? '#ffffff' : '#9CA3AF' }} />
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
+            <div className="lg:col-span-8 flex flex-col h-full relative">
+              {/* 7 Template Switcher Tabs Floating DIRECTLY ABOVE the Preview Card with Apple layoutId pill */}
+              <div className="absolute -top-12 left-0 right-0 z-10 flex justify-end">
+                <div className="w-full flex items-center justify-between gap-1 bg-zinc-100 dark:bg-[#111113] p-1.5 rounded-xl border border-zinc-200 dark:border-[#2b2b32] shadow-xs overflow-x-auto">
+                  {[
+                    { id: "template1", label: "Template 1" },
+                    { id: "template2", label: "Template 2" },
+                    { id: "template3", label: "Template 3" },
+                    { id: "template4", label: "Template 4" },
+                    { id: "template5", label: "Template 5" },
+                    { id: "template6", label: "Template 6" },
+                    { id: "template7", label: "Template 7" },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setTemplateId(t.id as any)}
+                      className={`relative flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 cursor-pointer whitespace-nowrap ${templateId === t.id
+                        ? "text-white font-bold"
+                        : "text-zinc-600 dark:text-[#9B9085] hover:text-zinc-900 dark:hover:text-white"
+                        }`}
+                    >
+                      {templateId === t.id && (
+                        <motion.div
+                          layoutId="activeTemplateTab"
+                          className="absolute inset-0 bg-[#0066B2] rounded-lg shadow-sm"
+                          transition={{ type: "spring", stiffness: 550, damping: 34 }}
+                        />
+                      )}
+                      <span className="relative z-10 h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: templateId === t.id ? '#ffffff' : '#9CA3AF' }} />
+                      <span className="relative z-10">{t.label}</span>
+                    </button>
+                  ))}
                 </div>
+              </div>
+
+              {/* Main Preview Card Box (Top aligns EXACTLY with Left Card) */}
+              <div className="rounded-2xl border border-[#0066B2]/35 bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] p-5 shadow-sm dark:shadow-2xl h-full flex flex-col transition-colors">
+                <div className="flex flex-col gap-1 mb-4 pb-3 border-b border-zinc-200 dark:border-[#2e2e38]/50">
+                  <span className="text-sm font-bold text-zinc-900 dark:text-zinc-200 uppercase tracking-wider">Preview</span>
+                  <span className="text-xs text-zinc-500 dark:text-[#9B9085] block">How your brand appears on a full magnet page.</span>
+                </div>
+
                 {/* Outer frame matching client page background theme mode */}
                 <div
                   className={`rounded-2xl border transition-all duration-300 overflow-hidden ${themeMode === "dark"
@@ -469,159 +482,348 @@ export default function BrandPage() {
                       </span>
                     </div>
 
-                    {/* Main Card Wrapper */}
-                    <div
-                      className={`rounded-2xl border py-4 px-6 transition-all duration-300 backdrop-blur-md ${themeMode === "dark"
-                        ? "text-white"
-                        : "text-zinc-900"
-                        }`}
-                      style={{
-                        borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.65) * 255).toString(16).padStart(2, '0')}`,
-                        boxShadow: (highlightIntensity > 10)
-                          ? `0 12px 32px -8px ${brandColor}${Math.round((highlightIntensity / 100) * 0.45 * 255).toString(16).padStart(2, '0')}`
-                          : "0 4px 12px rgba(0,0,0,0.05)",
-                        background: themeMode === "light"
-                          ? `linear-gradient(135deg, ${brandColor}${Math.round((0.02 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')} 0%, rgba(255, 255, 255, 0.85) 50%)`
-                          : `linear-gradient(135deg, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(18, 18, 20, 0.85) 50%)`
-                      }}
-                    >
-                      {/* Main Grid Content */}
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-                        {/* Left Details */}
-                        <div className="md:col-span-7 flex flex-col justify-between h-full py-1">
-                          <h3 className="text-xl md:text-3xl font-extrabold leading-tight tracking-tight">
-                            {latestPage?.headline || latestPage?.name || "101 Winning Viral Templates That Get Results"}
-                          </h3>
-
-                          {latestPage?.subheadline ? (
-                            <p className={`text-sm font-semibold leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
-                              {latestPage.subheadline}
-                            </p>
-                          ) : (
-                            <p className={`text-sm font-semibold leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
-                              Stop staring at a blank page. Start creating content that actually connects.
-                            </p>
-                          )}
-
-                          {latestPage?.pitch ? (
-                            <p className={`text-xs leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
-                              {latestPage.pitch}
-                            </p>
-                          ) : (
-                            <p className={`text-xs leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
-                              You know what works on LinkedIn. You&apos;ve seen the posts that blow up.
-                              <span className="block mt-2.5">
-                                That&apos;s where these templates come in. Real structures pulled from posts that actually performed.
-                              </span>
-                            </p>
-                          )}
-
-                          <div className="space-y-3 pt-2">
-                            <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
-                              {latestPage?.bulletsTitle || "This playbook breaks down:"}
-                            </p>
-                            <ul className="space-y-3">
-                              {(latestPage?.bullets && latestPage.bullets.length > 0
-                                ? latestPage.bullets
-                                : [
-                                  "101 fill-in-the-blank templates for every content scenario",
-                                  "Proven structures for storytelling, advice, and transformation posts",
-                                  "Ready-to-use formats that let you focus on your message"
-                                ]
-                              ).map((item, idx) => (
-                                <li key={idx} className="flex items-start gap-2 text-xs">
-                                  <span
-                                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 transition-all duration-300"
-                                    style={{
-                                      backgroundColor: brandColor,
-                                      opacity: 0.5 + (highlightIntensity / 100) * 0.5,
-                                      boxShadow: highlightIntensity > 30 ? `0 0 ${Math.round(14 * (highlightIntensity / 100))}px ${brandColor}${Math.round((highlightIntensity / 100) * 0.8 * 255).toString(16).padStart(2, '0')}` : 'none'
-                                    }}
-                                  >
-                                    <Check className="h-3 w-3 text-white stroke-[3px]" />
-                                  </span>
-                                  <span className={themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}>
-                                    {item}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-
-                        {/* Right CTA Form & Media Placeholder */}
-                        <div className="md:col-span-5 space-y-3">
-                          {/* Media Placeholder or Actual Image */}
-                          {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
-                            <div className="rounded-xl border aspect-[16/11] w-full overflow-hidden shadow-xs border-zinc-200 dark:border-zinc-800">
-                              <img src={latestPage.imageUrl} alt="Lead magnet media" className="w-full h-full object-cover" />
-                            </div>
-                          ) : (
-                            <div
-                              className="rounded-xl border aspect-[16/11] w-full flex items-center justify-center transition-all duration-300"
-                              style={{
-                                borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.5) * 255).toString(16).padStart(2, '0')}`,
-                                backgroundColor: `${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')}`
-                              }}
-                            />
-                          )}
-
-                          {/* Signup Card */}
+                    {/* Dynamic Animated Template View Container */}
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={templateId}
+                        initial={{ opacity: 0, y: 6, scale: 0.99 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.99 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 32, mass: 0.5 }}
+                      >
+                        {/* TEMPLATE 1: Modern Split Layout */}
+                        {templateId === "template1" && (
                           <div
-                            className={`rounded-xl border p-4 transition-all duration-300 backdrop-blur-sm aspect-[16/11] flex flex-col justify-center ${themeMode === "dark"
-                              ? "text-white"
-                              : "text-zinc-900"
-                              }`}
-                            style={{
-                              borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.55) * 255).toString(16).padStart(2, '0')}`,
-                              boxShadow: highlightIntensity > 20 ? `0 8px 24px -4px ${brandColor}${Math.round((highlightIntensity / 100) * 0.35 * 255).toString(16).padStart(2, '0')}` : "0 2px 8px rgba(0,0,0,0.05)",
-                              background: themeMode === "light"
-                                ? `linear-gradient(135deg, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')} 0%, rgba(255, 255, 255, 0.95) 60%)`
-                                : `linear-gradient(135deg, ${brandColor}${Math.round((0.08 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(22, 22, 25, 0.95) 60%)`
-                            }}
-                          >
-                            <p className="text-lg font-semibold text-center">{latestPage?.formTitle || "Download for free now"}</p>
-                            <p className={`text-[11px] text-center mt-1 leading-normal ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
-                              {latestPage?.formSubtitle || "By opting in you consent to receive this resource by email."}
-                            </p>
+                        className={`rounded-2xl border py-4 px-6 transition-all duration-300 backdrop-blur-md ${themeMode === "dark"
+                          ? "text-white"
+                          : "text-zinc-900"
+                          }`}
+                        style={{
+                          borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.65) * 255).toString(16).padStart(2, '0')}`,
+                          boxShadow: (highlightIntensity > 10)
+                            ? `0 12px 32px -8px ${brandColor}${Math.round((highlightIntensity / 100) * 0.45 * 255).toString(16).padStart(2, '0')}`
+                            : "0 4px 12px rgba(0,0,0,0.05)",
+                          background: themeMode === "light"
+                            ? `linear-gradient(135deg, ${brandColor}${Math.round((0.02 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')} 0%, rgba(255, 255, 255, 0.85) 50%)`
+                            : `linear-gradient(135deg, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(18, 18, 20, 0.85) 50%)`
+                        }}
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+                          <div className="md:col-span-7 flex flex-col justify-between h-full py-1">
+                            <h3 className="text-xl md:text-3xl font-extrabold leading-tight tracking-tight">
+                              {latestPage?.headline || latestPage?.name || "101 Winning Viral Templates That Get Results"}
+                            </h3>
 
-                            <div className="mt-4 space-y-2.5">
-                              <input
-                                type="text"
-                                placeholder={latestPage?.namePlaceholder || "Name"}
-                                className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition pointer-events-none select-none ${themeMode === "dark"
-                                  ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
-                                  : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
-                                  }`}
-                                style={{
-                                  backgroundColor: themeMode === "light" ? "#ffffff" : undefined
-                                }}
-                                readOnly
-                              />
-                              <input
-                                type="email"
-                                placeholder={latestPage?.emailPlaceholder || "Email"}
-                                className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition pointer-events-none select-none ${themeMode === "dark"
-                                  ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
-                                  : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
-                                  }`}
-                                style={{
-                                  backgroundColor: themeMode === "light" ? "#ffffff" : undefined
-                                }}
-                                readOnly
-                              />
+                            {latestPage?.subheadline ? (
+                              <p className={`text-sm font-semibold leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
+                                {latestPage.subheadline}
+                              </p>
+                            ) : (
+                              <p className={`text-sm font-semibold leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
+                                Stop staring at a blank page. Start creating content that actually connects.
+                              </p>
+                            )}
 
-                              <button
-                                className="w-full rounded-md py-2.5 text-xs font-bold text-white transition duration-200 active:scale-95 shadow-md"
-                                style={{ backgroundColor: brandColor }}
-                              >
-                                {latestPage?.formButtonText || latestPage?.cta || "Send it to me"}
-                              </button>
+                            {latestPage?.pitch ? (
+                              <p className={`text-xs leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                                {latestPage.pitch}
+                              </p>
+                            ) : (
+                              <p className={`text-xs leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                                You know what works on LinkedIn. You&apos;ve seen the posts that blow up.
+                                <span className="block mt-2.5">
+                                  That&apos;s where these templates come in. Real structures pulled from posts that actually performed.
+                                </span>
+                              </p>
+                            )}
+
+                            <div className="space-y-3 pt-2">
+                              <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
+                                {latestPage?.bulletsTitle || "This playbook breaks down:"}
+                              </p>
+                              <ul className="space-y-3">
+                                {(latestPage?.bullets && latestPage.bullets.length > 0
+                                  ? latestPage.bullets
+                                  : [
+                                    "101 fill-in-the-blank templates for every content scenario",
+                                    "Proven structures for storytelling, advice, and transformation posts",
+                                    "Ready-to-use formats that let you focus on your message"
+                                  ]
+                                ).map((item, idx) => (
+                                  <li key={idx} className="flex items-start gap-2 text-xs">
+                                    <span
+                                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5 transition-all duration-300"
+                                      style={{
+                                        backgroundColor: brandColor,
+                                        opacity: 0.5 + (highlightIntensity / 100) * 0.5,
+                                        boxShadow: highlightIntensity > 30 ? `0 0 ${Math.round(14 * (highlightIntensity / 100))}px ${brandColor}${Math.round((highlightIntensity / 100) * 0.8 * 255).toString(16).padStart(2, '0')}` : 'none'
+                                      }}
+                                    >
+                                      <Check className="h-3 w-3 text-white stroke-[3px]" />
+                                    </span>
+                                    <span className={themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}>
+                                      {item}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+
+                          <div className="md:col-span-5 space-y-3">
+                            {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
+                              <div className="rounded-xl border aspect-[16/11] w-full overflow-hidden shadow-xs border-zinc-200 dark:border-zinc-800">
+                                <img src={latestPage.imageUrl} alt="Lead magnet media" className="w-full h-full object-cover" />
+                              </div>
+                            ) : (
+                              <div
+                                className="rounded-xl border aspect-[16/11] w-full flex items-center justify-center transition-all duration-300"
+                                style={{
+                                  borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.5) * 255).toString(16).padStart(2, '0')}`,
+                                  backgroundColor: `${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')}`
+                                }}
+                              />
+                            )}
+
+                            <div
+                              className={`rounded-xl border p-4 transition-all duration-300 backdrop-blur-sm aspect-[16/11] flex flex-col justify-center ${themeMode === "dark"
+                                ? "text-white"
+                                : "text-zinc-900"
+                                }`}
+                              style={{
+                                borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.55) * 255).toString(16).padStart(2, '0')}`,
+                                boxShadow: highlightIntensity > 20 ? `0 8px 24px -4px ${brandColor}${Math.round((highlightIntensity / 100) * 0.35 * 255).toString(16).padStart(2, '0')}` : "0 2px 8px rgba(0,0,0,0.05)",
+                                background: themeMode === "light"
+                                  ? `linear-gradient(135deg, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')} 0%, rgba(255, 255, 255, 0.95) 60%)`
+                                  : `linear-gradient(135deg, ${brandColor}${Math.round((0.08 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, '0')} 0%, rgba(22, 22, 25, 0.95) 60%)`
+                              }}
+                            >
+                              <p className="text-lg font-semibold text-center">{latestPage?.formTitle || "Download for free now"}</p>
+                              <p className={`text-[11px] text-center mt-1 leading-normal ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                                {latestPage?.formSubtitle || "By opting in you consent to receive this resource by email."}
+                              </p>
+
+                              <div className="mt-4 space-y-2.5">
+                                <input
+                                  type="text"
+                                  placeholder={latestPage?.namePlaceholder || "Name"}
+                                  className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition pointer-events-none select-none ${themeMode === "dark"
+                                    ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
+                                    : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
+                                    }`}
+                                  readOnly
+                                />
+                                <input
+                                  type="email"
+                                  placeholder={latestPage?.emailPlaceholder || "Email"}
+                                  className={`w-full rounded-md border p-2.5 text-xs focus:outline-none transition pointer-events-none select-none ${themeMode === "dark"
+                                    ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
+                                    : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
+                                    }`}
+                                  readOnly
+                                />
+
+                                <button
+                                  className="w-full rounded-md py-2.5 text-xs font-bold text-white transition duration-200 shadow-md"
+                                  style={{ backgroundColor: brandColor }}
+                                >
+                                  {latestPage?.formButtonText || latestPage?.cta || "Send it to me"}
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    )}
+
+                    {/* TEMPLATE 2: Centered Focus Layout */}
+                    {templateId === "template2" && (
+                      <div
+                        className={`rounded-2xl border py-8 px-8 transition-all duration-300 max-w-2xl mx-auto backdrop-blur-md text-center ${themeMode === "dark" ? "text-white" : "text-zinc-900"
+                          }`}
+                        style={{
+                          borderColor: `${brandColor}${Math.round((0.2 + (highlightIntensity / 100) * 0.6) * 255).toString(16).padStart(2, '0')}`,
+                          boxShadow: `0 16px 40px -10px ${brandColor}${Math.round((highlightIntensity / 100) * 0.35 * 255).toString(16).padStart(2, '0')}`,
+                          background: themeMode === "light"
+                            ? `linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, ${brandColor}${Math.round((0.04 + (highlightIntensity / 100) * 0.2) * 255).toString(16).padStart(2, '0')} 100%)`
+                            : `linear-gradient(180deg, rgba(20, 20, 24, 0.95) 0%, ${brandColor}${Math.round((0.08 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, '0')} 100%)`
+                        }}
+                      >
+                        <span className="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest text-white mb-3" style={{ backgroundColor: brandColor }}>
+                          Free Download
+                        </span>
+
+                        <h3 className="text-2xl md:text-4xl font-black leading-tight tracking-tight max-w-xl mx-auto">
+                          {latestPage?.headline || latestPage?.name || "101 Winning Viral Templates That Get Results"}
+                        </h3>
+
+                        <p className={`text-xs md:text-sm font-medium mt-3 max-w-lg mx-auto ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>
+                          {latestPage?.subheadline || "Stop staring at a blank page. Start creating content that actually connects."}
+                        </p>
+
+                        <div className="my-6 max-w-md mx-auto space-y-3">
+                          <div className="flex gap-2">
+                            <input
+                              type="email"
+                              placeholder={latestPage?.emailPlaceholder || "Enter your email address"}
+                              className={`flex-1 rounded-xl border px-3.5 py-3 text-xs focus:outline-none ${themeMode === "dark" ? "bg-[#0E0E10] border-zinc-700 text-white" : "bg-white border-zinc-300 text-zinc-800"
+                                }`}
+                              readOnly
+                            />
+                            <button
+                              className="rounded-xl px-5 py-3 text-xs font-bold text-white shadow-lg shrink-0"
+                              style={{ backgroundColor: brandColor }}
+                            >
+                              {latestPage?.formButtonText || latestPage?.cta || "Get Instant Access"}
+                            </button>
+                          </div>
+                          <p className="text-[10px] text-zinc-400">Join 2,400+ creators • No credit card required</p>
+                        </div>
+
+                        <div className="pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-center gap-6 text-left">
+                          {(latestPage?.bullets && latestPage.bullets.length > 0
+                            ? latestPage.bullets
+                            : ["101 Fill-in-the-blank templates", "Proven viral storytelling structures", "Instant lifetime access"]
+                          ).slice(0, 3).map((item, idx) => (
+                            <div key={idx} className="flex items-center gap-1.5 text-[11px] font-semibold">
+                              <Check className="h-3.5 w-3.5 stroke-[3px]" style={{ color: brandColor }} />
+                              <span className={themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TEMPLATE 3: Hero Banner Layout */}
+                    {templateId === "template3" && (
+                      <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-xl">
+                        {/* Top Gradient Hero Banner */}
+                        <div
+                          className="p-6 md:p-8 text-white relative overflow-hidden text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-6"
+                          style={{
+                            background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}DD 100%)`
+                          }}
+                        >
+                          <div className="max-w-md space-y-2">
+                            <span className="px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider">
+                              EXCLUSIVE RESOURCE
+                            </span>
+                            <h3 className="text-2xl md:text-3xl font-extrabold leading-tight">
+                              {latestPage?.headline || latestPage?.name || "101 Winning Viral Templates That Get Results"}
+                            </h3>
+                            <p className="text-xs text-white/90">
+                              {latestPage?.subheadline || "Stop staring at a blank page. Start creating content that actually connects."}
+                            </p>
+                          </div>
+
+                          <div className="shrink-0 w-full md:w-64 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-xl">
+                            <p className="text-xs font-bold text-center mb-2.5">Instant Download</p>
+                            <input
+                              type="email"
+                              placeholder="Your email"
+                              className="w-full rounded-lg bg-white/90 text-zinc-900 placeholder:text-zinc-400 text-xs px-3 py-2 border-none outline-none mb-2"
+                              readOnly
+                            />
+                            <button
+                              className="w-full rounded-lg bg-zinc-900 text-white font-bold py-2 text-xs hover:bg-black transition"
+                            >
+                              {latestPage?.cta || "Download Now"}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Bottom Feature Highlights */}
+                        <div className={`p-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-semibold ${themeMode === "dark" ? "bg-[#141417] text-zinc-300" : "bg-white text-zinc-700"}`}>
+                          {(latestPage?.bullets && latestPage.bullets.length >= 3
+                            ? latestPage.bullets
+                            : ["101 Fill-in-the-blank templates", "Proven viral storytelling structures", "Instant lifetime access"]
+                          ).slice(0, 3).map((item, idx) => (
+                            <div key={idx} className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/60 dark:border-zinc-800 flex items-start gap-2.5">
+                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md font-bold text-white text-[10px]" style={{ backgroundColor: brandColor }}>
+                                0{idx + 1}
+                              </span>
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TEMPLATE 6: Floating Newsletter Card */}
+                    {templateId === "template6" && (
+                      <div
+                        className={`rounded-2xl border p-6 transition-all duration-300 ${themeMode === "dark" ? "bg-[#16161A] border-zinc-800 text-white" : "bg-white border-zinc-200 text-zinc-900"
+                          }`}
+                      >
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: brandColor }} />
+                          <span className="text-[11px] font-extrabold uppercase tracking-widest text-zinc-400">Weekly Insight</span>
+                        </div>
+
+                        <h3 className="text-2xl font-bold leading-tight mb-3">
+                          {latestPage?.headline || latestPage?.name || "101 Winning Viral Templates That Get Results"}
+                        </h3>
+
+                        <p className={`text-xs leading-relaxed mb-6 ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-600"}`}>
+                          {latestPage?.subheadline || "Stop staring at a blank page. Start creating content that actually connects."}
+                        </p>
+
+                        <div className="space-y-3">
+                          <input
+                            type="email"
+                            placeholder="name@company.com"
+                            className={`w-full rounded-lg border px-3 py-2.5 text-xs outline-none ${themeMode === "dark" ? "bg-[#0E0E10] border-zinc-700 text-white" : "bg-zinc-50 border-zinc-300 text-zinc-800"
+                              }`}
+                            readOnly
+                          />
+                          <button
+                            className="w-full rounded-lg py-2.5 text-xs font-bold text-white shadow-md transition"
+                            style={{ backgroundColor: brandColor }}
+                          >
+                            {latestPage?.cta || "Subscribe & Download"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TEMPLATE 7: SaaS Cyber Spotlight */}
+                    {templateId === "template7" && (
+                      <div
+                        className="rounded-2xl border p-8 relative overflow-hidden transition-all duration-300 text-center bg-[#090A0F] text-white border-cyan-500/30"
+                        style={{
+                          boxShadow: `0 0 40px ${brandColor}20`
+                        }}
+                      >
+                        <span className="inline-block px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest border border-cyan-400/40 text-cyan-300 mb-4 bg-cyan-950/40">
+                          PRO EDITION
+                        </span>
+
+                        <h3 className="text-2xl md:text-3xl font-mono font-bold leading-tight text-white mb-3">
+                          {latestPage?.headline || latestPage?.name || "101 Winning Viral Templates That Get Results"}
+                        </h3>
+
+                        <p className="text-xs text-zinc-400 max-w-md mx-auto mb-6">
+                          {latestPage?.subheadline || "Stop staring at a blank page. Start creating content that actually connects."}
+                        </p>
+
+                        <div className="flex justify-center max-w-sm mx-auto gap-2">
+                          <input
+                            type="email"
+                            placeholder="Enter email"
+                            className="flex-1 rounded-lg bg-zinc-900 border border-zinc-700 text-xs px-3 py-2 text-white outline-none"
+                            readOnly
+                          />
+                          <button
+                            className="rounded-lg px-5 py-2 text-xs font-bold text-white shadow-lg shrink-0"
+                            style={{ backgroundColor: brandColor }}
+                          >
+                            {latestPage?.cta || "Unlock"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
 
                     {/* Footer inside Preview */}
                     <div className={`mt-10 text-center text-[10px] border-t pt-4 transition-all duration-300 ${themeMode === "dark" ? "border-zinc-800 text-zinc-500" : "border-zinc-200 text-zinc-400"

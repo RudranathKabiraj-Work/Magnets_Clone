@@ -117,7 +117,7 @@ export interface Account {
   isNewAccount?: boolean;
   themeMode?: "light" | "dark";
   highlightIntensity?: number;
-  templateId?: "template1" | "template2" | "template3";
+  templateId?: "template1" | "template2" | "template3" | "template4" | "template5" | "template6" | "template7";
   slackWebhookUrl?: string;
   zapierWebhookUrl?: string;
   pipedriveApiToken?: string;
