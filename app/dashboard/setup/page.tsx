@@ -102,10 +102,24 @@ export default function WorkspaceSetupPage() {
     if (!cleanUsername) return;
 
     setSaving(true);
+    const defaultAccountBase: Account = {
+      name: "Workspace",
+      email: email || "",
+      username: cleanUsername,
+      plan: "Free" as const,
+      brandColor: "#0066B2",
+      logo: null,
+      joinedAt: "Just now",
+    };
+
     const updatedAccount: Account = {
-      ...(account || { email, name: "Workspace", username: cleanUsername, plan: "Free" as const, joinedAt: "Just now" }),
+      ...defaultAccountBase,
+      ...(account || {}),
       email: email || account?.email || "",
       username: cleanUsername,
+      brandColor: account?.brandColor || "#0066B2",
+      logo: account?.logo ?? null,
+      joinedAt: account?.joinedAt || "Just now",
       privacyPolicy: privacyPolicy.trim(),
       termsOfService: termsOfService.trim(),
       customDomain: rootDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, ""),
