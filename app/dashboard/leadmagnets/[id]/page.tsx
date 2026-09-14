@@ -184,20 +184,9 @@ export default function EditLeadMagnetPage() {
   const [hostedResources, setHostedResources] = useState<any[]>([]);
   const [showInsertResourceMenu, setShowInsertResourceMenu] = useState(false);
 
-  // Lock all background scroll containers when Subscriber Email Preview Modal is open
+  // Lock background scroll containers when Subscriber Email Preview Modal is open
   useEffect(() => {
     if (!showEmailPreviewModal) return;
-
-    const lockedElements: { el: HTMLElement; style: string }[] = [];
-    document.querySelectorAll("*").forEach((node) => {
-      if (node instanceof HTMLElement && node.id !== "email-preview-scroll-container") {
-        const computed = window.getComputedStyle(node);
-        if (computed.overflowY === "auto" || computed.overflowY === "scroll") {
-          lockedElements.push({ el: node, style: node.style.overflowY });
-          node.style.overflowY = "hidden";
-        }
-      }
-    });
 
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
@@ -205,9 +194,6 @@ export default function EditLeadMagnetPage() {
     return () => {
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
-      lockedElements.forEach(({ el, style }) => {
-        el.style.overflowY = style;
-      });
     };
   }, [showEmailPreviewModal]);
 

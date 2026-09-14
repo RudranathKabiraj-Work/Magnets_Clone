@@ -17,7 +17,7 @@ const nextConfig = {
   // Experimental optimizations
   experimental: {
     // Optimize package imports to reduce JS bundle size
-    optimizePackageImports: ["lucide-react", "lenis"],
+    optimizePackageImports: ["lucide-react", "lenis", "framer-motion"],
   },
 
   // Production compiler: remove console.log to reduce bundle size

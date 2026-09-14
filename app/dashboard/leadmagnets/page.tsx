@@ -193,7 +193,7 @@ export default function PagesPage() {
     <DashboardShell account={account} title="Lead magnets">
       <div className="flex flex-col min-h-[calc(100vh-3.5rem)] bg-zinc-50/50 dark:bg-[#0B0B0D]">
         {/* Top Executive Header */}
-        <div className="px-6 pt-6 lg:px-8 border-b border-zinc-200/80 dark:border-zinc-800/60 bg-white/70 dark:bg-[#121215]/80 backdrop-blur-md sticky top-0 z-20">
+        <div className="px-6 pt-6 lg:px-8 border-b border-zinc-200/80 dark:border-zinc-800/60 bg-white dark:bg-[#121215] sticky top-0 z-20">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6">
             <div>
               <div className="flex items-center gap-2">
@@ -404,17 +404,10 @@ export default function PagesPage() {
                       return (
                         <motion.div
                           key={page.id}
-                          layout
-                          initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.97 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 550,
-                            damping: 34,
-                            mass: 0.5,
-                            delay: index * 0.025
-                          }}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.15, delay: Math.min(index * 0.015, 0.1) }}
                           onClick={() => setSelectedPageId(page.id)}
                           className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col ${isSelected
                             ? "border-[#0066B2] dark:border-[#38BDF8] bg-white dark:bg-[#18181C] ring-2 ring-[#0066B2]/20 dark:ring-[#38BDF8]/20 shadow-md"
@@ -427,6 +420,9 @@ export default function PagesPage() {
                               <img
                                 src={page.imageUrl}
                                 alt={page.name}
+                                loading={index === 0 ? "eager" : "lazy"}
+                                fetchPriority={index === 0 ? "high" : "auto"}
+                                decoding="async"
                                 className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
                               />
                             ) : (
@@ -483,10 +479,10 @@ export default function PagesPage() {
                 /* TABLE VIEW */
                 <motion.div
                   key={`table-${statusFilter}-${search}`}
-                  initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -12, scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 350, damping: 28, mass: 0.8 }}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
                   className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] overflow-hidden shadow-xs"
                 >
                   <table className="w-full text-left text-xs text-zinc-600 dark:text-zinc-400">
