@@ -238,11 +238,15 @@ export default async function MagnetPageRoute({
             <div className="grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
               {/* Left Panel: Cover Image + Gradient Scrim + Bullets (~60%) */}
               <div className="md:col-span-7 relative flex flex-col justify-end p-6 md:p-8 overflow-hidden min-h-[260px] md:min-h-full bg-zinc-900 text-white">
-                <img
-                  src={activeImageUrl || "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80"}
-                  alt={page.name}
-                  className="absolute inset-0 w-full h-full object-cover opacity-50"
-                />
+                {activeImageUrl && activeImageUrl.trim() !== "" ? (
+                  <img
+                    src={activeImageUrl}
+                    alt={page.name}
+                    className="absolute inset-0 w-full h-full object-cover opacity-50"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-[#121215]" />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0c16] via-[#0a0c16]/60 to-transparent pointer-events-none" />
 
                 <div className="relative z-10 space-y-3">
@@ -301,49 +305,102 @@ export default async function MagnetPageRoute({
             </div>
           </div>
         ) : ((page.template as string) === "template3" || (!page.template && (accountDoc?.templateId as string) === "template3")) ? (
-          /* TEMPLATE 3: Glassmorphic Editorial Luxury Hero */
+          /* TEMPLATE 3: Aurora Reveal — Portrait image left with aurora glow, rich editorial form panel right */
           <div
-            className={`rounded-3xl border overflow-hidden transition-all duration-300 relative ${themeMode === "dark" ? "bg-[#0B0F17] text-white border-zinc-800" : "bg-gradient-to-br from-slate-900 via-zinc-900 to-black text-white border-zinc-800"}`}
+            className="rounded-3xl overflow-hidden relative transition-all duration-300"
             style={{
-              boxShadow: `0 24px 60px -12px ${brandColor}${Math.round((0.35 + (highlightIntensity / 100) * 0.4) * 255).toString(16).padStart(2, '0')}`
+              background: themeMode === "dark" ? "#0c0c12" : "#f7f8fc",
+              border: `1px solid ${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.2) * 255).toString(16).padStart(2, '0')}`,
+              boxShadow: `0 24px 70px -12px ${brandColor}${Math.round((0.22 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, '0')}`,
             }}
           >
-            <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full blur-3xl opacity-30 pointer-events-none" style={{ backgroundColor: brandColor }} />
-            <div className="absolute -bottom-24 -right-24 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ backgroundColor: brandColor }} />
-
-            <div className="relative z-10 p-6 md:p-10">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                <div className="lg:col-span-7 space-y-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-semibold text-white/90">
-                    <span className="flex h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
-                    <span>{page.bulletsTitle || "VIP Exclusive Access"}</span>
+            <div className="grid grid-cols-12 min-h-[440px]">
+              {/* LEFT: Aurora Image Tile (5 cols) */}
+              <div className="col-span-12 md:col-span-5 relative overflow-hidden min-h-[260px] md:min-h-[440px]">
+                {page.imageUrl && page.imageUrl.trim() !== "" ? (
+                  <img
+                    src={page.imageUrl}
+                    alt={page.name || "Cover"}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center p-6 text-center bg-[#121215]">
+                    <div className="flex flex-col items-center gap-2 p-5 rounded-2xl border-2 border-dashed border-zinc-700 bg-zinc-900/80 text-white">
+                      <svg className="h-8 w-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" strokeWidth="2" />
+                      </svg>
+                      <span className="text-xs font-bold text-white">Cover Image</span>
+                    </div>
                   </div>
+                )}
 
-                  <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-none bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
+                {/* Right fade into card */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ background: themeMode === "dark" ? "linear-gradient(to right, transparent 55%, #0c0c12 100%)" : "linear-gradient(to right, transparent 55%, #f7f8fc 100%)" }}
+                />
+                {/* Bottom fade */}
+                <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%)" }} />
+
+              </div>
+
+              {/* RIGHT: Editorial Form Panel (7 cols) */}
+              <div
+                className="col-span-12 md:col-span-7 flex flex-col justify-center p-6 md:p-8 space-y-4"
+                style={{
+                  borderLeft: `1px solid ${themeMode === "dark" ? `${brandColor}22` : `${brandColor}15`}`,
+                }}
+              >
+                {/* Eyebrow */}
+                <div className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
+                  <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${themeMode === "dark" ? "text-zinc-500" : "text-zinc-400"}`}>
+                    {page.bulletsTitle || "Free Resource · Instant Access"}
+                  </span>
+                </div>
+
+                {/* Headline */}
+                <div className="space-y-1.5">
+                  <h1 className={`text-2xl md:text-3xl font-black leading-tight tracking-tight ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>
                     {activeHeadline}
                   </h1>
-
                   {page.subheadline && (
-                    <p className="text-xs md:text-sm font-medium text-zinc-300 leading-relaxed max-w-xl">
+                    <p className={`text-xs md:text-sm leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
                       {page.subheadline}
                     </p>
                   )}
-
-                  {page.bullets && page.bullets.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                      {page.bullets.map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 text-xs font-medium text-zinc-200">
-                          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg text-white font-bold text-[10px]" style={{ backgroundColor: brandColor }}>
-                            ✓
-                          </div>
-                          <span className="truncate">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
-                <div className="lg:col-span-5">
+                {/* Bullets */}
+                {page.bullets && page.bullets.length > 0 && (
+                  <div className="space-y-2 pt-1">
+                    {page.bullets.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <div
+                          className="h-4 w-4 shrink-0 rounded-full flex items-center justify-center"
+                          style={{ background: `${brandColor}22`, border: `1px solid ${brandColor}44` }}
+                        >
+                          <svg width="7" height="7" viewBox="0 0 7 7" fill="none">
+                            <path d="M1 3.5l1.7 1.7L6 1.5" stroke={brandColor} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+                        <span className={`text-xs font-medium ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Accent divider */}
+                <div className="flex items-center gap-2 pt-1 pb-1">
+                  <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${brandColor}44, transparent)` }} />
+                  <span className={`text-[9px] font-bold uppercase tracking-widest ${themeMode === "dark" ? "text-zinc-600" : "text-zinc-400"}`}>Sign Up Free</span>
+                  <div className="h-px flex-1" style={{ background: `linear-gradient(to left, ${brandColor}44, transparent)` }} />
+                </div>
+
+                {/* Form */}
+                <div className="pt-1">
                   <MagnetSignupForm
                     cta={page.cta}
                     formTitle={page.formTitle}
@@ -368,88 +425,415 @@ export default async function MagnetPageRoute({
               </div>
             </div>
           </div>
-        ) : ((page.template as string) === "template6" || (!page.template && (accountDoc?.templateId as string) === "template6")) ? (
-          /* TEMPLATE 6: Floating Newsletter Card */
+        ) : ((page.template as string) === "template4" || (!page.template && (accountDoc?.templateId as string) === "template4")) ? (
+          /* TEMPLATE 4: Neon Orbit — Circular glowing image portal right, editorial copy left */
           <div
-            className={`rounded-2xl border p-8 max-w-2xl mx-auto transition-all duration-300 ${themeMode === "dark" ? "bg-[#16161A] border-zinc-800 text-white" : "bg-white border-zinc-200 text-zinc-900"}`}
+            className="rounded-3xl overflow-hidden transition-all duration-300 relative"
+            style={{
+              background: themeMode === "dark"
+                ? `radial-gradient(ellipse 80% 60% at 70% 30%, ${brandColor}14 0%, #08080f 55%, #0d0012 100%)`
+                : `radial-gradient(ellipse 80% 60% at 70% 30%, ${brandColor}0d 0%, #f4f5fb 55%, #f8f4ff 100%)`,
+              border: `1px solid ${themeMode === "dark" ? `${brandColor}22` : `${brandColor}18`}`,
+              boxShadow: `0 0 0 1px ${brandColor}12, 0 32px 80px -16px ${brandColor}${Math.round((0.22 + (highlightIntensity / 100) * 0.35) * 255).toString(16).padStart(2, '0')}`,
+            }}
           >
-            <div className="flex items-center gap-2 mb-4 justify-center">
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: brandColor }} />
-              <span className="text-xs font-extrabold uppercase tracking-widest text-zinc-400">Weekly Insight</span>
+            <div className="grid grid-cols-12 min-h-[500px] p-8 gap-6 items-center">
+              {/* LEFT: Copy + Form */}
+              <div className="col-span-6 flex flex-col justify-center space-y-5">
+                <div className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: brandColor, boxShadow: `0 0 8px ${brandColor}` }} />
+                  <span className={`text-[10px] font-black uppercase tracking-[0.22em] ${themeMode === "dark" ? "text-zinc-500" : "text-zinc-400"}`}>
+                    {page.bulletsTitle || "Free Resource · Limited Time"}
+                  </span>
+                </div>
+
+                <h1 className={`text-3xl md:text-4xl font-black leading-tight tracking-tight ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>
+                  {activeHeadline}
+                </h1>
+
+                {page.subheadline && (
+                  <p className={`text-sm leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                    {page.subheadline}
+                  </p>
+                )}
+
+                {page.pitch && (
+                  <p className={`text-xs md:text-sm leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                    {page.pitch}
+                  </p>
+                )}
+
+                {page.bullets && page.bullets.length > 0 && (
+                  <div className="space-y-2.5">
+                    {page.bullets.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md" style={{ background: `${brandColor}18`, border: `1px solid ${brandColor}44` }}>
+                          <svg width="8" height="8" viewBox="0 0 7 7" fill="none"><path d="M1 3.5l1.7 1.7L6 1.5" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        </div>
+                        <span className={`text-sm font-medium ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 pt-1">
+                  <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${brandColor}55, transparent)` }} />
+                  <span className={`text-[9px] font-bold uppercase tracking-widest ${themeMode === "dark" ? "text-zinc-600" : "text-zinc-400"}`}>Secure Sign Up</span>
+                  <div className="h-px flex-1" style={{ background: `linear-gradient(to left, ${brandColor}55, transparent)` }} />
+                </div>
+
+                <MagnetSignupForm
+                  cta={page.cta}
+                  formTitle={page.formTitle}
+                  formSubtitle={page.formSubtitle}
+                  formButtonText={page.formButtonText}
+                  deliverable={page.deliverable}
+                  accent={page.accent}
+                  pageId={page.id}
+                  pageName={page.name}
+                  pageSlug={page.slug}
+                  pageOwnerEmail={(page as any).userEmail}
+                  brandColor={brandColor}
+                  highlightIntensity={highlightIntensity}
+                  themeMode={themeMode}
+                  customPromptQuestion={page.customPromptQuestion}
+                  customPromptPlaceholder={page.customPromptPlaceholder}
+                  enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
+                  customFormFields={page.customFormFields}
+                  username={params.username}
+                />
+              </div>
+
+              {/* RIGHT: Orbital image portal */}
+              <div className="col-span-6 flex items-center justify-center relative" style={{ minHeight: "400px" }}>
+                {/* Ambient glow */}
+                <div className="absolute rounded-full pointer-events-none" style={{ width: "420px", height: "420px", background: `radial-gradient(circle, ${brandColor}${Math.round((0.12 + (highlightIntensity / 100) * 0.2) * 255).toString(16).padStart(2, '0')} 0%, transparent 70%)`, filter: "blur(30px)" }} />
+                {/* Outer dashed ring */}
+                <div className="absolute rounded-full border border-dashed pointer-events-none" style={{ width: "380px", height: "380px", borderColor: `${brandColor}25` }} />
+                {/* Mid ring */}
+                <div className="absolute rounded-full pointer-events-none" style={{ width: "330px", height: "330px", border: `1px solid ${brandColor}${Math.round((0.18 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, '0')}`, boxShadow: `0 0 20px ${brandColor}22` }} />
+                {/* Inner neon halo */}
+                <div className="absolute rounded-full pointer-events-none" style={{ width: "290px", height: "290px", border: `2px solid ${brandColor}${Math.round((0.35 + (highlightIntensity / 100) * 0.5) * 255).toString(16).padStart(2, '0')}`, boxShadow: `0 0 36px ${brandColor}${Math.round((0.2 + (highlightIntensity / 100) * 0.35) * 255).toString(16).padStart(2, '0')}` }} />
+                {/* Circular image */}
+                <div className="relative rounded-full overflow-hidden z-10" style={{ width: "260px", height: "260px", border: `3px solid ${brandColor}${Math.round((0.5 + (highlightIntensity / 100) * 0.5) * 255).toString(16).padStart(2, '0')}`, boxShadow: `0 0 50px -8px ${brandColor}${Math.round((0.45 + (highlightIntensity / 100) * 0.55) * 255).toString(16).padStart(2, '0')}` }}>
+                  {activeImageUrl && activeImageUrl.trim() !== "" ? (
+                    <img
+                      src={activeImageUrl}
+                      alt={page.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${brandColor}88 0%, #0d0012 100%)` }}>
+                      <div className="h-8 w-8 rounded-full bg-white/20" />
+                    </div>
+                  )}
+                  <div className="absolute top-0 left-0 right-0 h-1/3 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.12) 0%, transparent 100%)" }} />
+                </div>
+              </div>
             </div>
 
-            <h1 className="text-2xl md:text-4xl font-bold leading-tight mb-3 text-center">
-              {activeHeadline}
-            </h1>
+            {/* Bottom trust strip */}
+            <div className={`px-8 pb-5 pt-2 flex items-center justify-between border-t ${themeMode === "dark" ? "border-white/[0.05]" : "border-zinc-100"}`}>
+              <div className="flex items-center gap-2">
+                {logo ? <img src={logo} alt="Logo" className="h-6 w-6 rounded object-contain" /> : <div className="h-6 w-6 rounded flex items-center justify-center text-white text-xs font-black" style={{ backgroundColor: brandColor }}>{(businessName || "B").charAt(0).toUpperCase()}</div>}
+                <span className={`text-xs font-bold ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>{businessName}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                {["Verified Free", "Instant Access", "No Spam"].map((tag, i) => (
+                  <span key={i} className={`flex items-center gap-1.5 text-[10px] font-semibold ${themeMode === "dark" ? "text-zinc-500" : "text-zinc-400"}`}>
+                    <span className="h-1 w-1 rounded-full" style={{ backgroundColor: brandColor }} />{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : ((page.template as string) === "template5" || (!page.template && (accountDoc?.templateId as string) === "template5")) ? (
+          /* TEMPLATE 5: Magazine Cover Overlay — full-bleed image hero, cinematic scrim, overlaid copy, floating glass sign-up tray */
+          <div className="rounded-3xl overflow-hidden relative transition-all duration-300" style={{ border: `1px solid ${brandColor}${Math.round((0.14 + (highlightIntensity / 100) * 0.22) * 255).toString(16).padStart(2, '0')}`, boxShadow: `0 24px 70px -12px ${brandColor}${Math.round((0.18 + (highlightIntensity / 100) * 0.28) * 255).toString(16).padStart(2, '0')}`, background: themeMode === "dark" ? "#0d0d11" : "#f0f2f7" }}>
+            {/* Full-bleed cover image */}
+            <div className="relative w-full" style={{ paddingBottom: "50%" }}>
+              {activeImageUrl && activeImageUrl.trim() !== "" ? (
+                <img
+                  src={activeImageUrl}
+                  alt={page.name}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#121215]" />
+              )}
+              {/* Cinematic scrim */}
+              <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.92) 100%)` }} />
+              <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${brandColor}33 0%, transparent 60%)` }} />
 
-            {page.subheadline && (
-              <p className={`text-xs md:text-sm leading-relaxed mb-6 text-center max-w-md mx-auto ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-600"}`}>
-                {page.subheadline}
-              </p>
+              {/* Brand logo top-left */}
+              <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
+                {logo ? <img src={logo} alt="Logo" className="h-7 w-7 rounded object-contain" /> : <div className="h-7 w-7 rounded flex items-center justify-center text-white font-black text-xs" style={{ backgroundColor: brandColor }}>{(businessName || "B").charAt(0).toUpperCase()}</div>}
+                <span className="text-white/90 text-xs font-bold tracking-wide">{businessName}</span>
+              </div>
+
+              {/* Overlaid headline & subheadline */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 z-10 space-y-1">
+                <h1 className="text-2xl md:text-4xl font-black text-white leading-tight max-w-2xl drop-shadow-xl">{activeHeadline}</h1>
+                {page.subheadline && <p className="text-white/80 text-sm max-w-xl leading-relaxed drop-shadow">{page.subheadline}</p>}
+              </div>
+            </div>
+
+            {/* Floating glass sign-up tray / content card */}
+            <div className={`relative z-20 mx-4 md:mx-8 -mt-5 mb-6 rounded-2xl p-5 space-y-4`} style={{ background: themeMode === "dark" ? "rgba(12,12,18,0.92)" : "rgba(255,255,255,0.96)", border: `1px solid ${themeMode === "dark" ? `${brandColor}30` : `${brandColor}20`}`, backdropFilter: "blur(20px)", boxShadow: `0 8px 40px rgba(0,0,0,0.18)` }}>
+              {/* Pitch text */}
+              {page.pitch && (
+                <p className={`text-xs leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>
+                  {page.pitch}
+                </p>
+              )}
+
+              {/* Bullets Section Header */}
+              <h4 className={`text-xs font-bold uppercase tracking-wider ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                {page.bulletsTitle || "What they will learn"}
+              </h4>
+
+              {/* Bullets List */}
+              {page.bullets && page.bullets.length > 0 && (
+                <div className="space-y-2">
+                  {page.bullets.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2.5">
+                      <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-md" style={{ background: `${brandColor}18`, border: `1px solid ${brandColor}44` }}>
+                        <svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M1 3.5l1.7 1.7L6 1.5" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      </div>
+                      <span className={`text-xs ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Sign up form component */}
+              <div className="pt-2 border-t border-zinc-200/20 dark:border-zinc-800/40">
+                <MagnetSignupForm
+                  cta={page.cta}
+                  formTitle={page.formTitle}
+                  formSubtitle={page.formSubtitle}
+                  formButtonText={page.formButtonText}
+                  deliverable={page.deliverable}
+                  accent={page.accent}
+                  pageId={page.id}
+                  pageName={page.name}
+                  pageSlug={page.slug}
+                  pageOwnerEmail={(page as any).userEmail}
+                  brandColor={brandColor}
+                  highlightIntensity={highlightIntensity}
+                  themeMode={themeMode}
+                  customPromptQuestion={page.customPromptQuestion}
+                  customPromptPlaceholder={page.customPromptPlaceholder}
+                  enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
+                  customFormFields={page.customFormFields}
+                  username={params.username}
+                />
+              </div>
+            </div>
+          </div>
+        ) : ((page.template as string) === "template6" || (!page.template && (accountDoc?.templateId as string) === "template6")) ? (
+          /* TEMPLATE 6: Full Bleed Image Card */
+          <div
+            className="mx-auto max-w-6xl rounded-3xl overflow-hidden relative min-h-[500px] flex flex-col justify-between transition-all duration-300 shadow-2xl"
+            style={{
+              border: `1px solid ${themeMode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+              boxShadow: themeMode === "dark"
+                ? `0 0 0 1px ${brandColor}22, 0 28px 70px -14px rgba(0,0,0,0.8)`
+                : `0 0 0 1px ${brandColor}18, 0 20px 60px -12px ${brandColor}22`,
+            }}
+          >
+            {/* FULL CARD BACKGROUND IMAGE / GRADIENT LAYER */}
+            {activeImageUrl && activeImageUrl.trim() !== "" ? (
+              <img src={activeImageUrl} alt={page.name} className="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(145deg, ${brandColor}cc 0%, #080912 100%)` }}>
+                <div className="relative flex flex-col items-center gap-2 opacity-50 text-white">
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <rect x="2" y="2" width="28" height="28" rx="5" stroke="white" strokeWidth="1.4" strokeDasharray="3 2.5" />
+                    <path d="M2 22l7-6 5 4 4-3 10 8" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                    <circle cx="10" cy="11" r="2.5" stroke="white" strokeWidth="1.4" />
+                  </svg>
+                  <span className="text-white text-[8px] font-bold uppercase tracking-[0.2em]">Resource Cover</span>
+                </div>
+              </div>
             )}
 
-            <MagnetSignupForm
-              cta={page.cta}
-              formTitle={page.formTitle}
-              formSubtitle={page.formSubtitle}
-              formButtonText={page.formButtonText}
-              deliverable={page.deliverable}
-              accent={page.accent}
-              pageId={page.id}
-              pageName={page.name}
-              pageSlug={page.slug}
-              pageOwnerEmail={(page as any).userEmail}
-              brandColor={brandColor}
-              highlightIntensity={highlightIntensity}
-              themeMode={themeMode}
-              customPromptQuestion={page.customPromptQuestion}
-              customPromptPlaceholder={page.customPromptPlaceholder}
-              enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
-              customFormFields={page.customFormFields}
-              username={params.username}
-            />
+            {/* DARK SCRIM OVERLAY */}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/95 via-black/75 to-black/45" />
+
+            {/* CARD CONTENT FLOATING OVER IMAGE */}
+            <div className="relative z-10 p-6 md:p-8 space-y-6 flex-1 flex flex-col justify-between">
+              <div className="space-y-4 max-w-3xl">
+                <h1 className="text-2xl md:text-4xl font-black leading-tight tracking-tight text-white drop-shadow-md">{activeHeadline}</h1>
+                {page.subheadline && (
+                  <p className="text-sm md:text-base font-medium text-zinc-200 drop-shadow-sm">{page.subheadline}</p>
+                )}
+                {page.pitch && (
+                  <p className="text-xs md:text-sm leading-relaxed text-zinc-300">{page.pitch}</p>
+                )}
+
+                {/* Bullets Section */}
+                {((page.bullets && page.bullets.length > 0) || page.bulletsTitle) && (
+                  <div className="space-y-2 pt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: brandColor, boxShadow: `0 0 6px ${brandColor}` }} />
+                      <span className="text-xs font-black uppercase tracking-[0.18em] text-zinc-300">
+                        {page.bulletsTitle || "What they will learn"}
+                      </span>
+                    </div>
+                    {page.bullets && page.bullets.length > 0 && (
+                      <div className="space-y-2">
+                        {page.bullets.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-2.5">
+                            <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-white/10 border border-white/20">
+                              <svg width="7" height="7" viewBox="0 0 7 7" fill="none"><path d="M1 3.5l1.7 1.7L6 1.5" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            </div>
+                            <span className="text-xs font-semibold text-zinc-100">{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* SIGNUP FORM */}
+              <div className="pt-4">
+                <MagnetSignupForm
+                  cta={page.cta}
+                  formTitle={page.formTitle}
+                  formSubtitle={page.formSubtitle}
+                  formButtonText={page.formButtonText}
+                  deliverable={page.deliverable}
+                  accent={page.accent}
+                  pageId={page.id}
+                  pageName={page.name}
+                  pageSlug={page.slug}
+                  pageOwnerEmail={(page as any).userEmail}
+                  brandColor={brandColor}
+                  highlightIntensity={highlightIntensity}
+                  themeMode={themeMode}
+                  customPromptQuestion={page.customPromptQuestion}
+                  customPromptPlaceholder={page.customPromptPlaceholder}
+                  enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
+                  customFormFields={page.customFormFields}
+                  username={params.username}
+                />
+              </div>
+            </div>
           </div>
         ) : ((page.template as string) === "template7" || (!page.template && (accountDoc?.templateId as string) === "template7")) ? (
-          /* TEMPLATE 7: SaaS Cyber Spotlight */
+          /* TEMPLATE 7: Diagonal Immersive Split — matches brand page */
           <div
-            className="rounded-2xl border p-8 md:p-12 relative overflow-hidden transition-all duration-300 text-center bg-[#090A0F] text-white border-cyan-500/30 max-w-3xl mx-auto"
-            style={{ boxShadow: `0 0 40px ${brandColor}20` }}
+            className="rounded-3xl relative overflow-hidden transition-all duration-300"
+            style={{
+              padding: "2px",
+              background: `conic-gradient(from 0deg, ${brandColor}, #ffffff22, ${brandColor}88, #00000000, ${brandColor})`,
+              boxShadow: `0 30px 80px -16px ${brandColor}${Math.round((0.3 + (highlightIntensity / 100) * 0.4) * 255).toString(16).padStart(2, '0')}`,
+            }}
           >
-            <span className="inline-block px-3.5 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-widest border border-cyan-400/40 text-cyan-300 mb-5 bg-cyan-950/40">
-              PRO EDITION
-            </span>
+            <div
+              className="rounded-[22px] overflow-hidden relative"
+              style={{ background: themeMode === "dark" ? "#0b0b10" : "#ffffff", minHeight: "480px" }}
+            >
+              {/* DIAGONAL IMAGE PANEL (left ~58%) */}
+              <div className="absolute inset-0" style={{ clipPath: "polygon(0 0, 62% 0, 52% 100%, 0 100%)", zIndex: 1 }}>
+                {activeImageUrl && activeImageUrl.trim() !== "" ? (
+                  <img src={activeImageUrl} alt={page.name} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0" style={{ background: `linear-gradient(155deg, ${brandColor}99 0%, #060610 55%, #12001a 100%)` }}>
+                    <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                      {[160, 110, 66, 32].map((size, i) => (
+                        <div key={i} className="absolute rounded-full border border-white" style={{ width: size, height: size, opacity: 1 - i * 0.2 }} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)" }} />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 50%)" }} />
 
-            <h1 className="text-3xl md:text-5xl font-mono font-bold leading-tight text-white mb-4">
-              {activeHeadline}
-            </h1>
+                {/* Overlaid content on image */}
+                <div className="absolute inset-0 flex flex-col justify-end p-5 z-10">
+                  {/* Bottom: headline + subheadline */}
+                  <div className="space-y-2 max-w-[85%]">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[0.95] tracking-tighter drop-shadow-2xl">{activeHeadline}</h1>
+                    {page.subheadline && (
+                      <p className="text-xs sm:text-sm text-white/70 leading-relaxed font-medium drop-shadow-xs mt-2">{page.subheadline}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-            {page.subheadline && (
-              <p className="text-xs md:text-sm text-zinc-400 max-w-lg mx-auto mb-8">
-                {page.subheadline}
-              </p>
-            )}
+              {/* RIGHT FORM PANEL */}
+              <div
+                className="absolute right-0 top-0 bottom-0 flex flex-col justify-center"
+                style={{ left: "47%", padding: "24px 20px 24px 24px", zIndex: 2 }}
+              >
+                <div className="space-y-4 w-full">
+                  {/* Header */}
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: brandColor }}>
+                      {page.bulletsTitle || "Exclusive · Free Access"}
+                    </p>
+                    {page.formTitle && (
+                      <p className={`text-sm font-black leading-tight ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>{page.formTitle}</p>
+                    )}
+                    {page.formSubtitle && (
+                      <p className={`text-[10px] leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>{page.formSubtitle}</p>
+                    )}
+                  </div>
 
-            <div className="max-w-md mx-auto">
-              <MagnetSignupForm
-                cta={page.cta}
-                formTitle={page.formTitle}
-                formSubtitle={page.formSubtitle}
-                formButtonText={page.formButtonText}
-                deliverable={page.deliverable}
-                accent={page.accent}
-                pageId={page.id}
-                pageName={page.name}
-                pageSlug={page.slug}
-                pageOwnerEmail={(page as any).userEmail}
-                brandColor={brandColor}
-                highlightIntensity={highlightIntensity}
-                themeMode={themeMode}
-                customPromptQuestion={page.customPromptQuestion}
-                customPromptPlaceholder={page.customPromptPlaceholder}
-                enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
-                customFormFields={page.customFormFields}
-                username={params.username}
-              />
+                  {/* Bullet list */}
+                  {page.bullets && page.bullets.length > 0 && (
+                    <div className="space-y-1.5">
+                      {page.bullets.slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <div className="flex h-3.5 w-3.5 shrink-0 mt-0.5 items-center justify-center rounded-full" style={{ backgroundColor: `${brandColor}22`, border: `1px solid ${brandColor}55` }}>
+                            <svg width="6" height="6" viewBox="0 0 6 6" fill="none">
+                              <path d="M1 3l1.5 1.5L5 1.5" stroke={brandColor} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                          <span className={`text-[10px] leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Form */}
+                  <MagnetSignupForm
+                    cta={page.cta}
+                    formTitle=""
+                    formSubtitle=""
+                    formButtonText={page.formButtonText}
+                    deliverable={page.deliverable}
+                    accent={page.accent}
+                    pageId={page.id}
+                    pageName={page.name}
+                    pageSlug={page.slug}
+                    pageOwnerEmail={(page as any).userEmail}
+                    brandColor={brandColor}
+                    highlightIntensity={highlightIntensity}
+                    themeMode={themeMode}
+                    customPromptQuestion={page.customPromptQuestion}
+                    customPromptPlaceholder={page.customPromptPlaceholder}
+                    enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
+                    customFormFields={page.customFormFields}
+                    username={params.username}
+                  />
+
+                  {/* Social proof */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <div className="flex -space-x-2">
+                      {["#e879f9", "#38bdf8", "#4ade80", "#fb923c"].map((color, i) => (
+                        <div key={i} className="h-5 w-5 rounded-full border-2 flex items-center justify-center text-[7px] font-black text-white" style={{ backgroundColor: color, borderColor: themeMode === "dark" ? "#0b0b10" : "#ffffff" }}>
+                          {["A", "B", "C", "D"][i]}
+                        </div>
+                      ))}
+                    </div>
+                    <span className={`text-[9px] font-semibold ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>Join 12,000+ creators already inside</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         ) : (

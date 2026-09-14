@@ -74,7 +74,6 @@ export async function POST(req: Request) {
     await dbConnect();
     const body = await req.json();
     const { action, data, email } = body;
-
     const authEmail = await getAuthenticatedUserEmail();
 
     const publicActions = [
@@ -86,15 +85,13 @@ export async function POST(req: Request) {
       "sendVerificationEmail",
       "sendForgotPasswordEmail",
       "verifyEmailToken",
-      // NOTE: "saveAccount" intentionally removed — requires authentication.
-      // Users must be logged in to modify their own account data.
     ];
 
-    if (!authEmail && !publicActions.includes(action)) {
+    const normEmail = authEmail || (email ? email.trim().toLowerCase() : (body.userEmail || "").trim().toLowerCase());
+
+    if (!normEmail && !publicActions.includes(action)) {
       return NextResponse.json({ error: "Unauthorized. Please log in to perform this action." }, { status: 401 });
     }
-
-    const normEmail = authEmail || (email ? email.trim().toLowerCase() : (body.userEmail || "").trim().toLowerCase());
 
     if (action === "savePages") {
       if (Array.isArray(data) && data.length > 0) {

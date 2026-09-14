@@ -241,30 +241,34 @@ export default function MagnetSignupForm({
             onSubmit={handleSubmit}
             className="mt-4 flex flex-col gap-3"
           >
-            <input
-              type="text"
-              value={name}
-              disabled={loading}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Name"
-              style={inputStyle}
-              className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
-            />
-            <input
-              type="email"
-              required
-              value={email}
-              disabled={loading}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              style={inputStyle}
-              className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
-            />
-
-            {customFormFields && customFormFields.length > 0 && (
-              <div className="space-y-3">
+            {customFormFields && customFormFields.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  value={name}
+                  disabled={loading}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Name"
+                  style={inputStyle}
+                  className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
+                />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  disabled={loading}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email"
+                  style={inputStyle}
+                  className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
+                />
                 {customFormFields.map((field) => (
-                  <div key={field.id} className="space-y-1">
+                  <div
+                    key={field.id}
+                    className={`space-y-1 ${
+                      field.type === "textarea" ? "col-span-1 sm:col-span-2" : ""
+                    }`}
+                  >
                     {field.type === "text" && (
                       <input
                         type="text"
@@ -323,23 +327,43 @@ export default function MagnetSignupForm({
                     )}
 
                     {field.type === "checkbox" && (
-                      <label className="flex items-center gap-2.5 pt-1 cursor-pointer">
+                      <label className="flex items-center gap-2 text-xs cursor-pointer">
                         <input
                           type="checkbox"
                           required={field.required}
                           checked={!!customFieldValues[field.id]}
                           disabled={loading}
                           onChange={(e) => handleCustomFieldChange(field.id, e.target.checked)}
-                          className="h-4 w-4 rounded border-zinc-300 text-[#0066B2] focus:ring-[#0066B2]"
+                          className="rounded text-[#0066B2] focus:ring-[#0066B2]"
                         />
-                        <span className="text-xs text-zinc-600 dark:text-zinc-300 font-medium">
-                          {field.label} {field.required && <span className="text-rose-500">*</span>}
-                        </span>
+                        <span>{field.label}{field.required ? " *" : ""}</span>
                       </label>
                     )}
                   </div>
                 ))}
               </div>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  value={name}
+                  disabled={loading}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Name"
+                  style={inputStyle}
+                  className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
+                />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  disabled={loading}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email"
+                  style={inputStyle}
+                  className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
+                />
+              </>
             )}
 
             {enableAiPersonalizedDeliverable && (
