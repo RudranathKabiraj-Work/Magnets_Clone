@@ -637,101 +637,101 @@ export default function SignupsPage() {
                             className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#202026] text-[#0066B2] focus:ring-[#0066B2] cursor-pointer"
                           />
                         </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#38BDF8]/20 dark:text-[#38BDF8] text-xs font-bold uppercase border border-[#0066B2]/20 dark:border-[#38BDF8]/30">
-                            {(lead.name || lead.email || "U").slice(0, 2)}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#38BDF8]/20 dark:text-[#38BDF8] text-xs font-bold uppercase border border-[#0066B2]/20 dark:border-[#38BDF8]/30">
+                              {(lead.name || lead.email || "U").slice(0, 2)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                                {lead.email}
+                                <button
+                                  onClick={() => copyEmailToClipboard(lead.email)}
+                                  title="Copy Email"
+                                  className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </button>
+                              </p>
+                              {lead.name && lead.name !== lead.email.split("@")[0] && (
+                                <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">{lead.name}</p>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-semibold text-zinc-900 dark:text-white flex items-center gap-1.5">
-                              {lead.email}
-                              <button
-                                onClick={() => copyEmailToClipboard(lead.email)}
-                                title="Copy Email"
-                                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
-                              >
-                                <Copy className="h-3 w-3" />
-                              </button>
-                            </p>
-                            {lead.name && lead.name !== lead.email.split("@")[0] && (
-                              <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">{lead.name}</p>
-                            )}
+                        </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 rounded-lg bg-zinc-100 dark:bg-[#222228] px-2.5 py-1 text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                            {lead.page}
+                          </span>
+                        </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                          {lead.signedUpAt}
+                        </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {(() => {
+                            const page = magnetPages.find((p) => p.id === lead.pageId || p.name === lead.page);
+                            const activeSequences = loadSequences();
+                            const foundSeq = activeSequences.find((s) => s.id === page?.id || s.pageId === page?.id || (page && s.name.includes(page.name)));
+                            const isEnabled = page ? (page.sequenceEnabled || (page.sequenceEmails && page.sequenceEmails.length > 0)) : false;
+                            const isSeqLive = foundSeq ? foundSeq.status === "live" : isEnabled;
+                            const totalSteps = foundSeq?.emails?.length || page?.sequenceEmails?.length || 2;
+
+                            if (!isSeqLive) {
+                              return (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 text-zinc-500 dark:text-zinc-400 text-xs font-semibold">
+                                  Sequence Ended
+                                </span>
+                              );
+                            }
+
+                            if (lead.status === "stopped") {
+                              return (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-rose-600 dark:text-rose-400 text-xs font-bold">
+                                  🛑 Stopped
+                                </span>
+                              );
+                            }
+
+                            if (lead.status === "completed" || lead.status === "delivered") {
+                              return (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-purple-600 dark:text-purple-400 text-xs font-bold">
+                                  <Check className="h-3 w-3" /> Completed ({totalSteps}/{totalSteps} steps)
+                                </span>
+                              );
+                            }
+
+                            return (
+                              <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Step 1 of {totalSteps} (In Progress)
+                              </span>
+                            );
+                          })()}
+                        </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setSelectedLead(lead)}
+                              className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-200 dark:hover:bg-[#282830] transition cursor-pointer shadow-xs"
+                            >
+                              <Eye className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" /> View Details
+                            </button>
+                            <button
+                              onClick={() => setLeadToDelete(lead)}
+                              title="Delete signup"
+                              className="rounded-lg p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           </div>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 rounded-lg bg-zinc-100 dark:bg-[#222228] px-2.5 py-1 text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                          {lead.page}
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                        {lead.signedUpAt}
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {(() => {
-                          const page = magnetPages.find((p) => p.id === lead.pageId || p.name === lead.page);
-                          const activeSequences = loadSequences();
-                          const foundSeq = activeSequences.find((s) => s.id === page?.id || s.pageId === page?.id || (page && s.name.includes(page.name)));
-                          const isEnabled = page ? (page.sequenceEnabled || (page.sequenceEmails && page.sequenceEmails.length > 0)) : false;
-                          const isSeqLive = foundSeq ? foundSeq.status === "live" : isEnabled;
-                          const totalSteps = foundSeq?.emails?.length || page?.sequenceEmails?.length || 2;
-
-                          if (!isSeqLive) {
-                            return (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 text-zinc-500 dark:text-zinc-400 text-xs font-semibold">
-                                Sequence Ended
-                              </span>
-                            );
-                          }
-
-                          if (lead.status === "stopped") {
-                            return (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-rose-600 dark:text-rose-400 text-xs font-bold">
-                                🛑 Stopped
-                              </span>
-                            );
-                          }
-
-                          if (lead.status === "completed" || lead.status === "delivered") {
-                            return (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-purple-600 dark:text-purple-400 text-xs font-bold">
-                                <Check className="h-3 w-3" /> Completed ({totalSteps}/{totalSteps} steps)
-                              </span>
-                            );
-                          }
-
-                          return (
-                            <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
-                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                              Step 1 of {totalSteps} (In Progress)
-                            </span>
-                          );
-                        })()}
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setSelectedLead(lead)}
-                            className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-200 dark:hover:bg-[#282830] transition cursor-pointer shadow-xs"
-                          >
-                            <Eye className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" /> View Details
-                          </button>
-                          <button
-                            onClick={() => setLeadToDelete(lead)}
-                            title="Delete signup"
-                            className="rounded-lg p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition cursor-pointer"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
 
@@ -1090,8 +1090,8 @@ export default function SignupsPage() {
                       <div className="flex items-center gap-2 mt-0.5">
                         <p className="text-xs text-zinc-500 dark:text-[#9B9085]">{selectedLead.email}</p>
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${!selectedLead.email.endsWith("@gmail.com") && !selectedLead.email.endsWith("@yahoo.com")
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                            : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                          : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
                           }`}>
                           <Sparkles className="h-2.5 w-2.5" />
                           {!selectedLead.email.endsWith("@gmail.com") && !selectedLead.email.endsWith("@yahoo.com") ? "🔥 Hot Prospect (80 pts)" : "⚡ Warm Lead (60 pts)"}
@@ -1287,10 +1287,10 @@ export default function SignupsPage() {
             <div
               key={toast.id}
               className={`pointer-events-auto flex items-center gap-3 rounded-2xl p-4 text-xs font-medium shadow-xl backdrop-blur-md border transition-all animate-in slide-in-from-bottom-5 duration-300 ${toast.type === "success"
-                  ? "bg-emerald-950/90 border-emerald-500/30 text-emerald-100"
-                  : toast.type === "error"
-                    ? "bg-red-950/90 border-red-500/30 text-red-100"
-                    : "bg-zinc-900/90 border-zinc-700/40 text-zinc-100"
+                ? "bg-emerald-950/90 border-emerald-500/30 text-emerald-100"
+                : toast.type === "error"
+                  ? "bg-red-950/90 border-red-500/30 text-red-100"
+                  : "bg-zinc-900/90 border-zinc-700/40 text-zinc-100"
                 }`}
             >
               {toast.type === "success" && <Check className="h-4 w-4 shrink-0 text-emerald-400" />}

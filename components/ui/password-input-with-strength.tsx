@@ -71,7 +71,7 @@ export default function PasswordInputWithStrength({
           autoComplete={autoComplete}
           required={required}
           minLength={minLength}
-          className={`w-full rounded-lg border border-zinc-200/80 bg-white/60 dark:border-white/10 dark:bg-white/[0.04] backdrop-blur-md pl-3.5 pr-11 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none transition-all duration-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-blue-500/60 focus:bg-white/80 dark:focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-500/20 shadow-inner ${className}`}
+          className={`w-full rounded-xl border border-zinc-200/80 bg-white/60 dark:border-white/10 dark:bg-white/[0.04] backdrop-blur-md pl-3.5 pr-11 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none transition-all duration-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-blue-500/60 focus:bg-white/80 dark:focus:bg-white/[0.07] focus:ring-2 focus:ring-blue-500/20 shadow-inner ${className}`}
         />
         <button
           type="button"

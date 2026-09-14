@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Terms of Service",
   description: "LeadMagnets Terms of Service.",
   robots: { index: true, follow: true },
-  alternates: { canonical: "https://leadmagnets.so/terms" },
+  alternates: { canonical: "https://magnets.bdatech.in/terms" },
 };
 
 export default function TermsPage() {
@@ -144,15 +144,15 @@ export default function TermsPage() {
             <p>
               These Terms are governed by the laws of England and Wales, without regard to conflict-of-law rules. Courts in London,
               England have exclusive jurisdiction, except where mandatory law provides otherwise. Questions about these Terms can be
-              sent to <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">hello@leadmagnets.so</a>.
+              sent to <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:info@bdatechnologies.com">info@bdatechnologies.com</a>.
             </p>
           </LegalSection>
         </article>
         <div className="mt-12 border-t border-zinc-200 dark:border-[#2e2e38] pt-6 text-sm text-zinc-600 dark:text-[#9B9085]">
           <p>
             Questions? Email{" "}
-            <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">
-              hello@leadmagnets.so
+            <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:info@bdatechnologies.com">
+              info@bdatechnologies.com
             </a>
             .
           </p>

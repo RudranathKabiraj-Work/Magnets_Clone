@@ -4,6 +4,7 @@ import { useState } from "react";
 import AuthShell from "@/components/auth-shell";
 import Button from "@/components/ui/button";
 import Input, { FieldLabel } from "@/components/ui/input";
+import { Loader2, ArrowRight } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -46,6 +47,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthShell
+      showSidecar={false}
       title="Reset your password"
       subtitle="We will email you a link to choose a new one."
       onSubmit={handleSubmit}
@@ -81,8 +83,22 @@ export default function ForgotPasswordPage() {
           disabled={loading}
         />
       </label>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Sending..." : "Email me a reset link"}
+      <Button
+        type="submit"
+        className="w-full h-10 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wide shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-200 active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none border-0"
+        disabled={loading}
+      >
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-white" />
+            <span>Sending...</span>
+          </span>
+        ) : (
+          <span className="flex items-center justify-center gap-1.5">
+            <span>Email me a reset link</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </span>
+        )}
       </Button>
     </AuthShell>
   );

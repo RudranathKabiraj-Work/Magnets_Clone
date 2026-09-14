@@ -173,8 +173,38 @@ export default function EditLeadMagnetPage() {
   const menuRef = useRef<HTMLDivElement>(null);
   const [showAIModal, setShowAIModal] = useState(false);
   const [showSocialModal, setShowSocialModal] = useState(false);
+  const [showEmailPreviewModal, setShowEmailPreviewModal] = useState(false);
+  const [testEmailSending, setTestEmailSending] = useState(false);
+  const [testEmailSentMsg, setTestEmailSentMsg] = useState<string | null>(null);
   const [hostedResources, setHostedResources] = useState<any[]>([]);
   const [showInsertResourceMenu, setShowInsertResourceMenu] = useState(false);
+
+  // Lock all background scroll containers when Subscriber Email Preview Modal is open
+  useEffect(() => {
+    if (!showEmailPreviewModal) return;
+
+    const lockedElements: { el: HTMLElement; style: string }[] = [];
+    document.querySelectorAll("*").forEach((node) => {
+      if (node instanceof HTMLElement && node.id !== "email-preview-scroll-container") {
+        const computed = window.getComputedStyle(node);
+        if (computed.overflowY === "auto" || computed.overflowY === "scroll") {
+          lockedElements.push({ el: node, style: node.style.overflowY });
+          node.style.overflowY = "hidden";
+        }
+      }
+    });
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      lockedElements.forEach(({ el, style }) => {
+        el.style.overflowY = style;
+      });
+    };
+  }, [showEmailPreviewModal]);
 
   useEffect(() => {
     // 1. Instantly load local resources
@@ -213,6 +243,7 @@ export default function EditLeadMagnetPage() {
 
   // Tab Navigation State
   const [activeTab, setActiveTab] = useState<"landing" | "email" | "sequence" | "after">("landing");
+  const [hoveredTab, setHoveredTab] = useState<string | null>(null);
 
   // Page Content Initial Values
   const initialHeadline = page ? (page.headline && page.headline !== "hi" ? page.headline : (page.name || "")) : "";
@@ -934,7 +965,7 @@ export default function EditLeadMagnetPage() {
     );
   }
 
-  const url = `https://leadmagnets.so/${account?.username || ""}/${page.slug}`;
+  const url = `${process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in"}/${account?.username || ""}/${page.slug}`;
   const live = page.status === "live";
 
   function update(patch: Partial<MagnetPage>) {
@@ -1309,68 +1340,62 @@ export default function EditLeadMagnetPage() {
             </div>
 
             {/* 4 Tabs Bar - Adapts dynamically to Brand Theme Mode */}
-            <div className={`grid grid-cols-2 lg:grid-cols-4 border-b p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#0E0E11]" : "border-zinc-200 bg-zinc-100/70"}`}>
-              {/* Tab 1: Landing Page */}
-              <button
-                onClick={() => setActiveTab("landing")}
-                className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "landing"
-                  ? ((account?.themeMode || "light") === "dark" ? "bg-[#1E1E24] border border-[#27272A] text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-900 shadow-sm")
-                  : ((account?.themeMode || "light") === "dark" ? "text-zinc-400 hover:text-white hover:bg-[#18181C] border border-transparent" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/80 border border-transparent")
-                  }`}
-              >
-                <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A] text-zinc-300" : "bg-zinc-200/60 text-zinc-700"}`}>
-                  <Monitor className="h-4 w-4" />
-                </div>
-                <div className="text-left leading-tight">
-                  <span className={`block text-xs font-bold ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-900"}`}>Landing page</span>
-                  <span className="block text-[10px] font-normal text-zinc-400">Design the page</span>
-                </div>
-              </button>
+            <div
+              className={`grid grid-cols-2 lg:grid-cols-4 border-b p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#0E0E11]" : "border-zinc-200 bg-zinc-100/70"}`}
+              onMouseLeave={() => setHoveredTab(null)}
+            >
+              {[
+                { id: "landing", label: "Landing page", desc: "Design the page", icon: Monitor },
+                { id: "email", label: "Delivery email", desc: "Send the resource", icon: Mail },
+                { id: "sequence", label: "Sequence", desc: "Nurture leads", icon: Clock },
+                { id: "after", label: "After signup", desc: "Choose the next step", icon: Home },
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                const isHovered = hoveredTab === tab.id;
+                const isDark = (account?.themeMode || "light") === "dark";
 
-              {/* Tab 2: Delivery email */}
-              <button
-                onClick={() => setActiveTab("email")}
-                className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "email"
-                  ? ((account?.themeMode || "light") === "dark" ? "bg-[#1E1E24] border border-[#27272A] text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-900 shadow-sm")
-                  : ((account?.themeMode || "light") === "dark" ? "text-zinc-400 hover:text-white hover:bg-[#18181C] border border-transparent" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/80 border border-transparent")
-                  }`}
-              >
-                <Mail className="h-4 w-4 text-zinc-500" />
-                <div className="text-left leading-tight">
-                  <span className={`block text-xs font-bold ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-900"}`}>Delivery email</span>
-                  <span className="block text-[10px] font-normal text-zinc-400">Send the resource</span>
-                </div>
-              </button>
-
-              {/* Tab 3: Sequence */}
-              <button
-                onClick={() => setActiveTab("sequence")}
-                className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "sequence"
-                  ? ((account?.themeMode || "light") === "dark" ? "bg-[#1E1E24] border border-[#27272A] text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-900 shadow-sm")
-                  : ((account?.themeMode || "light") === "dark" ? "text-zinc-400 hover:text-white hover:bg-[#18181C] border border-transparent" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/80 border border-transparent")
-                  }`}
-              >
-                <Clock className="h-4 w-4 text-zinc-500" />
-                <div className="text-left leading-tight">
-                  <span className={`block text-xs font-bold ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-900"}`}>Sequence</span>
-                  <span className="block text-[10px] font-normal text-zinc-400">Nurture leads</span>
-                </div>
-              </button>
-
-              {/* Tab 4: After signup */}
-              <button
-                onClick={() => setActiveTab("after")}
-                className={`flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition w-full cursor-pointer ${activeTab === "after"
-                  ? ((account?.themeMode || "light") === "dark" ? "bg-[#1E1E24] border border-[#27272A] text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-900 shadow-sm")
-                  : ((account?.themeMode || "light") === "dark" ? "text-zinc-400 hover:text-white hover:bg-[#18181C] border border-transparent" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/80 border border-transparent")
-                  }`}
-              >
-                <Home className="h-4 w-4 text-zinc-500" />
-                <div className="text-left leading-tight">
-                  <span className={`block text-xs font-bold ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-900"}`}>After signup</span>
-                  <span className="block text-[10px] font-normal text-zinc-400">Choose the next step</span>
-                </div>
-              </button>
+                return (
+                  <motion.button
+                    key={tab.id}
+                    type="button"
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 600, damping: 28 }}
+                    onMouseEnter={() => setHoveredTab(tab.id)}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`relative flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-colors w-full cursor-pointer border ${isActive
+                      ? isDark
+                        ? "border-[#27272A] text-white shadow-sm"
+                        : "border-zinc-200 text-zinc-900 shadow-sm"
+                      : "border-transparent text-zinc-600 dark:text-zinc-400 dark:hover:text-white"
+                      }`}
+                  >
+                    {/* Active Tab Solid Pill */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeEditTabPill"
+                        transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                        className={`absolute inset-0 rounded-xl ${isDark ? "bg-[#1E1E24]" : "bg-white"}`}
+                      />
+                    )}
+                    {/* Hover Morphing Pill */}
+                    {!isActive && isHovered && (
+                      <motion.div
+                        layoutId="hoverEditTabPill"
+                        transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                        className={`absolute inset-0 rounded-xl ${isDark ? "bg-[#18181C]" : "bg-zinc-200/80"}`}
+                      />
+                    )}
+                    <div className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-lg ${isDark ? "bg-[#27272A] text-zinc-300" : "bg-zinc-200/60 text-zinc-700"}`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="relative z-10 text-left leading-tight">
+                      <span className={`block text-xs font-bold ${isDark ? "text-zinc-100" : "text-zinc-900"}`}>{tab.label}</span>
+                      <span className="block text-[10px] font-normal text-zinc-400">{tab.desc}</span>
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
 
             {/* Editor Body Tab Content */}
@@ -2376,7 +2401,7 @@ export default function EditLeadMagnetPage() {
                             LeadMagnets &lt;hello@mail.leadmagnets.so&gt;
                           </span>
                           <button
-                            onClick={() => alert("Previewing email as subscriber...")}
+                            onClick={() => setShowEmailPreviewModal(true)}
                             className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24] text-white hover:bg-[#27272A]" : "border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50"}`}
                           >
                             <Eye className="h-3.5 w-3.5" />
@@ -3475,15 +3500,19 @@ export default function EditLeadMagnetPage() {
                     
                     {/* Inner Email Body Content */}
                     <div className="p-6 sm:p-8 space-y-6">
-                      <div className="text-xs text-zinc-800 whitespace-pre-wrap leading-relaxed">
-                        {(() => {
-                          const rawBody = previewSequenceIndex === 0
-                            ? emailBody
-                            : (sequenceEmails[previewSequenceIndex - 1]?.body || "");
-                          return (rawBody || "No email body written yet.")
-                            .replace(/\{name\}/g, "John");
-                        })()}
-                      </div>
+                      <div
+                        className="text-xs text-zinc-800 leading-relaxed [&_p]:mb-2 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+                        dangerouslySetInnerHTML={{
+                          __html: (() => {
+                            const rawBody = previewSequenceIndex === 0
+                              ? emailBody
+                              : (sequenceEmails[previewSequenceIndex - 1]?.body || "");
+                            const raw = (rawBody || "No email body written yet.").replace(/\{name\}/g, "John");
+                            const hasHtml = /<[a-z][\s\S]*>/i.test(raw);
+                            return hasHtml ? raw : raw.replace(/\n/g, "<br/>");
+                          })(),
+                        }}
+                      />
 
                       {/* Sequence Opt-out footer */}
                       <div className="pt-6 border-t border-zinc-100 text-center">
@@ -3511,6 +3540,152 @@ export default function EditLeadMagnetPage() {
               </div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Interactive Subscriber Email Preview Modal */}
+      {showEmailPreviewModal && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowEmailPreviewModal(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6 overscroll-contain transition-all duration-200 animate-in fade-in zoom-in-95"
+        >
+          <div className={`w-full max-w-2xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col h-[85vh] max-h-[85vh] shrink-0 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#141417] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
+            {/* Modal Header */}
+            <div className={`flex items-center justify-between border-b px-6 py-4 shrink-0 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181C]" : "border-zinc-200 bg-zinc-50"}`}>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0066B2]/10 text-[#0066B2]">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold">Subscriber Email Preview</h3>
+                  <p className="text-[11px] text-zinc-400">Live preview of what subscribers receive in their inbox</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowEmailPreviewModal(false)}
+                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-white transition cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Email Header Bar */}
+            <div className={`border-b px-6 py-3 space-y-2 text-xs shrink-0 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B]" : "border-zinc-100 bg-zinc-50/50"}`}>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-zinc-400 w-16">From:</span>
+                <span className="font-medium">{account?.senderDisplayName || account?.name || "LeadMagnets"} &lt;{account?.senderAddress || "non-reply@bdatech.in"}&gt;</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-zinc-400 w-16">To:</span>
+                <span className="font-medium text-zinc-400">subscriber@example.com</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-zinc-400 w-16">Subject:</span>
+                <span className="font-bold text-zinc-900 dark:text-white">{emailSubject || `Here is your resource: ${page?.name || "Lead Magnet"}`}</span>
+              </div>
+            </div>
+
+            {/* Email Body Content Container (Isolated Scroll Box) */}
+            <div
+              id="email-preview-scroll-container"
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 bg-[#F8FAFC] dark:bg-[#0B0F17] overscroll-contain"
+            >
+              <div className="max-w-xl mx-auto rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#18181B] p-6 sm:p-8 shadow-sm space-y-6 text-zinc-900 dark:text-white">
+                <h1 className="text-xl font-extrabold text-zinc-900 dark:text-white">
+                  {page?.name || "Lead Magnet Resource"}
+                </h1>
+                <div
+                  className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 [&_p]:mb-2 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+                  dangerouslySetInnerHTML={{
+                    __html: (() => {
+                      const raw = (emailBody || "Hey {name},\n\nThank you for requesting this resource! Click the button below to get instant access.\n\nEnjoy!")
+                        .replace(/\{name\}/g, "Subscriber");
+                      const hasHtml = /<[a-z][\s\S]*>/i.test(raw);
+                      return hasHtml ? raw : raw.replace(/\n/g, "<br/>");
+                    })(),
+                  }}
+                />
+
+                <div className="text-center py-2">
+                  <a
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                    style={{ backgroundColor: account?.brandColor || "#0066B2" }}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white shadow-md hover:opacity-90 transition cursor-pointer"
+                  >
+                    <span>📥 Access Your Lead Magnet →</span>
+                  </a>
+                </div>
+
+                <hr className="border-zinc-200 dark:border-zinc-800" />
+                <p className="text-[11px] text-zinc-400 text-center">
+                  Sent by {account?.name || "LeadMagnets"} · Instant Delivery
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className={`flex items-center justify-between border-t px-6 py-4 shrink-0 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181C]" : "border-zinc-200 bg-white"}`}>
+              {testEmailSentMsg ? (
+                <span className="text-xs font-semibold text-emerald-500">{testEmailSentMsg}</span>
+              ) : (
+                <span className="text-xs text-zinc-400">Live preview matching actual subscriber deliverable</span>
+              )}
+              <div className="flex items-center gap-3">
+                <button
+                  disabled={testEmailSending}
+                  onClick={async () => {
+                    setTestEmailSending(true);
+                    setTestEmailSentMsg(null);
+                    try {
+                      const userEmail = account?.email || localStorage.getItem("currentUserEmail");
+                      if (userEmail) {
+                        const res = await fetch("/api/data", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            action: "addLead",
+                            data: {
+                              id: `l_test_preview_${Date.now()}`,
+                              name: account?.name || "Owner Test",
+                              email: userEmail,
+                              page: page?.name || "Preview Test",
+                              pageId: page?.id || params.id,
+                              pageSlug: page?.slug || params.id,
+                              userEmail: userEmail,
+                              status: "new",
+                              source: "leadmagnets",
+                              signedUpAt: new Date().toLocaleTimeString(),
+                            },
+                          }),
+                        });
+                        if (res.ok) {
+                          setTestEmailSentMsg(`✅ Test deliverable sent to ${userEmail}!`);
+                        }
+                      }
+                    } catch (e) {
+                      setTestEmailSentMsg("❌ Failed to send test email.");
+                    } finally {
+                      setTestEmailSending(false);
+                    }
+                  }}
+                  className="rounded-xl border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-xs font-bold hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer disabled:opacity-50"
+                >
+                  {testEmailSending ? "Sending test..." : "📧 Send Test Email to Me"}
+                </button>
+                <button
+                  onClick={() => setShowEmailPreviewModal(false)}
+                  className="rounded-xl bg-[#0066B2] hover:bg-[#005799] px-4 py-2 text-xs font-bold text-white transition shadow-md cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

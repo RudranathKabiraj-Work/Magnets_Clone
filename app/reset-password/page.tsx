@@ -67,6 +67,7 @@ function ResetPasswordForm() {
   if (!token) {
     return (
       <AuthShell
+        showSidecar={false}
         title="Invalid Reset Link"
         subtitle="This password reset link is invalid or incomplete."
         footer={
@@ -85,6 +86,7 @@ function ResetPasswordForm() {
   if (success) {
     return (
       <AuthShell
+        showSidecar={false}
         title="Password updated!"
         subtitle="Your password has been reset successfully."
         footer={
@@ -105,6 +107,7 @@ function ResetPasswordForm() {
 
   return (
     <AuthShell
+      showSidecar={false}
       title="Create new password"
       subtitle="Enter a new password for your account."
       onSubmit={handleSubmit}
@@ -144,10 +147,14 @@ function ResetPasswordForm() {
           showStrengthMeter={false}
         />
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button
+        type="submit"
+        className="w-full h-10 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs tracking-wide shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-200 active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none border-0"
+        disabled={loading}
+      >
         {loading ? (
           <span className="flex items-center justify-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin text-white/90" />
             <span>Updating password...</span>
           </span>
         ) : (
@@ -165,7 +172,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <AuthShell title="Loading..." subtitle="Please wait while we load the page.">
+        <AuthShell showSidecar={false} title="Loading..." subtitle="Please wait while we load the page.">
           <div className="flex justify-center p-6">
             <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
           </div>

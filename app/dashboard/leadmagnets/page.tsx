@@ -307,13 +307,12 @@ export default function PagesPage() {
                     <button
                       key={tab.id}
                       onClick={() => setStatusFilter(tab.id as any)}
-                      className={`relative px-3 py-1 rounded-lg transition-colors duration-200 cursor-pointer ${
-                        statusFilter === tab.id
+                      className={`relative px-3 py-1 rounded-lg transition-colors duration-200 cursor-pointer ${statusFilter === tab.id
                           ? tab.id === "live"
                             ? "text-emerald-600 dark:text-emerald-400 font-bold"
                             : "text-zinc-900 dark:text-white font-bold"
                           : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
-                      }`}
+                        }`}
                     >
                       {statusFilter === tab.id && (
                         <motion.div
@@ -331,9 +330,8 @@ export default function PagesPage() {
                 <div className="flex items-center p-1 bg-zinc-100 dark:bg-[#1C1C20] rounded-xl">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`relative p-1.5 rounded-lg transition-colors duration-150 cursor-pointer ${
-                      viewMode === "grid" ? "text-[#0066B2] dark:text-[#38BDF8]" : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-                    }`}
+                    className={`relative p-1.5 rounded-lg transition-colors duration-150 cursor-pointer ${viewMode === "grid" ? "text-[#0066B2] dark:text-[#38BDF8]" : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                      }`}
                     title="Grid View"
                   >
                     {viewMode === "grid" && (
@@ -348,9 +346,8 @@ export default function PagesPage() {
 
                   <button
                     onClick={() => setViewMode("table")}
-                    className={`relative p-1.5 rounded-lg transition-colors duration-150 cursor-pointer ${
-                      viewMode === "table" ? "text-[#0066B2] dark:text-[#38BDF8]" : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-                    }`}
+                    className={`relative p-1.5 rounded-lg transition-colors duration-150 cursor-pointer ${viewMode === "table" ? "text-[#0066B2] dark:text-[#38BDF8]" : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                      }`}
                     title="Table View"
                   >
                     {viewMode === "table" && (
@@ -482,94 +479,94 @@ export default function PagesPage() {
                     })}
                   </div>
                 </motion.div>
-            ) : (
-              /* TABLE VIEW */
-              <motion.div
-                key={`table-${statusFilter}-${search}`}
-                initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -12, scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 350, damping: 28, mass: 0.8 }}
-                className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] overflow-hidden shadow-xs"
-              >
-                <table className="w-full text-left text-xs text-zinc-600 dark:text-zinc-400">
-                  <thead className="bg-zinc-50/80 dark:bg-[#1A1A1E] text-zinc-400 dark:text-zinc-500 uppercase font-semibold text-[10px] tracking-wider border-b border-zinc-200/80 dark:border-zinc-800">
-                    <tr>
-                      <th className="px-4 py-3">Lead Magnet</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-right">Views</th>
-                      <th className="px-4 py-3 text-right">Leads</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-                    {paginatedItems.map((page) => {
-                      const isSelected = activePage?.id === page.id;
-                      return (
-                        <tr
-                          key={page.id}
-                          onClick={() => setSelectedPageId(page.id)}
-                          className={`cursor-pointer transition ${isSelected
-                            ? "bg-[#EFF6FF]/60 dark:bg-[#0066B2]/10"
-                            : "hover:bg-zinc-50 dark:hover:bg-[#1A1A1E]/50"
-                            }`}
-                        >
-                          <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-white">
-                            <div className="flex items-center gap-3">
-                              <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 shrink-0 overflow-hidden flex items-center justify-center">
-                                {page.imageUrl ? (
-                                  <img src={page.imageUrl} alt="" className="h-full w-full object-cover" />
-                                ) : (
-                                  <ImageIcon className="h-4 w-4 text-zinc-400" />
-                                )}
+              ) : (
+                /* TABLE VIEW */
+                <motion.div
+                  key={`table-${statusFilter}-${search}`}
+                  initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -12, scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 350, damping: 28, mass: 0.8 }}
+                  className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] overflow-hidden shadow-xs"
+                >
+                  <table className="w-full text-left text-xs text-zinc-600 dark:text-zinc-400">
+                    <thead className="bg-zinc-50/80 dark:bg-[#1A1A1E] text-zinc-400 dark:text-zinc-500 uppercase font-semibold text-[10px] tracking-wider border-b border-zinc-200/80 dark:border-zinc-800">
+                      <tr>
+                        <th className="px-4 py-3">Lead Magnet</th>
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3 text-right">Views</th>
+                        <th className="px-4 py-3 text-right">Leads</th>
+                        <th className="px-4 py-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+                      {paginatedItems.map((page) => {
+                        const isSelected = activePage?.id === page.id;
+                        return (
+                          <tr
+                            key={page.id}
+                            onClick={() => setSelectedPageId(page.id)}
+                            className={`cursor-pointer transition ${isSelected
+                              ? "bg-[#EFF6FF]/60 dark:bg-[#0066B2]/10"
+                              : "hover:bg-zinc-50 dark:hover:bg-[#1A1A1E]/50"
+                              }`}
+                          >
+                            <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-white">
+                              <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 shrink-0 overflow-hidden flex items-center justify-center">
+                                  {page.imageUrl ? (
+                                    <img src={page.imageUrl} alt="" className="h-full w-full object-cover" />
+                                  ) : (
+                                    <ImageIcon className="h-4 w-4 text-zinc-400" />
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="font-bold text-zinc-900 dark:text-white line-clamp-1">{page.name}</p>
+                                  <p className="text-[11px] font-mono text-zinc-400">/{page.slug}</p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-bold text-zinc-900 dark:text-white line-clamp-1">{page.name}</p>
-                                <p className="text-[11px] font-mono text-zinc-400">/{page.slug}</p>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${page.status === "live"
+                                  ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
+                                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
+                                  }`}
+                              >
+                                {page.status === "live" ? "Published" : "Draft"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right font-medium text-zinc-900 dark:text-white">
+                              {page.views || 0}
+                            </td>
+                            <td className="px-4 py-3 text-right font-bold text-zinc-900 dark:text-white">
+                              {page.signups || 0}
+                            </td>
+                            <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  onClick={(e) => handleCopyLink(page, e)}
+                                  className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                  title="Copy link"
+                                >
+                                  {copiedId === page.id ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                                </button>
+                                <Link
+                                  href={`/dashboard/leadmagnets/${page.id}`}
+                                  className="p-1.5 rounded-lg text-zinc-400 hover:text-[#0066B2] dark:hover:text-[#38BDF8] hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                  title="Edit"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Link>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${page.status === "live"
-                                ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
-                                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
-                                }`}
-                            >
-                              {page.status === "live" ? "Published" : "Draft"}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right font-medium text-zinc-900 dark:text-white">
-                            {page.views || 0}
-                          </td>
-                          <td className="px-4 py-3 text-right font-bold text-zinc-900 dark:text-white">
-                            {page.signups || 0}
-                          </td>
-                          <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={(e) => handleCopyLink(page, e)}
-                                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                                title="Copy link"
-                              >
-                                {copiedId === page.id ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                              </button>
-                              <Link
-                                href={`/dashboard/leadmagnets/${page.id}`}
-                                className="p-1.5 rounded-lg text-zinc-400 hover:text-[#0066B2] dark:hover:text-[#38BDF8] hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                                title="Edit"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Link>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </motion.div>
-            )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </motion.div>
+              )}
             </AnimatePresence>
 
             {/* Pagination Controls Bar */}

@@ -35,6 +35,7 @@ export default function AccountSettingsPage() {
 
   // Tab Navigation State
   const [activeTab, setActiveTab] = useState<"profile" | "security" | "notifications" | "usage" | "danger">("profile");
+  const [hoveredTab, setHoveredTab] = useState<string | null>(null);
 
   // Instant Lead Alerts State
   const [leadAlertsEnabled, setLeadAlertsEnabled] = useState(true);
@@ -360,7 +361,10 @@ export default function AccountSettingsPage() {
           </div>
 
           {/* Segmented Tab Navigation Bar */}
-          <div className="flex flex-wrap items-center gap-2 border-b border-zinc-200/80 dark:border-zinc-800 pb-3 mb-6 relative">
+          <div
+            className="flex flex-wrap items-center gap-2 mb-6 relative"
+            onMouseLeave={() => setHoveredTab(null)}
+          >
             {[
               { id: "profile", label: "Profile & Identity", icon: User },
               { id: "security", label: "Security & Password", icon: KeyRound },
@@ -370,30 +374,42 @@ export default function AccountSettingsPage() {
             ].map((t) => {
               const Icon = t.icon;
               const isActive = activeTab === t.id;
+              const isHovered = hoveredTab === t.id;
+
               return (
-                <button
+                <motion.button
                   key={t.id}
                   type="button"
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 600, damping: 28 }}
+                  onMouseEnter={() => setHoveredTab(t.id)}
                   onClick={() => setActiveTab(t.id as any)}
                   className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${isActive
-                    ? t.danger
-                      ? "text-white"
-                      : "text-white"
+                    ? "text-white"
                     : t.danger
-                      ? "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40"
-                      : "text-zinc-600 dark:text-zinc-400 hover:bg-white dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-white"
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-zinc-600 dark:text-zinc-400 dark:hover:text-white"
                     }`}
                 >
+                  {/* Active Tab Solid Pill */}
                   {isActive && (
                     <motion.div
                       layoutId="activeTabPill"
-                      transition={{ type: "spring", stiffness: 600, damping: 38 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 32 }}
                       className={`absolute inset-0 rounded-xl shadow-sm ${t.danger ? "bg-red-500" : "bg-[#0066B2]"}`}
+                    />
+                  )}
+                  {/* Hover Morphing Pill */}
+                  {!isActive && isHovered && (
+                    <motion.div
+                      layoutId="settingsHoverTabPill"
+                      transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                      className={`absolute inset-0 rounded-xl ${t.danger ? "bg-red-50 dark:bg-red-950/40" : "bg-zinc-200/60 dark:bg-zinc-800/60"}`}
                     />
                   )}
                   <Icon className="h-4 w-4 relative z-10" />
                   <span className="relative z-10">{t.label}</span>
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -487,7 +503,7 @@ export default function AccountSettingsPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Your Name"
-                        className="w-full max-w-lg rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
+                        className="w-full max-w-lg rounded-xl border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
                       />
                     </div>
                     <div>
@@ -496,7 +512,7 @@ export default function AccountSettingsPage() {
                         type="email"
                         value={email}
                         disabled
-                        className="w-full max-w-lg rounded-md border border-[#E2E8F0] bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-500 dark:text-white outline-none opacity-60 cursor-not-allowed transition"
+                        className="w-full max-w-lg rounded-xl border border-[#E2E8F0] bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-500 dark:text-white outline-none opacity-60 cursor-not-allowed transition"
                       />
                     </div>
 
@@ -636,7 +652,7 @@ export default function AccountSettingsPage() {
                             value={notifyEmail}
                             onChange={(e) => setNotifyEmail(e.target.value)}
                             placeholder={email || "your-email@example.com"}
-                            className="w-full rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#121214] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
+                            className="w-full rounded-xl border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
                           />
                         </div>
                         <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">

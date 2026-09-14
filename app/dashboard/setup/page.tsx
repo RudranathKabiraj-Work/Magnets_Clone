@@ -910,6 +910,45 @@ export default function WorkspaceSetupPage() {
                                 </div>
                               </div>
 
+                              {/* Live Webhook Receiver URL for Calendly & Cal.com */}
+                              <div className="pt-3 border-t border-zinc-200/60 dark:border-white/5 space-y-2">
+                                <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085]">
+                                  Booking Webhook Receiver URL
+                                </label>
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    readOnly
+                                    value={`${appBaseUrl}/api/webhooks/booking`}
+                                    className="flex-1 rounded-xl border border-zinc-200 bg-zinc-100 dark:border-white/10 dark:bg-[#09090B] px-3.5 py-2.5 text-xs text-zinc-800 dark:text-zinc-300 font-mono select-all outline-none"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(`${appBaseUrl}/api/webhooks/booking`);
+                                      setCopiedField("booking-webhook");
+                                      setTimeout(() => setCopiedField(null), 2000);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#18181B] hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-200 transition shrink-0 cursor-pointer"
+                                  >
+                                    {copiedField === "booking-webhook" ? (
+                                      <>
+                                        <Check className="h-3.5 w-3.5 text-emerald-500" />
+                                        <span>Copied</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Copy className="h-3.5 w-3.5 text-zinc-400" />
+                                        <span>Copy URL</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                                <p className="text-[11px] text-zinc-500 dark:text-[#666675]">
+                                  Add this URL under Webhooks in {account?.calendarProvider || "Calendly"} or Cal.com. When a lead books a meeting, sequences automatically pause.
+                                </p>
+                              </div>
+
                               <div className="pt-2 border-t border-zinc-200/60 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <p className="text-[11px] text-zinc-500 dark:text-[#666675]">
                                   One calendar connection applies to the account. Each magnet controls its sequence and stop-on-booking setting in the Sequence tab.

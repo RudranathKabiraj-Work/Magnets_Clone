@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { dbConnect } from "@/lib/mongodb";
 import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationModel, ResourceModel } from "@/lib/models";
 import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations } from "@/lib/data";
 import { sendInstantLeadAlert } from "@/lib/email-alerts";
+import { sendMail } from "@/lib/email";
 import { clearAuthCookie, getAuthenticatedUserEmail } from "@/lib/auth";
 import { hashPassword, comparePassword } from "@/lib/auth-helpers";
 
@@ -80,10 +82,12 @@ export async function POST(req: Request) {
       "checkEmail",
       "login",
       "resetPassword",
+      "sendResetEmail",
       "sendVerificationEmail",
       "sendForgotPasswordEmail",
       "verifyEmailToken",
-      "saveAccount"
+      // NOTE: "saveAccount" intentionally removed — requires authentication.
+      // Users must be logged in to modify their own account data.
     ];
 
     if (!authEmail && !publicActions.includes(action)) {
@@ -160,14 +164,17 @@ export async function POST(req: Request) {
     }
 
     if (action === "saveAccount") {
-      let account;
-      const normalizedEmail = data.email ? data.email.trim().toLowerCase() : "";
-      if (normalizedEmail) {
-        data.email = normalizedEmail;
+      // SECURITY: Always use the server-verified session email.
+      // Never trust the email coming from the request body — that can be spoofed.
+      if (!authEmail) {
+        return NextResponse.json({ error: "Unauthorized. Please log in to update your account." }, { status: 401 });
       }
-      let existing = normalizedEmail ? await AccountModel.findOne({ email: normalizedEmail }) : null;
+      let account;
+      const normalizedEmail = authEmail; // ← server-verified, cannot be spoofed
+      data.email = normalizedEmail; // overwrite any client-supplied email
+      let existing = await AccountModel.findOne({ email: normalizedEmail });
       if (!existing && data.id) {
-        existing = await AccountModel.findOne({ id: data.id });
+        existing = await AccountModel.findOne({ id: data.id, email: normalizedEmail });
       }
 
       if (existing) {
@@ -230,6 +237,18 @@ export async function POST(req: Request) {
 
     if (action === "deleteAccount") {
       const { email, password } = data;
+
+      // SECURITY: Must be logged in with a valid session
+      if (!authEmail) {
+        return NextResponse.json({ error: "Unauthorized. Please log in to perform this action." }, { status: 401 });
+      }
+
+      // SECURITY: The logged-in session must match the account being deleted.
+      // Prevents an attacker with a stolen password from deleting another user's account.
+      if (authEmail !== email.trim().toLowerCase()) {
+        return NextResponse.json({ error: "Forbidden. You can only delete your own account." }, { status: 403 });
+      }
+
       const account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
       if (!account) {
         return NextResponse.json({ error: "Account not found." }, { status: 400 });
@@ -274,6 +293,18 @@ export async function POST(req: Request) {
 
     if (action === "updatePassword") {
       const { email, currentPassword, newPassword } = data;
+
+      // SECURITY: Must be logged in with a valid session
+      if (!authEmail) {
+        return NextResponse.json({ error: "Unauthorized. Please log in to perform this action." }, { status: 401 });
+      }
+
+      // SECURITY: The logged-in session must match the account being updated.
+      // Prevents an attacker with a stolen password from changing another user's password.
+      if (authEmail !== email.trim().toLowerCase()) {
+        return NextResponse.json({ error: "Forbidden. You can only update your own password." }, { status: 403 });
+      }
+
       const account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
       if (!account) {
         return NextResponse.json({ error: "Account not found." }, { status: 400 });
@@ -290,13 +321,20 @@ export async function POST(req: Request) {
     }
 
     if (action === "getAccountByEmail") {
-      const account = await AccountModel.findOne({ email: data.email.trim().toLowerCase() });
+      // SECURITY: Only use the server-verified session email.
+      // Never trust data.email from the request body — any authenticated user
+      // could supply another user's email and read their account data (IDOR attack).
+      if (!authEmail) {
+        return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
+      }
+      const account = await AccountModel.findOne({ email: authEmail }).select("-password").lean();
       return NextResponse.json({ account });
     }
 
     if (action === "deleteLead") {
       const { id } = data;
-      await LeadModel.deleteOne({ id });
+      // SECURITY: Only delete the lead if it belongs to the logged-in user
+      await LeadModel.deleteOne({ id, userEmail: normEmail });
       return NextResponse.json({ success: true });
     }
 
@@ -334,6 +372,7 @@ export async function POST(req: Request) {
     if (action === "addLead") {
       let ownerEmail = normEmail || data.userEmail;
       let pageTitle = data.page || "Lead Magnet";
+      let foundPageDoc: any = null;
 
       // Prevent duplicate lead submissions for the same email & page
       if (data.email && (data.pageId || data.page)) {
@@ -354,12 +393,12 @@ export async function POST(req: Request) {
         if (data.pageId) query.push({ id: data.pageId });
         if (data.page) query.push({ name: data.page });
         if (data.pageSlug) query.push({ slug: data.pageSlug });
-        const pageDoc = await MagnetPageModel.findOne({ $or: query });
-        if (pageDoc) {
-          if (pageDoc.userEmail) ownerEmail = pageDoc.userEmail;
-          if (pageDoc.name) pageTitle = pageDoc.name;
-          const seqList = (pageDoc.sequenceEmails && pageDoc.sequenceEmails.length > 0) ? pageDoc.sequenceEmails : [];
-          if (pageDoc.sequenceEnabled || seqList.length > 0) {
+        foundPageDoc = await MagnetPageModel.findOne({ $or: query });
+        if (foundPageDoc) {
+          if (foundPageDoc.userEmail) ownerEmail = foundPageDoc.userEmail;
+          if (foundPageDoc.name) pageTitle = foundPageDoc.name;
+          const seqList = (foundPageDoc.sequenceEmails && foundPageDoc.sequenceEmails.length > 0) ? foundPageDoc.sequenceEmails : [];
+          if (foundPageDoc.sequenceEnabled || seqList.length > 0) {
             data.sequence = `${pageTitle} Follow-up`;
             data.sequenceStep = `Step 1 of ${Math.max(1, seqList.length)}`;
           }
@@ -403,9 +442,12 @@ export async function POST(req: Request) {
         }
       }
 
-      // Fire owner account alerts & third-party webhooks asynchronously in background without blocking HTTP response
+      // Fire owner account alerts & third-party webhooks — using waitUntil so Vercel
+      // keeps the function alive until ALL background work completes (emails, webhooks, CRM syncs).
+      // queueMicrotask was unreliable: Vercel could kill the function after sending the HTTP response,
+      // silently dropping emails and webhook calls mid-execution.
       if (ownerEmail) {
-        queueMicrotask(async () => {
+        waitUntil((async () => {
           try {
             const ownerAccount = await AccountModel.findOne({ email: ownerEmail.trim().toLowerCase() });
             const alertsEnabled = ownerAccount ? ownerAccount.leadAlertsEnabled !== false : true;
@@ -420,6 +462,64 @@ export async function POST(req: Request) {
                 signedUpAt: data.signedUpAt || new Date().toLocaleString(),
                 customAnswer: data.customAnswer,
               }).catch((err) => console.error("Lead Alert Background Error:", err));
+            }
+
+            // Send instant deliverable email directly to the subscriber
+            if (data.email) {
+              const reqHost = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
+              const reqProto = req.headers.get("x-forwarded-proto") || "https";
+              const dynamicOrigin = reqHost ? `${reqProto}://${reqHost}` : "http://localhost:3000";
+              const appUrl = process.env.NEXT_PUBLIC_APP_URL || dynamicOrigin;
+
+              const targetUser = ownerAccount?.username || "u";
+              const targetSlug = data.pageSlug || data.pageId || "resource";
+              const resourceAccessUrl = `${appUrl}/${encodeURIComponent(targetUser)}/${encodeURIComponent(targetSlug)}/thank-you?email=${encodeURIComponent(data.email)}&name=${encodeURIComponent(data.name || "")}`;
+
+              const subject = (foundPageDoc?.emailSubject && foundPageDoc.emailSubject.trim())
+                ? foundPageDoc.emailSubject.replace(/{name}/g, data.name || "there")
+                : `Here is your resource: ${pageTitle}`;
+
+              let rawBody = (foundPageDoc?.emailBody && foundPageDoc.emailBody.trim())
+                ? foundPageDoc.emailBody
+                : `Hey {name},\n\nThank you for requesting ${pageTitle}! Click the button below to access your resource instantly.\n\nEnjoy!`;
+
+              rawBody = rawBody.replace(/{name}/g, data.name || "there");
+              const hasHtmlTags = /<[a-z][\s\S]*>/i.test(rawBody);
+              const formattedBodyHtml = hasHtmlTags ? rawBody : rawBody.replace(/\n/g, "<br/>");
+
+              const subscriberHtml = `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 32px 20px; background-color: #f8fafc;">
+                  <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                    <h1 style="color: #0f172a; font-size: 22px; font-weight: 800; margin: 0 0 16px 0;">
+                      ${pageTitle}
+                    </h1>
+                    <div style="color: #334155; font-size: 15px; line-height: 1.6; margin-bottom: 28px;">
+                      ${formattedBodyHtml}
+                    </div>
+                    <div style="text-align: center; margin: 28px 0;">
+                      <a href="${resourceAccessUrl}" style="background-color: ${ownerAccount?.brandColor || "#0066B2"}; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(0, 102, 178, 0.25);">
+                        📥 Access Your Lead Magnet →
+                      </a>
+                    </div>
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0 20px 0;" />
+                    <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
+                      Sent by ${ownerAccount?.name || "LeadMagnets"} · Instant Lead Magnet Delivery
+                    </p>
+                  </div>
+                </div>
+              `;
+
+              sendMail({
+                to: data.email.trim(),
+                subject: subject,
+                html: subscriberHtml,
+              }).then((res) => {
+                if (res.success) {
+                  console.log(`✅ Deliverable email successfully sent to subscriber: ${data.email}`);
+                } else {
+                  console.error(`❌ Deliverable email sending failed for subscriber ${data.email}:`, res.error);
+                }
+              }).catch((err) => console.error("Subscriber Email Dispatch Error:", err));
             }
 
             // Dispatch Slack incoming webhook notification if configured
@@ -503,7 +603,7 @@ export async function POST(req: Request) {
           } catch (err) {
             console.error("Background lead alerts error:", err);
           }
-        });
+        })());
       }
 
       return NextResponse.json({ success: true, lead: createdLead });
@@ -720,17 +820,14 @@ export async function POST(req: Request) {
 
     if (action === "deleteResource") {
       const { id } = data;
-      await ResourceModel.deleteOne({ id });
+      // SECURITY: Only delete the resource if it belongs to the logged-in user
+      // The duplicate block below this was also removed (dead code that never ran)
+      await ResourceModel.deleteOne({ id, userEmail: normEmail });
       return NextResponse.json({ success: true });
     }
 
     if (action === "addResource") {
       await ResourceModel.create(data);
-      return NextResponse.json({ success: true });
-    }
-
-    if (action === "deleteResource") {
-      await ResourceModel.deleteOne({ id: data.id });
       return NextResponse.json({ success: true });
     }
 
@@ -749,43 +846,31 @@ export async function POST(req: Request) {
       account.resetPasswordExpires = expires;
       await account.save();
 
-      const origin = req.headers.get("origin") || "http://localhost:3000";
+      const origin = process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in";
       const resetUrl = `${origin}/reset-password?token=${token}`;
 
-      // Send email using Resend HTTP API
-      const resendRes = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: "onboarding@resend.dev",
-          to: [email.trim()],
-          subject: "Reset your LeadMagnets password",
-          html: `
-            <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-              <h2 style="color: #FE6F34; text-align: center;">Reset your password</h2>
-              <p>Hi ${account.name || "there"},</p>
-              <p>We received a request to reset your password. Click the button below to choose a new one:</p>
-              <div style="text-align: center; margin: 24px 0;">
-                <a href="${resetUrl}" style="background-color: #FE6F34; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
-              </div>
-              <p style="font-size: 13px; color: #666;">This link will expire in 1 hour.</p>
-              <p style="font-size: 11px; color: #999;">If you didn't request this, you can safely ignore this email.</p>
+      const sendResult = await sendMail({
+        to: email.trim(),
+        subject: "Reset your LeadMagnets password",
+        html: `
+          <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+            <h2 style="color: #FE6F34; text-align: center;">Reset your password</h2>
+            <p>Hi ${account.name || "there"},</p>
+            <p>We received a request to reset your password. Click the button below to choose a new one:</p>
+            <div style="text-align: center; margin: 24px 0;">
+              <a href="${resetUrl}" style="background-color: #FE6F34; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
             </div>
-          `,
-        }),
+            <p style="font-size: 13px; color: #666;">This link will expire in 1 hour.</p>
+            <p style="font-size: 11px; color: #999;">If you didn't request this, you can safely ignore this email.</p>
+          </div>
+        `,
       });
 
-      if (!resendRes.ok) {
-        const errData = await resendRes.json();
-        console.error("Resend API error:", errData);
-        return NextResponse.json({ error: errData.message || "Failed to send email." }, { status: 500 });
+      if (!sendResult.success) {
+        return NextResponse.json({ error: sendResult.error || "Failed to send email." }, { status: 500 });
       }
 
-      const emailData = await resendRes.json();
-      return NextResponse.json({ success: true, emailData });
+      return NextResponse.json({ success: true });
     }
 
     if (action === "resetPassword") {
@@ -814,40 +899,28 @@ export async function POST(req: Request) {
     if (action === "sendVerificationEmail") {
       const { email, name } = data;
 
-      // Send verification email using Resend HTTP API
-      const resendRes = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: "onboarding@resend.dev",
-          to: [email.trim()],
-          subject: "Verify your LeadMagnets email",
-          html: `
-            <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #fafafa;">
-              <div style="background-color: white; padding: 24px; border-radius: 8px; border: 1px solid #eaeaea; text-align: center;">
-                <h2 style="color: #0E0E10; margin-top: 0; font-size: 20px; font-weight: bold;">Verify your email</h2>
-                <p style="color: #4a4a4a; font-size: 13px; margin-bottom: 24px;">Confirm this email address to finish creating your LeadMagnets account.</p>
-                <div style="margin: 24px 0;">
-                  <a href="${req.headers.get("origin") || "http://localhost:3000"}/register/confirm?email=${encodeURIComponent(email.trim())}" style="background-color: #0E0E10; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px; display: inline-block;">Verify email address</a>
-                </div>
-                <p style="font-size: 11px; color: #888; margin-top: 24px; line-height: 1.5;">This link expires in 24 hours. If you did not create a LeadMagnets account, you can ignore this email.</p>
+      const sendResult = await sendMail({
+        to: email.trim(),
+        subject: "Verify your LeadMagnets email",
+        html: `
+          <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #fafafa;">
+            <div style="background-color: white; padding: 24px; border-radius: 8px; border: 1px solid #eaeaea; text-align: center;">
+              <h2 style="color: #0E0E10; margin-top: 0; font-size: 20px; font-weight: bold;">Verify your email</h2>
+              <p style="color: #4a4a4a; font-size: 13px; margin-bottom: 24px;">Confirm this email address to finish creating your LeadMagnets account.</p>
+              <div style="margin: 24px 0;">
+                <a href="${req.headers.get("origin") || "http://localhost:3000"}/register/confirm?email=${encodeURIComponent(email.trim())}" style="background-color: #0E0E10; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 13px; display: inline-block;">Verify email address</a>
               </div>
+              <p style="font-size: 11px; color: #888; margin-top: 24px; line-height: 1.5;">This link expires in 24 hours. If you did not create a LeadMagnets account, you can ignore this email.</p>
             </div>
-          `,
-        }),
+          </div>
+        `,
       });
 
-      if (!resendRes.ok) {
-        const errData = await resendRes.json();
-        console.error("Resend API error:", errData);
-        return NextResponse.json({ error: errData.message || "Failed to send verification email." }, { status: 500 });
+      if (!sendResult.success) {
+        return NextResponse.json({ error: sendResult.error || "Failed to send verification email." }, { status: 500 });
       }
 
-      const emailData = await resendRes.json();
-      return NextResponse.json({ success: true, emailData });
+      return NextResponse.json({ success: true });
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });

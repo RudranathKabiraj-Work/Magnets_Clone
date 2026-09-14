@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongodb";
 import { LeadModel, MagnetPageModel, SequenceModel } from "@/lib/models";
+import { sendMail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -22,13 +23,14 @@ export async function GET(req: NextRequest) {
     }
 
     await dbConnect();
-    const resendApiKey = process.env.RESEND_API_KEY;
 
-    // 2. Fetch active leads with sequences attached
+    // 2. Fetch active leads with sequences attached (chronologically sorted, scaled batch size)
     const activeLeads = await LeadModel.find({
       status: { $ne: "stopped" },
       sequenceStep: { $exists: true, $ne: "" },
-    }).limit(100);
+    })
+      .sort({ signedUpAt: 1 })
+      .limit(1000);
 
     let processedCount = 0;
     let deliveredCount = 0;
@@ -70,42 +72,27 @@ export async function GET(req: NextRequest) {
       if (elapsedMinutes >= targetDelayMinutes) {
         processedCount++;
 
-        // Send email via Resend if API key is configured
-        if (resendApiKey && resendApiKey.startsWith("re_")) {
-          try {
-            const htmlBody = `
-              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1e293b;">
-                <h2 style="color: #0066B2;">${nextEmail.subject}</h2>
-                <div style="font-size: 15px; line-height: 1.6; margin-top: 16px;">
-                  ${nextEmail.body || `Hi ${lead.name || "there"},\n\nHere is your follow-up resource for ${pageDoc.name}.`}
-                </div>
-                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0 16px 0;" />
-                <p style="font-size: 11px; color: #94a3b8; text-align: center;">
-                  Sent via LeadMagnets Sequence Engine · <a href="${req.nextUrl.origin}/r/${pageDoc.id}" style="color: #64748b;">Access Deliverable</a>
-                </p>
-              </div>
-            `;
+        const htmlBody = `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1e293b;">
+            <h2 style="color: #0066B2;">${nextEmail.subject}</h2>
+            <div style="font-size: 15px; line-height: 1.6; margin-top: 16px;">
+              ${nextEmail.body || `Hi ${lead.name || "there"},\n\nHere is your follow-up resource for ${pageDoc.name}.`}
+            </div>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0 16px 0;" />
+            <p style="font-size: 11px; color: #94a3b8; text-align: center;">
+              Sent via LeadMagnets Sequence Engine · <a href="${req.nextUrl.origin}/r/${pageDoc.id}" style="color: #64748b;">Access Deliverable</a>
+            </p>
+          </div>
+        `;
 
-            const resendRes = await fetch("https://api.resend.com/emails", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${resendApiKey}`,
-              },
-              body: JSON.stringify({
-                from: "sequence@resend.dev",
-                to: [lead.email.trim()],
-                subject: nextEmail.subject,
-                html: htmlBody,
-              }),
-            });
+        const sendResult = await sendMail({
+          to: lead.email.trim(),
+          subject: nextEmail.subject,
+          html: htmlBody,
+        });
 
-            if (resendRes.ok) {
-              deliveredCount++;
-            }
-          } catch (sendErr) {
-            console.error(`Failed to send sequence email to ${lead.email}:`, sendErr);
-          }
+        if (sendResult.success) {
+          deliveredCount++;
         }
 
         // Advance lead to next sequence step in MongoDB
@@ -115,6 +102,7 @@ export async function GET(req: NextRequest) {
         await lead.save();
       }
     }
+
 
     return NextResponse.json({
       success: true,

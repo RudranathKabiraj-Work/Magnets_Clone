@@ -62,7 +62,7 @@ const MagnetPageSchema = new Schema({
   deliverable: { type: String, default: "Instant Access" },
   updatedAt: { type: String, default: "Just now" },
   publishedAt: { type: String, default: null },
-  template: { type: String, enum: ["classic", "video", "quiz"], default: "classic" },
+  template: { type: String, default: "template1" },
   accent: { type: String, default: "#0066B2" },
   emailSubject: { type: String, default: "" },
   emailPreviewText: { type: String, default: "" },
@@ -117,8 +117,10 @@ LeadSchema.index({ userEmail: 1, page: 1 });
 const SequenceEmailSchema = new Schema({
   id: { type: String, required: true },
   subject: { type: String, required: true },
-  delayLabel: { type: String, required: true },
-  delayMinutes: { type: Number, required: true },
+  body: { type: String, default: "" },
+  previewText: { type: String, default: "" },
+  delayLabel: { type: String, default: "1 day" },
+  delayMinutes: { type: Number, default: 1440 },
   status: { type: String, enum: ["draft", "live"], default: "draft" },
   sent: { type: Number, default: 0 },
   opened: { type: Number, default: 0 },
@@ -152,6 +154,15 @@ const IntegrationSchema = new Schema({
   connected: { type: Boolean, default: false },
   trigger: { type: String, default: "" },
 });
+
+if (process.env.NODE_ENV === "development") {
+  delete (mongoose.models as any).Account;
+  delete (mongoose.models as any).MagnetPage;
+  delete (mongoose.models as any).Lead;
+  delete (mongoose.models as any).Sequence;
+  delete (mongoose.models as any).Integration;
+  delete (mongoose.models as any).Resource;
+}
 
 export const AccountModel = mongoose.models.Account || mongoose.model("Account", AccountSchema);
 export const MagnetPageModel = mongoose.models.MagnetPage || mongoose.model("MagnetPage", MagnetPageSchema);

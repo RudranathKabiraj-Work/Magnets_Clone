@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "LeadMagnets Privacy Policy.",
   robots: { index: true, follow: true },
-  alternates: { canonical: "https://leadmagnets.so/privacy" },
+  alternates: { canonical: "https://magnets.bdatech.in/privacy" },
 };
 
 export default function PrivacyPage() {
@@ -147,8 +147,8 @@ export default function PrivacyPage() {
               Depending on where you live, you may have rights to access, correct, delete, restrict, object to, or receive a copy of
               your personal data. Account holders can update much of their account information in the dashboard. To make a request,
               email{" "}
-              <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">
-                hello@leadmagnets.so
+              <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:info@bdatechnologies.com">
+                info@bdatechnologies.com
               </a>
               .
             </p>
@@ -177,8 +177,8 @@ export default function PrivacyPage() {
             <p>
               We may update this Policy as LeadMagnets changes. For material changes, we will provide reasonable notice before they take
               effect. Questions can be sent to{" "}
-              <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">
-                hello@leadmagnets.so
+              <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:info@bdatechnologies.com">
+                info@bdatechnologies.com
               </a>
               .
             </p>
@@ -187,8 +187,8 @@ export default function PrivacyPage() {
         <div className="mt-12 border-t border-zinc-200 dark:border-[#2e2e38] pt-6 text-sm text-zinc-600 dark:text-[#9B9085]">
           <p>
             Questions? Email{" "}
-            <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:hello@leadmagnets.so">
-              hello@leadmagnets.so
+            <a className="text-[#0066B2] dark:text-[#38BDF8] font-semibold underline-offset-4 hover:underline" href="mailto:info@bdatechnologies.com">
+              info@bdatechnologies.com
             </a>
             .
           </p>

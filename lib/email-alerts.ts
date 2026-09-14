@@ -1,3 +1,5 @@
+import { sendMail } from "@/lib/email";
+
 export interface LeadAlertPayload {
   ownerEmail: string;
   leadEmail: string;
@@ -13,8 +15,6 @@ export async function sendInstantLeadAlert(payload: LeadAlertPayload): Promise<{
   if (!ownerEmail || !ownerEmail.includes("@")) {
     return { success: false, error: "Invalid target owner email address" };
   }
-
-  const resendApiKey = process.env.RESEND_API_KEY;
 
   const htmlContent = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px; background-color: #f8fafc;">
@@ -70,41 +70,10 @@ export async function sendInstantLeadAlert(payload: LeadAlertPayload): Promise<{
     </div>
   `;
 
-  if (!resendApiKey || resendApiKey === "re_123456789" || !resendApiKey.startsWith("re_")) {
-    console.log("ℹ️ [Instant Lead Alert] Skipping live email dispatch (No valid RESEND_API_KEY set). Simulated alert for lead:", leadEmail, "owner:", ownerEmail);
-    return { success: true };
-  }
-
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${resendApiKey}`,
-      },
-      body: JSON.stringify({
-        from: "alerts@resend.dev",
-        to: [ownerEmail.trim()],
-        subject: `🎉 New Lead: ${leadEmail} on ${pageTitle || "LeadMagnet"}`,
-        html: htmlContent,
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      console.warn("Resend API notice:", err?.message || err);
-      if (err?.message && err.message.toLowerCase().includes("testing emails")) {
-        return {
-          success: true,
-          error: "Resend Free Tier Notice: Email alerts are sent to your registered Resend inbox. Verify a custom domain at resend.com to deliver to any external inbox."
-        };
-      }
-      return { success: false, error: err?.message || "Failed to send email alert" };
-    }
-
-    return { success: true };
-  } catch (error: any) {
-    console.error("Instant Lead Alert exception:", error);
-    return { success: false, error: error.message };
-  }
+  return sendMail({
+    to: ownerEmail.trim(),
+    subject: `🎉 New Lead: ${leadEmail} on ${pageTitle || "LeadMagnet"}`,
+    html: htmlContent,
+  });
 }
+

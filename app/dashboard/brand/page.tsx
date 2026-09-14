@@ -15,6 +15,7 @@ export default function BrandPage() {
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   const [highlightIntensity, setHighlightIntensity] = useState<number>(100);
   const [templateId, setTemplateId] = useState<"template1" | "template2" | "template3" | "template4" | "template5" | "template6" | "template7">("template1");
+  const [hoveredTemplateTab, setHoveredTemplateTab] = useState<string | null>(null);
   const [logo, setLogo] = useState<string | null>(null);
   const [latestPage, setLatestPage] = useState<MagnetPage | null>(null);
   const [saving, setSaving] = useState(false);
@@ -415,7 +416,10 @@ export default function BrandPage() {
             <div className="lg:col-span-8 flex flex-col h-full relative">
               {/* 7 Template Switcher Tabs Floating DIRECTLY ABOVE the Preview Card with Apple layoutId pill */}
               <div className="absolute -top-12 left-0 right-0 z-10 flex justify-end">
-                <div className="w-full flex items-center justify-between gap-1 bg-zinc-100 dark:bg-[#111113] p-1.5 rounded-xl border border-zinc-200 dark:border-[#2b2b32] shadow-xs overflow-x-auto">
+                <div
+                  className="w-full flex items-center justify-between gap-1 bg-zinc-100 dark:bg-[#111113] p-1.5 rounded-xl border border-zinc-200 dark:border-[#2b2b32] shadow-xs overflow-x-auto"
+                  onMouseLeave={() => setHoveredTemplateTab(null)}
+                >
                   {[
                     { id: "template1", label: "Template 1" },
                     { id: "template2", label: "Template 2" },
@@ -424,27 +428,44 @@ export default function BrandPage() {
                     { id: "template5", label: "Template 5" },
                     { id: "template6", label: "Template 6" },
                     { id: "template7", label: "Template 7" },
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setTemplateId(t.id as any)}
-                      className={`relative flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 cursor-pointer whitespace-nowrap ${templateId === t.id
-                        ? "text-white font-bold"
-                        : "text-zinc-600 dark:text-[#9B9085] hover:text-zinc-900 dark:hover:text-white"
-                        }`}
-                    >
-                      {templateId === t.id && (
-                        <motion.div
-                          layoutId="activeTemplateTab"
-                          className="absolute inset-0 bg-[#0066B2] rounded-lg shadow-sm"
-                          transition={{ type: "spring", stiffness: 550, damping: 34 }}
-                        />
-                      )}
-                      <span className="relative z-10 h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: templateId === t.id ? '#ffffff' : '#9CA3AF' }} />
-                      <span className="relative z-10">{t.label}</span>
-                    </button>
-                  ))}
+                  ].map((t) => {
+                    const isActive = templateId === t.id;
+                    const isHovered = hoveredTemplateTab === t.id;
+
+                    return (
+                      <motion.button
+                        key={t.id}
+                        type="button"
+                        whileTap={{ scale: 0.97 }}
+                        transition={{ type: "spring", stiffness: 600, damping: 28 }}
+                        onMouseEnter={() => setHoveredTemplateTab(t.id)}
+                        onClick={() => setTemplateId(t.id as any)}
+                        className={`relative flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 cursor-pointer whitespace-nowrap ${isActive
+                          ? "text-white font-bold"
+                          : "text-zinc-600 dark:text-[#9B9085] dark:hover:text-white"
+                          }`}
+                      >
+                        {/* Active Solid Pill */}
+                        {isActive && (
+                          <motion.div
+                            layoutId="activeTemplateTab"
+                            className="absolute inset-0 bg-[#0066B2] rounded-lg shadow-sm"
+                            transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                          />
+                        )}
+                        {/* Hover Morphing Pill */}
+                        {!isActive && isHovered && (
+                          <motion.div
+                            layoutId="hoverTemplateTab"
+                            className="absolute inset-0 bg-zinc-200/80 dark:bg-[#25252a] rounded-lg"
+                            transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                          />
+                        )}
+                        <span className="relative z-10 h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: isActive ? '#ffffff' : '#9CA3AF' }} />
+                        <span className="relative z-10">{t.label}</span>
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </div>
 

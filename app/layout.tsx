@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import dynamic from "next/dynamic";
 import "./globals.css";
+import "@/src/shaders/threeui.css";
 
 const SmoothScroll = dynamic(() => import("@/components/smooth-scroll"), { ssr: false });
 
@@ -20,7 +21,7 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-const SITE = "https://leadmagnets.so";
+const SITE = "https://magnets.bdatech.in";
 
 export const metadata: Metadata = {
   title: {

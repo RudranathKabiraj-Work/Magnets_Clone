@@ -53,6 +53,7 @@ export default function MagnetSignupForm({
   const [personalizedOutput, setPersonalizedOutput] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleCustomFieldChange = (fieldId: string, val: any) => {
     setCustomFieldValues((prev) => ({ ...prev, [fieldId]: val }));
@@ -62,6 +63,7 @@ export default function MagnetSignupForm({
     e.preventDefault();
     if (!email) return;
 
+    setErrorMsg(null);
     setLoading(true);
     try {
       let customDeliverable = deliverable;
@@ -175,9 +177,13 @@ export default function MagnetSignupForm({
         // Instant smooth redirect to Thank You page
         window.location.href = thankYouRoute;
         return;
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        setErrorMsg(errJson.error || "Failed to submit sign up. Please try again.");
       }
     } catch (err) {
       console.error("Failed to submit lead", err);
+      setErrorMsg("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -351,6 +357,12 @@ export default function MagnetSignupForm({
                   style={inputStyle}
                   className="min-h-11 w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition shadow-xs placeholder:text-zinc-400 focus:border-[#0066B2]"
                 />
+              </div>
+            )}
+
+            {errorMsg && (
+              <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs font-semibold text-rose-500 text-center">
+                {errorMsg}
               </div>
             )}
 
