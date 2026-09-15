@@ -108,6 +108,7 @@ const LeadSchema = new Schema({
   customFields: { type: Schema.Types.Mixed, default: {} },
   deviceType: { type: String, enum: ["desktop", "mobile"], default: "desktop" },
   referrer: { type: String, default: "Direct" },
+  isVariantB: { type: Boolean, default: false },
 });
 
 LeadSchema.index({ userEmail: 1, pageId: 1 });

@@ -197,7 +197,7 @@ export default async function MagnetPageRoute({
         brandColor={brandColor}
         pageId={page.id}
         isVariantB={isVariantB}
-        isOwner={isOwner}
+        isOwner={isOwner && isDraftMode && !page.testStarted}
       />
       {/* Draft Preview Mode Top Banner for Logged-In Owner */}
       {isDraftMode && isOwner && (
@@ -300,6 +300,7 @@ export default async function MagnetPageRoute({
                   enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
                   customFormFields={page.customFormFields}
                   username={params.username}
+                  isVariantB={isVariantB}
                 />
               </div>
             </div>
@@ -420,6 +421,7 @@ export default async function MagnetPageRoute({
                     enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
                     customFormFields={page.customFormFields}
                     username={params.username}
+                    isVariantB={isVariantB}
                   />
                 </div>
               </div>
@@ -501,6 +503,7 @@ export default async function MagnetPageRoute({
                   enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
                   customFormFields={page.customFormFields}
                   username={params.username}
+                  isVariantB={isVariantB}
                 />
               </div>
 
@@ -627,6 +630,7 @@ export default async function MagnetPageRoute({
                   enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
                   customFormFields={page.customFormFields}
                   username={params.username}
+                  isVariantB={isVariantB}
                 />
               </div>
             </div>
@@ -718,6 +722,7 @@ export default async function MagnetPageRoute({
                   enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
                   customFormFields={page.customFormFields}
                   username={params.username}
+                  isVariantB={isVariantB}
                 />
               </div>
             </div>
@@ -819,6 +824,7 @@ export default async function MagnetPageRoute({
                     enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
                     customFormFields={page.customFormFields}
                     username={params.username}
+                    isVariantB={isVariantB}
                   />
 
                   {/* Social proof */}
@@ -938,6 +944,7 @@ export default async function MagnetPageRoute({
                     enableAiPersonalizedDeliverable={page.enableAiPersonalizedDeliverable}
                     customFormFields={page.customFormFields}
                     username={params.username}
+                    isVariantB={isVariantB}
                   />
                   <p className={`mt-3 flex items-center justify-center gap-1.5 text-xs ${themeMode === "dark" ? "text-zinc-500" : "text-ink-500"
                     }`}>

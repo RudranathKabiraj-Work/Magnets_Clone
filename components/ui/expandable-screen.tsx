@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ExpandableScreenContextType {
@@ -98,8 +99,24 @@ export function ExpandableScreenContent({
   className?: string;
 }) {
   const { isOpen, setIsOpen, layoutId, contentRadius } = useExpandableScreen();
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
+  if (!mounted) return null;
+
+  const contentJSX = (
     <AnimatePresence>
       {isOpen && (
         <>
@@ -109,12 +126,12 @@ export function ExpandableScreenContent({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.12 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[99998] bg-black/65 backdrop-blur-md"
             onClick={() => setIsOpen(false)}
           />
 
           {/* Morphing Screen Content */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 pointer-events-none">
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 md:p-6 pointer-events-none">
             <motion.div
               layoutId={layoutId}
               style={{ borderRadius: contentRadius }}
@@ -124,6 +141,8 @@ export function ExpandableScreenContent({
                 damping: 36,
                 mass: 0.8,
               }}
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
               className={`pointer-events-auto relative w-full max-w-4xl h-[92vh] max-h-[96vh] overflow-hidden shadow-2xl flex flex-col ${className}`}
               onClick={(e) => e.stopPropagation()}
             >
@@ -134,4 +153,6 @@ export function ExpandableScreenContent({
       )}
     </AnimatePresence>
   );
+
+  return createPortal(contentJSX, document.body);
 }

@@ -14,24 +14,30 @@ import {
   Pencil,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { type MagnetPage, type Account } from "@/lib/data";
-import { loadPages, loadAccount, syncWithDatabase } from "@/lib/store";
+import { type MagnetPage, type Account, type Lead } from "@/lib/data";
+import { loadPages, loadAccount, loadLeads, syncWithDatabase } from "@/lib/store";
+import AnalyticsHelpModal from "@/components/analytics/analytics-help-modal";
+import AnalyticsChart from "@/components/analytics/analytics-chart";
 
 export default function GeneralAnalyticsPage() {
   const [account, setAccount] = useState<Account | null>(null);
   const [pages, setPages] = useState<MagnetPage[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   useEffect(() => {
-
     const localAccount = loadAccount();
     if (localAccount) setAccount(localAccount);
     const localPages = loadPages();
     if (localPages.length > 0) setPages(localPages);
+    const localLeads = loadLeads();
+    if (localLeads.length > 0) setLeads(localLeads);
 
     syncWithDatabase().then((data) => {
       if (data) {
         if (data.pages) setPages(data.pages);
         if (data.account) setAccount(data.account);
+        if (data.leads) setLeads(data.leads);
       }
     });
   }, []);
@@ -42,6 +48,7 @@ export default function GeneralAnalyticsPage() {
 
   return (
     <DashboardShell account={account} title="Analytics">
+      <AnalyticsHelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
       <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-[#F8FBFF] dark:bg-[#0E0E10]">
         <div className="flex-1 px-6 py-6 lg:px-8 space-y-6">
 
@@ -50,7 +57,14 @@ export default function GeneralAnalyticsPage() {
             <div>
               <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-950 dark:text-white">
                 Analytics
-                <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-100 dark:hover:bg-[#18181B]">?</span>
+                <button
+                  type="button"
+                  onClick={() => setShowHelpModal(true)}
+                  className="cursor-pointer flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-100 dark:hover:bg-[#18181B] transition"
+                  title="Help centre"
+                >
+                  ?
+                </button>
               </h2>
               <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
                 {account?.name || "LeadMagnets"} · Overview
@@ -78,7 +92,7 @@ export default function GeneralAnalyticsPage() {
               </div>
               <div>
                 <div className="text-3xl font-black text-zinc-900 dark:text-white">{totalVisits}</div>
-                <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1 font-medium">0 in the last 30 days</div>
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1 font-medium">{totalVisits} in the last 30 days</div>
               </div>
             </div>
 
@@ -91,7 +105,7 @@ export default function GeneralAnalyticsPage() {
               <div>
                 <div className="text-3xl font-black text-zinc-900 dark:text-white">{totalSignups}</div>
                 <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1 font-medium">
-                  {totalSignups} unique people · 0 in the last 30 days
+                  {totalSignups} unique people · {totalSignups} in the last 30 days
                 </div>
               </div>
             </div>
@@ -116,7 +130,7 @@ export default function GeneralAnalyticsPage() {
               </div>
               <div>
                 <div className="text-3xl font-black text-zinc-900 dark:text-white">{totalSignups}</div>
-                <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1 font-medium">0 in the last 30 days</div>
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1 font-medium">{totalSignups} in the last 30 days</div>
               </div>
             </div>
 
@@ -153,14 +167,8 @@ export default function GeneralAnalyticsPage() {
               </div>
             </div>
 
-            {/* Chart Container / Empty State */}
-            <div className="flex flex-col items-center justify-center py-16 px-4 border border-zinc-200 dark:border-zinc-800/80 rounded-xl bg-zinc-50/50 dark:bg-[#121214]">
-              <BarChart2 className="h-8 w-8 text-zinc-400 dark:text-zinc-600 mb-3" />
-              <h4 className="text-sm font-extrabold text-zinc-900 dark:text-white">No visits recorded yet</h4>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center max-w-md mt-1 leading-relaxed">
-                Publish and share your lead magnets. New visits and successful form submissions will appear here automatically.
-              </p>
-            </div>
+            {/* Dynamic Interactive 30-Day Bar Chart */}
+            <AnalyticsChart totalVisits={totalVisits} totalSignups={totalSignups} leads={leads} />
           </div>
 
           {/* Device & Traffic Sources Breakdown */}
