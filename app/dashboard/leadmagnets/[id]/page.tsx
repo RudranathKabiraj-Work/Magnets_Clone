@@ -2592,9 +2592,9 @@ export default function EditLeadMagnetPage() {
                                 )}
                               </div>
                               {/* Bottom: headline + subheadline */}
-                              <div className="space-y-2 max-w-[220px]">
-                                <textarea ref={headlineRef} rows={1} value={headline} onChange={(e) => { setHeadline(e.target.value); e.target.style.height = "auto"; e.target.style.height = `${e.target.scrollHeight}px`; }} className="w-full text-base font-black text-white bg-transparent outline-none resize-none leading-tight drop-shadow-xl" placeholder="Your headline here" />
-                                <textarea ref={subheadlineRef} rows={1} value={subheadline} onChange={(e) => { setSubheadline(e.target.value); e.target.style.height = "auto"; e.target.style.height = `${e.target.scrollHeight}px`; }} className="w-full text-[10px] text-white/65 bg-transparent outline-none resize-none leading-relaxed" placeholder="Your subheadline" />
+                              <div className="space-y-2 max-w-[85%] sm:max-w-[340px]">
+                                <textarea ref={headlineRef} rows={1} value={headline} onChange={(e) => { setHeadline(e.target.value); e.target.style.height = "auto"; e.target.style.height = `${e.target.scrollHeight}px`; }} className="w-full text-2xl sm:text-3xl font-black text-white bg-transparent outline-none resize-none leading-tight drop-shadow-2xl" placeholder="Your headline here" />
+                                <textarea ref={subheadlineRef} rows={1} value={subheadline} onChange={(e) => { setSubheadline(e.target.value); e.target.style.height = "auto"; e.target.style.height = `${e.target.scrollHeight}px`; }} className="w-full text-xs sm:text-sm font-medium text-white/75 bg-transparent outline-none resize-none leading-relaxed drop-shadow-md" placeholder="Your subheadline" />
                               </div>
                             </div>
                           </div>
@@ -2607,7 +2607,7 @@ export default function EditLeadMagnetPage() {
                                   type="text"
                                   value={bulletsTitle}
                                   onChange={(e) => setBulletsTitle(e.target.value)}
-                                  className="w-full text-[9px] font-black uppercase tracking-[0.2em] bg-transparent outline-none"
+                                  className="w-full text-[10px] font-black uppercase tracking-[0.2em] bg-transparent outline-none"
                                   style={{ color: account?.brandColor || "#0066B2" }}
                                   placeholder="Category / Tag"
                                 />
@@ -2615,14 +2615,14 @@ export default function EditLeadMagnetPage() {
                                   type="text"
                                   value={formTitle}
                                   onChange={(e) => setFormTitle(e.target.value)}
-                                  className={`w-full text-sm font-black bg-transparent outline-none ${(account?.themeMode || "light") === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-900 placeholder:text-zinc-400"}`}
+                                  className={`w-full text-base font-black bg-transparent outline-none ${(account?.themeMode || "light") === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-900 placeholder:text-zinc-400"}`}
                                   placeholder="Form Title"
                                 />
                                 <input
                                   type="text"
                                   value={formSubtitle}
                                   onChange={(e) => setFormSubtitle(e.target.value)}
-                                  className={`w-full text-[10px] bg-transparent outline-none ${(account?.themeMode || "light") === "dark" ? "text-zinc-400 placeholder:text-zinc-600" : "text-zinc-500 placeholder:text-zinc-400"}`}
+                                  className={`w-full text-xs bg-transparent outline-none ${(account?.themeMode || "light") === "dark" ? "text-zinc-400 placeholder:text-zinc-600" : "text-zinc-500 placeholder:text-zinc-400"}`}
                                   placeholder="Form Subtitle"
                                 />
                               </div>
@@ -2644,7 +2644,7 @@ export default function EditLeadMagnetPage() {
                                             setBullets(u);
                                           }}
                                           placeholder={`Bullet point ${idx + 1}`}
-                                          className={`w-full bg-transparent outline-none text-[10px] leading-relaxed ${(account?.themeMode || "light") === "dark" ? "text-zinc-300 placeholder:text-zinc-600" : "text-zinc-600 placeholder:text-zinc-400"}`}
+                                          className={`w-full bg-transparent outline-none text-xs leading-relaxed ${(account?.themeMode || "light") === "dark" ? "text-zinc-300 placeholder:text-zinc-600" : "text-zinc-600 placeholder:text-zinc-400"}`}
                                         />
                                         <button
                                           type="button"
