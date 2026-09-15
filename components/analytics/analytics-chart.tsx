@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { BarChart2, TrendingUp, Layers } from "lucide-react";
+import { BarChart2, TrendingUp } from "lucide-react";
 import { type Lead } from "@/lib/data";
 
 interface DayData {
@@ -12,16 +12,18 @@ interface DayData {
   signups: number;
 }
 
+export type TimeRange = "7d" | "30d" | "90d" | "all";
+
 interface AnalyticsChartProps {
   totalVisits: number;
   totalSignups: number;
   leads?: Lead[];
   title?: string;
   subtitle?: string;
-  onDataCalculated?: (data: { visitsInLast30: number; signupsInLast30: number }) => void;
+  range?: TimeRange;
+  onDataCalculated?: (data: { visitsInRange: number; signupsInRange: number }) => void;
 }
 
-// Generate smooth cubic bezier SVG path
 function getSmoothPath(points: { x: number; y: number }[]) {
   if (points.length === 0) return "";
   let path = `M ${points[0].x},${points[0].y}`;
@@ -41,19 +43,33 @@ export default function AnalyticsChart({
   totalVisits,
   totalSignups,
   leads = [],
-  title = "Visits over the last 30 days",
+  title = "Visits & Conversions",
   subtitle = "Each bar is one day. Orange shows tracked conversions.",
+  range = "30d",
   onDataCalculated,
 }: AnalyticsChartProps) {
   const [chartMode, setChartMode] = useState<"bar" | "line">("bar");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const { days, maxVal, visitsInLast30, signupsInLast30 } = useMemo(() => {
+  const numDays = useMemo(() => {
+    switch (range) {
+      case "7d":
+        return 7;
+      case "90d":
+        return 90;
+      case "all":
+        return 180;
+      case "30d":
+      default:
+        return 30;
+    }
+  }, [range]);
+
+  const { days, maxVal, visitsInRange, signupsInRange } = useMemo(() => {
     const dayList: DayData[] = [];
     const today = new Date();
 
-    // Create array for past 30 days (0 = 29 days ago, 29 = today)
-    for (let i = 29; i >= 0; i--) {
+    for (let i = numDays - 1; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const isoDate = d.toISOString().split("T")[0];
@@ -80,8 +96,8 @@ export default function AnalyticsChart({
       const diffDays = Math.floor(
         (today.getTime() - leadDate.getTime()) / (1000 * 60 * 60 * 24)
       );
-      if (diffDays >= 0 && diffDays < 30) {
-        const targetIndex = 29 - diffDays;
+      if (diffDays >= 0 && diffDays < numDays) {
+        const targetIndex = numDays - 1 - diffDays;
         if (dayList[targetIndex]) {
           dayList[targetIndex].signups += 1;
         }
@@ -90,35 +106,27 @@ export default function AnalyticsChart({
 
     let currentSignupsSum = dayList.reduce((acc, d) => acc + d.signups, 0);
 
-    // If totalSignups is greater than leads in 30 days, distribute remaining signups across days
+    // Distribute remaining signups if totalSignups > currentSignupsSum
     const remainingSignups = Math.max(0, totalSignups - currentSignupsSum);
     if (remainingSignups > 0) {
-      const weights = [
-        0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 10,
-        12, 14, 15, 18, 20, 25,
-      ];
-      const totalWeight = weights.reduce((a, b) => a + b, 0);
       let allocated = 0;
-      for (let i = 0; i < 30; i++) {
-        const add = Math.round((weights[i] / totalWeight) * remainingSignups);
+      for (let i = 0; i < numDays; i++) {
+        const weight = (i + 1) / numDays;
+        const add = Math.round((weight / (numDays / 2)) * remainingSignups);
         dayList[i].signups += add;
         allocated += add;
       }
       if (allocated < remainingSignups) {
-        dayList[29].signups += remainingSignups - allocated;
+        dayList[numDays - 1].signups += remainingSignups - allocated;
       }
     }
 
-    // 2. Distribute totalVisits across 30 days
+    // 2. Distribute totalVisits across days
     if (totalVisits > 0) {
-      const weights = [
-        1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 9, 10, 11, 12, 14,
-        15, 17, 19, 21, 23, 26, 30,
-      ];
-      const totalWeight = weights.reduce((a, b) => a + b, 0);
       let allocated = 0;
-      for (let i = 0; i < 30; i++) {
-        let v = Math.round((weights[i] / totalWeight) * totalVisits);
+      for (let i = 0; i < numDays; i++) {
+        const weight = (i + 1) / numDays;
+        let v = Math.round((weight / (numDays / 2)) * totalVisits);
         if (v < dayList[i].signups) {
           v = dayList[i].signups + Math.floor(Math.random() * 2);
         }
@@ -126,16 +134,18 @@ export default function AnalyticsChart({
         allocated += v;
       }
       const diff = totalVisits - allocated;
-      dayList[29].visits = Math.max(dayList[29].signups, dayList[29].visits + diff);
+      dayList[numDays - 1].visits = Math.max(
+        dayList[numDays - 1].signups,
+        dayList[numDays - 1].visits + diff
+      );
     }
 
-    // Ensure visits is never less than signups
     dayList.forEach((d) => {
       if (d.visits < d.signups) d.visits = d.signups;
     });
 
-    const vLast30 = dayList.reduce((acc, d) => acc + d.visits, 0);
-    const sLast30 = dayList.reduce((acc, d) => acc + d.signups, 0);
+    const vSum = dayList.reduce((acc, d) => acc + d.visits, 0);
+    const sSum = dayList.reduce((acc, d) => acc + d.signups, 0);
 
     const highest = Math.max(...dayList.map((d) => Math.max(d.visits, d.signups)), 1);
     const maxVal = Math.ceil(highest * 1.15);
@@ -143,20 +153,19 @@ export default function AnalyticsChart({
     return {
       days: dayList,
       maxVal,
-      visitsInLast30: vLast30,
-      signupsInLast30: sLast30,
+      visitsInRange: vSum,
+      signupsInRange: sSum,
     };
-  }, [totalVisits, totalSignups, leads]);
+  }, [totalVisits, totalSignups, leads, numDays]);
 
   React.useEffect(() => {
     if (onDataCalculated) {
-      onDataCalculated({ visitsInLast30, signupsInLast30 });
+      onDataCalculated({ visitsInRange, signupsInRange });
     }
-  }, [visitsInLast30, signupsInLast30, onDataCalculated]);
+  }, [visitsInRange, signupsInRange, onDataCalculated]);
 
   const hasData = totalVisits > 0 || totalSignups > 0;
 
-  // SVG coordinates calculation for line/area chart
   const width = 800;
   const height = 180;
   const pointsVisits = days.map((d, i) => {
@@ -186,8 +195,8 @@ export default function AnalyticsChart({
         <div>
           <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
             {title}
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-              30D
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 uppercase">
+              {range}
             </span>
           </h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{subtitle}</p>
@@ -285,7 +294,6 @@ export default function AnalyticsChart({
             <div className="absolute inset-x-0 top-3/4 border-b border-zinc-200/50 dark:border-zinc-800/50 pointer-events-none" />
 
             {chartMode === "line" ? (
-              /* Clean Minimal SVG Area Chart (Stripe/Vercel style) */
               <div className="relative h-full w-full">
                 <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="w-full h-full">
                   <defs>
@@ -299,15 +307,12 @@ export default function AnalyticsChart({
                     </linearGradient>
                   </defs>
 
-                  {/* Visit Area & Crisp Stroke */}
                   <path d={areaVisits} fill="url(#visitGradClean)" />
                   <path d={pathVisits} fill="none" stroke="#0066B2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
-                  {/* Conversion Area & Crisp Stroke */}
                   <path d={areaSignups} fill="url(#conversionGradClean)" />
                   <path d={pathSignups} fill="none" stroke="#FE6F34" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
-                  {/* Hover Guide Line & Active Data Points */}
                   {hoveredIndex !== null && (
                     <>
                       <line
@@ -341,7 +346,6 @@ export default function AnalyticsChart({
                   )}
                 </svg>
 
-                {/* Hover Interaction Overlay */}
                 <div className="absolute inset-0 flex items-stretch">
                   {days.map((_, i) => (
                     <div
@@ -354,7 +358,6 @@ export default function AnalyticsChart({
                 </div>
               </div>
             ) : (
-              /* Clean Minimal Bar Chart */
               <div className="h-full w-full flex items-end justify-between gap-1 sm:gap-1.5 pt-6 pb-2.5 px-3 sm:px-4">
                 {days.map((day, idx) => {
                   const visitHeightPct = day.visits > 0 ? Math.max(6, (day.visits / maxVal) * 100) : 0;
@@ -369,7 +372,6 @@ export default function AnalyticsChart({
                       className="relative flex-1 h-full flex items-end justify-center cursor-pointer group"
                     >
                       <div className="w-full max-w-[12px] sm:max-w-[18px] h-full flex items-end justify-center relative rounded-t-sm overflow-hidden">
-                        {/* Background Visit Bar */}
                         {day.visits > 0 ? (
                           <div
                             style={{ height: `${visitHeightPct}%` }}
@@ -383,7 +385,6 @@ export default function AnalyticsChart({
                           <div className="w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-full group-hover:bg-zinc-300 transition-colors" />
                         )}
 
-                        {/* Orange Conversion Bar Overlay */}
                         {day.signups > 0 && (
                           <div
                             style={{ height: `${signupHeightPct}%` }}
@@ -403,11 +404,11 @@ export default function AnalyticsChart({
           {/* X-Axis Date Ticks */}
           <div className="flex justify-between text-[11px] text-zinc-500 dark:text-zinc-400 font-medium px-1">
             <span>{days[0].label}</span>
-            <span>{days[7].label}</span>
-            <span>{days[15].label}</span>
-            <span>{days[22].label}</span>
+            <span>{days[Math.floor(numDays * 0.25)].label}</span>
+            <span>{days[Math.floor(numDays * 0.5)].label}</span>
+            <span>{days[Math.floor(numDays * 0.75)].label}</span>
             <span className="font-semibold text-zinc-900 dark:text-white">
-              Today ({days[29].label})
+              Today ({days[numDays - 1].label})
             </span>
           </div>
         </div>
