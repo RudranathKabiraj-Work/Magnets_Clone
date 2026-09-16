@@ -308,10 +308,10 @@ export default function PagesPage() {
                       key={tab.id}
                       onClick={() => setStatusFilter(tab.id as any)}
                       className={`relative px-3 py-1 rounded-lg transition-colors duration-200 cursor-pointer ${statusFilter === tab.id
-                          ? tab.id === "live"
-                            ? "text-emerald-600 dark:text-emerald-400 font-bold"
-                            : "text-zinc-900 dark:text-white font-bold"
-                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                        ? tab.id === "live"
+                          ? "text-emerald-600 dark:text-emerald-400 font-bold"
+                          : "text-zinc-900 dark:text-white font-bold"
+                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
                         }`}
                     >
                       {statusFilter === tab.id && (

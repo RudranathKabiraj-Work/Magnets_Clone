@@ -407,8 +407,8 @@ export default function DashboardShell({
                             title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} mode`}
                             onClick={() => applyThemeMode(mode)}
                             className={`relative flex-1 flex items-center justify-center py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer z-10 ${isActive
-                                ? "text-zinc-900 dark:text-white"
-                                : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                              ? "text-zinc-900 dark:text-white"
+                              : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
                               }`}
                           >
                             {isActive && (
@@ -620,8 +620,8 @@ export default function DashboardShell({
                             title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} mode`}
                             onClick={() => applyThemeMode(mode)}
                             className={`relative flex-1 flex items-center justify-center py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer z-10 ${isActive
-                                ? "text-zinc-900 dark:text-white"
-                                : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                              ? "text-zinc-900 dark:text-white"
+                              : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
                               }`}
                           >
                             {isActive && (
