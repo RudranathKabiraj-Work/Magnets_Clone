@@ -83,7 +83,7 @@ export function ExpandableScreenTrigger({
       layoutId={layoutId}
       style={{ borderRadius: triggerRadius }}
       onClick={() => setIsOpen(true)}
-      className={`cursor-pointer overflow-hidden ${className}`}
+      className={`cursor-pointer overflow-hidden transform-gpu ${className}`}
       whileTap={{ scale: 0.98 }}
     >
       {children}
@@ -125,8 +125,8 @@ export function ExpandableScreenContent({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-            className="fixed inset-0 z-[99998] bg-black/65 backdrop-blur-md"
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="fixed inset-0 z-[99998] bg-black/60 backdrop-blur-sm will-change-[opacity]"
             onClick={() => setIsOpen(false)}
           />
 
@@ -137,13 +137,13 @@ export function ExpandableScreenContent({
               style={{ borderRadius: contentRadius }}
               transition={{
                 type: "spring",
-                stiffness: 550,
-                damping: 36,
-                mass: 0.8,
+                stiffness: 380,
+                damping: 32,
+                mass: 0.7,
               }}
               onWheel={(e) => e.stopPropagation()}
               onTouchMove={(e) => e.stopPropagation()}
-              className={`pointer-events-auto relative w-full max-w-4xl h-[92vh] max-h-[96vh] overflow-hidden shadow-2xl flex flex-col ${className}`}
+              className={`pointer-events-auto relative w-full max-w-4xl h-[92vh] max-h-[96vh] overflow-hidden shadow-2xl flex flex-col transform-gpu will-change-transform ${className}`}
               onClick={(e) => e.stopPropagation()}
             >
               {children}

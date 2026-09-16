@@ -62,8 +62,17 @@ export default function ResourcesPage() {
   const [resourceToDelete, setResourceToDelete] = useState<Resource | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [showGuaranteeBanner, setShowGuaranteeBanner] = useState(true);
 
   useEffect(() => {
+    try {
+      const isBannerDismissed = localStorage.getItem("dismissed_email_guarantee_banner");
+      if (isBannerDismissed === "true") {
+        setShowGuaranteeBanner(false);
+      }
+    } catch (e) {
+      // LocalStorage access check
+    }
 
     // Load local data instantly
     const localResources = loadResources().filter((r: any) => !r.isPageAsset && r.type !== "page_asset");
@@ -83,6 +92,15 @@ export default function ResourcesPage() {
       }
     });
   }, []);
+
+  const handleDismissBanner = () => {
+    setShowGuaranteeBanner(false);
+    try {
+      localStorage.setItem("dismissed_email_guarantee_banner", "true");
+    } catch (e) {
+      // Ignore quota/private browsing errors
+    }
+  };
 
   const addToast = (type: "success" | "error" | "info", message: string) => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -456,12 +474,34 @@ export default function ResourcesPage() {
           )}
 
           {/* Email Integration Guarantee Banner */}
-          <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[#0066B2]/30 bg-[#EFF6FF]/80 p-4 text-xs text-[#0066B2] dark:border-[#0066B2]/30 dark:bg-[#0066B2]/15 dark:text-[#38BDF8] backdrop-blur-sm">
-            <Lock className="h-4 w-4 shrink-0 text-[#0066B2] dark:text-[#38BDF8] mt-0.5" />
-            <p className="leading-relaxed">
-              <strong className="font-semibold text-zinc-900 dark:text-white">Email Delivery Guarantee:</strong> All hosted resources generate unique secure links (<code className="px-1.5 py-0.5 bg-white/70 dark:bg-[#18181B] rounded text-[11px] font-mono">/r/[id]</code>) that are automatically attached to your lead magnet signup forms. Your subscribers can instantly download these files upon submitting their email.
-            </p>
-          </div>
+          <AnimatePresence>
+            {showGuaranteeBanner && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                animate={{ opacity: 1, height: "auto", marginTop: 16 }}
+                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="flex items-start justify-between gap-3 rounded-2xl border border-[#0066B2]/30 bg-[#EFF6FF]/80 p-4 text-xs text-[#0066B2] dark:border-[#0066B2]/30 dark:bg-[#0066B2]/15 dark:text-[#38BDF8] backdrop-blur-sm relative group">
+                  <div className="flex items-start gap-3 pr-6">
+                    <Lock className="h-4 w-4 shrink-0 text-[#0066B2] dark:text-[#38BDF8] mt-0.5" />
+                    <p className="leading-relaxed">
+                      <strong className="font-semibold text-zinc-900 dark:text-white">Email Delivery Guarantee:</strong> All hosted resources generate unique secure links (<code className="px-1.5 py-0.5 bg-white/70 dark:bg-[#18181B] rounded text-[11px] font-mono">/r/[id]</code>) that are automatically attached to your lead magnet signup forms. Your subscribers can instantly download these files upon submitting their email.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleDismissBanner}
+                    title="Dismiss banner"
+                    aria-label="Dismiss banner"
+                    className="rounded-lg p-1 text-[#0066B2]/70 hover:bg-[#0066B2]/10 hover:text-[#0066B2] dark:text-[#38BDF8]/70 dark:hover:bg-[#38BDF8]/10 dark:hover:text-[#38BDF8] transition-colors shrink-0 cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Search & Filter Toolbar (Only when files exist or searching) */}
           {resources.length > 0 && (
