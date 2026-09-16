@@ -1,4 +1,5 @@
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -31,11 +32,15 @@ import {
 } from "lucide-react";
 import SiteFooter from "@/layout/site-footer";
 import SiteHeader from "@/layout/site-header";
-import Reveal from "@/components/reveal";
 import { MagnetsMark, GeminiLogo } from "@/components/brand";
-import ShowcaseTabs from "@/components/landing/showcase-tabs";
-import FaqAccordion from "@/components/landing/faq-accordion";
-import CtaSection from "@/components/landing/cta-section";
+
+// Dynamic imports for heavy client islands — moves framer-motion and canvas off the critical path
+// This directly reduces TBT (Total Blocking Time) and long main-thread tasks on initial load.
+// Reveal: keep ssr:true so content is server-rendered (avoids CLS), only JS is deferred.
+const Reveal = dynamic(() => import("@/components/reveal"));
+const ShowcaseTabs = dynamic(() => import("@/components/landing/showcase-tabs"), { ssr: false });
+const FaqAccordion = dynamic(() => import("@/components/landing/faq-accordion"), { ssr: false });
+const CtaSection = dynamic(() => import("@/components/landing/cta-section"), { ssr: false });
 
 const jsonLd = {
   "@context": "https://schema.org",

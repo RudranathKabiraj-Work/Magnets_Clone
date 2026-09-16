@@ -229,7 +229,7 @@ function BouncyAccordionRow({
           role="region"
           aria-labelledby={triggerId}
           aria-hidden={!open}
-          inert={!open ? true : undefined}
+          inert={!open ? ("" as unknown as boolean) : undefined}
           initial={false}
           style={{ height: open && item.description ? contentHeight : 0 }}
           transition={

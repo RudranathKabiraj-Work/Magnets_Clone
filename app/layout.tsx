@@ -104,6 +104,9 @@ export default function RootLayout({
         {/* Preload brand logos above the fold for faster LCP */}
         <link rel="preload" as="image" href="/brand/custom-logo-light.webp" type="image/webp" />
         <link rel="preload" as="image" href="/brand/custom-logo.webp" type="image/webp" />
+        {/* Resource hints: preconnect to same-origin CDN for /_next/static chunks */}
+        <link rel="preconnect" href="https://magnets.bdatech.in" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://magnets.bdatech.in" />
       </head>
       <body className="antialiased font-sans">
         <NextTopLoader

@@ -16,7 +16,7 @@ const nextConfig = {
 
   // Experimental optimizations
   experimental: {
-    // Optimize package imports to reduce JS bundle size
+    // Optimize package imports to reduce JS bundle size (tree-shaking aware)
     optimizePackageImports: ["lucide-react", "lenis", "framer-motion"],
   },
 
@@ -25,16 +25,39 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === "production",
   },
 
-  // Security Headers
+  // Security + Caching Headers
   async headers() {
     return [
       {
+        // Security headers for all routes
         source: "/:path*",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "origin-when-cross-origin" },
           { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+        ],
+      },
+      {
+        // Landing page: allow bfcache (no no-store, no no-cache)
+        // stale-while-revalidate keeps it fast AND fresh
+        source: "/",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=0, s-maxage=60, stale-while-revalidate=3600" },
+        ],
+      },
+      {
+        // Static assets (fonts, images): immutable 1-year cache
+        source: "/_next/static/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      {
+        // Public images and fonts: long cache
+        source: "/fonts/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
     ];

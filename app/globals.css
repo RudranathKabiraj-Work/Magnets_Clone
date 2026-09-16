@@ -58,6 +58,20 @@ html.lenis body {
   will-change: transform;
 }
 
+/* Landing page GPU composite layers — keep animated elements on their own layer
+   to avoid triggering full-page layout/paint on scroll. */
+.landing-section-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  isolation: isolate;
+}
+
+/* Blur-heavy gradient orbs: force GPU composite to avoid CPU paint on scroll */
+.blur-orb {
+  transform: translateZ(0);
+  will-change: opacity;
+}
+
 
 .brand-soft-bg {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(248, 251, 255, 0)), #f8fbff;
