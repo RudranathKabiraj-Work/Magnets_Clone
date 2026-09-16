@@ -2142,7 +2142,16 @@ export default function EditLeadMagnetPage() {
                                   </div>
                                 </>
                               ) : (
-                                <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${account?.brandColor || "#0066B2"}88 0%, #0d0012 100%)` }} />
+                                <button
+                                  type="button"
+                                  onClick={() => fileInputRef.current?.click()}
+                                  className="w-full h-full flex flex-col items-center justify-center p-4 text-center cursor-pointer transition group/btn hover:opacity-90"
+                                  style={{ background: `linear-gradient(135deg, ${account?.brandColor || "#0066B2"}88 0%, #0d0012 100%)` }}
+                                >
+                                  <ImageIcon className="h-8 w-8 text-white/80 group-hover/btn:scale-110 transition-transform mb-1.5" />
+                                  <span className="text-xs font-bold text-white">Add Cover Image</span>
+                                  <span className="text-[10px] text-white/60 mt-0.5">Click to upload</span>
+                                </button>
                               )}
                             </div>
                           </div>
@@ -2188,16 +2197,16 @@ export default function EditLeadMagnetPage() {
                           )}
 
                           {/* Image Action Overlay Controls */}
-                          {imageUrl && imageUrl.trim() !== "" && (
-                            <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-1.5 rounded-xl bg-black/70 hover:bg-black px-3 py-1.5 text-xs font-bold text-white shadow-md border border-white/20 backdrop-blur-md transition cursor-pointer"
-                              >
-                                <ImageIcon className="h-3.5 w-3.5 text-zinc-300" />
-                                <span>Replace Image</span>
-                              </button>
+                          <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="flex items-center gap-1.5 rounded-xl bg-black/70 hover:bg-black px-3 py-1.5 text-xs font-bold text-white shadow-md border border-white/20 backdrop-blur-md transition cursor-pointer"
+                            >
+                              <ImageIcon className="h-3.5 w-3.5 text-zinc-300" />
+                              <span>{imageUrl && imageUrl.trim() !== "" ? "Replace Image" : "Add Image"}</span>
+                            </button>
+                            {imageUrl && imageUrl.trim() !== "" && (
                               <button
                                 type="button"
                                 onClick={() => setImageUrl(null)}
@@ -2206,8 +2215,8 @@ export default function EditLeadMagnetPage() {
                                 <Trash2 className="h-3.5 w-3.5 text-red-400" />
                                 <span>Remove</span>
                               </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 z-10 space-y-1">
                             <textarea
                               ref={headlineRef}
