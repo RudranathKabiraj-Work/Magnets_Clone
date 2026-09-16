@@ -1033,3 +1033,22 @@ textarea {
     display: none !important;
   }
 }
+
+/* ─── Lead Magnet Grid Card Entry Animation ───────────────────────────────
+   Pure CSS keyframe replaces Framer Motion on repeated grid cards.
+   Runs once on mount → zero ongoing JS cost → compositor-thread only.
+   ──────────────────────────────────────────────────────────────────────── */
+@keyframes magnetCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.magnet-card-enter {
+  animation: magnetCardIn 0.15s ease both;
+}

@@ -31,10 +31,113 @@ import {
   AlertTriangle,
   Loader2
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { type MagnetPage, type Account } from "@/lib/data";
 import { loadPages, savePages, loadAccount, syncWithDatabase, deletePage } from "@/lib/store";
+
+/* ─────────────────────────────────────────────────────────────────────────
+   MagnetCard — memoized grid card component.
+   React.memo with a custom comparison fn ensures only the 2 cards whose
+   `isSelected` changed actually re-render when a card is clicked.
+   All other cards are skipped entirely — O(2) instead of O(N).
+   ───────────────────────────────────────────────────────────────────────── */
+interface MagnetCardProps {
+  page: MagnetPage;
+  index: number;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  account: Account | null;
+  copiedId: string | null;
+  onCopyLink: (page: MagnetPage, e?: React.MouseEvent) => void;
+}
+
+const MagnetCard = React.memo(
+  function MagnetCard({
+    page,
+    index,
+    isSelected,
+    onSelect,
+    account,
+    copiedId,
+    onCopyLink,
+  }: MagnetCardProps) {
+    return (
+      <div
+        onClick={() => onSelect(page.id)}
+        style={{ animationDelay: `${Math.min(index * 15, 100)}ms` }}
+        className={`magnet-card-enter group relative rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col ${
+          isSelected
+            ? "border-[#0066B2] dark:border-[#38BDF8] bg-white dark:bg-[#18181C] ring-2 ring-[#0066B2]/20 dark:ring-[#38BDF8]/20 shadow-md"
+            : "border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs"
+        }`}
+      >
+        {/* Image Thumbnail Container */}
+        <div className="relative h-40 w-full bg-zinc-100 dark:bg-[#0F0F12] border-b border-zinc-100 dark:border-zinc-800/60 overflow-hidden">
+          {page.imageUrl && page.imageUrl.trim() !== "" ? (
+            <img
+              src={page.imageUrl}
+              alt={page.name}
+              loading={index === 0 ? "eager" : "lazy"}
+              fetchPriority={index === 0 ? "high" : "auto"}
+              decoding="async"
+              className="h-full w-full object-cover will-change-transform group-hover:scale-105 transition duration-300"
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-[#121216] dark:to-[#18181D]">
+              <ImageIcon className="h-8 w-8 stroke-[1.5px]" />
+            </div>
+          )}
+
+          {/* Top Badges — solid bg instead of backdrop-blur for GPU efficiency */}
+          <div className="absolute top-3 left-3 flex items-center">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border ${
+                page.status === "live"
+                  ? "bg-emerald-500/90 text-white border-emerald-400/30"
+                  : "bg-zinc-900/80 text-zinc-300 border-zinc-700/50"
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${page.status === "live" ? "bg-white animate-pulse" : "bg-zinc-400"}`} />
+              {page.status === "live" ? "Published" : "Draft"}
+            </span>
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+          <div>
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white line-clamp-1 group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8] transition">
+              {page.headline || page.name}
+            </h3>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1">
+              {page.subheadline || "No description set yet."}
+            </p>
+          </div>
+
+          {/* Card Footer Actions */}
+          <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between text-xs">
+            <span className="text-[11px] font-mono text-zinc-400 truncate max-w-[140px]">/{page.slug}</span>
+
+            <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+              <Link
+                href={`/dashboard/leadmagnets/${page.id}`}
+                className="flex items-center gap-1 rounded-lg bg-[#0066B2]/10 dark:bg-[#0066B2]/20 px-2.5 py-1 text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:bg-[#0066B2] hover:text-white dark:hover:bg-[#0066B2] dark:hover:text-white transition"
+              >
+                <Pencil className="h-3 w-3" /> Edit
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  },
+  // Custom comparison: only re-render if isSelected, the page data, or copiedId changed
+  (prev, next) =>
+    prev.isSelected === next.isSelected &&
+    prev.page === next.page &&
+    prev.copiedId === next.copiedId
+);
 
 export default function PagesPage() {
   const router = useRouter();
@@ -161,6 +264,12 @@ export default function PagesPage() {
       document.body.style.overflow = "";
     };
   }, [showCreateModal]);
+
+  // Stable callback — useCallback ensures MagnetCard's React.memo comparison works.
+  // Without this, a new function reference every render would bust the memo.
+  const handleSelectPage = useCallback((id: string) => {
+    setSelectedPageId(id);
+  }, []);
 
   function removePage(id: string, e?: React.MouseEvent) {
     if (e) e.stopPropagation();
@@ -399,80 +508,18 @@ export default function PagesPage() {
                   className="flex flex-col space-y-4"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {paginatedItems.map((page, index) => {
-                      const isSelected = activePage?.id === page.id;
-                      return (
-                        <motion.div
-                          key={page.id}
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.15, delay: Math.min(index * 0.015, 0.1) }}
-                          onClick={() => setSelectedPageId(page.id)}
-                          className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col ${isSelected
-                            ? "border-[#0066B2] dark:border-[#38BDF8] bg-white dark:bg-[#18181C] ring-2 ring-[#0066B2]/20 dark:ring-[#38BDF8]/20 shadow-md"
-                            : "border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs"
-                            }`}
-                        >
-                          {/* Image Thumbnail Container */}
-                          <div className="relative h-40 w-full bg-zinc-100 dark:bg-[#0F0F12] border-b border-zinc-100 dark:border-zinc-800/60 overflow-hidden">
-                            {page.imageUrl && page.imageUrl.trim() !== "" ? (
-                              <img
-                                src={page.imageUrl}
-                                alt={page.name}
-                                loading={index === 0 ? "eager" : "lazy"}
-                                fetchPriority={index === 0 ? "high" : "auto"}
-                                decoding="async"
-                                className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
-                              />
-                            ) : (
-                              <div className="h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-[#121216] dark:to-[#18181D]">
-                                <ImageIcon className="h-8 w-8 stroke-[1.5px]" />
-                              </div>
-                            )}
-
-                            {/* Top Badges */}
-                            <div className="absolute top-3 left-3 flex items-center">
-                              <span
-                                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border ${page.status === "live"
-                                  ? "bg-emerald-500/90 text-white border-emerald-400/30"
-                                  : "bg-zinc-900/80 text-zinc-300 border-zinc-700/50"
-                                  }`}
-                              >
-                                <span className={`h-1.5 w-1.5 rounded-full ${page.status === "live" ? "bg-white animate-pulse" : "bg-zinc-400"}`} />
-                                {page.status === "live" ? "Published" : "Draft"}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Content Section */}
-                          <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                            <div>
-                              <h3 className="text-sm font-bold text-zinc-900 dark:text-white line-clamp-1 group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8] transition">
-                                {page.headline || page.name}
-                              </h3>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1">
-                                {page.subheadline || "No description set yet."}
-                              </p>
-                            </div>
-
-                            {/* Card Footer Actions */}
-                            <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between text-xs">
-                              <span className="text-[11px] font-mono text-zinc-400 truncate max-w-[140px]">/{page.slug}</span>
-
-                              <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                                <Link
-                                  href={`/dashboard/leadmagnets/${page.id}`}
-                                  className="flex items-center gap-1 rounded-lg bg-[#0066B2]/10 dark:bg-[#0066B2]/20 px-2.5 py-1 text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:bg-[#0066B2] hover:text-white dark:hover:bg-[#0066B2] dark:hover:text-white transition"
-                                >
-                                  <Pencil className="h-3 w-3" /> Edit
-                                </Link>
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
+                    {paginatedItems.map((page, index) => (
+                      <MagnetCard
+                        key={page.id}
+                        page={page}
+                        index={index}
+                        isSelected={selectedPageId === page.id}
+                        onSelect={handleSelectPage}
+                        account={account}
+                        copiedId={copiedId}
+                        onCopyLink={handleCopyLink}
+                      />
+                    ))}
                   </div>
                 </motion.div>
               ) : (
