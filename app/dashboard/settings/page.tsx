@@ -161,6 +161,7 @@ export default function AccountSettingsPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("isPageAsset", "true");
       formData.append("userEmail", email || account?.email || "");
 
       const res = await fetch("/api/upload", {
