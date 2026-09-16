@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -61,6 +62,10 @@ export default function AnalyticsLinearView({
   onOpenHelp,
   isPerMagnet = false,
 }: AnalyticsLinearViewProps) {
+  const router = useRouter();
+  const params = useParams();
+  const targetMagnetId = page?.id || (params?.id as string);
+
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
   const [statsInRange, setStatsInRange] = useState({ visitsInRange: 0, signupsInRange: 0 });
 
@@ -322,16 +327,24 @@ export default function AnalyticsLinearView({
 
             <Link
               href="/dashboard/leadmagnets"
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#121215] border border-white/[0.08] hover:border-white/[0.2] text-xs font-semibold text-zinc-200 transition-all shadow-xs"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/dashboard/leadmagnets";
+              }}
+              className="relative z-20 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#121215] border border-white/[0.08] hover:border-white/[0.2] hover:bg-zinc-800/60 text-xs font-semibold text-zinc-200 transition-all shadow-xs cursor-pointer select-none"
             >
               <ArrowLeft className="h-3.5 w-3.5 text-zinc-400" />
               <span>All pages</span>
             </Link>
 
-            {isPerMagnet && page?.id && (
+            {isPerMagnet && targetMagnetId && (
               <Link
-                href={`/dashboard/leadmagnets/${page.id}`}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white text-zinc-950 font-bold text-xs hover:bg-zinc-200 transition-all shadow-md"
+                href={`/dashboard/leadmagnets/${targetMagnetId}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = `/dashboard/leadmagnets/${targetMagnetId}`;
+                }}
+                className="relative z-20 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white text-zinc-950 font-bold text-xs hover:bg-zinc-200 transition-all shadow-md cursor-pointer select-none"
               >
                 <Pencil className="h-3.5 w-3.5" />
                 <span>Edit magnet</span>
