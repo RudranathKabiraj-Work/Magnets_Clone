@@ -67,6 +67,9 @@ import { type MagnetPage, type Account } from "@/lib/data";
 import { loadPages, savePages, deletePage, loadAccount, loadResources, syncWithDatabase } from "@/lib/store";
 import AIMagnetModal from "@/components/leadmagnets/ai-magnet-modal";
 import SocialCardModal from "@/components/leadmagnets/social-card-modal";
+import DeleteModal from "@/components/leadmagnets/edit/DeleteModal";
+import SequencePreviewModal from "@/components/leadmagnets/edit/SequencePreviewModal";
+import EmailPreviewModal from "@/components/leadmagnets/edit/EmailPreviewModal";
 
 function compressImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -211,8 +214,6 @@ export default function EditLeadMagnetPage() {
   const [showAIModal, setShowAIModal] = useState(false);
   const [showSocialModal, setShowSocialModal] = useState(false);
   const [showEmailPreviewModal, setShowEmailPreviewModal] = useState(false);
-  const [testEmailSending, setTestEmailSending] = useState(false);
-  const [testEmailSentMsg, setTestEmailSentMsg] = useState<string | null>(null);
   const [hostedResources, setHostedResources] = useState<any[]>([]);
   const [showInsertResourceMenu, setShowInsertResourceMenu] = useState(false);
 
@@ -4510,60 +4511,10 @@ export default function EditLeadMagnetPage() {
 
       {/* 'Delete this magnet?' Confirmation Modal Overlay */}
       {showDeleteModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150"
-          onClick={() => setShowDeleteModal(false)}
-        >
-          <div
-            className="relative w-full max-w-[440px] rounded-2xl border border-zinc-800 bg-[#18181C] p-6 text-white shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-950/50 border border-red-900/40 text-red-400">
-                  <AlertTriangle className="h-5 w-5 stroke-[2.2px]" />
-                </div>
-                <h3 className="text-base font-bold text-white">Delete this magnet?</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowDeleteModal(false)}
-                className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-800 hover:text-white transition cursor-pointer"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="space-y-3 pt-1">
-              <p className="text-xs text-zinc-300 leading-relaxed font-medium">
-                This removes the page and stops it serving. Any signups already collected stay on your list.
-              </p>
-              <p className="text-xs text-zinc-400 font-medium">
-                This action cannot be undone.
-              </p>
-            </div>
-
-            {/* Modal Action Buttons */}
-            <div className="pt-3 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowDeleteModal(false)}
-                className="rounded-xl border border-zinc-800 bg-[#222226] hover:bg-zinc-800 px-4 py-2 text-xs font-semibold text-white transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                className="rounded-xl border border-red-900/60 bg-[#2C1818] hover:bg-red-950 px-4 py-2 text-xs font-bold text-red-400 hover:text-red-300 transition cursor-pointer shadow-xs"
-              >
-                Delete magnet
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteModal
+          onConfirm={handleConfirmDelete}
+          onClose={() => setShowDeleteModal(false)}
+        />
       )}
 
       <AIMagnetModal
@@ -4594,301 +4545,31 @@ export default function EditLeadMagnetPage() {
 
       {/* Functional Sequence Preview Modal */}
       {showSequencePreviewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-6 animate-in fade-in duration-200">
-          <div className="flex flex-col w-full max-w-5xl h-[85vh] rounded-2xl border border-[#27272A] bg-[#121216] text-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
-
-            {/* Modal Top Header Bar */}
-            <div className="flex items-center justify-between border-b border-[#27272A] px-6 py-4 bg-[#18181C]">
-              <div className="min-w-0 pr-4">
-                <h3 className="text-sm font-extrabold text-white truncate">
-                  {previewSequenceIndex === 0
-                    ? (emailSubject || "Untitled email")
-                    : (sequenceEmails[previewSequenceIndex - 1]?.subject || "Untitled email")}
-                </h3>
-                <p className="text-xs text-zinc-400 truncate mt-0.5">
-                  {previewSequenceIndex === 0
-                    ? (emailPreviewText || "No preview text yet")
-                    : (sequenceEmails[previewSequenceIndex - 1]?.previewText || "No preview text yet")}
-                </p>
-              </div>
-
-              {/* Right Toggle & Close */}
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="flex items-center rounded-lg border border-[#27272A] bg-[#121216] p-1 text-xs">
-                  <button
-                    onClick={() => setPreviewDeviceMode("desktop")}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-bold transition cursor-pointer ${previewDeviceMode === "desktop" ? "bg-[#272730] text-white" : "text-zinc-400 hover:text-white"
-                      }`}
-                  >
-                    <Monitor className="h-3.5 w-3.5" />
-                    <span>Desktop</span>
-                  </button>
-                  <button
-                    onClick={() => setPreviewDeviceMode("mobile")}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-bold transition cursor-pointer ${previewDeviceMode === "mobile" ? "bg-[#272730] text-white" : "text-zinc-400 hover:text-white"
-                      }`}
-                  >
-                    <Smartphone className="h-3.5 w-3.5" />
-                    <span>Mobile</span>
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => setShowSequencePreviewModal(false)}
-                  className="rounded-lg border border-[#27272A] bg-[#1E1E24] px-4 py-1.5 text-xs font-bold text-zinc-300 hover:bg-[#272730] hover:text-white transition cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Main Body */}
-            <div className="flex flex-1 min-h-0">
-              {/* Left Sidebar List */}
-              <div className="w-64 border-r border-[#27272A] bg-[#141418] p-4 flex flex-col gap-2 overflow-y-auto shrink-0">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-500 mb-2">Sequence Preview</span>
-
-                {/* Email 1: Delivery Email */}
-                <div
-                  onClick={() => setPreviewSequenceIndex(0)}
-                  className={`rounded-xl p-3 flex items-center justify-between transition cursor-pointer ${previewSequenceIndex === 0
-                    ? "bg-[#FE6F34] text-white shadow-md font-bold"
-                    : "bg-[#1B1B20] text-zinc-300 hover:bg-[#24242A] border border-[#27272A]"
-                    }`}
-                >
-                  <div className="min-w-0 pr-2">
-                    <span className="block text-xs font-extrabold truncate">Email 1</span>
-                    <span className={`block text-[11px] truncate mt-0.5 ${previewSequenceIndex === 0 ? "text-white/80" : "text-zinc-400"}`}>
-                      {emailSubject || "Untitled email"}
-                    </span>
-                  </div>
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${previewSequenceIndex === 0 ? "bg-white/20 text-white" : "bg-zinc-800/40 text-zinc-400"}`}>
-                    0m
-                  </span>
-                </div>
-
-                {/* Follow-up Emails (Email 2, Email 3, etc.) */}
-                {sequenceEmails.map((item, idx) => {
-                  const seqIndex = idx + 1;
-                  const isSelected = previewSequenceIndex === seqIndex;
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => setPreviewSequenceIndex(seqIndex)}
-                      className={`rounded-xl p-3 flex items-center justify-between transition cursor-pointer ${isSelected
-                        ? "bg-[#FE6F34] text-white shadow-md font-bold"
-                        : "bg-[#1B1B20] text-zinc-300 hover:bg-[#24242A] border border-[#27272A]"
-                        }`}
-                    >
-                      <div className="min-w-0 pr-2">
-                        <span className="block text-xs font-extrabold truncate">Email {idx + 2}</span>
-                        <span className={`block text-[11px] truncate mt-0.5 ${isSelected ? "text-white/80" : "text-zinc-400"}`}>
-                          {item.subject || "Untitled email"}
-                        </span>
-                      </div>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isSelected ? "bg-white/20 text-white" : "bg-zinc-800/40 text-zinc-400"}`}>
-                        {item.delayDays}{item.delayUnit === "minutes" ? "m" : "h"}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Right Preview Canvas */}
-              <div className="flex-1 bg-[#EBEAE6] p-4 sm:p-8 flex items-start justify-center overflow-y-auto">
-                <div className={`w-full transition-all duration-300 my-auto ${previewDeviceMode === "mobile" ? "max-w-xs" : "max-w-xl"}`}>
-                  <div className="rounded-2xl bg-white text-zinc-900 shadow-2xl overflow-hidden border border-zinc-200">
-
-                    {/* Inner Email Body Content */}
-                    <div className="p-6 sm:p-8 space-y-6">
-                      <div
-                        className="text-xs text-zinc-800 leading-relaxed [&_p]:mb-2 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
-                        dangerouslySetInnerHTML={{
-                          __html: (() => {
-                            const rawBody = previewSequenceIndex === 0
-                              ? emailBody
-                              : (sequenceEmails[previewSequenceIndex - 1]?.body || "");
-                            const raw = (rawBody || "No email body written yet.").replace(/\{name\}/g, "John");
-                            const hasHtml = /<[a-z][\s\S]*>/i.test(raw);
-                            return hasHtml ? raw : raw.replace(/\n/g, "<br/>");
-                          })(),
-                        }}
-                      />
-
-                      {/* Sequence Opt-out footer */}
-                      <div className="pt-6 border-t border-zinc-100 text-center">
-                        <p className="text-[11px] text-zinc-500">
-                          Don&apos;t want these follow-up emails?{" "}
-                          <span className="underline cursor-pointer text-zinc-700 hover:text-black">Stop this sequence</span>.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Black Magnet Footer Banner */}
-                    <div className="bg-[#0B0F19] p-5 text-center flex items-center justify-center">
-                      <button className="flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-black text-zinc-900 shadow-md hover:bg-zinc-100 transition cursor-pointer">
-                        {account?.logo || account?.avatar_url || account?.avatar ? (
-                          <img src={account?.logo || account?.avatar_url || account?.avatar || ""} alt="Logo" className="h-5 w-5 rounded object-cover" />
-                        ) : (
-                          <span className="flex h-5 w-5 items-center justify-center rounded bg-[#FE6F34] text-black font-extrabold text-[10px]">🧲</span>
-                        )}
-                        <span>Build yours free with Magnets</span>
-                      </button>
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
+        <SequencePreviewModal
+          emailSubject={emailSubject}
+          emailPreviewText={emailPreviewText}
+          emailBody={emailBody}
+          sequenceEmails={sequenceEmails}
+          account={account}
+          previewSequenceIndex={previewSequenceIndex}
+          previewDeviceMode={previewDeviceMode}
+          onSetPreviewSequenceIndex={setPreviewSequenceIndex}
+          onSetPreviewDeviceMode={setPreviewDeviceMode}
+          onClose={() => setShowSequencePreviewModal(false)}
+        />
       )}
 
       {/* Interactive Subscriber Email Preview Modal */}
-      {showEmailPreviewModal && (
-        <div
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowEmailPreviewModal(false);
-          }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6 overscroll-contain transition-all duration-200 animate-in fade-in zoom-in-95"
-        >
-          <div className={`w-full max-w-2xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col h-[85vh] max-h-[85vh] shrink-0 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#141417] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
-            {/* Modal Header */}
-            <div className={`flex items-center justify-between border-b px-6 py-4 shrink-0 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181C]" : "border-zinc-200 bg-zinc-50"}`}>
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0066B2]/10 text-[#0066B2]">
-                  <Mail className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold">Subscriber Email Preview</h3>
-                  <p className="text-[11px] text-zinc-400">Live preview of what subscribers receive in their inbox</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowEmailPreviewModal(false)}
-                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-white transition cursor-pointer"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Email Header Bar */}
-            <div className={`border-b px-6 py-3 space-y-2 text-xs shrink-0 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B]" : "border-zinc-100 bg-zinc-50/50"}`}>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-zinc-400 w-16">From:</span>
-                <span className="font-medium">{account?.senderDisplayName || account?.name || "LeadMagnets"} &lt;{account?.senderAddress || "non-reply@bdatech.in"}&gt;</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-zinc-400 w-16">To:</span>
-                <span className="font-medium text-zinc-400">subscriber@example.com</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-zinc-400 w-16">Subject:</span>
-                <span className="font-bold text-zinc-900 dark:text-white">{emailSubject || `Here is your resource: ${page?.name || "Lead Magnet"}`}</span>
-              </div>
-            </div>
-
-            {/* Email Body Content Container (Isolated Scroll Box) */}
-            <div
-              id="email-preview-scroll-container"
-              onWheel={(e) => e.stopPropagation()}
-              onTouchMove={(e) => e.stopPropagation()}
-              className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 bg-[#F8FAFC] dark:bg-[#0B0F17] overscroll-contain"
-            >
-              <div className="max-w-xl mx-auto rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#18181B] p-6 sm:p-8 shadow-sm space-y-6 text-zinc-900 dark:text-white">
-                <h1 className="text-xl font-extrabold text-zinc-900 dark:text-white">
-                  {page?.name || "Lead Magnet Resource"}
-                </h1>
-                <div
-                  className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 [&_p]:mb-2 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
-                  dangerouslySetInnerHTML={{
-                    __html: (() => {
-                      const raw = (emailBody || "Hey {name},\n\nThank you for requesting this resource! Click the button below to get instant access.\n\nEnjoy!")
-                        .replace(/\{name\}/g, "Subscriber");
-                      const hasHtml = /<[a-z][\s\S]*>/i.test(raw);
-                      return hasHtml ? raw : raw.replace(/\n/g, "<br/>");
-                    })(),
-                  }}
-                />
-
-                <div className="text-center py-2">
-                  <a
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
-                    style={{ backgroundColor: account?.brandColor || "#0066B2" }}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white shadow-md hover:opacity-90 transition cursor-pointer"
-                  >
-                    <span>📥 Access Your Lead Magnet →</span>
-                  </a>
-                </div>
-
-                <hr className="border-zinc-200 dark:border-zinc-800" />
-                <p className="text-[11px] text-zinc-400 text-center">
-                  Sent by {account?.name || "LeadMagnets"} · Instant Delivery
-                </p>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className={`flex items-center justify-between border-t px-6 py-4 shrink-0 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181C]" : "border-zinc-200 bg-white"}`}>
-              {testEmailSentMsg ? (
-                <span className="text-xs font-semibold text-emerald-500">{testEmailSentMsg}</span>
-              ) : (
-                <span className="text-xs text-zinc-400">Live preview matching actual subscriber deliverable</span>
-              )}
-              <div className="flex items-center gap-3">
-                <button
-                  disabled={testEmailSending}
-                  onClick={async () => {
-                    setTestEmailSending(true);
-                    setTestEmailSentMsg(null);
-                    try {
-                      const userEmail = account?.email || localStorage.getItem("currentUserEmail");
-                      if (userEmail) {
-                        const res = await fetch("/api/data", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            action: "addLead",
-                            data: {
-                              id: `l_test_preview_${Date.now()}`,
-                              name: account?.name || "Owner Test",
-                              email: userEmail,
-                              page: page?.name || "Preview Test",
-                              pageId: page?.id || params.id,
-                              pageSlug: page?.slug || params.id,
-                              userEmail: userEmail,
-                              status: "new",
-                              source: "leadmagnets",
-                              signedUpAt: new Date().toLocaleTimeString(),
-                            },
-                          }),
-                        });
-                        if (res.ok) {
-                          setTestEmailSentMsg(`✅ Test deliverable sent to ${userEmail}!`);
-                        }
-                      }
-                    } catch (e) {
-                      setTestEmailSentMsg("❌ Failed to send test email.");
-                    } finally {
-                      setTestEmailSending(false);
-                    }
-                  }}
-                  className="rounded-xl border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-xs font-bold hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer disabled:opacity-50"
-                >
-                  {testEmailSending ? "Sending test..." : "📧 Send Test Email to Me"}
-                </button>
-                <button
-                  onClick={() => setShowEmailPreviewModal(false)}
-                  className="rounded-xl bg-[#0066B2] hover:bg-[#005799] px-4 py-2 text-xs font-bold text-white transition shadow-md cursor-pointer"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {showEmailPreviewModal && page && (
+        <EmailPreviewModal
+          emailSubject={emailSubject}
+          emailPreviewText={emailPreviewText}
+          emailBody={emailBody}
+          page={page}
+          account={account}
+          pageId={params.id}
+          onClose={() => setShowEmailPreviewModal(false)}
+        />
       )}
     </DashboardShell>
   );
