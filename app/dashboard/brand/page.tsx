@@ -161,6 +161,7 @@ export default function BrandPage() {
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem("currentUserAccount", JSON.stringify(savedAcc));
+          window.dispatchEvent(new Event("accountUpdated"));
         } catch (_) { }
       }
       triggerToast("Brand settings saved successfully!");
@@ -170,6 +171,7 @@ export default function BrandPage() {
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem("currentUserAccount", JSON.stringify(updatedAccount));
+          window.dispatchEvent(new Event("accountUpdated"));
         } catch (_) { }
       }
       triggerToast("Brand settings saved successfully!");

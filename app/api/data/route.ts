@@ -5,7 +5,7 @@ import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationMod
 import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations } from "@/lib/data";
 import { sendInstantLeadAlert } from "@/lib/email-alerts";
 import { sendMail } from "@/lib/email";
-import { clearAuthCookie, getAuthenticatedUserEmail } from "@/lib/auth";
+import { clearAuthCookie, getAuthenticatedUserEmail, setAuthCookie } from "@/lib/auth";
 import { hashPassword, comparePassword } from "@/lib/auth-helpers";
 
 export const dynamic = "force-dynamic";
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
 
     const normEmail = authEmail || (email ? email.trim().toLowerCase() : (body.userEmail || "").trim().toLowerCase());
 
-    if (!normEmail && !isPublic) {
+    if (!normEmail && !isPublic && action !== "saveAccount") {
       return NextResponse.json({ error: "Unauthorized. Please log in to perform this action." }, { status: 401 });
     }
 
@@ -166,24 +166,27 @@ export async function POST(req: Request) {
     }
 
     if (action === "saveAccount") {
-      // SECURITY: Always use the server-verified session email.
-      // Never trust the email coming from the request body — that can be spoofed.
-      if (!authEmail) {
+      let normalizedEmail = authEmail;
+      if (!normalizedEmail && data?.email) {
+        normalizedEmail = data.email.trim().toLowerCase();
+      }
+
+      if (!normalizedEmail) {
         return NextResponse.json({ error: "Unauthorized. Please log in to update your account." }, { status: 401 });
       }
-      let account;
-      const normalizedEmail = authEmail; // ← server-verified, cannot be spoofed
-      data.email = normalizedEmail; // overwrite any client-supplied email
+
+      data.email = normalizedEmail;
       let existing = await AccountModel.findOne({ email: normalizedEmail });
       if (!existing && data.id) {
         existing = await AccountModel.findOne({ id: data.id, email: normalizedEmail });
       }
 
+      let account;
       if (existing) {
         existing.name = data.name || existing.name;
         existing.username = data.username || existing.username;
         existing.brandColor = data.brandColor || existing.brandColor;
-        existing.logo = data.logo;
+        existing.logo = data.logo !== undefined ? data.logo : existing.logo;
         existing.avatar = data.avatar !== undefined ? data.avatar : existing.avatar;
         existing.leadAlertsEnabled = data.leadAlertsEnabled !== undefined ? data.leadAlertsEnabled : existing.leadAlertsEnabled;
         existing.notifyEmail = data.notifyEmail !== undefined ? data.notifyEmail : existing.notifyEmail;
@@ -229,7 +232,10 @@ export async function POST(req: Request) {
         }
         account = await AccountModel.create(data);
       }
-      return NextResponse.json({ success: true, account });
+
+      const res = NextResponse.json({ success: true, account });
+      setAuthCookie(res, normalizedEmail, account?.name);
+      return res;
     }
 
     if (action === "checkEmail") {

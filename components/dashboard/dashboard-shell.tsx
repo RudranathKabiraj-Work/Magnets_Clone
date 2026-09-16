@@ -673,7 +673,7 @@ export default function DashboardShell({
               </div>
             </div>
           </header>
-          <main className="min-w-0 flex-1 bg-[#FAFAF8] dark:bg-[#0E0E10] overflow-hidden">
+          <main className="min-w-0 flex-1 bg-[#FAFAF8] dark:bg-[#0E0E10]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={pathname}

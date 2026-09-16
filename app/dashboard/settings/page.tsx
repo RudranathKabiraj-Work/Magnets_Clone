@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { User, KeyRound, AlertTriangle, Check, Trash2, BarChart3, Database, MailOpen, Zap, HardDrive, Bell, Send, Sparkles, Camera, Upload, Loader2 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { saveAccount, syncWithDatabase, loadAccount, loadPages, loadLeads, loadSequences, loadResources, safeSetItem } from "@/lib/store";
@@ -118,7 +118,7 @@ export default function AccountSettingsPage() {
     });
   }, []);
 
-  const handleUpdateName = async () => {
+  const handleUpdateName = useCallback(async () => {
     if (!account) return;
     setUpdatingName(true);
     const updatedAccount = { ...account, name: name.trim() };
@@ -144,9 +144,9 @@ export default function AccountSettingsPage() {
     } finally {
       setUpdatingName(false);
     }
-  };
+  }, [account, name]);
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -193,9 +193,9 @@ export default function AccountSettingsPage() {
     } finally {
       setUploadingAvatar(false);
     }
-  };
+  }, [account, email]);
 
-  const handleRemoveAvatar = async () => {
+  const handleRemoveAvatar = useCallback(async () => {
     setAvatar(null);
     const updated = { ...account, avatar: null };
     saveAccount(updated as any);
@@ -209,9 +209,9 @@ export default function AccountSettingsPage() {
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("accountUpdated"));
     }
-  };
+  }, [account, email]);
 
-  const handleUpdatePassword = async () => {
+  const handleUpdatePassword = useCallback(async () => {
     if (newPassword !== confirmPassword) {
       alert("New passwords do not match!");
       return;
@@ -241,9 +241,9 @@ export default function AccountSettingsPage() {
     } finally {
       setUpdatingPassword(false);
     }
-  };
+  }, [account, newPassword, confirmPassword, currentPassword]);
 
-  const handleSaveLeadAlerts = async () => {
+  const handleSaveLeadAlerts = useCallback(async () => {
     setSavingAlerts(true);
     setAlertStatusMsg("");
     try {
@@ -269,9 +269,9 @@ export default function AccountSettingsPage() {
     } finally {
       setSavingAlerts(false);
     }
-  };
+  }, [account, leadAlertsEnabled, notifyEmail, email]);
 
-  const handleSendTestAlert = async () => {
+  const handleSendTestAlert = useCallback(async () => {
     setSendingTestAlert(true);
     setAlertStatusMsg("");
     try {
@@ -295,9 +295,9 @@ export default function AccountSettingsPage() {
     } finally {
       setSendingTestAlert(false);
     }
-  };
+  }, [notifyEmail, email, account?.email]);
 
-  const handleDeleteAccount = async (e: React.FormEvent) => {
+  const handleDeleteAccount = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (deleteConfirmText !== "DELETE") {
       setDeleteError("Please type DELETE to confirm.");
@@ -338,7 +338,7 @@ export default function AccountSettingsPage() {
     } finally {
       setDeleting(false);
     }
-  };
+  }, [deleteConfirmText, account, deletePassword, router]);
 
 
 
@@ -445,6 +445,8 @@ export default function AccountSettingsPage() {
                           <img
                             src={avatar}
                             alt="Profile Avatar"
+                            decoding="async"
+                            fetchPriority="high"
                             className="h-20 w-20 rounded-full object-cover border-2 border-[#0066B2] shadow-md"
                           />
                         ) : (

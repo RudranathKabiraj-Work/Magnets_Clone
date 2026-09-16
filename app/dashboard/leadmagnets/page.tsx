@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -66,22 +67,22 @@ const MagnetCard = React.memo(
       <div
         onClick={() => onSelect(page.id)}
         style={{ animationDelay: `${Math.min(index * 15, 100)}ms` }}
-        className={`magnet-card-enter group relative rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col ${
-          isSelected
+        className={`magnet-card-enter group relative rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col ${isSelected
             ? "border-[#0066B2] dark:border-[#38BDF8] bg-white dark:bg-[#18181C] ring-2 ring-[#0066B2]/20 dark:ring-[#38BDF8]/20 shadow-md"
             : "border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs"
-        }`}
+          }`}
       >
         {/* Image Thumbnail Container */}
         <div className="relative h-40 w-full bg-zinc-100 dark:bg-[#0F0F12] border-b border-zinc-100 dark:border-zinc-800/60 overflow-hidden">
           {page.imageUrl && page.imageUrl.trim() !== "" ? (
-            <img
+            <Image
               src={page.imageUrl}
               alt={page.name}
-              loading={index === 0 ? "eager" : "lazy"}
-              fetchPriority={index === 0 ? "high" : "auto"}
-              decoding="async"
-              className="h-full w-full object-cover will-change-transform group-hover:scale-105 transition duration-300"
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority={index === 0}
+              unoptimized={page.imageUrl.startsWith("data:") || page.imageUrl.startsWith("blob:")}
+              className="object-cover will-change-transform group-hover:scale-105 transition duration-300"
             />
           ) : (
             <div className="h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-[#121216] dark:to-[#18181D]">
@@ -92,11 +93,10 @@ const MagnetCard = React.memo(
           {/* Top Badges — solid bg instead of backdrop-blur for GPU efficiency */}
           <div className="absolute top-3 left-3 flex items-center">
             <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border ${
-                page.status === "live"
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border ${page.status === "live"
                   ? "bg-emerald-500/90 text-white border-emerald-400/30"
                   : "bg-zinc-900/80 text-zinc-300 border-zinc-700/50"
-              }`}
+                }`}
             >
               <span className={`h-1.5 w-1.5 rounded-full ${page.status === "live" ? "bg-white animate-pulse" : "bg-zinc-400"}`} />
               {page.status === "live" ? "Published" : "Draft"}
@@ -177,15 +177,17 @@ export default function PagesPage() {
   const avgConversion = useMemo(() => totalViews > 0 ? ((totalSignups / totalViews) * 100).toFixed(1) : "0.0", [totalViews, totalSignups]);
 
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q && statusFilter === "all") return pages;
     return pages.filter((p) => {
-      const matchesSearch = !search.trim() ||
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.slug.toLowerCase().includes(search.toLowerCase()) ||
-        (p.headline && p.headline.toLowerCase().includes(search.toLowerCase()));
-
       const matchesStatus = statusFilter === "all" || p.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
+      if (!matchesStatus) return false;
+      if (!q) return true;
+      return (
+        p.name.toLowerCase().includes(q) ||
+        p.slug.toLowerCase().includes(q) ||
+        (p.headline && p.headline.toLowerCase().includes(q))
+      );
     });
   }, [pages, search, statusFilter]);
 
@@ -271,12 +273,12 @@ export default function PagesPage() {
     setSelectedPageId(id);
   }, []);
 
-  function removePage(id: string, e?: React.MouseEvent) {
+  const removePage = useCallback((id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setPageToDeleteId(id);
-  }
+  }, []);
 
-  function confirmPageDeletion() {
+  const confirmPageDeletion = useCallback(() => {
     if (!pageToDeleteId) return;
     const id = pageToDeleteId;
     const next = pages.filter((p) => p.id !== id);
@@ -287,22 +289,22 @@ export default function PagesPage() {
     }
     setPageToDeleteId(null);
     router.refresh();
-  }
+  }, [pageToDeleteId, pages, selectedPageId, router]);
 
-  function handleCopyLink(page: MagnetPage, e?: React.MouseEvent) {
+  const handleCopyLink = useCallback((page: MagnetPage, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const username = account?.username || "demo";
     const fullUrl = `${window.location.origin}/${username}/${page.slug}`;
     navigator.clipboard.writeText(fullUrl);
     setCopiedId(page.id);
     setTimeout(() => setCopiedId(null), 2000);
-  }
+  }, [account?.username]);
 
   return (
     <DashboardShell account={account} title="Lead magnets">
       <div className="flex flex-col min-h-[calc(100vh-3.5rem)] bg-zinc-50/50 dark:bg-[#0B0B0D]">
         {/* Top Executive Header */}
-        <div className="px-6 pt-6 lg:px-8 border-b border-zinc-200/80 dark:border-zinc-800/60 bg-white dark:bg-[#121215] sticky top-0 z-20">
+        <div className="px-6 pt-6 lg:px-8 border-b border-zinc-200/80 dark:border-zinc-800/60 bg-white/80 dark:bg-[#121215] dark:bg-opacity-85 backdrop-blur-md sticky top-0 z-30 shadow-xs">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6">
             <div>
               <div className="flex items-center gap-2">
@@ -556,9 +558,16 @@ export default function PagesPage() {
                           >
                             <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-white">
                               <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 shrink-0 overflow-hidden flex items-center justify-center">
+                                <div className="relative h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 shrink-0 overflow-hidden flex items-center justify-center">
                                   {page.imageUrl ? (
-                                    <img src={page.imageUrl} alt="" className="h-full w-full object-cover" />
+                                    <Image
+                                      src={page.imageUrl}
+                                      alt=""
+                                      fill
+                                      sizes="36px"
+                                      unoptimized={page.imageUrl.startsWith("data:") || page.imageUrl.startsWith("blob:")}
+                                      className="object-cover"
+                                    />
                                   ) : (
                                     <ImageIcon className="h-4 w-4 text-zinc-400" />
                                   )}
@@ -648,7 +657,7 @@ export default function PagesPage() {
 
 
           {/* Right Column (35% width on large screens): Interactive Peek Drawer & Live Command Center */}
-          <div className="w-full lg:w-[35%] sticky top-[185px] space-y-4 transition-all duration-200">
+          <div className="w-full lg:w-[35%] sticky top-[195px] z-20 space-y-4 transition-all duration-200">
             {activePage ? (
               <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] p-5 shadow-lg space-y-5">
 
