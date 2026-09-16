@@ -56,7 +56,7 @@ export default function LoginPage() {
           }
         }
         setStatus("opening_dashboard");
-        router.push("/dashboard/leadmagnets");
+        window.location.href = "/dashboard/leadmagnets";
       } else {
         setError(data?.error || (res.ok ? "Failed to login. Please check database connection." : "Incorrect password or account not found."));
         setStatus("idle");

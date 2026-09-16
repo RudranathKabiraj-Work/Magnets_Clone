@@ -74,7 +74,6 @@ export async function POST(req: Request) {
     await dbConnect();
     const body = await req.json();
     const { action, data, email } = body;
-    const authEmail = await getAuthenticatedUserEmail();
 
     const publicActions = [
       "addLead",
@@ -87,9 +86,15 @@ export async function POST(req: Request) {
       "verifyEmailToken",
     ];
 
+    // Skip the expensive getServerSession/NextAuth call for public actions (e.g. login).
+    // Previously this ran for every POST — including unauthenticated ones — causing a
+    // 2–5 second delay on login because getServerSession times out with no session.
+    const isPublic = publicActions.includes(action);
+    const authEmail = isPublic ? null : await getAuthenticatedUserEmail();
+
     const normEmail = authEmail || (email ? email.trim().toLowerCase() : (body.userEmail || "").trim().toLowerCase());
 
-    if (!normEmail && !publicActions.includes(action)) {
+    if (!normEmail && !isPublic) {
       return NextResponse.json({ error: "Unauthorized. Please log in to perform this action." }, { status: 401 });
     }
 

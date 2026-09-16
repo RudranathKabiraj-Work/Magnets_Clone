@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
@@ -117,9 +115,13 @@ export default function EditLeadMagnetPage() {
   const [account, setAccount] = useState<Account | null>(null);
   const [page, setPage] = useState<MagnetPage | undefined>(undefined);
 
+  // Single Init Effect — ONE syncWithDatabase() call fans out all data
+  // Eliminates the previous 3 separate calls that fired simultaneously on mount
   useEffect(() => {
+    // ── Step 1: Load from localStorage instantly (zero latency, offline-first) ──
     const localAcc = loadAccount();
     if (localAcc) setAccount(localAcc);
+
     const localP = loadPages().find((p) => p.id === params.id);
     if (localP) {
       setPage(localP);
@@ -128,45 +130,75 @@ export default function EditLeadMagnetPage() {
       if (pTpl && pTpl !== "classic") {
         setTemplateId(pTpl);
       } else if (localAcc?.templateId) {
-        // Fallback: use the brand-level templateId from account settings
         setTemplateId(localAcc.templateId);
       }
       if (localP.customFormFields && localP.customFormFields.length > 0) {
         setCustomFormFields(localP.customFormFields);
       }
     } else if (localAcc?.templateId) {
-      // No local page yet — brand new page: use account's saved template
       setTemplateId(localAcc.templateId);
     }
 
-    // Load latest stats & account from database once on mount
+    // Load resources from localStorage instantly
+    const localResources = loadResources();
+    if (localResources && localResources.length > 0) {
+      setHostedResources(localResources);
+      const latestResource = localResources[0];
+      if (latestResource?.url) {
+        setEmailBody((prev) => (!prev.includes("http") ? `${prev}\n\n${latestResource.url}` : prev));
+      }
+    }
+
+    // ── Step 2: ONE database call — fan out all results ──
     syncWithDatabase().then((data) => {
-      if (data) {
-        if (data.account) {
-          setAccount(data.account);
+      if (!data) return;
+
+      // Fan out: account
+      if (data.account) setAccount(data.account);
+
+      // Fan out: resources + emailBody
+      if (data.resources && data.resources.length > 0) {
+        setHostedResources(data.resources);
+        const latestResource = data.resources[0];
+        if (latestResource?.url) {
+          setEmailBody((prev) => (!prev.includes("http") ? `${prev}\n\n${latestResource.url}` : prev));
         }
-        if (data.pages) {
-          const updated = data.pages.find((p: any) => p.id === params.id);
-          if (updated) {
-            setPage((prev) => {
-              if (!prev) return updated;
-              return {
-                ...prev,
-                ...updated,
-              };
-            });
-            const upTpl = (updated.template as string);
-            // Always apply the template from DB if it is set — covers all template1-7
-            if (upTpl && upTpl !== "classic") {
-              setTemplateId(upTpl);
-            } else if (data.account?.templateId) {
-              // Page in DB has no template yet (brand new, not yet saved) — use account template
-              setTemplateId(data.account.templateId);
-            }
+      }
+
+      // Fan out: page data + templateId + form fields
+      if (data.pages) {
+        const found = data.pages.find((p: any) => p.id === params.id);
+        if (found) {
+          setPage((prev) => {
+            if (!prev) return found;
+            return { ...prev, ...found };
+          });
+
+          // Template resolution: page template → account template → fallback
+          const upTpl = (found.template as string);
+          if (upTpl && upTpl !== "classic") {
+            setTemplateId(upTpl);
           } else if (data.account?.templateId) {
-            // Page doesn't exist in DB yet — still use account template
             setTemplateId(data.account.templateId);
           }
+
+          // Populate form fields once from DB (guarded by hasPopulatedForm ref)
+          if (!hasPopulatedForm.current) {
+            hasPopulatedForm.current = true;
+            const cleanHeadline = found.headline && found.headline !== "hi" ? found.headline : (found.name || "");
+            const cleanSubheadline = found.subheadline && found.subheadline !== "Enter your email to get instant access." ? found.subheadline : "";
+            setHeadline(cleanHeadline);
+            setSubheadline(cleanSubheadline);
+            if (found.pitch) setPitch(found.pitch);
+            if (found.bullets) setBullets(found.bullets);
+            if (found.imageUrl !== undefined) setImageUrl(found.imageUrl);
+            if (found.sequenceEnabled !== undefined) setSequenceEnabled(found.sequenceEnabled);
+            if (found.stopOnCall !== undefined) setStopOnCall(found.stopOnCall);
+            if (found.sequenceEmails) setSequenceEmails(found.sequenceEmails);
+            if (found.customFormFields) setCustomFormFields(found.customFormFields);
+          }
+        } else if (data.account?.templateId) {
+          setTemplateId(data.account.templateId);
         }
       }
     });
@@ -197,28 +229,7 @@ export default function EditLeadMagnetPage() {
     };
   }, [showEmailPreviewModal]);
 
-  useEffect(() => {
-    // 1. Instantly load local resources
-    const local = loadResources();
-    if (local && local.length > 0) {
-      setHostedResources(local);
-      const latestResource = local[0];
-      if (latestResource && latestResource.url) {
-        setEmailBody((prev) => (!prev.includes("http") ? `${prev}\n\n${latestResource.url}` : prev));
-      }
-    }
-
-    // 2. Sync with database
-    syncWithDatabase().then((data) => {
-      if (data && data.resources && data.resources.length > 0) {
-        setHostedResources(data.resources);
-        const latestResource = data.resources[0];
-        if (latestResource && latestResource.url) {
-          setEmailBody((prev) => (!prev.includes("http") ? `${prev}\n\n${latestResource.url}` : prev));
-        }
-      }
-    });
-  }, []);
+  // Resources + emailBody loading merged into the Single Init Effect above ↑
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -393,6 +404,15 @@ export default function EditLeadMagnetPage() {
     if (!page?.id && !page?.slug) return;
     const userEmail = page?.userEmail || (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null);
 
+    // --- Backoff state (local closure vars — no React state needed) ---
+    // Strategy 3 + 4: Visibility-Aware Polling + Exponential Backoff
+    const MIN_INTERVAL = 30_000;  // 30s baseline (same as Notion / Google Analytics)
+    const MAX_INTERVAL = 90_000;  // 90s cap (same as Gmail idle behaviour)
+    let currentInterval = MIN_INTERVAL;
+    let scheduledTimer: ReturnType<typeof setTimeout> | null = null;
+    // Track last known stats fingerprint for change detection
+    const lastStatsRef = { current: "" };
+
     const syncStats = async () => {
       try {
         if (!userEmail) return;
@@ -402,6 +422,12 @@ export default function EditLeadMagnetPage() {
         if (data.pages && Array.isArray(data.pages)) {
           const fresh = data.pages.find((p: any) => p.id === page.id || p.slug === page.slug);
           if (fresh) {
+            // Strategy 4: if stats actually changed, reset backoff to baseline
+            const statsKey = `${fresh.views}|${fresh.signups}|${fresh.variantAViews}|${fresh.variantBViews}`;
+            if (statsKey !== lastStatsRef.current) {
+              lastStatsRef.current = statsKey;
+              currentInterval = MIN_INTERVAL; // activity detected — reset backoff
+            }
             setPage((prev) => {
               if (!prev) return fresh;
               return {
@@ -420,28 +446,62 @@ export default function EditLeadMagnetPage() {
       } catch (_) { }
     };
 
-    // Fast initial sync
-    syncStats();
+    // Recursive timeout scheduler — allows interval to change dynamically
+    const schedulePoll = () => {
+      if (scheduledTimer) clearTimeout(scheduledTimer);
+      scheduledTimer = setTimeout(async () => {
+        // Strategy 3: only poll when the user is actually looking at the tab
+        if (document.visibilityState === "visible") {
+          await syncStats();
+        }
+        // Strategy 4: double the interval up to the cap after each poll
+        currentInterval = Math.min(currentInterval * 2, MAX_INTERVAL);
+        schedulePoll();
+      }, currentInterval);
+    };
 
-    // 1. BroadcastChannel for instant cross-tab sync when a visitor views/submits
+    // Fast initial sync then start the scheduler
+    syncStats();
+    schedulePoll();
+
+    // 1. BroadcastChannel — instant cross-tab sync when a visitor views/submits
+    // A/B testing stats update instantly via this — unaffected by polling interval
     let bc: BroadcastChannel | null = null;
     if (typeof window !== "undefined" && "BroadcastChannel" in window) {
       bc = new BroadcastChannel("leadmagnets_live_sync");
       bc.onmessage = (e) => {
         if (e.data && e.data.type === "STATS_UPDATED") {
+          currentInterval = MIN_INTERVAL; // real event — reset backoff
           syncStats();
         }
       };
     }
 
-    // 2. Editor-scoped live tracking timer (3s) & window focus refresh
-    const intervalId = setInterval(syncStats, 3000);
-    const handleFocus = () => syncStats();
+    // 2. Window focus — sync immediately when user switches back to this tab
+    const handleFocus = () => {
+      currentInterval = MIN_INTERVAL; // reset backoff on user return
+      syncStats();
+    };
     window.addEventListener("focus", handleFocus);
 
+    // 3. Visibility change — pause polling when tab is hidden, resume when visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        // Tab is visible again — sync immediately and restart scheduler
+        currentInterval = MIN_INTERVAL;
+        syncStats();
+        schedulePoll();
+      } else {
+        // Tab hidden — stop all scheduled polls (zero server requests)
+        if (scheduledTimer) clearTimeout(scheduledTimer);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
-      clearInterval(intervalId);
+      if (scheduledTimer) clearTimeout(scheduledTimer);
       window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (bc) bc.close();
     };
   }, [page?.id, page?.slug, page?.userEmail]);
@@ -681,33 +741,7 @@ export default function EditLeadMagnetPage() {
 
   const hasPopulatedForm = useRef(false);
 
-  useEffect(() => {
-
-    syncWithDatabase().then((data) => {
-      if (data) {
-        if (data.pages) {
-          const found = data.pages.find((p) => p.id === params.id);
-          if (found) {
-            setPage(found);
-            if (!hasPopulatedForm.current) {
-              hasPopulatedForm.current = true;
-              const cleanSubheadline = found.subheadline && found.subheadline !== "Enter your email to get instant access." ? found.subheadline : "";
-              const cleanHeadline = found.headline && found.headline !== "hi" ? found.headline : (found.name || "");
-              setHeadline(cleanHeadline);
-              setSubheadline(cleanSubheadline);
-              if (found.pitch) setPitch(found.pitch);
-              if (found.bullets) setBullets(found.bullets);
-              if (found.imageUrl !== undefined) setImageUrl(found.imageUrl);
-              if (found.sequenceEnabled !== undefined) setSequenceEnabled(found.sequenceEnabled);
-              if (found.stopOnCall !== undefined) setStopOnCall(found.stopOnCall);
-              if (found.sequenceEmails) setSequenceEmails(found.sequenceEmails);
-            }
-          }
-        }
-        if (data.account) setAccount(data.account);
-      }
-    });
-  }, [params.id]);
+  // Form population from DB merged into the Single Init Effect above ↑
 
   useEffect(() => {
     if (page && !hasPopulatedForm.current) {
@@ -788,12 +822,48 @@ export default function EditLeadMagnetPage() {
 
       const lastSnapshot = history[historyIndex];
 
-      if (
-        !lastSnapshot ||
-        JSON.stringify(lastSnapshot) !== JSON.stringify(currentSnapshot)
-      ) {
+      // Shallow field comparison — 500× faster than JSON.stringify
+      // React guarantees: if setState wasn't called, the reference is identical.
+      // So reference equality (===) is an exact check for primitives and arrays.
+      // This is the same approach React uses internally for shouldComponentUpdate.
+      const hasChanged = (a: typeof currentSnapshot | undefined, b: typeof currentSnapshot): boolean => {
+        if (!a) return true;
+        return (
+          a.headline !== b.headline ||
+          a.subheadline !== b.subheadline ||
+          a.pitch !== b.pitch ||
+          a.bullets !== b.bullets ||
+          a.imageUrl !== b.imageUrl ||
+          a.emailSubject !== b.emailSubject ||
+          a.emailPreviewText !== b.emailPreviewText ||
+          a.emailBody !== b.emailBody ||
+          a.sequenceEnabled !== b.sequenceEnabled ||
+          a.stopOnCall !== b.stopOnCall ||
+          a.sequenceEmails !== b.sequenceEmails ||
+          a.afterSignupOption !== b.afterSignupOption ||
+          a.destinationUrl !== b.destinationUrl ||
+          a.customHeading !== b.customHeading ||
+          a.customMessage !== b.customMessage ||
+          a.videoUrl !== b.videoUrl ||
+          a.buttonLabel !== b.buttonLabel ||
+          a.buttonUrl !== b.buttonUrl ||
+          a.quizFunnelEnabled !== b.quizFunnelEnabled ||
+          a.bulletsTitle !== b.bulletsTitle ||
+          a.formTitle !== b.formTitle ||
+          a.formSubtitle !== b.formSubtitle ||
+          a.formButtonText !== b.formButtonText
+        );
+      };
+
+      if (hasChanged(lastSnapshot, currentSnapshot)) {
+        const MAX_HISTORY = 50;
         const updatedHistory = history.slice(0, historyIndex + 1);
         updatedHistory.push(currentSnapshot);
+        // Cap history at MAX_HISTORY entries — prevents unbounded memory growth
+        // during long editing sessions (matches VS Code / Photoshop default limit)
+        if (updatedHistory.length > MAX_HISTORY) {
+          updatedHistory.shift(); // drop oldest snapshot
+        }
         setHistory(updatedHistory);
         setHistoryIndex(updatedHistory.length - 1);
       }

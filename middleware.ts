@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { verifySessionToken } from "@/lib/session-token";
+// NOTE: Do NOT import verifySessionToken here — it uses Node.js `crypto` which
+// is not available in Edge Runtime (where middleware executes). The real
+// cryptographic verification happens inside the API routes (Node.js runtime).
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -13,8 +15,10 @@ export async function middleware(request: NextRequest) {
     request.cookies.get("next-auth.session-token")?.value ||
     request.cookies.get("__Secure-next-auth.session-token")?.value;
 
-  // Cryptographically verify custom JWT session token if present
-  const validCustomSession = sessionToken ? verifySessionToken(sessionToken) : null;
+  // Lightweight JWT shape check — Edge Runtime cannot use Node.js `crypto`.
+  // We only verify the cookie looks like a signed JWT (3 base64url parts).
+  // Full cryptographic verification happens in getAuthenticatedUserEmail() on API routes.
+  const validCustomSession = sessionToken && sessionToken.split(".").length === 3 ? true : null;
   const isValidSession = Boolean(validCustomSession || nextAuthToken);
 
   // Rate Limiting Protection for Auth & API Endpoints
