@@ -80,10 +80,10 @@ export default function AnalyticsLinearView({
     timeRange === "7d"
       ? "last 7 days"
       : timeRange === "90d"
-      ? "last 90 days"
-      : timeRange === "all"
-      ? "all time"
-      : "last 30 days";
+        ? "last 90 days"
+        : timeRange === "all"
+          ? "all time"
+          : "last 30 days";
 
   // Production-Grade Formatted Excel Spreadsheet Export Handler
   const exportToCSV = () => {
@@ -143,8 +143,8 @@ export default function AnalyticsLinearView({
       const device = l.deviceType
         ? l.deviceType.charAt(0).toUpperCase() + l.deviceType.slice(1)
         : idx % 3 === 0
-        ? "Mobile"
-        : "Desktop";
+          ? "Mobile"
+          : "Desktop";
       const source = l.referrer || l.source || "Direct / Organic";
 
       xml += `   <Row ss:Height="22">
@@ -291,9 +291,8 @@ export default function AnalyticsLinearView({
                     key={r}
                     type="button"
                     onClick={() => setTimeRange(r)}
-                    className={`relative z-10 px-3.5 py-1.5 rounded-lg font-mono text-[11px] font-semibold transition-colors duration-200 cursor-pointer ${
-                      isActive ? "text-white" : "text-zinc-400 hover:text-zinc-200"
-                    }`}
+                    className={`relative z-10 px-3.5 py-1.5 rounded-lg font-mono text-[11px] font-semibold transition-colors duration-200 cursor-pointer ${isActive ? "text-white" : "text-zinc-400 hover:text-zinc-200"
+                      }`}
                   >
                     {isActive && (
                       <motion.div
@@ -466,11 +465,10 @@ export default function AnalyticsLinearView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Variant A */}
               <div
-                className={`p-4 rounded-xl border space-y-2 transition-all ${
-                  !isBWinning
+                className={`p-4 rounded-xl border space-y-2 transition-all ${!isBWinning
                     ? "border-emerald-500/40 bg-emerald-950/10"
                     : "border-white/[0.08] bg-[#121215]"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white">Variant A (Control)</span>
@@ -501,11 +499,10 @@ export default function AnalyticsLinearView({
 
               {/* Variant B */}
               <div
-                className={`p-4 rounded-xl border space-y-2 transition-all ${
-                  isBWinning
+                className={`p-4 rounded-xl border space-y-2 transition-all ${isBWinning
                     ? "border-emerald-500/40 bg-emerald-950/10"
                     : "border-white/[0.08] bg-[#121215]"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white">Variant B (Challenger)</span>
