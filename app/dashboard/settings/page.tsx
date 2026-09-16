@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import type { Account } from "@/lib/data";
 import { motion, AnimatePresence } from "framer-motion";
 
-import PasswordInputWithStrength from "@/components/ui/password-input-with-strength";
+import PasswordInputWithStrength, { validatePasswordStrength } from "@/components/ui/password-input-with-strength";
 import { getPlanLimits } from "@/lib/plan-limits";
 
 export default function AccountSettingsPage() {
@@ -212,6 +212,11 @@ export default function AccountSettingsPage() {
   }, [account, email]);
 
   const handleUpdatePassword = useCallback(async () => {
+    const passwordError = validatePasswordStrength(newPassword);
+    if (passwordError) {
+      alert(passwordError);
+      return;
+    }
     if (newPassword !== confirmPassword) {
       alert("New passwords do not match!");
       return;

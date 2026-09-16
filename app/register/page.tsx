@@ -7,7 +7,7 @@ import { Loader2, ArrowRight } from "lucide-react";
 import AuthShell from "@/components/auth-shell";
 import Button from "@/components/ui/button";
 import Input, { FieldLabel } from "@/components/ui/input";
-import PasswordInputWithStrength from "@/components/ui/password-input-with-strength";
+import PasswordInputWithStrength, { validatePasswordStrength } from "@/components/ui/password-input-with-strength";
 import GoogleAuthButton from "@/components/ui/google-auth-button";
 
 export default function RegisterPage() {
@@ -23,6 +23,11 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const passwordError = validatePasswordStrength(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;

@@ -16,6 +16,19 @@ interface PasswordInputProps {
   showStrengthMeter?: boolean;
 }
 
+/**
+ * Validates a password against all required strength criteria.
+ * Returns an error message string if invalid, or null if the password is strong enough.
+ */
+export function validatePasswordStrength(pass: string): string | null {
+  if (!pass || pass.length < 8) return "Password must be at least 8 characters long.";
+  if (!/[A-Z]/.test(pass)) return "Password must contain at least one uppercase letter.";
+  if (!/[a-z]/.test(pass)) return "Password must contain at least one lowercase letter.";
+  if (!/[0-9]/.test(pass)) return "Password must contain at least one number (0–9).";
+  if (!/[^a-zA-Z0-9]/.test(pass)) return "Password must contain at least one special symbol (e.g. !@#$%).";
+  return null;
+}
+
 export function calculatePasswordStrength(pass: string) {
   if (!pass) return { score: 0, label: "", color: "bg-zinc-200 dark:bg-zinc-800", textColor: "text-zinc-400" };
 

@@ -8,6 +8,15 @@ import { sendMail } from "@/lib/email";
 import { clearAuthCookie, getAuthenticatedUserEmail, setAuthCookie } from "@/lib/auth";
 import { hashPassword, comparePassword } from "@/lib/auth-helpers";
 
+function serverValidatePassword(pass: string): string | null {
+  if (!pass || pass.length < 8) return "Password must be at least 8 characters long.";
+  if (!/[A-Z]/.test(pass)) return "Password must contain at least one uppercase letter.";
+  if (!/[a-z]/.test(pass)) return "Password must contain at least one lowercase letter.";
+  if (!/[0-9]/.test(pass)) return "Password must contain at least one number (0–9).";
+  if (!/[^a-zA-Z0-9]/.test(pass)) return "Password must contain at least one special symbol (e.g. !@#$%).";
+  return null;
+}
+
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
@@ -176,6 +185,12 @@ export async function POST(req: Request) {
       }
 
       data.email = normalizedEmail;
+      if (data.password) {
+        const pwdErr = serverValidatePassword(data.password);
+        if (pwdErr) {
+          return NextResponse.json({ error: pwdErr }, { status: 400 });
+        }
+      }
       let existing = await AccountModel.findOne({ email: normalizedEmail });
       if (!existing && data.id) {
         existing = await AccountModel.findOne({ id: data.id, email: normalizedEmail });
@@ -301,6 +316,12 @@ export async function POST(req: Request) {
 
     if (action === "updatePassword") {
       const { email, currentPassword, newPassword } = data;
+
+      // Validate new password strength server-side (defence-in-depth against API bypass)
+      const pwdErr = serverValidatePassword(newPassword);
+      if (pwdErr) {
+        return NextResponse.json({ error: pwdErr }, { status: 400 });
+      }
 
       // SECURITY: Must be logged in with a valid session
       if (!authEmail) {
@@ -885,6 +906,12 @@ export async function POST(req: Request) {
       const { token, newPassword } = data;
       if (!token || !newPassword) {
         return NextResponse.json({ error: "Invalid request parameters." }, { status: 400 });
+      }
+
+      // Validate new password strength server-side (defence-in-depth against API bypass)
+      const pwdErr = serverValidatePassword(newPassword);
+      if (pwdErr) {
+        return NextResponse.json({ error: pwdErr }, { status: 400 });
       }
 
       const account = await AccountModel.findOne({

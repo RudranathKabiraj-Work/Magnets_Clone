@@ -6,7 +6,7 @@ import AuthShell from "@/components/auth-shell";
 import Button from "@/components/ui/button";
 import Input, { FieldLabel } from "@/components/ui/input";
 import { CheckCircle2, Loader2, KeyRound } from "lucide-react";
-import PasswordInputWithStrength from "@/components/ui/password-input-with-strength";
+import PasswordInputWithStrength, { validatePasswordStrength } from "@/components/ui/password-input-with-strength";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -29,8 +29,9 @@ function ResetPasswordForm() {
       setError("Passwords do not match.");
       return;
     }
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+    const passwordError = validatePasswordStrength(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
