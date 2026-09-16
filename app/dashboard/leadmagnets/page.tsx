@@ -73,7 +73,7 @@ const MagnetCard = React.memo(
         }`}
       >
         {/* Image Thumbnail Container */}
-        <div className="relative h-40 w-full bg-zinc-100 dark:bg-[#0F0F12] border-b border-zinc-100 dark:border-zinc-800/60 overflow-hidden">
+        <div className="relative h-36 w-full bg-zinc-100 dark:bg-[#0F0F12] border-b border-zinc-100 dark:border-zinc-800/60 overflow-hidden">
           {page.imageUrl && page.imageUrl.trim() !== "" ? (
             <img
               src={page.imageUrl}
@@ -107,7 +107,7 @@ const MagnetCard = React.memo(
         {/* Content Section */}
         <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
           <div>
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-white line-clamp-1 group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8] transition">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white line-clamp-1">
               {page.headline || page.name}
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1">
@@ -122,7 +122,7 @@ const MagnetCard = React.memo(
             <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
               <Link
                 href={`/dashboard/leadmagnets/${page.id}`}
-                className="flex items-center gap-1 rounded-lg bg-[#0066B2]/10 dark:bg-[#0066B2]/20 px-2.5 py-1 text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:bg-[#0066B2] hover:text-white dark:hover:bg-[#0066B2] dark:hover:text-white transition"
+                className="flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-[#1E1E22] px-3 py-1.5 text-[11px] font-semibold text-zinc-700 dark:text-zinc-200 hover:border-[#0066B2] hover:text-[#0066B2] dark:hover:border-[#38BDF8] dark:hover:text-[#38BDF8] transition"
               >
                 <Pencil className="h-3 w-3" /> Edit
               </Link>
@@ -305,23 +305,23 @@ export default function PagesPage() {
         <div className="px-6 pt-6 lg:px-8 border-b border-zinc-200/80 dark:border-zinc-800/60 bg-white dark:bg-[#121215] sticky top-0 z-20">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6">
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                  Lead Magnet Control Center
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+                  Lead Magnets
                 </h1>
-                <span className="inline-flex items-center gap-1 rounded-full border border-[#0066B2]/30 bg-[#EFF6FF] px-2.5 py-0.5 text-[10px] font-bold text-[#0066B2] dark:border-[#0066B2]/40 dark:bg-[#0066B2]/15 dark:text-[#38BDF8]">
-                  <Sparkles className="h-3 w-3" /> PRO HUB
+                <span className="inline-flex items-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 tabular-nums">
+                  {total}
                 </span>
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Manage landing pages, live lead conversion performance, and direct distribution links.
+                Build, publish, and track your lead magnet landing pages.
               </p>
             </div>
 
             <div className="flex items-center gap-3">
               <Link
                 href="/dashboard/sequences"
-                className="flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1A1A1E] px-4 py-2.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition shadow-xs"
+                className="flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1A1A1E] px-4 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition"
               >
                 <Mail className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" />
                 <span>Email Sequences</span>
@@ -329,7 +329,7 @@ export default function PagesPage() {
 
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#005799] transition shadow-md shadow-[#0066B2]/20 cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-5 py-2 text-xs font-bold text-white hover:bg-[#005799] transition shadow-sm shadow-[#0066B2]/20 cursor-pointer active:scale-95"
               >
                 <Plus className="h-4 w-4 stroke-[2.5px]" />
                 <span>Create Lead Magnet</span>
@@ -338,45 +338,29 @@ export default function PagesPage() {
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-3 text-xs">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EFF6FF] dark:bg-[#0066B2]/15 text-[#0066B2] dark:text-[#38BDF8]">
-                <Globe className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Active Pages</p>
-                <p className="text-base font-bold text-zinc-900 dark:text-white">{liveCount} <span className="text-xs font-normal text-zinc-400">/ {total}</span></p>
-              </div>
+          <div className="flex items-center gap-1 py-2.5 overflow-x-auto">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#EFF6FF] dark:bg-[#0066B2]/10 shrink-0">
+              <Globe className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8] shrink-0" />
+              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Active</span>
+              <span className="text-[12px] font-extrabold text-zinc-900 dark:text-white tabular-nums">{liveCount}<span className="text-[10px] font-normal text-zinc-400"> / {total}</span></span>
             </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
-                <Eye className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Total Traffic</p>
-                <p className="text-base font-bold text-zinc-900 dark:text-white">{totalViews.toLocaleString()}</p>
-              </div>
+            <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 mx-1 shrink-0" />
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 shrink-0">
+              <Eye className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Views</span>
+              <span className="text-[12px] font-extrabold text-zinc-900 dark:text-white tabular-nums">{totalViews.toLocaleString()}</span>
             </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400">
-                <MousePointerClick className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Leads Collected</p>
-                <p className="text-base font-bold text-zinc-900 dark:text-white">{totalSignups.toLocaleString()}</p>
-              </div>
+            <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 mx-1 shrink-0" />
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/30 shrink-0">
+              <MousePointerClick className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Leads</span>
+              <span className="text-[12px] font-extrabold text-zinc-900 dark:text-white tabular-nums">{totalSignups.toLocaleString()}</span>
             </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">
-                <TrendingUp className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Avg. Conv. Rate</p>
-                <p className="text-base font-bold text-zinc-900 dark:text-white">{avgConversion}%</p>
-              </div>
+            <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 mx-1 shrink-0" />
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 shrink-0">
+              <TrendingUp className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 whitespace-nowrap">Conv.</span>
+              <span className="text-[12px] font-extrabold text-zinc-900 dark:text-white tabular-nums">{avgConversion}%</span>
             </div>
           </div>
         </div>
@@ -655,10 +639,10 @@ export default function PagesPage() {
                 {/* Header & Status */}
                 <div className="flex items-start justify-between pb-4 border-b border-zinc-100 dark:border-zinc-800/60">
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">
-                      SELECTED INSPECTOR
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
+                      Inspector
                     </span>
-                    <h3 className="text-lg font-black text-zinc-900 dark:text-white mt-0.5 line-clamp-1">
+                    <h3 className="text-base font-bold text-zinc-900 dark:text-white mt-0.5 line-clamp-2 leading-snug">
                       {activePage.name}
                     </h3>
                   </div>
@@ -674,7 +658,7 @@ export default function PagesPage() {
 
                 {/* Live Public Link Card */}
                 <div className="rounded-xl bg-zinc-50 dark:bg-[#1A1A1E] p-3 border border-zinc-200/60 dark:border-zinc-800/60 space-y-2">
-                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Public Share URL</p>
+                  <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Share URL</p>
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-mono text-zinc-800 dark:text-zinc-200 truncate">
                       /{account?.username || "demo"}/{activePage.slug}
@@ -691,17 +675,17 @@ export default function PagesPage() {
 
                 {/* Quick Performance Breakdown */}
                 <div className="space-y-2">
-                  <p className="text-xs font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
-                    <TrendingUp className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" /> Magnet Conversion Metrics
+                  <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                    Performance
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-[#1A1A1E]/50">
-                      <p className="text-[10px] text-zinc-400 font-semibold uppercase">Total Views</p>
-                      <p className="text-lg font-bold text-zinc-900 dark:text-white mt-1">{activePage.views || 0}</p>
+                      <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wide">Views</p>
+                      <p className="text-xl font-extrabold text-zinc-900 dark:text-white mt-1 tabular-nums">{activePage.views || 0}</p>
                     </div>
                     <div className="rounded-xl border border-zinc-100 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-[#1A1A1E]/50">
-                      <p className="text-[10px] text-zinc-400 font-semibold uppercase">Leads Captured</p>
-                      <p className="text-lg font-bold text-[#0066B2] dark:text-[#38BDF8] mt-1">{activePage.signups || 0}</p>
+                      <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wide">Leads</p>
+                      <p className="text-xl font-extrabold text-[#0066B2] dark:text-[#38BDF8] mt-1 tabular-nums">{activePage.signups || 0}</p>
                     </div>
                   </div>
                 </div>
@@ -712,7 +696,7 @@ export default function PagesPage() {
                     href={`/dashboard/leadmagnets/${activePage.id}`}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005799] transition shadow-sm"
                   >
-                    <Pencil className="h-4 w-4" /> Open Full Editor
+                    <Pencil className="h-3.5 w-3.5" /> Open Editor
                   </Link>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -746,8 +730,8 @@ export default function PagesPage() {
 
               </div>
             ) : (
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#141417] p-8 text-center text-zinc-400">
-                Select a lead magnet to open the live inspector panel.
+              <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#141417] p-8 text-center text-zinc-400 text-xs">
+                Select a lead magnet to view details
               </div>
             )}
           </div>
