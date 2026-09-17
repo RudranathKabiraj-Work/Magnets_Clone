@@ -74,7 +74,7 @@ const MagnetCard = React.memo(
           }`}
       >
         {/* Image Thumbnail Container */}
-        <div className="relative h-40 w-full bg-zinc-100 dark:bg-[#0F0F12] border-b border-zinc-100 dark:border-zinc-800/60 overflow-hidden">
+        <div className="relative h-32 w-full bg-zinc-100 dark:bg-[#0F0F12] border-b border-zinc-100 dark:border-zinc-800/60 overflow-hidden">
           {page.imageUrl && page.imageUrl.trim() !== "" ? (
             <Image
               src={page.imageUrl}
