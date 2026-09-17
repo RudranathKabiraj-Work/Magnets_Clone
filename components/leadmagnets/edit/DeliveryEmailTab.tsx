@@ -1,0 +1,461 @@
+"use client";
+
+import React from "react";
+import { EditorContent, type Editor } from "@tiptap/react";
+import {
+  Mail,
+  Eye,
+  Type,
+  ChevronDown,
+  Strikethrough,
+  Eraser,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Image as ImageIcon,
+  Video,
+  Table as TableIcon,
+  Link2,
+  Minus,
+  Sparkles,
+} from "lucide-react";
+import { type Account } from "@/lib/data";
+
+export interface DeliveryEmailTabProps {
+  account: Account | null;
+  setShowEmailPreviewModal: (show: boolean) => void;
+  emailSubject: string;
+  setEmailSubject: (subject: string) => void;
+  emailPreviewText: string;
+  setEmailPreviewText: (previewText: string) => void;
+  editor: Editor | null;
+  showInsertResourceMenu: boolean;
+  setShowInsertResourceMenu: React.Dispatch<React.SetStateAction<boolean>>;
+  hostedResources: any[];
+  emailBody: string;
+  setEmailBody: React.Dispatch<React.SetStateAction<string>>;
+  enableAiPersonalizedDeliverable: boolean;
+  setEnableAiPersonalizedDeliverable: (enable: boolean) => void;
+  customPromptQuestion: string;
+  setCustomPromptQuestion: (q: string) => void;
+  customPromptPlaceholder: string;
+  setCustomPromptPlaceholder: (p: string) => void;
+}
+
+export default function DeliveryEmailTab({
+  account,
+  setShowEmailPreviewModal,
+  emailSubject,
+  setEmailSubject,
+  emailPreviewText,
+  setEmailPreviewText,
+  editor,
+  showInsertResourceMenu,
+  setShowInsertResourceMenu,
+  hostedResources,
+  emailBody,
+  setEmailBody,
+  enableAiPersonalizedDeliverable,
+  setEnableAiPersonalizedDeliverable,
+  customPromptQuestion,
+  setCustomPromptQuestion,
+  customPromptPlaceholder,
+  setCustomPromptPlaceholder,
+}: DeliveryEmailTabProps) {
+  const renderEmailBlockEditor = (
+    val: string,
+    onValChange: (next: string) => void,
+    isDisabled = false
+  ) => {
+    return (
+      <textarea
+        disabled={isDisabled}
+        value={val}
+        onChange={(e) => onValChange(e.target.value)}
+        placeholder="Write your email body content here... Use {name} for subscriber name."
+        rows={10}
+        className={`w-full p-2 bg-transparent outline-none resize-y min-h-[220px] font-sans text-sm leading-relaxed transition ${isDisabled ? "opacity-50 cursor-not-allowed" : ""
+          } ${(account?.themeMode || "light") === "dark" ? "text-zinc-100 placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
+      />
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Canvas Outer Wrapper - Adapts dynamically to Brand Theme Mode */}
+      <div className={`rounded-2xl border p-4 sm:p-8 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#0E0E10] text-white" : "border-zinc-200/70 bg-[#F9F9FB] text-zinc-900"}`}>
+
+        {/* Inner Card Container */}
+        <div className={`mx-auto max-w-4xl rounded-2xl border p-6 sm:p-8 shadow-xs space-y-6 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
+
+          {/* Top Header Bar inside Card */}
+          <div className={`flex flex-wrap items-center justify-between gap-3 border-b pb-4 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A]" : "border-zinc-200"}`}>
+            <div className={`flex items-center gap-2 text-sm font-bold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-800"}`}>
+              <Mail className="h-4 w-4 text-zinc-400" />
+              <span>Delivery email</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-zinc-400 font-mono">
+                LeadMagnets &lt;hello@mail.leadmagnets.so&gt;
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowEmailPreviewModal(true)}
+                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition shadow-xs cursor-pointer ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24] text-white hover:bg-[#27272A]" : "border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50"}`}
+              >
+                <Eye className="h-3.5 w-3.5" />
+                <span>Preview</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Subject */}
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-zinc-400 block">Subject</label>
+            <input
+              type="text"
+              value={emailSubject}
+              onChange={(e) => setEmailSubject(e.target.value)}
+              placeholder="What people see in the inbox"
+              className={`w-full text-2xl sm:text-3xl font-extrabold bg-transparent outline-none border-b border-transparent focus:border-[#FE6F34] transition py-1 ${(account?.themeMode || "light") === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-300"}`}
+            />
+          </div>
+
+          {/* Preview text */}
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-zinc-400 block">Preview text</label>
+            <input
+              type="text"
+              value={emailPreviewText}
+              onChange={(e) => setEmailPreviewText(e.target.value)}
+              placeholder="A short teaser shown after the subject"
+              className={`w-full text-sm font-medium bg-transparent outline-none border-b border-transparent focus:border-[#FE6F34] transition py-1 ${(account?.themeMode || "light") === "dark" ? "text-zinc-300 placeholder:text-zinc-600" : "text-zinc-600 placeholder:text-zinc-300"}`}
+            />
+          </div>
+
+          {/* Divider */}
+          <div className={`h-px w-full my-4 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-200/80"}`} />
+
+          {/* Body Section */}
+          <div className="space-y-2">
+            <label className={`text-xs font-bold block ${(account?.themeMode || "light") === "dark" ? "text-zinc-400" : "text-zinc-700"}`}>Body</label>
+
+            {/* Rich Text Editor Container */}
+            <div className={`rounded-2xl border overflow-hidden shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B]" : "border-zinc-200/90 bg-white"}`}>
+              {/* Toolbar matching exact screenshot design */}
+              <div className={`flex flex-wrap items-center gap-1.5 border-b px-3 py-2 text-xs font-semibold ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-zinc-300" : "border-zinc-200 bg-[#F9F9FB] text-zinc-600"}`}>
+                {/* Headings Dropdown: T ⌄ */}
+                <div className="relative group">
+                  <button
+                    type="button"
+                    title="Headings"
+                    className="flex items-center gap-1 px-2 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer text-zinc-700 dark:text-zinc-200"
+                  >
+                    <Type className="h-3.5 w-3.5" />
+                    <ChevronDown className="h-3 w-3 text-zinc-400" />
+                  </button>
+                  <div className="hidden group-hover:flex flex-col absolute left-0 top-full mt-1 w-32 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50 p-1">
+                    <button type="button" onClick={() => editor?.chain().focus().setParagraph().run()} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Paragraph</button>
+                    <button type="button" onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()} className="text-left px-2.5 py-1.5 text-xs font-bold rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 1</button>
+                    <button type="button" onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()} className="text-left px-2.5 py-1.5 text-xs font-semibold rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 2</button>
+                    <button type="button" onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()} className="text-left px-2.5 py-1.5 text-xs font-medium rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 3</button>
+                  </div>
+                </div>
+
+                <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
+
+                {/* Bold: B */}
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleBold().run()}
+                  title="Bold (Ctrl+B)"
+                  className={`p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer ${editor?.isActive("bold") ? "bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8]" : ""}`}
+                >
+                  <span className="font-extrabold text-sm">B</span>
+                </button>
+
+                {/* Italic: I */}
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleItalic().run()}
+                  title="Italic (Ctrl+I)"
+                  className={`p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer ${editor?.isActive("italic") ? "bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8]" : ""}`}
+                >
+                  <span className="italic font-serif text-sm">I</span>
+                </button>
+
+                {/* Strikethrough: S */}
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleStrike().run()}
+                  title="Strikethrough"
+                  className={`p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer ${editor?.isActive("strike") ? "bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8]" : ""}`}
+                >
+                  <Strikethrough className="h-3.5 w-3.5" />
+                </button>
+
+                {/* Text Color: A */}
+                <div className="relative group">
+                  <button
+                    type="button"
+                    title="Text Color"
+                    className="flex items-center gap-0.5 p-1.5 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer"
+                  >
+                    <span className="font-extrabold text-xs underline decoration-2 decoration-[#0066B2]">A</span>
+                  </button>
+                  <div className="hidden group-hover:flex gap-1.5 absolute left-0 top-full mt-1 p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50">
+                    {["#18181b", "#0066B2", "#2563eb", "#059669", "#dc2626", "#d97706", "#7c3aed"].map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => editor?.chain().focus().setColor(color).run()}
+                        className="h-4 w-4 rounded-full border border-black/10 cursor-pointer"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Clear Format: 🧹 */}
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().unsetAllMarks().clearNodes().run()}
+                  title="Clear Format"
+                  className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                >
+                  <Eraser className="h-3.5 w-3.5" />
+                </button>
+
+                <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
+
+                {/* Lists: ⋮= ⌄ */}
+                <div className="relative group">
+                  <button
+                    type="button"
+                    title="Lists"
+                    className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer"
+                  >
+                    <span className="text-xs font-bold">⋮=</span>
+                    <ChevronDown className="h-3 w-3 text-zinc-400" />
+                  </button>
+                  <div className="hidden group-hover:flex flex-col absolute left-0 top-full mt-1 w-36 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50 p-1">
+                    <button type="button" onClick={() => editor?.chain().focus().toggleBulletList().run()} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Bullet List</button>
+                    <button type="button" onClick={() => editor?.chain().focus().toggleOrderedList().run()} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Numbered List</button>
+                  </div>
+                </div>
+
+                {/* Alignment: ≡ ⌄ */}
+                <div className="relative group">
+                  <button
+                    type="button"
+                    title="Text Align"
+                    className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer"
+                  >
+                    <AlignLeft className="h-3.5 w-3.5" />
+                    <ChevronDown className="h-3 w-3 text-zinc-400" />
+                  </button>
+                  <div className="hidden group-hover:flex flex-col absolute left-0 top-full mt-1 w-32 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50 p-1">
+                    <button type="button" onClick={() => editor?.chain().focus().setTextAlign("left").run()} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignLeft className="h-3.5 w-3.5" /> Left</button>
+                    <button type="button" onClick={() => editor?.chain().focus().setTextAlign("center").run()} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignCenter className="h-3.5 w-3.5" /> Center</button>
+                    <button type="button" onClick={() => editor?.chain().focus().setTextAlign("right").run()} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignRight className="h-3.5 w-3.5" /> Right</button>
+                  </div>
+                </div>
+
+                <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
+
+                {/* Insert Image */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = prompt("Enter Image URL:");
+                    if (url && editor) {
+                      editor.chain().focus().setImage({ src: url }).run();
+                    }
+                  }}
+                  title="Insert Image"
+                  className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                >
+                  <ImageIcon className="h-3.5 w-3.5" />
+                </button>
+
+                {/* Insert Video */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = prompt("Enter YouTube / Video Embed URL:");
+                    if (url && editor) {
+                      editor.chain().focus().insertContent(`<p><iframe src="${url}" width="100%" height="315" frameborder="0" allowfullscreen></iframe></p>`).run();
+                    }
+                  }}
+                  title="Insert Video"
+                  className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                >
+                  <Video className="h-3.5 w-3.5" />
+                </button>
+
+                {/* Insert Table */}
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+                  title="Insert Table"
+                  className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                >
+                  <TableIcon className="h-3.5 w-3.5" />
+                </button>
+
+                {/* Insert Link */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = prompt("Enter Hyperlink URL:");
+                    if (url && editor) {
+                      editor.chain().focus().setLink({ href: url }).run();
+                    }
+                  }}
+                  title="Insert Link"
+                  className={`p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer ${editor?.isActive("link") ? "bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8]" : ""}`}
+                >
+                  <Link2 className="h-3.5 w-3.5" />
+                </button>
+
+                {/* Insert Line */}
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().setHorizontalRule().run()}
+                  title="Insert Horizontal Divider"
+                  className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+
+                <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
+
+                {/* + Insert Resource Dropdown Button (100% Untouched connection to Hosted Resources) */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowInsertResourceMenu((v) => !v)}
+                    className="hover:text-[#38BDF8] text-[#0066B2] dark:text-[#38BDF8] font-semibold transition px-2 py-1 rounded bg-[#EFF6FF] dark:bg-[#0066B2]/20 flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>+ Insert Resource</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+
+                  {showInsertResourceMenu && (
+                    <div className={`absolute left-0 top-full mt-1.5 w-64 rounded-xl border p-1.5 shadow-xl z-50 space-y-1 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24] text-white" : "border-zinc-200 bg-white text-zinc-800"}`}>
+                      <div className="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                        SELECT HOSTED RESOURCE
+                      </div>
+                      {hostedResources.length === 0 ? (
+                        <div className="px-2 py-2 text-xs text-zinc-400 italic">
+                          No hosted resources found. Upload one in Hosted resources first!
+                        </div>
+                      ) : (
+                        hostedResources.map((res) => (
+                          <button
+                            key={res.id}
+                            type="button"
+                            onClick={() => {
+                              if (editor) {
+                                editor.chain().focus().insertContent(`<p><a href="${res.url}" target="_blank" rel="noopener noreferrer">${res.name} (${res.url})</a></p>`).run();
+                              } else {
+                                setEmailBody((prev) => prev + `\n${res.url}\n`);
+                              }
+                              setShowInsertResourceMenu(false);
+                            }}
+                            className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-[#0066B2]/20 hover:text-[#38BDF8] text-xs transition flex flex-col gap-0.5 cursor-pointer"
+                          >
+                            <span className="font-semibold truncate">{res.name}</span>
+                            <span className="text-[10px] text-zinc-400 font-mono truncate">{res.url}</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tiptap Rich Text Body Editor Container */}
+              <div className="p-4 min-h-[220px]">
+                {editor ? (
+                  <EditorContent
+                    editor={editor}
+                    className={`prose dark:prose-invert max-w-none text-sm leading-relaxed outline-none min-h-[200px] ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-800"}`}
+                  />
+                ) : (
+                  renderEmailBlockEditor(emailBody, setEmailBody, false)
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 2: Smart Auto-Personalized Deliverable Config Card */}
+          <div className={`rounded-2xl border p-6 shadow-sm space-y-4 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#16161A] text-white" : "border-[#0066B2]/30 bg-gradient-to-br from-[#EFF6FF] to-white text-zinc-900"}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0066B2] text-white shadow-xs">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                <div>
+                  <h4 className={`text-sm font-bold ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>AI Personalization Engine (Feature 2)</h4>
+                  <p className="text-xs text-zinc-400">Ask leads a question during signup & generate custom AI action plans automatically.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEnableAiPersonalizedDeliverable(!enableAiPersonalizedDeliverable)}
+                className={`flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-bold transition cursor-pointer border ${enableAiPersonalizedDeliverable
+                  ? "bg-[#0066B2] text-white border-[#0066B2]"
+                  : "bg-zinc-100 text-zinc-600 border-zinc-200"
+                  }`}
+              >
+                <span>{enableAiPersonalizedDeliverable ? "Active" : "Disabled"}</span>
+              </button>
+            </div>
+
+            {enableAiPersonalizedDeliverable && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-[#0066B2]/20 animate-in fade-in duration-200">
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 block mb-1">Signup Form Question</label>
+                  <input
+                    type="text"
+                    value={customPromptQuestion}
+                    onChange={(e) => setCustomPromptQuestion(e.target.value)}
+                    placeholder="e.g. What is your main goal or bottleneck?"
+                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#0066B2]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-zinc-700 block mb-1">Input Placeholder</label>
+                  <input
+                    type="text"
+                    value={customPromptPlaceholder}
+                    onChange={(e) => setCustomPromptPlaceholder(e.target.value)}
+                    placeholder="e.g. Scaling outreach, Lead generation"
+                    className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#0066B2]"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* Bottom Banner Card */}
+        <div className={`mt-6 mx-auto max-w-4xl rounded-2xl p-6 flex items-center justify-center shadow-lg transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "bg-[#080B12]" : "bg-zinc-100/90 border border-zinc-200"}`}>
+          <button className={`flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-xs font-bold shadow-md transition cursor-pointer ${(account?.themeMode || "light") === "dark" ? "bg-[#181C26] text-white border border-[#272D3C] hover:bg-[#202534]" : "bg-white text-zinc-900 border border-zinc-200 hover:bg-zinc-50"}`}>
+            <img
+              key={(account?.themeMode || "light")}
+              src={(account?.themeMode || "light") === "dark" ? "/brand/gemini-logo-dark.png" : "/brand/gemini-logo.png"}
+              alt="LeadMagnets"
+              className="h-5 w-5 object-contain shrink-0"
+            />
+            <span>Build yours free with LeadMagnets</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+}
