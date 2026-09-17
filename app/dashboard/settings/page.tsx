@@ -135,9 +135,6 @@ export default function AccountSettingsPage() {
         window.dispatchEvent(new Event("accountUpdated"));
       }
       alert("Name updated successfully!");
-      if (typeof window !== "undefined") {
-        window.location.reload();
-      }
     } catch (err) {
       console.error(err);
       alert("Failed to update name.");
