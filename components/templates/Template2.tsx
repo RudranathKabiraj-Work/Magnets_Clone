@@ -40,6 +40,13 @@ export default function Template2(props: TemplateProps) {
   const themeMode = account?.themeMode || "light";
   const isDark = themeMode === "dark";
 
+  const getHeadlineFontSize = (text: string) => {
+    const len = text ? text.length : 0;
+    if (len > 60) return "text-base sm:text-lg md:text-xl font-bold";
+    if (len > 35) return "text-lg sm:text-xl md:text-2xl font-extrabold";
+    return "text-xl sm:text-2xl md:text-3xl font-black";
+  };
+
   return (
     <div
       className={`mx-auto max-w-6xl rounded-2xl border transition-all duration-300 overflow-hidden shadow-2xl ${isDark ? "bg-[#111827] text-white border-zinc-800" : "bg-white text-zinc-900 border-zinc-200"}`}
@@ -129,7 +136,7 @@ export default function Template2(props: TemplateProps) {
                     e.target.style.height = "auto";
                     e.target.style.height = `${e.target.scrollHeight}px`;
                   }}
-                  className="w-full text-2xl md:text-3xl font-black text-white bg-transparent outline-none resize-none leading-tight drop-shadow-md placeholder:text-white/50"
+                  className={`w-full ${getHeadlineFontSize(headline || "")} text-white bg-transparent outline-none resize-none leading-tight drop-shadow-md placeholder:text-white/50`}
                   placeholder="Your headline here"
                 />
 
@@ -161,7 +168,7 @@ export default function Template2(props: TemplateProps) {
               </>
             ) : (
               <>
-                <h1 className="text-2xl md:text-3xl font-black text-white leading-tight drop-shadow-md">
+                <h1 className={`text-white leading-tight drop-shadow-md ${getHeadlineFontSize(headline || "")}`}>
                   {headline || "Free Resource"}
                 </h1>
                 {subheadline && (
