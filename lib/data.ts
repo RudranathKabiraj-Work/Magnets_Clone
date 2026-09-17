@@ -77,7 +77,7 @@ export interface Lead {
   page: string;
   pageId: string;
   status: "new" | "delivered" | "opened" | "replied" | "stopped" | "completed";
-  source: "leadmagnets" | "custom-domain" | "integration";
+  source: "leadmagnets" | "magnets" | "custom-domain" | "integration" | "locked-pdf-otp";
   signedUpAt: string;
   sequence?: string;
   sequenceStep?: string;

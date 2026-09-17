@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
 
     const unlockToken = createPdfUnlockToken({
       magnetId,
-      email: cleanEmail,
+      email: email,
       pdfPages: pdfSnapshot,
     });
 
