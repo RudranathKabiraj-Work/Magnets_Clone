@@ -1196,18 +1196,10 @@ export default function SignupsPage() {
                     </div>
                     <div>
                       <span className="block text-zinc-500 dark:text-[#9B9085]">Traffic Source / Referrer</span>
-                      <strong className="font-semibold text-zinc-900 dark:text-white block capitalize mt-1">{selectedLead.referrer || "Direct Link"}</strong>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 py-1 border-b border-zinc-100 dark:border-white/5">
-                    <div>
-                      <span className="block text-zinc-500 dark:text-[#9B9085]">Traffic Source / Referrer</span>
-                      <strong className="font-semibold text-zinc-900 dark:text-white block capitalize">{selectedLead.referrer || "Direct Link"}</strong>
-                    </div>
-                    <div>
-                      <span className="block text-zinc-500 dark:text-[#9B9085]">Device Type</span>
-                      <strong className="font-semibold text-zinc-900 dark:text-white block capitalize">{selectedLead.deviceType || "Desktop"}</strong>
+                      <strong className="font-semibold text-zinc-900 dark:text-white block capitalize mt-1">
+                        {selectedLead.referrer || "Direct Link"}{" "}
+                        <span className="text-zinc-400 font-normal text-[11px]">({selectedLead.deviceType || "Desktop"})</span>
+                      </strong>
                     </div>
                   </div>
 
