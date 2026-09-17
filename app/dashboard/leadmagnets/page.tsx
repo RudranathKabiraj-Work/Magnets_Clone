@@ -13,6 +13,7 @@ import {
   Plus,
   Search,
   Sparkles,
+  Loader2,
   Trash2,
   X,
   BarChart2,
@@ -30,8 +31,7 @@ import {
   Zap,
   ArrowUpRight,
   Filter,
-  AlertTriangle,
-  Loader2
+  AlertTriangle
 } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
@@ -160,6 +160,7 @@ export default function PagesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newName, setNewName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
   const [isLockedPdfModal, setIsLockedPdfModal] = useState(false);
 
   const newSlug = useMemo(() => {
@@ -832,24 +833,33 @@ export default function PagesPage() {
                   <label className="text-xs font-semibold text-zinc-700 dark:text-[#d4c8bc]">Page name</label>
                   <button
                     type="button"
+                    disabled={isGeneratingTitle}
                     onClick={async () => {
+                      setIsGeneratingTitle(true);
                       try {
                         const res = await fetch("/api/ai/optimize", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ action: "suggest_titles", magnetTitle: newName || "Growth Framework" }),
+                          body: JSON.stringify({ action: "suggest_titles", magnetTitle: newName.trim() || "Growth Strategy" }),
                         });
                         const data = await res.json();
                         if (data.suggestions?.length) {
                           setNewName(data.suggestions[Math.floor(Math.random() * data.suggestions.length)]);
                         }
                       } catch (e) {
-                        console.error(e);
+                        console.error("AI Title Generator Error:", e);
+                      } finally {
+                        setIsGeneratingTitle(false);
                       }
                     }}
-                    className="flex items-center gap-1 text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline cursor-pointer"
+                    className="flex items-center gap-1 text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline cursor-pointer disabled:opacity-50"
                   >
-                    <Sparkles className="h-3 w-3" /> AI Title Generator
+                    {isGeneratingTitle ? (
+                      <Loader2 className="h-3 w-3 animate-spin text-[#0066B2] dark:text-[#38BDF8]" />
+                    ) : (
+                      <Sparkles className="h-3 w-3" />
+                    )}
+                    {isGeneratingTitle ? "Generating with AI..." : "AI Title Generator"}
                   </button>
                 </div>
                 <input
