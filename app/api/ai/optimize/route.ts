@@ -49,6 +49,33 @@ export async function POST(req: Request) {
 
     if (action === "suggest_titles") {
       const topic = magnetTitle || "SaaS Growth";
+
+      const apiKey =
+        process.env.GEMINI_API_KEY ||
+        process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
+        process.env.GOOGLE_AI_API_KEY ||
+        process.env.GOOGLE_API_KEY;
+
+      if (apiKey) {
+        try {
+          const { GoogleGenerativeAI } = await import("@google/generative-ai");
+          const genAI = new GoogleGenerativeAI(apiKey);
+          const model = genAI.getGenerativeModel({
+            model: "gemini-3.6-flash",
+            generationConfig: { responseMimeType: "application/json" }
+          });
+
+          const prompt = `Generate 5 viral, high-converting lead magnet titles for the topic: "${topic}".
+Respond ONLY with a JSON array of strings, e.g. ["Title 1", "Title 2", "Title 3", "Title 4", "Title 5"]`;
+
+          const result = await model.generateContent(prompt);
+          const suggestions = JSON.parse(result.response.text());
+          return NextResponse.json({ success: true, suggestions });
+        } catch (err) {
+          console.error("Gemini Title Suggestion Error:", err);
+        }
+      }
+
       const suggestions = [
         `The Ultimate ${topic} Playbook: 7 Proven Steps to 10x Conversions`,
         `10 Secret ${topic} Frameworks Used by Top 1% Founders`,

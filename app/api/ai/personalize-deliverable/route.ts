@@ -17,6 +17,39 @@ export async function POST(req: Request) {
     const topic = magnetName || "Strategy Guide";
     const leadInput = answer.trim();
 
+    const apiKey =
+      process.env.GEMINI_API_KEY ||
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
+      process.env.GOOGLE_AI_API_KEY ||
+      process.env.GOOGLE_API_KEY;
+
+    if (apiKey) {
+      try {
+        const { GoogleGenerativeAI } = await import("@google/generative-ai");
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+
+        const prompt = `You are a high-level consultant. Write a personalized, highly tailored Markdown report for ${lead} who just opted into the lead magnet "${topic}".
+Their answer to the custom intake question ("${question || "What is your main focus?"}") was: "${leadInput}".
+
+Provide:
+1. A tailored diagnosis & analysis of their specific situation.
+2. A custom 3-step action plan using Markdown formatting.
+3. 2 key takeaways for immediate execution.
+Keep the tone encouraging, high-value, professional, and clear.`;
+
+        const result = await model.generateContent(prompt);
+        const personalizedReport = result.response.text();
+
+        return NextResponse.json({
+          success: true,
+          personalizedDeliverable: personalizedReport.trim(),
+        });
+      } catch (err) {
+        console.error("Gemini Personalization Error:", err);
+      }
+    }
+
     // Generate intelligent AI response tailored specifically to the user's answer
     const personalizedReport = `
 # 🎯 Personal Action Plan for ${lead}
