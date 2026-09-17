@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongodb";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { PdfOtpModel, MagnetPageModel, LeadModel } from "@/lib/models";
+import { PdfOtpModel, MagnetPageModel, LeadModel, AccountModel } from "@/lib/models";
+import { createPdfUnlockToken } from "@/lib/session-token";
 
 export const dynamic = "force-dynamic";
 
@@ -90,7 +91,13 @@ export async function POST(req: NextRequest) {
         pageDoc = await MagnetPageModel.findOne({ _id: magnetId }).lean();
       }
 
-      const ownerEmail = (pageDoc?.userEmail || "").trim().toLowerCase();
+      let ownerEmail = (pageDoc?.userEmail || "").trim().toLowerCase();
+      if (!ownerEmail) {
+        const primaryAccount = await AccountModel.findOne().lean();
+        if (primaryAccount?.email) {
+          ownerEmail = primaryAccount.email.trim().toLowerCase();
+        }
+      }
       const pageTitle = pageDoc?.name || "Locked PDF Magnet";
       const cleanEmail = email.trim().toLowerCase();
       const leadName = (otpRecord.name || body.name || "").trim() || cleanEmail.split("@")[0];
@@ -136,14 +143,36 @@ export async function POST(req: NextRequest) {
         if (pageDoc) {
           await MagnetPageModel.updateOne({ _id: pageDoc._id }, { $inc: { signups: 1 } });
         }
+      } else {
+        // Ensure existing lead is linked to owner and retains locked-pdf tag & customFields
+        await LeadModel.updateOne(
+          { _id: existingLead._id },
+          {
+            $set: {
+              userEmail: ownerEmail || (existingLead as any).userEmail,
+              name: leadName || existingLead.name,
+              customFields: { ...((existingLead as any).customFields || {}), ...customFields },
+            },
+            $addToSet: { tags: "locked-pdf" },
+          }
+        );
       }
     } catch (leadErr) {
       console.error("[pdf-gate/verify-code] Error creating lead record:", leadErr);
     }
 
-    // ── Set secure unlock cookie ──────────────────────────────────────────
-    const res = NextResponse.json({ ok: true });
-    res.cookies.set(cookieName(magnetId), "1", {
+    // ── Generate signed per-subscriber access token with snapshot ─────────
+    let pageDocSnapshot = await MagnetPageModel.findOne({ id: magnetId }).lean();
+    const pdfSnapshot: string[] = Array.isArray(pageDocSnapshot?.pdfPages) ? pageDocSnapshot.pdfPages : [];
+
+    const unlockToken = createPdfUnlockToken({
+      magnetId,
+      email: cleanEmail,
+      pdfPages: pdfSnapshot,
+    });
+
+    const res = NextResponse.json({ ok: true, unlockToken });
+    res.cookies.set(cookieName(magnetId), unlockToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

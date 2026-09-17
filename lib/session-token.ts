@@ -84,3 +84,72 @@ export function verifySessionToken(token: string): SessionUser | null {
     return null;
   }
 }
+
+export interface PdfUnlockPayload {
+  magnetId: string;
+  email: string;
+  pdfPages?: string[];
+  unlockedAt?: number;
+  iat?: number;
+  exp?: number;
+}
+
+export function createPdfUnlockToken(
+  payload: { magnetId: string; email: string; pdfPages?: string[] },
+  expiresInDays = 30
+): string {
+  const header = { alg: "HS256", typ: "JWT" };
+  const now = Math.floor(Date.now() / 1000);
+  const exp = now + expiresInDays * 24 * 60 * 60;
+
+  const fullPayload: PdfUnlockPayload = {
+    ...payload,
+    unlockedAt: Date.now(),
+    iat: now,
+    exp,
+  };
+
+  const encodedHeader = base64UrlEncode(JSON.stringify(header));
+  const encodedPayload = base64UrlEncode(JSON.stringify(fullPayload));
+
+  const dataToSign = `${encodedHeader}.${encodedPayload}`;
+  const signature = crypto
+    .createHmac("sha256", JWT_SECRET)
+    .update(dataToSign)
+    .digest("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+
+  return `${encodedHeader}.${encodedPayload}.${signature}`;
+}
+
+export function verifyPdfUnlockToken(token: string): PdfUnlockPayload | null {
+  try {
+    if (!token) return null;
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    const [encodedHeader, encodedPayload, signature] = parts;
+    const dataToSign = `${encodedHeader}.${encodedPayload}`;
+
+    const expectedSignature = crypto
+      .createHmac("sha256", JWT_SECRET)
+      .update(dataToSign)
+      .digest("base64")
+      .replace(/=/g, "")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_");
+
+    if (signature !== expectedSignature) return null;
+
+    const payload: PdfUnlockPayload = JSON.parse(base64UrlDecode(encodedPayload));
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      return null;
+    }
+
+    return payload;
+  } catch (e) {
+    return null;
+  }
+}

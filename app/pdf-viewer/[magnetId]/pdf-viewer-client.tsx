@@ -66,7 +66,18 @@ export default function PdfViewerClient({
 
   // ── Check unlock status on mount ──────────────────────────────────────────
   useEffect(() => {
-    fetch(`/api/pdf-gate/status?magnetId=${encodeURIComponent(magnetId)}`, {
+    let localToken = "";
+    if (typeof window !== "undefined") {
+      try {
+        localToken = localStorage.getItem(`pdf_unlock_token_${magnetId}`) || "";
+      } catch (e) {}
+    }
+
+    const statusUrl = `/api/pdf-gate/status?magnetId=${encodeURIComponent(magnetId)}${
+      localToken ? `&token=${encodeURIComponent(localToken)}` : ""
+    }`;
+
+    fetch(statusUrl, {
       cache: "no-store",
     })
       .then((r) => r.json())
@@ -233,6 +244,11 @@ export default function PdfViewerClient({
             setCode("");
           }
           return;
+        }
+        if (data.unlockToken && typeof window !== "undefined") {
+          try {
+            localStorage.setItem(`pdf_unlock_token_${magnetId}`, data.unlockToken);
+          } catch (e) {}
         }
         performUnlock();
       } catch {

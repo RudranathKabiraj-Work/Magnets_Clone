@@ -39,6 +39,18 @@ export async function GET(req: Request) {
       });
     }
 
+    // Auto-claim orphaned magnet pages or leads created prior to owner enforcement
+    await Promise.all([
+      MagnetPageModel.updateMany(
+        { $or: [{ userEmail: "" }, { userEmail: null }, { userEmail: { $exists: false } }] },
+        { $set: { userEmail: normEmail } }
+      ),
+      LeadModel.updateMany(
+        { $or: [{ userEmail: "" }, { userEmail: null }, { userEmail: { $exists: false } }] },
+        { $set: { userEmail: normEmail } }
+      ),
+    ]);
+
     const pageFilter = { userEmail: normEmail };
     const userFilter = { userEmail: normEmail };
 

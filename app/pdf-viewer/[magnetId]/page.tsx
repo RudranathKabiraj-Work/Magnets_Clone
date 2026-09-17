@@ -1,16 +1,19 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { dbConnect } from "@/lib/mongodb";
 import { MagnetPageModel, AccountModel } from "@/lib/models";
 import { type MagnetPage } from "@/lib/data";
+import { verifyPdfUnlockToken } from "@/lib/session-token";
 import PdfViewerClient from "./pdf-viewer-client";
 
 export const dynamic = "force-dynamic";
 
 interface Props {
   params: { magnetId: string };
+  searchParams?: { token?: string };
 }
 
-export default async function PdfViewerPage({ params }: Props) {
+export default async function PdfViewerPage({ params, searchParams }: Props) {
   const magnetId = params.magnetId;
 
   let pageDoc: any = null;
@@ -41,46 +44,27 @@ export default async function PdfViewerPage({ params }: Props) {
     return notFound();
   }
 
-  // If template is not "locked-pdf" → this route shouldn't serve it.
-  // Instead of notFound(), show a helpful message so we can debug.
-  if ((pageDoc.template as string) !== "locked-pdf") {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#0a0a0b",
-          color: "#fff",
-          fontFamily: "system-ui, sans-serif",
-          textAlign: "center",
-          padding: "2rem",
-          gap: "1rem",
-        }}
-      >
-        <div style={{ fontSize: "2.5rem" }}>⚠️</div>
-        <h1 style={{ fontSize: "1.2rem", fontWeight: 700, margin: 0 }}>
-          This page is not configured as a Locked PDF
-        </h1>
-        <p style={{ color: "#71717a", fontSize: "0.85rem", maxWidth: 420, margin: 0 }}>
-          Magnet ID: <code style={{ color: "#38bdf8" }}>{magnetId}</code>
-          <br />
-          Stored template: <code style={{ color: "#f97316" }}>{pageDoc.template || "(none)"}</code>
-          <br /><br />
-          Go to your dashboard, open this magnet&apos;s editor, and make sure you
-          uploaded the PDF and clicked <strong>&quot;Save PDF settings&quot;</strong>.
-        </p>
-      </div>
-    );
+  // Check for signed per-subscriber access token from query param or cookie
+  const cookieStore = cookies();
+  const tokenFromCookie = cookieStore.get(`pdf_unlocked_${magnetId}`)?.value;
+  const tokenFromQuery = searchParams?.token;
+  const rawToken = tokenFromQuery || tokenFromCookie;
+
+  let effectivePdfPages: string[] = Array.isArray(pageDoc.pdfPages) ? pageDoc.pdfPages : [];
+
+  if (rawToken && rawToken !== "1") {
+    const verifiedPayload = verifyPdfUnlockToken(rawToken);
+    if (verifiedPayload && (verifiedPayload.magnetId === magnetId || !verifiedPayload.magnetId)) {
+      if (verifiedPayload.pdfPages && verifiedPayload.pdfPages.length > 0) {
+        effectivePdfPages = verifiedPayload.pdfPages;
+      }
+    }
   }
 
   const page = pageDoc as MagnetPage;
   const businessName = accountDoc?.name || "LeadMagnets";
   const brandColor = accountDoc?.brandColor || "#0066B2";
 
-  const pdfPages: string[] = Array.isArray(page.pdfPages) ? page.pdfPages : [];
   const pdfFreePages: number =
     typeof page.pdfFreePages === "number"
       ? page.pdfFreePages
@@ -91,7 +75,7 @@ export default async function PdfViewerPage({ params }: Props) {
   const customFormFields = Array.isArray(page.customFormFields) ? page.customFormFields : [];
 
   // PDF pages not uploaded yet — show a setup pending screen
-  if (pdfPages.length === 0) {
+  if (effectivePdfPages.length === 0) {
     return (
       <div
         style={{
@@ -124,7 +108,7 @@ export default async function PdfViewerPage({ params }: Props) {
     <PdfViewerClient
       magnetId={magnetId}
       pdfTitle={pdfTitle}
-      pdfPages={pdfPages}
+      pdfPages={effectivePdfPages}
       pdfFreePages={pdfFreePages}
       businessName={businessName}
       brandColor={brandColor}

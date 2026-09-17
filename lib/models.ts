@@ -104,7 +104,7 @@ const LeadSchema = new Schema({
   page: { type: String, required: true, index: true },
   pageId: { type: String, required: true, index: true },
   status: { type: String, enum: ["new", "delivered", "opened", "replied", "stopped"], default: "new" },
-  source: { type: String, enum: ["leadmagnets", "magnets", "custom-domain", "integration"], default: "leadmagnets" },
+  source: { type: String, enum: ["leadmagnets", "magnets", "custom-domain", "integration", "locked-pdf-otp"], default: "leadmagnets" },
   signedUpAt: { type: String, required: true },
   sequence: { type: String },
   sequenceStep: { type: String },

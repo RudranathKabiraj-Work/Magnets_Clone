@@ -85,6 +85,7 @@ export default function NewPage() {
     e.preventDefault();
     const page: MagnetPage = {
       id: `p_${Date.now()}`,
+      userEmail: account?.email,
       name: name.trim() || "Untitled page",
       slug,
       status: "draft",

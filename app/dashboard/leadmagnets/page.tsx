@@ -801,6 +801,7 @@ export default function PagesPage() {
                 const newId = `page-${Date.now()}`;
                 const newMagnetPage: MagnetPage = {
                   id: newId,
+                  userEmail: account?.email,
                   name: newName.trim() || "Untitled Page",
                   slug: cleanSlug,
                   status: "draft",
