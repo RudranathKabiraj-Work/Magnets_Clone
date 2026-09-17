@@ -7,13 +7,14 @@ import { useEffect, useRef, useState, useCallback } from "react";
 // No extra storage needed — Cloudinary transforms on-the-fly.
 function getBlurUrl(url: string): string {
   if (!url) return url;
-  // Handle Cloudinary image/upload URLs
-  if (url.includes("/image/upload/")) {
-    return url.replace("/image/upload/", "/image/upload/e_blur:900,q_auto:low/");
+  if (url.includes("/image/upload/f_auto,q_auto/")) {
+    return url.replace("/image/upload/f_auto,q_auto/", "/image/upload/e_blur:900,q_30/");
   }
-  // Handle Cloudinary video/upload URLs (unlikely for PDF pages but safe)
+  if (url.includes("/image/upload/")) {
+    return url.replace("/image/upload/", "/image/upload/e_blur:900,q_30/");
+  }
   if (url.includes("/video/upload/")) {
-    return url.replace("/video/upload/", "/video/upload/e_blur:900,q_auto:low/");
+    return url.replace("/video/upload/", "/video/upload/e_blur:900,q_30/");
   }
   return url;
 }
@@ -66,15 +67,21 @@ export default function PdfViewerClient({
     })
       .then((r) => r.json())
       .then((data) => {
-        if (data.unlocked) performUnlock();
+        if (data.unlocked) {
+          performUnlock();
+        } else if (pdfFreePages === 0) {
+          setGateVisible(true);
+        }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (pdfFreePages === 0) setGateVisible(true);
+      });
 
     // Sidebar: close by default on small screens
     if (typeof window !== "undefined" && window.innerWidth <= 760) {
       setSidebarOpen(false);
     }
-  }, [magnetId]);
+  }, [magnetId, pdfFreePages]);
 
   // ── Update gate visibility ─────────────────────────────────────────────────
   const updateGate = useCallback(() => {
@@ -82,9 +89,9 @@ export default function PdfViewerClient({
       setGateVisible(false);
       return;
     }
-    const shouldShow = visibleLocked.current.size > 0;
+    const shouldShow = visibleLocked.current.size > 0 || pdfFreePages === 0;
     setGateVisible(shouldShow);
-  }, [unlocked]);
+  }, [unlocked, pdfFreePages]);
 
   // ── IntersectionObserver: page counter + gate trigger ────────────────────
   useEffect(() => {
@@ -310,6 +317,29 @@ export default function PdfViewerClient({
             <span />
           </button>
           <div className="pdf-bar-title">{pdfTitle}</div>
+          {unlocked && (
+            <button
+              onClick={() => {
+                document.cookie = `pdf_unlocked_${magnetId}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                setUnlocked(false);
+                setGateVisible(pdfFreePages === 0);
+              }}
+              style={{
+                background: "rgba(239, 68, 68, 0.2)",
+                border: "1px solid rgba(239, 68, 68, 0.4)",
+                color: "#fca5a5",
+                fontSize: "11px",
+                fontWeight: 600,
+                padding: "4px 10px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+              title="Reset unlock cookie to test locked state"
+            >
+              🔒 Re-lock (Test Gate)
+            </button>
+          )}
           <div className="pdf-page-count">
             <b>{currentPage}</b>
             <span>/ {totalPages}</span>

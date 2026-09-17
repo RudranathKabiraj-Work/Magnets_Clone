@@ -82,7 +82,11 @@ export default async function PdfViewerPage({ params }: Props) {
 
   const pdfPages: string[] = Array.isArray(page.pdfPages) ? page.pdfPages : [];
   const pdfFreePages: number =
-    typeof page.pdfFreePages === "number" ? page.pdfFreePages : 2;
+    typeof page.pdfFreePages === "number"
+      ? page.pdfFreePages
+      : typeof page.pdfFreePages === "string" && !isNaN(parseInt(page.pdfFreePages, 10))
+      ? parseInt(page.pdfFreePages, 10)
+      : 2;
   const pdfTitle = page.pdfTitle || page.name || "Document";
 
   // PDF pages not uploaded yet — show a setup pending screen

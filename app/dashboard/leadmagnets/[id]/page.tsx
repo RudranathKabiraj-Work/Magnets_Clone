@@ -129,6 +129,15 @@ export default function EditLeadMagnetPage() {
     const localP = loadPages().find((p) => p.id === params.id);
     if (localP) {
       setPage(localP);
+      if (localP.pdfPages && Array.isArray(localP.pdfPages)) {
+        setLockedPdfPages(localP.pdfPages);
+      }
+      if (localP.pdfFreePages !== undefined) {
+        setLockedPdfFreePages(localP.pdfFreePages);
+      }
+      if (localP.pdfTitle) {
+        setLockedPdfTitle(localP.pdfTitle);
+      }
       const pTpl = (localP.template as string);
       // Always respect the page's own template field first (covers all template1-7)
       if (pTpl && pTpl !== "classic") {
@@ -177,6 +186,16 @@ export default function EditLeadMagnetPage() {
             if (!prev) return found;
             return { ...prev, ...found };
           });
+
+          if (found.pdfPages && Array.isArray(found.pdfPages)) {
+            setLockedPdfPages(found.pdfPages);
+          }
+          if (found.pdfFreePages !== undefined) {
+            setLockedPdfFreePages(found.pdfFreePages);
+          }
+          if (found.pdfTitle) {
+            setLockedPdfTitle(found.pdfTitle);
+          }
 
           // Template resolution: page template → account template → fallback
           const upTpl = (found.template as string);
@@ -955,6 +974,9 @@ export default function EditLeadMagnetPage() {
           formSubtitle,
           formButtonText,
           cta: formButtonText,
+          pdfPages: lockedPdfPages,
+          pdfFreePages: lockedPdfFreePages,
+          pdfTitle: lockedPdfTitle,
           template: (templateId as any),
           updatedAt: "Just now"
         };
@@ -974,7 +996,8 @@ export default function EditLeadMagnetPage() {
     afterSignupOption, destinationUrl, customHeading, customMessage, videoUrl, buttonLabel, buttonUrl, quizFunnelEnabled,
     hasVariantB, testStarted, variantBImage, variantBTitle,
     customPromptQuestion, customPromptPlaceholder, enableAiPersonalizedDeliverable,
-    customFormFields, bulletsTitle, formTitle, formSubtitle, formButtonText
+    customFormFields, bulletsTitle, formTitle, formSubtitle, formButtonText,
+    lockedPdfPages, lockedPdfFreePages, lockedPdfTitle
   ]);
 
   const handleGoBack = () => {
@@ -1009,6 +1032,9 @@ export default function EditLeadMagnetPage() {
         formSubtitle,
         formButtonText,
         cta: formButtonText,
+        pdfPages: lockedPdfPages,
+        pdfFreePages: lockedPdfFreePages,
+        pdfTitle: lockedPdfTitle,
         updatedAt: "Just now"
       };
       const all = loadPages().map((p) => (p.id === next.id ? next : p));
@@ -1039,7 +1065,7 @@ export default function EditLeadMagnetPage() {
 
   function update(patch: Partial<MagnetPage>) {
     if (!page) return;
-    const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, bulletsTitle, ...patch };
+    const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, bulletsTitle, pdfPages: lockedPdfPages, pdfFreePages: lockedPdfFreePages, pdfTitle: lockedPdfTitle, ...patch };
     setPage(next);
     const all = loadPages().map((p) => (p.id === next.id ? next : p));
     savePages(all);
@@ -1049,7 +1075,7 @@ export default function EditLeadMagnetPage() {
     setSaving(true);
     window.setTimeout(() => {
       if (!page) return;
-      const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, bulletsTitle, updatedAt: "Just now" };
+      const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, bulletsTitle, pdfPages: lockedPdfPages, pdfFreePages: lockedPdfFreePages, pdfTitle: lockedPdfTitle, updatedAt: "Just now" };
       setPage(next);
       const all = loadPages().map((p) => (p.id === next.id ? next : p));
       savePages(all);
@@ -3615,6 +3641,7 @@ export default function EditLeadMagnetPage() {
                       setLockedPdfPages(updates.pdfPages);
                       setLockedPdfFreePages(updates.pdfFreePages);
                       setLockedPdfTitle(updates.pdfTitle);
+                      setTemplateId("locked-pdf");
                       // Use savePages() — same pattern as the rest of the app.
                       // savePages() handles localStorage + DB sync automatically.
                       const next = {
