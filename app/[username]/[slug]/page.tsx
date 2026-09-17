@@ -728,53 +728,63 @@ export default async function MagnetPageRoute({
             </div>
           </div>
         ) : ((page.template as string) === "template7" || (!page.template && (accountDoc?.templateId as string) === "template7")) ? (
-          /* TEMPLATE 7: Diagonal Immersive Split — matches brand page */
+          /* TEMPLATE 7: Spotlight Hero — two-panel layout matching brand & editor */
           <div
-            className="rounded-3xl relative overflow-hidden transition-all duration-300"
+            className="rounded-3xl overflow-hidden transition-all duration-300"
             style={{
               padding: "2px",
-              background: `conic-gradient(from 0deg, ${brandColor}, #ffffff22, ${brandColor}88, #00000000, ${brandColor})`,
+              background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}55 50%, ${brandColor} 100%)`,
               boxShadow: `0 30px 80px -16px ${brandColor}${Math.round((0.3 + (highlightIntensity / 100) * 0.4) * 255).toString(16).padStart(2, '0')}`,
             }}
           >
             <div
-              className="rounded-[22px] overflow-hidden relative"
+              className="rounded-[22px] overflow-hidden"
               style={{ background: themeMode === "dark" ? "#0b0b10" : "#ffffff", minHeight: "480px" }}
             >
-              {/* DIAGONAL IMAGE PANEL (left ~58%) */}
-              <div className="absolute inset-0" style={{ clipPath: "polygon(0 0, 62% 0, 52% 100%, 0 100%)", zIndex: 1 }}>
-                {activeImageUrl && activeImageUrl.trim() !== "" ? (
-                  <img src={activeImageUrl} alt={page.name} className="absolute inset-0 w-full h-full object-cover" />
-                ) : (
-                  <div className="absolute inset-0" style={{ background: `linear-gradient(155deg, ${brandColor}99 0%, #060610 55%, #12001a 100%)` }}>
-                    <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                      {[160, 110, 66, 32].map((size, i) => (
-                        <div key={i} className="absolute rounded-full border border-white" style={{ width: size, height: size, opacity: 1 - i * 0.2 }} />
-                      ))}
+              <div className="flex flex-col md:flex-row" style={{ minHeight: "480px" }}>
+
+                {/* LEFT: Full-bleed image panel */}
+                <div className="relative md:w-[55%] h-52 md:h-auto overflow-hidden flex-shrink-0">
+                  {activeImageUrl && activeImageUrl.trim() !== "" ? (
+                    <img src={activeImageUrl} alt={page.name} className="absolute inset-0 w-full h-full object-cover" />
+                  ) : (
+                    <div
+                      className="absolute inset-0"
+                      style={{ background: `linear-gradient(155deg, ${brandColor}99 0%, #060610 55%, #12001a 100%)` }}
+                    >
+                      <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                        {[160, 110, 66, 32].map((size, i) => (
+                          <div key={i} className="absolute rounded-full border border-white" style={{ width: size, height: size, opacity: 1 - i * 0.2 }} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* Right-edge scrim */}
+                  <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.4) 100%)" }} />
+                  {/* Bottom scrim */}
+                  <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)" }} />
+                  {/* Headline overlay at bottom-left */}
+                  <div className="absolute inset-0 flex flex-col justify-end p-5 z-10">
+                    <div className="space-y-2 max-w-xs">
+                      <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-[1.0] tracking-tight drop-shadow-2xl">
+                        {activeHeadline}
+                      </h1>
+                      {page.subheadline && (
+                        <p className="text-[11px] sm:text-xs text-white/70 leading-relaxed font-medium drop-shadow-sm">
+                          {page.subheadline}
+                        </p>
+                      )}
                     </div>
                   </div>
-                )}
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)" }} />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 50%)" }} />
-
-                {/* Overlaid content on image */}
-                <div className="absolute inset-0 flex flex-col justify-end p-5 z-10">
-                  {/* Bottom: headline + subheadline */}
-                  <div className="space-y-2 max-w-[85%]">
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[0.95] tracking-tighter drop-shadow-2xl">{activeHeadline}</h1>
-                    {page.subheadline && (
-                      <p className="text-xs sm:text-sm text-white/70 leading-relaxed font-medium drop-shadow-xs mt-2">{page.subheadline}</p>
-                    )}
-                  </div>
                 </div>
-              </div>
 
-              {/* RIGHT FORM PANEL */}
-              <div
-                className="absolute right-0 top-0 bottom-0 flex flex-col justify-center"
-                style={{ left: "47%", padding: "24px 20px 24px 24px", zIndex: 2 }}
-              >
-                <div className="space-y-4 w-full">
+                {/* RIGHT: Glassmorphic form panel */}
+                <div
+                  className="relative md:w-[45%] flex flex-col justify-center p-5 md:p-6 space-y-4"
+                  style={{
+                    borderLeft: `1px solid ${themeMode === "dark" ? `${brandColor}30` : `${brandColor}20`}`,
+                  }}
+                >
                   {/* Header */}
                   <div className="space-y-1">
                     <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: brandColor }}>
@@ -793,7 +803,10 @@ export default async function MagnetPageRoute({
                     <div className="space-y-1.5">
                       {page.bullets.slice(0, 3).map((item, idx) => (
                         <div key={idx} className="flex items-start gap-2">
-                          <div className="flex h-3.5 w-3.5 shrink-0 mt-0.5 items-center justify-center rounded-full" style={{ backgroundColor: `${brandColor}22`, border: `1px solid ${brandColor}55` }}>
+                          <div
+                            className="flex h-3.5 w-3.5 shrink-0 mt-0.5 items-center justify-center rounded-full"
+                            style={{ backgroundColor: `${brandColor}22`, border: `1px solid ${brandColor}55` }}
+                          >
                             <svg width="6" height="6" viewBox="0 0 6 6" fill="none">
                               <path d="M1 3l1.5 1.5L5 1.5" stroke={brandColor} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -803,6 +816,13 @@ export default async function MagnetPageRoute({
                       ))}
                     </div>
                   )}
+
+                  {/* Divider */}
+                  <div className="flex items-center gap-2">
+                    <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${brandColor}44, transparent)` }} />
+                    <span className={`text-[8px] font-bold uppercase tracking-widest ${themeMode === "dark" ? "text-zinc-600" : "text-zinc-400"}`}>Sign Up Free</span>
+                    <div className="h-px flex-1" style={{ background: `linear-gradient(to left, ${brandColor}44, transparent)` }} />
+                  </div>
 
                   {/* Form */}
                   <MagnetSignupForm
@@ -831,7 +851,11 @@ export default async function MagnetPageRoute({
                   <div className="flex items-center gap-2 pt-1">
                     <div className="flex -space-x-2">
                       {["#e879f9", "#38bdf8", "#4ade80", "#fb923c"].map((color, i) => (
-                        <div key={i} className="h-5 w-5 rounded-full border-2 flex items-center justify-center text-[7px] font-black text-white" style={{ backgroundColor: color, borderColor: themeMode === "dark" ? "#0b0b10" : "#ffffff" }}>
+                        <div
+                          key={i}
+                          className="h-5 w-5 rounded-full border-2 flex items-center justify-center text-[7px] font-black text-white"
+                          style={{ backgroundColor: color, borderColor: themeMode === "dark" ? "#0b0b10" : "#ffffff" }}
+                        >
                           {["A", "B", "C", "D"][i]}
                         </div>
                       ))}

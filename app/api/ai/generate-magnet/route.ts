@@ -16,7 +16,7 @@ function generateFluxAIImageUrl(topic: string, aiImagePrompt?: string): string {
   const prompt = encodeURIComponent(`modern 3d graphic cover illustration for ${cleanKeywords || "business growth"}, studio lighting, 4k render`);
   const seed = Math.floor(Math.random() * 1000000);
 
-  return `https://image.pollinations.ai/prompt/${prompt}?width=1200&height=630&nologo=true&model=flux&seed=${seed}`;
+  return `https://image.pollinations.ai/prompt/${prompt}?width=1024&height=576&nologo=true&seed=${seed}`;
 }
 
 export async function POST(req: Request) {

@@ -1517,110 +1517,83 @@ export default function BrandPage() {
                           </div>
                         )}
 
-                        {/* TEMPLATE 7: Diagonal Immersive Split — the showpiece. Animated border ring, diagonal clip-path image + overlaid headline, social proof avatars, sharp form panel */}
+                        {/* TEMPLATE 7: Spotlight Hero — Premium two-panel layout, image left with headline overlay, glassmorphic form panel right */}
                         {templateId === "template7" && (
                           <div
-                            className="rounded-3xl relative transition-all duration-300 overflow-hidden"
+                            className="rounded-3xl overflow-hidden transition-all duration-300"
                             style={{
                               padding: "2px",
-                              background: `conic-gradient(from 0deg, ${brandColor}, #ffffff22, ${brandColor}88, #00000000, ${brandColor})`,
-                              boxShadow: `0 0 0 1px ${brandColor}22, 0 30px 80px -16px ${brandColor}${Math.round((0.3 + (highlightIntensity / 100) * 0.4) * 255).toString(16).padStart(2, '0')}`,
+                              background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}55 50%, ${brandColor} 100%)`,
+                              boxShadow: `0 30px 80px -16px ${brandColor}${Math.round((0.3 + (highlightIntensity / 100) * 0.4) * 255).toString(16).padStart(2, '0')}`,
                             }}
                           >
                             {/* Inner card */}
                             <div
-                              className="rounded-[22px] overflow-hidden relative"
+                              className="rounded-[22px] overflow-hidden"
                               style={{
                                 background: themeMode === "dark" ? "#0b0b10" : "#ffffff",
                                 minHeight: "480px",
                               }}
                             >
-                              {/* ── DIAGONAL IMAGE PANEL (left ~58%) ── */}
-                              <div
-                                className="absolute inset-0"
-                                style={{
-                                  clipPath: "polygon(0 0, 62% 0, 52% 100%, 0 100%)",
-                                  zIndex: 1,
-                                }}
-                              >
-                                {/* Image or gradient */}
-                                {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
-                                  <img
-                                    src={latestPage.imageUrl}
-                                    alt={latestPage?.name || "Cover"}
-                                    className="absolute inset-0 w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div
-                                    className="absolute inset-0"
-                                    style={{
-                                      background: `linear-gradient(155deg, ${brandColor}${Math.round((0.6 + (highlightIntensity / 100) * 0.35) * 255).toString(16).padStart(2, '0')} 0%, #060610 55%, #12001a 100%)`,
-                                    }}
-                                  >
-                                    {/* Concentric circle decoration */}
+                              <div className="flex flex-col md:flex-row" style={{ minHeight: "480px" }}>
+
+                                {/* LEFT: Full-bleed image panel */}
+                                <div className="relative md:w-[55%] h-52 md:h-auto overflow-hidden flex-shrink-0">
+                                  {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
+                                    <img
+                                      src={latestPage.imageUrl}
+                                      alt={latestPage?.name || "Cover"}
+                                      className="absolute inset-0 w-full h-full object-cover"
+                                    />
+                                  ) : (
                                     <div
-                                      className="absolute inset-0 flex items-center justify-center opacity-10"
+                                      className="absolute inset-0"
+                                      style={{
+                                        background: `linear-gradient(155deg, ${brandColor}${Math.round((0.6 + (highlightIntensity / 100) * 0.35) * 255).toString(16).padStart(2, '0')} 0%, #060610 55%, #12001a 100%)`,
+                                      }}
                                     >
-                                      {[160, 110, 66, 32].map((size, i) => (
-                                        <div
-                                          key={i}
-                                          className="absolute rounded-full border border-white"
-                                          style={{ width: size, height: size, opacity: 1 - i * 0.2 }}
-                                        />
-                                      ))}
+                                      <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                                        {[160, 110, 66, 32].map((size, i) => (
+                                          <div
+                                            key={i}
+                                            className="absolute rounded-full border border-white"
+                                            style={{ width: size, height: size, opacity: 1 - i * 0.2 }}
+                                          />
+                                        ))}
+                                      </div>
+                                      <div
+                                        className="absolute inset-0 opacity-[0.05]"
+                                        style={{ backgroundImage: "repeating-linear-gradient(0deg, white 0px, white 1px, transparent 1px, transparent 8px)" }}
+                                      />
                                     </div>
-                                    {/* Noise-like shimmer bars */}
-                                    <div className="absolute inset-0 opacity-[0.06]" style={{
-                                      backgroundImage: `repeating-linear-gradient(0deg, white 0px, white 1px, transparent 1px, transparent 8px)`,
-                                    }} />
-                                  </div>
-                                )}
-
-                                {/* Scrim: left → transparent, right edge → card bg */}
-                                <div
-                                  className="absolute inset-0"
-                                  style={{
-                                    background: "linear-gradient(to right, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)",
-                                  }}
-                                />
-                                {/* Bottom scrim */}
-                                <div
-                                  className="absolute inset-0"
-                                  style={{
-                                    background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 50%)",
-                                  }}
-                                />
-
-                                {/* ── OVERLAID CONTENT on image ── */}
-                                <div className="absolute inset-0 flex flex-col justify-end p-5 z-10">
-                                  {/* Bottom: headline + subheadline */}
-                                  <div className="space-y-1.5 max-w-xs sm:max-w-md">
-                                    <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[0.95] tracking-tighter drop-shadow-2xl">
-                                      {latestPage?.headline || latestPage?.name || "101 Winning Viral Templates"}
-                                    </h3>
-                                    <p className="text-xs sm:text-sm text-white/70 leading-relaxed font-medium drop-shadow-xs mt-2">
-                                      {latestPage?.subheadline || "Content that connects, converts, and compounds."}
-                                    </p>
+                                  )}
+                                  {/* Right-edge scrim */}
+                                  <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.4) 100%)" }} />
+                                  {/* Bottom scrim */}
+                                  <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)" }} />
+                                  {/* Headline overlay at bottom-left */}
+                                  <div className="absolute inset-0 flex flex-col justify-end p-5 z-10">
+                                    <div className="space-y-1.5 max-w-xs">
+                                      <h3 className="text-2xl md:text-3xl font-black text-white leading-[1.0] tracking-tight drop-shadow-2xl">
+                                        {latestPage?.headline || latestPage?.name || "101 Winning Viral Templates"}
+                                      </h3>
+                                      <p className="text-[11px] text-white/70 leading-relaxed font-medium drop-shadow-sm">
+                                        {latestPage?.subheadline || "Content that connects, converts, and compounds."}
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
 
-                              {/* ── RIGHT FORM PANEL ── */}
-                              <div
-                                className="absolute right-0 top-0 bottom-0 flex flex-col justify-center"
-                                style={{
-                                  left: "47%",
-                                  padding: "24px 20px 24px 24px",
-                                  zIndex: 2,
-                                }}
-                              >
-                                <div className="space-y-4 w-full">
-                                  {/* Form header */}
+                                {/* RIGHT: Glassmorphic form panel */}
+                                <div
+                                  className="relative md:w-[45%] flex flex-col justify-center p-5 md:p-6 space-y-3"
+                                  style={{
+                                    borderLeft: `1px solid ${themeMode === "dark" ? `${brandColor}30` : `${brandColor}20`}`,
+                                  }}
+                                >
+                                  {/* Eyebrow + title + subtitle */}
                                   <div className="space-y-1">
-                                    <p
-                                      className="text-[9px] font-black uppercase tracking-[0.2em]"
-                                      style={{ color: brandColor }}
-                                    >
+                                    <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: brandColor }}>
                                       {latestPage?.bulletsTitle || "Exclusive · Free Access"}
                                     </p>
                                     <h4 className={`text-sm font-black leading-tight ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>
@@ -1631,26 +1604,32 @@ export default function BrandPage() {
                                     </p>
                                   </div>
 
-                                  {/* Bullet list */}
-                                  <div className="space-y-1.5">
-                                    {(latestPage?.bullets && latestPage.bullets.length > 0
-                                      ? latestPage.bullets.slice(0, 3)
-                                      : ["101 fill-in-the-blank templates", "Proven viral structures", "Any niche, any audience"]
-                                    ).map((item, idx) => (
-                                      <div key={idx} className="flex items-start gap-2">
-                                        <div
-                                          className="flex h-3.5 w-3.5 shrink-0 mt-0.5 items-center justify-center rounded-full"
-                                          style={{ backgroundColor: `${brandColor}22`, border: `1px solid ${brandColor}55` }}
-                                        >
-                                          <svg width="6" height="6" viewBox="0 0 6 6" fill="none">
-                                            <path d="M1 3l1.5 1.5L5 1.5" stroke={brandColor} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                                          </svg>
+                                  {/* Bullets */}
+                                  {latestPage?.bullets && latestPage.bullets.length > 0 && (
+                                    <div className="space-y-1.5">
+                                      {latestPage.bullets.slice(0, 3).map((item, idx) => (
+                                        <div key={idx} className="flex items-start gap-2">
+                                          <div
+                                            className="flex h-3.5 w-3.5 shrink-0 mt-0.5 items-center justify-center rounded-full"
+                                            style={{ backgroundColor: `${brandColor}22`, border: `1px solid ${brandColor}55` }}
+                                          >
+                                            <svg width="6" height="6" viewBox="0 0 6 6" fill="none">
+                                              <path d="M1 3l1.5 1.5L5 1.5" stroke={brandColor} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                          </div>
+                                          <span className={`text-[10px] leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>
+                                            {item}
+                                          </span>
                                         </div>
-                                        <span className={`text-[10px] leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>
-                                          {item}
-                                        </span>
-                                      </div>
-                                    ))}
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Divider */}
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${brandColor}44, transparent)` }} />
+                                    <span className={`text-[8px] font-bold uppercase tracking-widest ${themeMode === "dark" ? "text-zinc-600" : "text-zinc-400"}`}>Sign Up Free</span>
+                                    <div className="h-px flex-1" style={{ background: `linear-gradient(to left, ${brandColor}44, transparent)` }} />
                                   </div>
 
                                   {/* Form fields */}
@@ -1674,7 +1653,6 @@ export default function BrandPage() {
                                         className={`w-full bg-transparent text-[11px] outline-none pointer-events-none select-none ${themeMode === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
                                       />
                                     </div>
-
                                     {/* Email */}
                                     <div
                                       className="flex items-center gap-2 rounded-xl px-3 py-2.5"
@@ -1694,7 +1672,6 @@ export default function BrandPage() {
                                         className={`w-full bg-transparent text-[11px] outline-none pointer-events-none select-none ${themeMode === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
                                       />
                                     </div>
-
                                     {/* Custom fields */}
                                     {latestPage?.customFormFields && latestPage.customFormFields.length > 0 && (
                                       latestPage.customFormFields.map((field) => (
@@ -1729,8 +1706,7 @@ export default function BrandPage() {
                                         </div>
                                       ))
                                     )}
-
-                                    {/* CTA button — full glow */}
+                                    {/* CTA button */}
                                     <button
                                       type="button"
                                       className="w-full rounded-xl py-3 text-xs font-black text-white relative overflow-hidden transition-all duration-200"
@@ -1745,7 +1721,6 @@ export default function BrandPage() {
                                           <path d="M2 7h10M8 3l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                       </span>
-                                      {/* Shimmer */}
                                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_2.5s_infinite] pointer-events-none" />
                                     </button>
                                   </div>
@@ -1772,22 +1747,10 @@ export default function BrandPage() {
                                   </div>
                                 </div>
                               </div>
-
-                              {/* ── DIAGONAL EDGE ACCENT LINE ── */}
-                              <div
-                                className="absolute top-0 bottom-0 w-[2px] pointer-events-none"
-                                style={{
-                                  left: "calc(47% - 1px)",
-                                  background: `linear-gradient(to bottom, transparent 0%, ${brandColor}88 30%, ${brandColor} 50%, ${brandColor}88 70%, transparent 100%)`,
-                                  zIndex: 3,
-                                  transform: "skewX(-10deg)",
-                                  boxShadow: `0 0 12px 2px ${brandColor}55`,
-                                }}
-                              />
-
                             </div>
                           </div>
                         )}
+
                       </motion.div>
                     </AnimatePresence>
 
