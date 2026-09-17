@@ -88,6 +88,7 @@ export default async function PdfViewerPage({ params }: Props) {
       ? parseInt(page.pdfFreePages, 10)
       : 2;
   const pdfTitle = page.pdfTitle || page.name || "Document";
+  const customFormFields = Array.isArray(page.customFormFields) ? page.customFormFields : [];
 
   // PDF pages not uploaded yet — show a setup pending screen
   if (pdfPages.length === 0) {
@@ -127,6 +128,7 @@ export default async function PdfViewerPage({ params }: Props) {
       pdfFreePages={pdfFreePages}
       businessName={businessName}
       brandColor={brandColor}
+      customFormFields={customFormFields}
     />
   );
 }

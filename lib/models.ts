@@ -200,6 +200,8 @@ const PdfOtpSchema = new Schema({
   token: { type: String, required: true, unique: true },
   expiresAt: { type: Date, required: true },
   used: { type: Boolean, default: false },
+  name: { type: String, default: "" },
+  customFields: { type: Schema.Types.Mixed, default: {} },
 });
 PdfOtpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 

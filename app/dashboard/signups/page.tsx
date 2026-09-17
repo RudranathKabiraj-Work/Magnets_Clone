@@ -28,6 +28,7 @@ import {
   Eye,
   Copy,
   ExternalLink,
+  Lock,
   Tag,
   TrendingUp,
   BarChart3
@@ -661,7 +662,10 @@ export default function SignupsPage() {
                         </td>
 
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1 rounded-lg bg-zinc-100 dark:bg-[#222228] px-2.5 py-1 text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                          <span className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 dark:bg-[#222228] px-2.5 py-1 text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                            {(lead.tags?.includes("locked-pdf") || lead.source === "locked-pdf-otp" || lead.page?.toLowerCase().includes("locked")) && (
+                              <Lock className="h-3 w-3 text-amber-500 shrink-0" title="Locked PDF Lead" />
+                            )}
                             {lead.page}
                           </span>
                         </td>

@@ -26,6 +26,7 @@ interface Props {
   pdfFreePages: number;
   businessName: string;
   brandColor: string;
+  customFormFields?: import("@/lib/data").CustomFormField[];
 }
 
 export default function PdfViewerClient({
@@ -35,6 +36,7 @@ export default function PdfViewerClient({
   pdfFreePages,
   businessName,
   brandColor,
+  customFormFields = [],
 }: Props) {
   const totalPages = pdfPages.length;
 
@@ -46,7 +48,9 @@ export default function PdfViewerClient({
 
   // Gate form state
   const [step, setStep] = useState<"email" | "code">("email");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({});
   const [code, setCode] = useState("");
   const [token, setToken] = useState<string | null>(null);
   const [hint, setHint] = useState<{ msg: string; isError: boolean } | null>(null);
@@ -170,7 +174,12 @@ export default function PdfViewerClient({
         const res = await fetch("/api/pdf-gate/send-code", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim(), magnetId }),
+          body: JSON.stringify({
+            email: email.trim(),
+            magnetId,
+            name: name.trim(),
+            customFields: customAnswers,
+          }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -189,7 +198,7 @@ export default function PdfViewerClient({
         setSending(false);
       }
     },
-    [email, magnetId]
+    [email, magnetId, name, customAnswers]
   );
 
   // ── Gate: verify code ─────────────────────────────────────────────────────
@@ -211,6 +220,8 @@ export default function PdfViewerClient({
             code: code.trim(),
             token,
             magnetId,
+            name: name.trim(),
+            customFields: customAnswers,
           }),
         });
         const data = await res.json();
@@ -230,7 +241,7 @@ export default function PdfViewerClient({
         setVerifying(false);
       }
     },
-    [code, token, email, magnetId, performUnlock]
+    [code, token, email, magnetId, name, customAnswers, performUnlock]
   );
 
   // ── Scroll to page ────────────────────────────────────────────────────────
@@ -426,30 +437,106 @@ export default function PdfViewerClient({
               <>
                 <h2>
                   {pdfFreePages === 0
-                    ? "Enter your email to read this guide."
-                    : `You've read the preview. Enter your email to unlock all ${totalPages} pages.`}
+                    ? "Enter your details to read this guide."
+                    : `You've read the preview. Enter your details to unlock all ${totalPages} pages.`}
                 </h2>
                 <p className="sub">Free — no credit card required.</p>
                 <form className="pdf-gate-form" onSubmit={handleSendCode}>
-                  <input
-                    id="pdf-gate-email"
-                    className="pdf-gate-input"
-                    type="email"
-                    placeholder="Your email"
-                    autoComplete="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={sending}
-                  />
-                  <button
-                    type="submit"
-                    className="pdf-gate-btn"
-                    disabled={sending}
-                    style={{ background: brandColor }}
-                  >
-                    {sending ? "Sending…" : "Send code"}
-                  </button>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
+                    <input
+                      id="pdf-gate-name"
+                      className="pdf-gate-input"
+                      type="text"
+                      placeholder="Your name"
+                      autoComplete="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      disabled={sending}
+                    />
+                    <input
+                      id="pdf-gate-email"
+                      className="pdf-gate-input"
+                      type="email"
+                      placeholder="Your email address *"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={sending}
+                    />
+
+                    {customFormFields && customFormFields.length > 0 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px", paddingTop: "4px" }}>
+                        {customFormFields.map((field) => (
+                          <div key={field.id} style={{ textAlign: "left" }}>
+                            <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#666", marginBottom: "3px" }}>
+                              {field.label} {field.required ? "*" : ""}
+                            </label>
+                            {field.type === "select" ? (
+                              <select
+                                className="pdf-gate-input"
+                                style={{ fontSize: "14px", padding: "10px 12px" }}
+                                required={field.required}
+                                value={customAnswers[field.label] || customAnswers[field.id] || ""}
+                                onChange={(e) =>
+                                  setCustomAnswers((prev) => ({
+                                    ...prev,
+                                    [field.label || field.id]: e.target.value,
+                                  }))
+                                }
+                              >
+                                <option value="">{field.placeholder || "Select option..."}</option>
+                                {(field.options || []).map((opt) => (
+                                  <option key={opt} value={opt}>
+                                    {opt}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : field.type === "textarea" ? (
+                              <textarea
+                                className="pdf-gate-input"
+                                style={{ fontSize: "14px", padding: "10px 12px" }}
+                                rows={2}
+                                placeholder={field.placeholder || field.label}
+                                required={field.required}
+                                value={customAnswers[field.label] || customAnswers[field.id] || ""}
+                                onChange={(e) =>
+                                  setCustomAnswers((prev) => ({
+                                    ...prev,
+                                    [field.label || field.id]: e.target.value,
+                                  }))
+                                }
+                              />
+                            ) : (
+                              <input
+                                type={field.type === "number" ? "number" : "text"}
+                                className="pdf-gate-input"
+                                style={{ fontSize: "14px", padding: "10px 12px" }}
+                                placeholder={field.placeholder || field.label}
+                                required={field.required}
+                                value={customAnswers[field.label] || customAnswers[field.id] || ""}
+                                onChange={(e) =>
+                                  setCustomAnswers((prev) => ({
+                                    ...prev,
+                                    [field.label || field.id]: e.target.value,
+                                  }))
+                                }
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      className="pdf-gate-btn"
+                      disabled={sending}
+                      style={{ background: brandColor, marginTop: "4px" }}
+                    >
+                      {sending ? "Sending code…" : "Send code →"}
+                    </button>
+                  </div>
                 </form>
               </>
             ) : (

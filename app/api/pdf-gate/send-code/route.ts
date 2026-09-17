@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Parse body ─────────────────────────────────────────────────────────
-    let body: { email?: string; magnetId?: string };
+    let body: { email?: string; magnetId?: string; name?: string; customFields?: Record<string, any> };
     try {
       body = await req.json();
     } catch {
@@ -44,6 +44,8 @@ export async function POST(req: NextRequest) {
 
     const email = (body.email || "").trim().toLowerCase();
     const magnetId = (body.magnetId || "").trim();
+    const name = (body.name || "").trim();
+    const customFields = body.customFields || {};
 
     if (!email || !magnetId) {
       return NextResponse.json({ error: "Email and magnetId are required." }, { status: 400 });
@@ -64,7 +66,7 @@ export async function POST(req: NextRequest) {
     const token = generateToken();
     const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
-    await PdfOtpModel.create({ email, magnetId, code, token, expiresAt, used: false });
+    await PdfOtpModel.create({ email, magnetId, code, token, expiresAt, used: false, name, customFields });
 
     // ── Send email ────────────────────────────────────────────────────────
     // IMPORTANT: sendMail() returns { success, error } — it does NOT throw.

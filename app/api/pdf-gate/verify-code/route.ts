@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongodb";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { PdfOtpModel } from "@/lib/models";
+import { PdfOtpModel, MagnetPageModel, LeadModel } from "@/lib/models";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Parse body ─────────────────────────────────────────────────────────
-    let body: { email?: string; code?: string; token?: string; magnetId?: string };
+    let body: { email?: string; code?: string; token?: string; magnetId?: string; name?: string; customFields?: Record<string, any> };
     try {
       body = await req.json();
     } catch {
@@ -81,6 +81,65 @@ export async function POST(req: NextRequest) {
     // ── Mark OTP as used ──────────────────────────────────────────────────
     otpRecord.used = true;
     await otpRecord.save();
+
+    // ── Create Lead in MongoDB so it shows in Signups & Leads dashboard ─────
+    try {
+      const mongoose = await import("mongoose");
+      let pageDoc = await MagnetPageModel.findOne({ id: magnetId }).lean();
+      if (!pageDoc && mongoose.Types.ObjectId.isValid(magnetId)) {
+        pageDoc = await MagnetPageModel.findOne({ _id: magnetId }).lean();
+      }
+
+      const ownerEmail = (pageDoc?.userEmail || "").trim().toLowerCase();
+      const pageTitle = pageDoc?.name || "Locked PDF Magnet";
+      const cleanEmail = email.trim().toLowerCase();
+      const leadName = (otpRecord.name || body.name || "").trim() || cleanEmail.split("@")[0];
+      const customFields = otpRecord.customFields || body.customFields || {};
+
+      const existingLead = await LeadModel.findOne({
+        email: cleanEmail,
+        $or: [{ pageId: magnetId }, { page: pageTitle }],
+      });
+
+      if (!existingLead) {
+        const userAgent = req.headers.get("user-agent") || "";
+        const isMobile = /mobile|android|iphone|ipad|tablet/i.test(userAgent);
+        const rawReferrer = req.headers.get("referer") || req.headers.get("referrer") || "";
+        let cleanReferrer = "Direct";
+        if (rawReferrer) {
+          try {
+            const host = new URL(rawReferrer).hostname;
+            cleanReferrer = host.replace(/^www\./, "");
+          } catch (e) {}
+        }
+
+        const now = new Date();
+        const formattedDate = now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) +
+          " at " + now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+
+        await LeadModel.create({
+          id: `lead_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          userEmail: ownerEmail,
+          name: leadName,
+          email: cleanEmail,
+          page: pageTitle,
+          pageId: magnetId,
+          status: "new",
+          source: "locked-pdf-otp",
+          tags: ["locked-pdf"],
+          signedUpAt: formattedDate,
+          customFields,
+          deviceType: isMobile ? "mobile" : "desktop",
+          referrer: cleanReferrer,
+        });
+
+        if (pageDoc) {
+          await MagnetPageModel.updateOne({ _id: pageDoc._id }, { $inc: { signups: 1 } });
+        }
+      }
+    } catch (leadErr) {
+      console.error("[pdf-gate/verify-code] Error creating lead record:", leadErr);
+    }
 
     // ── Set secure unlock cookie ──────────────────────────────────────────
     const res = NextResponse.json({ ok: true });
