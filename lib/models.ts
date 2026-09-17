@@ -88,6 +88,11 @@ const MagnetPageSchema = new Schema({
   emailPlaceholder: { type: String, default: "Email" },
   formButtonText: { type: String, default: "Send it to me" },
   customFormFields: { type: Array, default: [] },
+  // Locked PDF feature fields
+  pdfPages: { type: [String], default: [] },
+  pdfFreePages: { type: Number, default: 2 },
+  pdfTitle: { type: String, default: "" },
+  pdfPageCount: { type: Number, default: 0 },
 });
 
 // Lead Schema
@@ -163,6 +168,7 @@ if (process.env.NODE_ENV === "development") {
   delete (mongoose.models as any).Sequence;
   delete (mongoose.models as any).Integration;
   delete (mongoose.models as any).Resource;
+  delete (mongoose.models as any).PdfOtp;
 }
 
 export const AccountModel = mongoose.models.Account || mongoose.model("Account", AccountSchema);
@@ -184,3 +190,17 @@ const ResourceSchema = new Schema({
 });
 
 export const ResourceModel = mongoose.models.Resource || mongoose.model("Resource", ResourceSchema);
+
+// PdfOtp Schema — stores OTPs for the locked-PDF email gate.
+// MongoDB TTL index auto-deletes expired records (no manual cleanup needed).
+const PdfOtpSchema = new Schema({
+  email: { type: String, required: true, lowercase: true, trim: true },
+  magnetId: { type: String, required: true },
+  code: { type: String, required: true },
+  token: { type: String, required: true, unique: true },
+  expiresAt: { type: Date, required: true },
+  used: { type: Boolean, default: false },
+});
+PdfOtpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+export const PdfOtpModel = mongoose.models.PdfOtp || mongoose.model("PdfOtp", PdfOtpSchema);

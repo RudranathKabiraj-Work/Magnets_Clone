@@ -70,6 +70,7 @@ import SocialCardModal from "@/components/leadmagnets/social-card-modal";
 import DeleteModal from "@/components/leadmagnets/edit/DeleteModal";
 import SequencePreviewModal from "@/components/leadmagnets/edit/SequencePreviewModal";
 import EmailPreviewModal from "@/components/leadmagnets/edit/EmailPreviewModal";
+import LockedPdfSetup from "@/components/leadmagnets/locked-pdf-setup";
 
 function compressImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -329,6 +330,11 @@ export default function EditLeadMagnetPage() {
   // Dynamic Custom Form Fields Builder State
   const [customFormFields, setCustomFormFields] = useState<import("@/lib/data").CustomFormField[]>(page?.customFormFields || []);
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
+
+  // Locked PDF local state — only used when templateId === "locked-pdf"
+  const [lockedPdfPages, setLockedPdfPages] = useState<string[]>(page?.pdfPages || []);
+  const [lockedPdfFreePages, setLockedPdfFreePages] = useState<number>(page?.pdfFreePages ?? 2);
+  const [lockedPdfTitle, setLockedPdfTitle] = useState<string>(page?.pdfTitle || "");
 
   // After Signup State (Tab 4: After Signup)
   const [afterSignupOption, setAfterSignupOption] = useState<"standard" | "elsewhere" | "custom">(page?.afterSignupOption || "standard");
@@ -3592,6 +3598,38 @@ export default function EditLeadMagnetPage() {
                     )}
                   </div>
 
+                </div>
+              )}
+
+              {/* LOCKED PDF TAB — only shown when template is locked-pdf */}
+              {activeTab === "landing" && (templateId as string) === "locked-pdf" && (
+                <div className="mt-4">
+                  <LockedPdfSetup
+                    magnetId={page.id}
+                    userEmail={account?.email || ""}
+                    pdfPages={lockedPdfPages}
+                    pdfFreePages={lockedPdfFreePages}
+                    pdfTitle={lockedPdfTitle || page.name}
+                    appUrl={process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in"}
+                    onSave={async (updates) => {
+                      setLockedPdfPages(updates.pdfPages);
+                      setLockedPdfFreePages(updates.pdfFreePages);
+                      setLockedPdfTitle(updates.pdfTitle);
+                      // Use savePages() — same pattern as the rest of the app.
+                      // savePages() handles localStorage + DB sync automatically.
+                      const next = {
+                        ...page,
+                        pdfPages: updates.pdfPages,
+                        pdfFreePages: updates.pdfFreePages,
+                        pdfTitle: updates.pdfTitle,
+                        pdfPageCount: updates.pdfPageCount,
+                        template: "locked-pdf" as any,
+                        updatedAt: "Just now",
+                      };
+                      setPage(next);
+                      savePages(loadPages().map((p) => p.id === next.id ? next : p));
+                    }}
+                  />
                 </div>
               )}
 

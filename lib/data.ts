@@ -23,7 +23,7 @@ export interface MagnetPage {
   deliverable: string;
   updatedAt: string;
   publishedAt: string | null;
-  template: "classic" | "video" | "quiz";
+  template: "classic" | "video" | "quiz" | "locked-pdf";
   accent: string;
   imageUrl?: string | null;
   pitch?: string;
@@ -63,6 +63,11 @@ export interface MagnetPage {
   formButtonText?: string;
   userEmail?: string;
   customFormFields?: CustomFormField[];
+  // Locked PDF feature fields
+  pdfPages?: string[];       // Cloudinary URLs for each page image (uploaded via dashboard)
+  pdfFreePages?: number;     // How many pages to show freely before the gate (default: 2)
+  pdfTitle?: string;         // Title shown in the PDF viewer top bar
+  pdfPageCount?: number;     // Total number of pages (stored at upload time)
 }
 
 export interface Lead {
