@@ -615,6 +615,7 @@ export default function SignupsPage() {
                       />
                     </th>
                     <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Subscriber</th>
+                    <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Source / Gate</th>
                     <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Lead Magnet</th>
                     <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Signup Date</th>
                     <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Sequence</th>
@@ -624,6 +625,17 @@ export default function SignupsPage() {
                 <tbody className="divide-y divide-zinc-100 bg-white dark:divide-[#222228] dark:bg-[#18181B]">
                   {paginatedLeads.map((lead) => {
                     const isSelected = selectedLeadIds.includes(lead.id);
+                    const page = magnetPages.find((p) => p.id === lead.pageId || p.name === lead.page);
+                    const isLockedPdf =
+                      lead.source === "locked-pdf-otp" ||
+                      lead.tags?.includes("locked-pdf") ||
+                      page?.template === "locked-pdf" ||
+                      lead.page?.toLowerCase().includes("locked");
+                    const isManual =
+                      lead.source === "integration" ||
+                      (lead.source as string) === "manual" ||
+                      lead.page === "Direct Manual Add" ||
+                      lead.sequence === "Imported Contact";
 
                     return (
                       <tr
@@ -661,11 +673,28 @@ export default function SignupsPage() {
                           </div>
                         </td>
 
+                        {/* Source / Gate Column */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {isLockedPdf ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-2xs">
+                              <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                              <span>🔒 Locked PDF</span>
+                            </span>
+                          ) : isManual ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-purple-500/10 px-2.5 py-1 text-xs font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20 shadow-2xs">
+                              <Upload className="h-3.5 w-3.5 text-purple-500 shrink-0" />
+                              <span>📥 Import / Manual</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-sky-500/10 px-2.5 py-1 text-xs font-bold text-sky-600 dark:text-sky-400 border border-sky-500/20 shadow-2xs">
+                              <Sparkles className="h-3.5 w-3.5 text-sky-500 shrink-0" />
+                              <span>⚡ Form</span>
+                            </span>
+                          )}
+                        </td>
+
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 dark:bg-[#222228] px-2.5 py-1 text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                            {(lead.tags?.includes("locked-pdf") || lead.source === "locked-pdf-otp" || lead.page?.toLowerCase().includes("locked")) && (
-                              <Lock className="h-3 w-3 text-amber-500 shrink-0" />
-                            )}
                             {lead.page}
                           </span>
                         </td>
@@ -1114,12 +1143,60 @@ export default function SignupsPage() {
                 <div className="space-y-3 text-xs">
                   <div className="grid grid-cols-2 gap-3 py-1 border-b border-zinc-100 dark:border-white/5">
                     <div>
-                      <span className="block text-zinc-500 dark:text-[#9B9085]">Subscribed On Magnet</span>
-                      <strong className="font-semibold text-zinc-900 dark:text-white block truncate">{selectedLead.page}</strong>
+                      <span className="block text-zinc-500 dark:text-[#9B9085]">Signup Method / Gate</span>
+                      {(() => {
+                        const page = magnetPages.find((p) => p.id === selectedLead.pageId || p.name === selectedLead.page);
+                        const isLockedPdf =
+                          selectedLead.source === "locked-pdf-otp" ||
+                          selectedLead.tags?.includes("locked-pdf") ||
+                          page?.template === "locked-pdf" ||
+                          selectedLead.page?.toLowerCase().includes("locked");
+                        const isManual =
+                          selectedLead.source === "integration" ||
+                          (selectedLead.source as string) === "manual" ||
+                          selectedLead.page === "Direct Manual Add" ||
+                          selectedLead.sequence === "Imported Contact";
+
+                        if (isLockedPdf) {
+                          return (
+                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20 mt-1">
+                              <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                              <span>🔒 Locked PDF Gate (OTP)</span>
+                            </span>
+                          );
+                        }
+
+                        if (isManual) {
+                          return (
+                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-purple-500/10 px-2.5 py-1 text-xs font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20 mt-1">
+                              <Upload className="h-3.5 w-3.5 text-purple-500 shrink-0" />
+                              <span>📥 Manual Import</span>
+                            </span>
+                          );
+                        }
+
+                        return (
+                          <span className="inline-flex items-center gap-1.5 rounded-lg bg-sky-500/10 px-2.5 py-1 text-xs font-bold text-sky-600 dark:text-sky-400 border border-sky-500/20 mt-1">
+                            <Sparkles className="h-3.5 w-3.5 text-sky-500 shrink-0" />
+                            <span>⚡ Landing Page Form</span>
+                          </span>
+                        );
+                      })()}
                     </div>
                     <div>
+                      <span className="block text-zinc-500 dark:text-[#9B9085]">Subscribed On Magnet</span>
+                      <strong className="font-semibold text-zinc-900 dark:text-white block truncate mt-1">{selectedLead.page}</strong>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 py-1 border-b border-zinc-100 dark:border-white/5">
+                    <div>
                       <span className="block text-zinc-500 dark:text-[#9B9085]">Signup Date & Time</span>
-                      <strong className="font-semibold text-zinc-900 dark:text-white block">{selectedLead.signedUpAt}</strong>
+                      <strong className="font-semibold text-zinc-900 dark:text-white block mt-1">{selectedLead.signedUpAt}</strong>
+                    </div>
+                    <div>
+                      <span className="block text-zinc-500 dark:text-[#9B9085]">Traffic Source / Referrer</span>
+                      <strong className="font-semibold text-zinc-900 dark:text-white block capitalize mt-1">{selectedLead.referrer || "Direct Link"}</strong>
                     </div>
                   </div>
 
