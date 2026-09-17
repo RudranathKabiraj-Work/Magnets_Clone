@@ -2368,7 +2368,7 @@ export default function DashboardShell({
                     <div className="space-y-1">
                       <h4 className="text-sm font-bold text-zinc-900 dark:text-white">Get help with the copy</h4>
                       <p className="text-xs text-zinc-500 dark:text-[#9B9085] leading-relaxed">
-                        Use the writing copilot for copy ideas or revisions, then review the changes before applying them.
+                        Use AI Autofill for copy ideas or revisions, then review the changes before applying them.
                       </p>
                     </div>
                   </div>

@@ -1287,14 +1287,14 @@ export default function EditLeadMagnetPage() {
                   {saveStatus === "saving" ? "Waiting to autosave..." : "Autosaved"}
                 </span>
 
-                {/* AI Co-pilot & Social Studio */}
+                {/* AI Autofill & Social Studio */}
                 <button
                   onClick={() => setShowAIModal(true)}
                   className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
-                  title="AI Co-pilot: Regenerate headlines & copy"
+                  title="AI Autofill: Regenerate headlines & copy"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span>AI Co-pilot</span>
+                  <span>AI Autofill</span>
                 </button>
 
                 <button
