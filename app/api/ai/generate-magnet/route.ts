@@ -4,6 +4,21 @@ import { getAuthenticatedUserEmail } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
+function generateFluxAIImageUrl(topic: string, aiImagePrompt?: string): string {
+  const base = aiImagePrompt || topic || "Digital Strategy";
+  const cleanKeywords = base
+    .replace(/[^a-zA-Z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 2)
+    .slice(0, 6)
+    .join(" ");
+
+  const prompt = encodeURIComponent(`modern 3d graphic cover illustration for ${cleanKeywords || "business growth"}, studio lighting, 4k render`);
+  const seed = Math.floor(Math.random() * 1000000);
+
+  return `https://image.pollinations.ai/prompt/${prompt}?width=1200&height=630&nologo=true&model=flux&seed=${seed}`;
+}
+
 export async function POST(req: Request) {
   try {
     const sessionEmail = await getAuthenticatedUserEmail();
@@ -28,14 +43,10 @@ export async function POST(req: Request) {
       process.env.GOOGLE_API_KEY;
 
     if (apiKey) {
-      try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
-          model: "gemini-3.6-flash",
-          generationConfig: { responseMimeType: "application/json" }
-        });
+      const candidateModels = ["gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-flash-latest"];
+      const genAI = new GoogleGenerativeAI(apiKey);
 
-        const prompt = `You are a world-class copywriter and conversion rate optimization expert. 
+      const prompt = `You are a world-class copywriter and conversion rate optimization expert. 
 Create a high-converting, professional lead magnet based on the following input:
 - Topic/Outcome: "${cleanTopic}"
 - Target Audience: "${audience}"
@@ -51,6 +62,7 @@ Respond ONLY with a valid JSON object with the following fields:
   "deliverable": "A detailed Markdown document outline for the lead magnet (use headings, bullet points, and actionable steps)",
   "pitch": "A 2-sentence persuasive hook about why this resource is a must-have",
   "bullets": ["Benefit 1 (10-15 words)", "Benefit 2 (10-15 words)", "Benefit 3 (10-15 words)"],
+  "imagePrompt": "Short visual prompt describing a 3D modern digital ebook/guide cover graphic for '${cleanTopic}'",
   "accent": "Hex color code fitting the topic (e.g. '#FE6F34', '#6366F1', or '#10B981')",
   "template": "${selectedFormat.toLowerCase().includes("video") ? "video" : "classic"}",
   "emails": [
@@ -84,21 +96,32 @@ Respond ONLY with a valid JSON object with the following fields:
   ]
 }`;
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        const aiData = JSON.parse(text);
+      for (const modelName of candidateModels) {
+        try {
+          const model = genAI.getGenerativeModel({
+            model: modelName,
+            generationConfig: { responseMimeType: "application/json" }
+          });
 
-        return NextResponse.json({
-          success: true,
-          provider: "Google AI Studio (Gemini 1.5 Flash)",
-          data: {
-            ...aiData,
-            template: selectedFormat.toLowerCase().includes("video") ? "video" : "classic"
-          }
-        });
-      } catch (geminiErr: any) {
-        console.error("Google AI Studio Gemini API Error:", geminiErr);
-        // Fall back to template generator below if Gemini API fails
+          const result = await model.generateContent(prompt);
+          const text = result.response.text();
+          const aiData = JSON.parse(text);
+
+          const generatedImageUrl = generateFluxAIImageUrl(cleanTopic, aiData?.imagePrompt);
+
+          return NextResponse.json({
+            success: true,
+            provider: `Google AI Studio (${modelName})`,
+            data: {
+              ...aiData,
+              imageUrl: generatedImageUrl,
+              template: selectedFormat.toLowerCase().includes("video") ? "video" : "classic"
+            }
+          });
+        } catch (geminiErr: any) {
+          console.error(`Google AI Studio Gemini API Error (${modelName}):`, geminiErr?.message || geminiErr);
+          // Try next model in loop...
+        }
       }
     }
 
@@ -107,6 +130,8 @@ Respond ONLY with a valid JSON object with the following fields:
     const headline = `Master ${cleanTopic} in Under 10 Minutes (Step-by-Step ${selectedFormat})`;
     const subheadline = `Get the exact ${selectedFormat.toLowerCase()} engineered specifically for ${audience} to cut setup time in half and drive measurable results today.`;
     const cta = `Claim Your Free ${selectedFormat.split(" ")[0]} Now`;
+
+    const fallbackImageUrl = generateFluxAIImageUrl(cleanTopic);
 
     const deliverable = `### 🚀 What's Inside:
 - **Phase 1: Foundation Setup**: Core principles & mistake elimination framework.
@@ -163,6 +188,7 @@ Respond ONLY with a valid JSON object with the following fields:
         deliverable,
         pitch,
         bullets,
+        imageUrl: fallbackImageUrl,
         accent: "#FE6F34",
         template: selectedFormat.toLowerCase().includes("video") ? "video" : "classic",
         emails

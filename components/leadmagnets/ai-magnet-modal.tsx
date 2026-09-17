@@ -19,6 +19,7 @@ interface AIMagnetModalProps {
     accent: string;
     template: "classic" | "video" | "quiz";
     emails?: any[];
+    imageUrl?: string;
   }) => void;
 }
 

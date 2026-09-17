@@ -55,6 +55,7 @@ export default function NewPage() {
       deliverable: data.deliverable,
       pitch: data.pitch,
       bullets: data.bullets,
+      imageUrl: data.imageUrl || null,
       updatedAt: "Just now",
       publishedAt: null,
       template: (account?.templateId as any) || data.template || "template1",

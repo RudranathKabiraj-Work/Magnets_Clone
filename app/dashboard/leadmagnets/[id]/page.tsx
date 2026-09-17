@@ -232,7 +232,45 @@ export default function EditLeadMagnetPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [showAIModal, setShowAIModal] = useState(false);
+  const [isGeneratingAICover, setIsGeneratingAICover] = useState(false);
   const [showSocialModal, setShowSocialModal] = useState(false);
+
+function generateFluxAIImageUrl(topic: string): string {
+  const cleanKeywords = (topic || "Digital Strategy")
+    .replace(/[^a-zA-Z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 2)
+    .slice(0, 6)
+    .join(" ");
+
+  const prompt = encodeURIComponent(`modern 3d graphic cover illustration for ${cleanKeywords || "business growth"}, studio lighting, 4k render`);
+  const seed = Math.floor(Math.random() * 1000000);
+
+  return `https://image.pollinations.ai/prompt/${prompt}?width=1200&height=630&nologo=true&model=flux&seed=${seed}`;
+}
+
+  const handleGenerateAICoverImage = async () => {
+    setIsGeneratingAICover(true);
+    try {
+      const promptText = headline?.trim() || page?.name || "Digital Strategy Guide";
+      const newCoverUrl = generateFluxAIImageUrl(promptText);
+
+      // Preload image in memory first to prevent blank states
+      await new Promise((resolve) => {
+        const img = new Image();
+        img.src = newCoverUrl;
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+
+      setImageUrl(newCoverUrl);
+      update({ imageUrl: newCoverUrl });
+    } catch (err) {
+      console.error("Failed to generate AI Cover image:", err);
+    } finally {
+      setIsGeneratingAICover(false);
+    }
+  };
   const [showEmailPreviewModal, setShowEmailPreviewModal] = useState(false);
   const [hostedResources, setHostedResources] = useState<any[]>([]);
   const [showInsertResourceMenu, setShowInsertResourceMenu] = useState(false);
@@ -1588,6 +1626,22 @@ export default function EditLeadMagnetPage() {
                                 <ImageIcon className="h-4 w-4 text-zinc-300" />
                                 <span>{imageUrl && imageUrl.trim() !== "" ? "Replace Image" : "Add Image"}</span>
                               </button>
+
+                              <button
+                                type="button"
+                                disabled={isGeneratingAICover}
+                                onClick={handleGenerateAICoverImage}
+                                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-md border border-indigo-400/30 backdrop-blur-md transition cursor-pointer disabled:opacity-50"
+                                title="Generate a fresh AI cover image based on your page headline"
+                              >
+                                {isGeneratingAICover ? (
+                                  <Loader2 className="h-4 w-4 animate-spin text-white" />
+                                ) : (
+                                  <Sparkles className="h-4 w-4 text-amber-300" />
+                                )}
+                                <span>{isGeneratingAICover ? "Generating..." : "AI Cover"}</span>
+                              </button>
+
                               {imageUrl && imageUrl.trim() !== "" && (
                                 <button
                                   type="button"
@@ -2144,11 +2198,33 @@ export default function EditLeadMagnetPage() {
                                   </div>
                                 </div>
                               )}
-
                               {imageUrl && imageUrl.trim() !== "" ? (
                                 <>
-                                  <img src={imageUrl} alt="Cover" className="w-full h-full object-cover" />
+                                  <img
+                                    src={imageUrl}
+                                    alt="Cover"
+                                    onError={(e) => {
+                                      (e.currentTarget as HTMLImageElement).src = generateFluxAIImageUrl(headline || page?.name || "");
+                                    }}
+                                    className="w-full h-full object-cover"
+                                  />
                                   <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 text-white transition duration-200">
+                                    <button
+                                      type="button"
+                                      disabled={isGeneratingAICover}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleGenerateAICoverImage();
+                                      }}
+                                      className="flex items-center gap-1 rounded-xl bg-indigo-600/80 hover:bg-indigo-600 px-3 py-1.5 text-[11px] font-bold text-white border border-indigo-400/30 backdrop-blur-md transition cursor-pointer disabled:opacity-50"
+                                    >
+                                      {isGeneratingAICover ? (
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                                      ) : (
+                                        <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                                      )}
+                                      <span>AI Cover</span>
+                                    </button>
                                     <button
                                       type="button"
                                       onClick={(e) => {
@@ -3024,8 +3100,32 @@ export default function EditLeadMagnetPage() {
                                     transition={{ duration: 0.2 }}
                                     className={`relative group rounded-2xl overflow-hidden border shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/20" : "border-black/10 bg-white"}`}
                                   >
-                                    <img src={imageUrl} alt="Uploaded magnet media" className="w-full object-cover max-h-72 rounded-2xl" />
+                                    <img
+                                      src={imageUrl}
+                                      alt="Uploaded magnet media"
+                                      onError={(e) => {
+                                        (e.currentTarget as HTMLImageElement).src = generateFluxAIImageUrl(headline || page?.name || "");
+                                      }}
+                                      className="w-full object-cover max-h-72 rounded-2xl"
+                                    />
                                     <div className="absolute bottom-4 right-4 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                      <button
+                                        type="button"
+                                        disabled={isGeneratingAICover}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleGenerateAICoverImage();
+                                        }}
+                                        className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-md border border-indigo-400/30 transition cursor-pointer pointer-events-auto disabled:opacity-50"
+                                        title="Generate a fresh AI cover image based on your page headline"
+                                      >
+                                        {isGeneratingAICover ? (
+                                          <Loader2 className="h-4 w-4 animate-spin text-white" />
+                                        ) : (
+                                          <Sparkles className="h-4 w-4 text-amber-300" />
+                                        )}
+                                        <span>{isGeneratingAICover ? "Generating..." : "AI Cover"}</span>
+                                      </button>
                                       <button
                                         type="button"
                                         onClick={(e) => {
@@ -3433,7 +3533,6 @@ export default function EditLeadMagnetPage() {
                             <img
                               src={imageUrl}
                               alt="Control media"
-                              onError={() => setImageUrl(null)}
                               className="h-full w-full object-cover"
                             />
                           ) : (
@@ -4599,11 +4698,13 @@ export default function EditLeadMagnetPage() {
           setSubheadline(data.subheadline);
           if (data.pitch) setPitch(data.pitch);
           if (data.bullets) setBullets(data.bullets);
+          if (data.imageUrl) setImageUrl(data.imageUrl);
           update({
             headline: data.headline,
             subheadline: data.subheadline,
             pitch: data.pitch,
             bullets: data.bullets,
+            imageUrl: data.imageUrl,
           });
         }}
       />
