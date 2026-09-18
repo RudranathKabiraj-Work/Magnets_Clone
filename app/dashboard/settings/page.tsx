@@ -422,7 +422,18 @@ export default function AccountSettingsPage() {
           <div className="mb-6">
             <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-900 dark:text-white">
               Account Settings
-              <span className="cursor-help flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-100 dark:hover:bg-[#18181B]">?</span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.dispatchEvent(new CustomEvent("openHelpTopic", { detail: { topic: "Account settings" } }));
+                  }
+                }}
+                className="cursor-pointer flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-100 dark:hover:bg-[#18181B] transition-colors"
+                title="View Account Settings Help"
+              >
+                ?
+              </button>
             </h2>
             <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Manage your identity, security, notifications, and account limits.</p>
           </div>

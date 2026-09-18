@@ -148,9 +148,20 @@ export default function DashboardShell({
       }
     };
 
+    const handleOpenHelpTopic = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.topic) {
+        setSelectedTopic(customEvent.detail.topic);
+      } else {
+        setSelectedTopic("Account settings");
+      }
+      setShowHelp(true);
+    };
+
     if (typeof window !== "undefined") {
       window.addEventListener("accountUpdated", handleAccountUpdate);
       window.addEventListener("storage", handleAccountUpdate);
+      window.addEventListener("openHelpTopic", handleOpenHelpTopic);
     }
 
     if (typeof window !== "undefined") {
@@ -188,6 +199,7 @@ export default function DashboardShell({
       if (typeof window !== "undefined") {
         window.removeEventListener("accountUpdated", handleAccountUpdate);
         window.removeEventListener("storage", handleAccountUpdate);
+        window.removeEventListener("openHelpTopic", handleOpenHelpTopic);
       }
     };
   }, [pathname, router]);
@@ -813,21 +825,37 @@ export default function DashboardShell({
                   </div>
                 </div>
 
-                {/* 2 Column Cards: Your name vs Password */}
+                {/* 4 Column Cards: Profile, Security, Instant Alerts, Usage & Limits */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                  {/* Your name Card */}
+                  {/* Profile & Identity Card */}
                   <div className="rounded-2xl border border-[#0066B2]/30 bg-white text-zinc-900 shadow-xs dark:border-[#0066B2]/35 dark:bg-[#18181B] dark:text-white p-5 space-y-2.5 text-left">
-                    <h4 className="text-base font-bold text-zinc-900 dark:text-white">Your name</h4>
+                    <h4 className="text-base font-bold text-zinc-900 dark:text-white">Profile & Identity</h4>
                     <p className="text-sm text-zinc-500 dark:text-[#9B9085] leading-relaxed">
-                      Update the name shown on your LeadMagnets account. Your sign-in email is read-only here.
+                      Update your account display name, upload or remove your profile photo avatar, and view your registered email address.
                     </p>
                   </div>
 
-                  {/* Password Card */}
+                  {/* Security & Password Card */}
                   <div className="rounded-2xl border border-[#0066B2]/30 bg-white text-zinc-900 shadow-xs dark:border-[#0066B2]/35 dark:bg-[#18181B] dark:text-white p-5 space-y-2.5 text-left">
-                    <h4 className="text-base font-bold text-zinc-900 dark:text-white">Password</h4>
+                    <h4 className="text-base font-bold text-zinc-900 dark:text-white">Security & Password</h4>
                     <p className="text-sm text-zinc-500 dark:text-[#9B9085] leading-relaxed">
-                      Confirm your current password, then choose a different password with at least 8 characters.
+                      Update your account password by confirming your current password and choosing a new password with at least 8 characters.
+                    </p>
+                  </div>
+
+                  {/* Instant Lead Alerts Card */}
+                  <div className="rounded-2xl border border-[#0066B2]/30 bg-white text-zinc-900 shadow-xs dark:border-[#0066B2]/35 dark:bg-[#18181B] dark:text-white p-5 space-y-2.5 text-left">
+                    <h4 className="text-base font-bold text-zinc-900 dark:text-white">Instant Lead Alerts</h4>
+                    <p className="text-sm text-zinc-500 dark:text-[#9B9085] leading-relaxed">
+                      Enable real-time email notifications for new subscriber signups, configure target notification inboxes, and send test alerts.
+                    </p>
+                  </div>
+
+                  {/* Usage & Limits Card */}
+                  <div className="rounded-2xl border border-[#0066B2]/30 bg-white text-zinc-900 shadow-xs dark:border-[#0066B2]/35 dark:bg-[#18181B] dark:text-white p-5 space-y-2.5 text-left">
+                    <h4 className="text-base font-bold text-zinc-900 dark:text-white">Usage & Limits</h4>
+                    <p className="text-sm text-zinc-500 dark:text-[#9B9085] leading-relaxed">
+                      Monitor your active account plan metrics in real-time, including total leads captured, media file storage, and email sequence capacity.
                     </p>
                   </div>
                 </div>
