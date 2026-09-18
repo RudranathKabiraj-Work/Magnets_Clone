@@ -80,6 +80,25 @@ export default function BrandPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
 
+  // Lock background scroll & pause Lenis when Help Modal is open
+  useEffect(() => {
+    const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
+    if (showHelpModal) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      if (lenis && typeof lenis.stop === "function") lenis.stop();
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      if (lenis && typeof lenis.start === "function") lenis.start();
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      if (lenis && typeof lenis.start === "function") lenis.start();
+    };
+  }, [showHelpModal]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const PRESET_COLORS = useMemo(() => [
@@ -1834,7 +1853,12 @@ export default function BrandPage() {
       {/* Help Centre Modal with Apple-style smooth spring animation */}
       <AnimatePresence>
         {showHelpModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-contain"
+            data-lenis-prevent
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -1851,7 +1875,8 @@ export default function BrandPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: 12 }}
               transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.9 }}
-              className="relative w-full max-w-3xl rounded-2xl bg-[#141517] text-white border border-zinc-800/90 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden flex flex-col max-h-[90vh] z-10"
+              className="relative w-full max-w-3xl rounded-2xl bg-[#141517] text-white border border-zinc-800/90 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden flex flex-col max-h-[90vh] z-10 overscroll-contain"
+              data-lenis-prevent
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-[#16181C]">

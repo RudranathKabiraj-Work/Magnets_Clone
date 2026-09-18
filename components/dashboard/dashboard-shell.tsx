@@ -41,6 +41,24 @@ export default function DashboardShell({
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
+    if (showHelp) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      if (lenis && typeof lenis.stop === "function") lenis.stop();
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      if (lenis && typeof lenis.start === "function") lenis.start();
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      if (lenis && typeof lenis.start === "function") lenis.start();
+    };
+  }, [showHelp]);
+
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);

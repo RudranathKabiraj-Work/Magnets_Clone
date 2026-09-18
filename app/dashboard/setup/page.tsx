@@ -55,6 +55,25 @@ export default function WorkspaceSetupPage() {
     "branding-preview": true,
   });
 
+  // Lock background scroll & pause Lenis when Help Modal is open
+  useEffect(() => {
+    const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
+    if (showHelpModal) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      if (lenis && typeof lenis.stop === "function") lenis.stop();
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      if (lenis && typeof lenis.start === "function") lenis.start();
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      if (lenis && typeof lenis.start === "function") lenis.start();
+    };
+  }, [showHelpModal]);
+
   useEffect(() => {
 
     // Load local data instantly
@@ -1840,7 +1859,12 @@ export default function WorkspaceSetupPage() {
       {/* Help Centre Modal with Apple-style smooth spring animation */}
       <AnimatePresence>
         {showHelpModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-contain"
+            data-lenis-prevent
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -1857,7 +1881,8 @@ export default function WorkspaceSetupPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: 12 }}
               transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.9 }}
-              className="relative w-full max-w-3xl rounded-2xl bg-[#141517] text-white border border-zinc-800/90 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden flex flex-col max-h-[90vh] z-10"
+              className="relative w-full max-w-3xl rounded-2xl bg-[#141517] text-white border border-zinc-800/90 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] overflow-hidden flex flex-col max-h-[90vh] z-10 overscroll-contain"
+              data-lenis-prevent
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-[#16181C]">
@@ -1893,7 +1918,7 @@ export default function WorkspaceSetupPage() {
               </div>
 
               {/* Content Body */}
-              <div className="p-8 space-y-7 overflow-y-auto">
+              <div className="p-8 space-y-7 overflow-y-auto overscroll-contain" data-lenis-prevent>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#38BDF8]">
