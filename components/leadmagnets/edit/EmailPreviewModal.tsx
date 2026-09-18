@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, X } from "lucide-react";
 import { type Account, type MagnetPage } from "@/lib/data";
 
@@ -25,6 +25,17 @@ export default function EmailPreviewModal({
 }: EmailPreviewModalProps) {
   const [testEmailSending, setTestEmailSending] = useState(false);
   const [testEmailSentMsg, setTestEmailSentMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
+    document.body.style.overflow = "hidden";
+    if (lenis && typeof lenis.stop === "function") lenis.stop();
+
+    return () => {
+      document.body.style.overflow = "";
+      if (lenis && typeof lenis.start === "function") lenis.start();
+    };
+  }, []);
 
   const handleSendTestEmail = async () => {
     setTestEmailSending(true);
@@ -67,7 +78,7 @@ export default function EmailPreviewModal({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6 overscroll-contain transition-all duration-200 animate-in fade-in zoom-in-95"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6 overscroll-contain transition-all duration-200 animate-in fade-in zoom-in-95"
     >
       <div className={`w-full max-w-2xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col h-[85vh] max-h-[85vh] shrink-0 transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#141417] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
         {/* Modal Header */}
