@@ -813,15 +813,13 @@ export default function BrandPage() {
                             <div className="grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
                               {/* Left Panel: Cover Image + Gradient Scrim + Bullets (~60%) */}
                               <div className="md:col-span-7 relative flex flex-col justify-end p-6 md:p-8 overflow-hidden min-h-[260px] md:min-h-full bg-zinc-900 text-white">
-                                <img
-                                  src={
-                                    latestPage?.imageUrl && latestPage.imageUrl.trim() !== ""
-                                      ? latestPage.imageUrl
-                                      : "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80"
-                                  }
-                                  alt={latestPage?.name || "Lead capture image"}
-                                  className="absolute inset-0 w-full h-full object-cover opacity-50"
-                                />
+                                {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" && (
+                                  <img
+                                    src={latestPage.imageUrl}
+                                    alt={latestPage?.name || "Lead capture image"}
+                                    className="absolute inset-0 w-full h-full object-cover opacity-50"
+                                  />
+                                )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0c16] via-[#0a0c16]/60 to-transparent pointer-events-none" />
 
                                 <div className="relative z-10 space-y-3">
