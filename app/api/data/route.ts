@@ -185,7 +185,8 @@ export async function POST(req: Request) {
       }
 
       data.email = normalizedEmail;
-      if (data.password) {
+      // Only validate password strength if data.password is a NEW plain-text password (not an existing bcrypt hash)
+      if (data.password && !/^\$2[aby]\$\d+\$/.test(data.password)) {
         const pwdErr = serverValidatePassword(data.password);
         if (pwdErr) {
           return NextResponse.json({ error: pwdErr }, { status: 400 });
@@ -229,7 +230,10 @@ export async function POST(req: Request) {
         existing.ogImageUrl = data.ogImageUrl !== undefined ? data.ogImageUrl : existing.ogImageUrl;
         existing.spfVerified = data.spfVerified !== undefined ? data.spfVerified : existing.spfVerified;
         existing.dkimVerified = data.dkimVerified !== undefined ? data.dkimVerified : existing.dkimVerified;
-        if (data.password) {
+        
+        // Only hash and update password if data.password is a NEW plain-text password
+        // Prevents double-hashing existing bcrypt hashes sent during background account syncs
+        if (data.password && !/^\$2[aby]\$\d+\$/.test(data.password) && data.password !== existing.password) {
           existing.password = await hashPassword(data.password);
         }
         account = await existing.save();
@@ -242,7 +246,7 @@ export async function POST(req: Request) {
           uniqueUsername = `${username.slice(0, 15 - String(count).length)}${count}`;
         }
         data.username = uniqueUsername;
-        if (data.password) {
+        if (data.password && !/^\$2[aby]\$\d+\$/.test(data.password)) {
           data.password = await hashPassword(data.password);
         }
         account = await AccountModel.create(data);

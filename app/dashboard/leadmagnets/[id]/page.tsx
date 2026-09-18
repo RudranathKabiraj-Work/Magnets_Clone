@@ -65,16 +65,18 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { type MagnetPage, type Account } from "@/lib/data";
 import { loadPages, savePages, deletePage, loadAccount, loadResources, syncWithDatabase } from "@/lib/store";
-import AIMagnetModal from "@/components/leadmagnets/ai-magnet-modal";
-import SocialCardModal from "@/components/leadmagnets/social-card-modal";
-import DeleteModal from "@/components/leadmagnets/edit/DeleteModal";
-import SequencePreviewModal from "@/components/leadmagnets/edit/SequencePreviewModal";
-import EmailPreviewModal from "@/components/leadmagnets/edit/EmailPreviewModal";
-import DeliveryEmailTab from "@/components/leadmagnets/edit/DeliveryEmailTab";
-import SequenceTab from "@/components/leadmagnets/edit/SequenceTab";
-import AfterSignupTab from "@/components/leadmagnets/edit/AfterSignupTab";
-import CustomFieldsBuilder from "@/components/leadmagnets/edit/CustomFieldsBuilder";
-import LockedPdfSetup from "@/components/leadmagnets/locked-pdf-setup";
+import dynamic from "next/dynamic";
+
+const AIMagnetModal = dynamic(() => import("@/components/leadmagnets/ai-magnet-modal"));
+const SocialCardModal = dynamic(() => import("@/components/leadmagnets/social-card-modal"));
+const DeleteModal = dynamic(() => import("@/components/leadmagnets/edit/DeleteModal"));
+const SequencePreviewModal = dynamic(() => import("@/components/leadmagnets/edit/SequencePreviewModal"));
+const EmailPreviewModal = dynamic(() => import("@/components/leadmagnets/edit/EmailPreviewModal"));
+const DeliveryEmailTab = dynamic(() => import("@/components/leadmagnets/edit/DeliveryEmailTab"));
+const SequenceTab = dynamic(() => import("@/components/leadmagnets/edit/SequenceTab"));
+const AfterSignupTab = dynamic(() => import("@/components/leadmagnets/edit/AfterSignupTab"));
+const CustomFieldsBuilder = dynamic(() => import("@/components/leadmagnets/edit/CustomFieldsBuilder"));
+const LockedPdfSetup = dynamic(() => import("@/components/leadmagnets/locked-pdf-setup"));
 import { ImageGeneration } from "@/components/agents/image-generation";
 import TemplateRenderer from "@/components/templates/TemplateRenderer";
 
@@ -847,18 +849,25 @@ export default function EditLeadMagnetPage() {
 
   const adjustTextareaHeights = useCallback(() => {
     requestAnimationFrame(() => {
-      if (headlineRef.current) {
-        headlineRef.current.style.height = "auto";
-        headlineRef.current.style.height = `${Math.max(headlineRef.current.scrollHeight + 16, 60)}px`;
-      }
-      if (subheadlineRef.current) {
-        subheadlineRef.current.style.height = "auto";
-        subheadlineRef.current.style.height = `${Math.max(subheadlineRef.current.scrollHeight + 16, 40)}px`;
-      }
-      if (pitchRef.current) {
-        pitchRef.current.style.height = "auto";
-        pitchRef.current.style.height = `${Math.max(pitchRef.current.scrollHeight + 16, 40)}px`;
-      }
+      const headlineEl = headlineRef.current;
+      const subheadlineEl = subheadlineRef.current;
+      const pitchEl = pitchRef.current;
+
+      let headlineH = 0;
+      let subheadlineH = 0;
+      let pitchH = 0;
+
+      if (headlineEl) headlineEl.style.height = "auto";
+      if (subheadlineEl) subheadlineEl.style.height = "auto";
+      if (pitchEl) pitchEl.style.height = "auto";
+
+      if (headlineEl) headlineH = Math.max(headlineEl.scrollHeight + 16, 60);
+      if (subheadlineEl) subheadlineH = Math.max(subheadlineEl.scrollHeight + 16, 40);
+      if (pitchEl) pitchH = Math.max(pitchEl.scrollHeight + 16, 40);
+
+      if (headlineEl) headlineEl.style.height = `${headlineH}px`;
+      if (subheadlineEl) subheadlineEl.style.height = `${subheadlineH}px`;
+      if (pitchEl) pitchEl.style.height = `${pitchH}px`;
     });
   }, []);
 
@@ -1995,45 +2004,47 @@ export default function EditLeadMagnetPage() {
         />
       )}
 
-      <AIMagnetModal
-        isOpen={showAIModal}
-        onClose={() => setShowAIModal(false)}
-        onGenerated={(data) => {
-          setHeadline(data.headline);
-          setSubheadline(data.subheadline);
-          if (data.pitch) setPitch(data.pitch);
-          if (data.bullets) setBullets(data.bullets);
+      {showAIModal && (
+        <AIMagnetModal
+          isOpen={showAIModal}
+          onClose={() => setShowAIModal(false)}
+          onGenerated={(data) => {
+            setHeadline(data.headline);
+            setSubheadline(data.subheadline);
+            if (data.pitch) setPitch(data.pitch);
+            if (data.bullets) setBullets(data.bullets);
 
-          if (data.imageUrl) {
-            setIsGeneratingAICover(true);
-            setImageGenerationStatus("generating");
-            setImageUrl(data.imageUrl);
-            update({
-              headline: data.headline,
-              subheadline: data.subheadline,
-              pitch: data.pitch,
-              bullets: data.bullets,
-              imageUrl: data.imageUrl,
-            });
+            if (data.imageUrl) {
+              setIsGeneratingAICover(true);
+              setImageGenerationStatus("generating");
+              setImageUrl(data.imageUrl);
+              update({
+                headline: data.headline,
+                subheadline: data.subheadline,
+                pitch: data.pitch,
+                bullets: data.bullets,
+                imageUrl: data.imageUrl,
+              });
 
-            setTimeout(() => {
-              setImageGenerationStatus((prev) => (prev === "generating" ? "refining" : prev));
-            }, 2500);
+              setTimeout(() => {
+                setImageGenerationStatus((prev) => (prev === "generating" ? "refining" : prev));
+              }, 2500);
 
-            setTimeout(() => {
-              setImageGenerationStatus("complete");
-              setIsGeneratingAICover(false);
-            }, 15000);
-          } else {
-            update({
-              headline: data.headline,
-              subheadline: data.subheadline,
-              pitch: data.pitch,
-              bullets: data.bullets,
-            });
-          }
-        }}
-      />
+              setTimeout(() => {
+                setImageGenerationStatus("complete");
+                setIsGeneratingAICover(false);
+              }, 15000);
+            } else {
+              update({
+                headline: data.headline,
+                subheadline: data.subheadline,
+                pitch: data.pitch,
+                bullets: data.bullets,
+              });
+            }
+          }}
+        />
+      )}
 
       {page && (
         <SocialCardModal
