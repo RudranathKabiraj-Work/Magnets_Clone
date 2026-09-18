@@ -48,7 +48,9 @@ interface MagnetCardProps {
   page: MagnetPage;
   index: number;
   isSelected: boolean;
+  isChecked: boolean;
   onSelect: (id: string) => void;
+  onToggleCheck: (id: string, e?: React.MouseEvent) => void;
   account: Account | null;
   copiedId: string | null;
   onCopyLink: (page: MagnetPage, e?: React.MouseEvent) => void;
@@ -59,7 +61,9 @@ const MagnetCard = React.memo(
     page,
     index,
     isSelected,
+    isChecked,
     onSelect,
+    onToggleCheck,
     account,
     copiedId,
     onCopyLink,
@@ -68,9 +72,11 @@ const MagnetCard = React.memo(
       <div
         onClick={() => onSelect(page.id)}
         style={{ animationDelay: `${Math.min(index * 15, 100)}ms` }}
-        className={`magnet-card-enter group relative rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col ${isSelected
-            ? "border-[#0066B2] dark:border-[#38BDF8] bg-white dark:bg-[#18181C] ring-2 ring-[#0066B2]/20 dark:ring-[#38BDF8]/20 shadow-md"
-            : "border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs"
+        className={`magnet-card-enter group relative rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col ${isChecked
+            ? "border-[#0066B2] dark:border-[#38BDF8] bg-white dark:bg-[#18181C] ring-2 ring-[#0066B2]/40 dark:ring-[#38BDF8]/40 shadow-md"
+            : isSelected
+              ? "border-[#0066B2]/80 dark:border-[#38BDF8]/80 bg-white dark:bg-[#18181C] ring-2 ring-[#0066B2]/20 dark:ring-[#38BDF8]/20 shadow-md"
+              : "border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-[#141417] hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs"
           }`}
       >
         {/* Image Thumbnail Container */}
@@ -91,7 +97,7 @@ const MagnetCard = React.memo(
             </div>
           )}
 
-          {/* Top Badges — solid bg instead of backdrop-blur for GPU efficiency */}
+          {/* Top Badges */}
           <div className="absolute top-3 left-3 flex items-center">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border ${page.status === "live"
@@ -103,6 +109,19 @@ const MagnetCard = React.memo(
               {page.status === "live" ? "Published" : "Draft"}
             </span>
           </div>
+
+          {/* Checkbox for Bulk Multi-Selection */}
+          <button
+            type="button"
+            onClick={(e) => onToggleCheck(page.id, e)}
+            className={`absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-lg border transition-all z-10 cursor-pointer ${isChecked
+                ? "bg-[#0066B2] border-[#0066B2] text-white shadow-md scale-105"
+                : "bg-white/90 dark:bg-black/70 border-zinc-300 dark:border-zinc-700 text-transparent hover:border-[#0066B2] dark:hover:border-[#38BDF8]"
+              }`}
+            title={isChecked ? "Deselect magnet" : "Select magnet"}
+          >
+            <Check className={`h-3.5 w-3.5 stroke-[3px] ${isChecked ? "opacity-100" : "opacity-0"}`} />
+          </button>
         </div>
 
         {/* Content Section */}
@@ -134,9 +153,9 @@ const MagnetCard = React.memo(
       </div>
     );
   },
-  // Custom comparison: only re-render if isSelected, the page data, or copiedId changed
   (prev, next) =>
     prev.isSelected === next.isSelected &&
+    prev.isChecked === next.isChecked &&
     prev.page === next.page &&
     prev.copiedId === next.copiedId
 );
@@ -154,8 +173,12 @@ export default function PagesPage() {
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Modal State for 'Delete Magnet' custom confirmation popup
+  // Multi-Selection State for Bulk Actions (Option A)
+  const [checkedIds, setCheckedIds] = useState<string[]>([]);
+
+  // Modal State for 'Delete Magnet' single & bulk custom confirmation popups
   const [pageToDeleteId, setPageToDeleteId] = useState<string | null>(null);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
   // Modal State for 'Create a magnet' popup
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -217,7 +240,6 @@ export default function PagesPage() {
   }, [selectedPageId, pages, filtered]);
 
   useEffect(() => {
-
     const localPages = loadPages();
     const localAccount = loadAccount();
     if (localPages.length > 0) {
@@ -261,7 +283,7 @@ export default function PagesPage() {
   }, [filtered, selectedPageId]);
 
   useEffect(() => {
-    if (showCreateModal) {
+    if (showCreateModal || showBulkDeleteModal || pageToDeleteId) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -269,10 +291,26 @@ export default function PagesPage() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [showCreateModal]);
+  }, [showCreateModal, showBulkDeleteModal, pageToDeleteId]);
 
-  // Stable callback — useCallback ensures MagnetCard's React.memo comparison works.
-  // Without this, a new function reference every render would bust the memo.
+  // Multi-select toggle helpers
+  const handleToggleCheck = useCallback((id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setCheckedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+  }, []);
+
+  const handleToggleSelectAll = useCallback(() => {
+    if (filtered.length === 0) return;
+    const allFilteredIds = filtered.map((p) => p.id);
+    const isAllChecked = allFilteredIds.every((id) => checkedIds.includes(id));
+    if (isAllChecked) {
+      setCheckedIds((prev) => prev.filter((id) => !allFilteredIds.includes(id)));
+    } else {
+      setCheckedIds((prev) => Array.from(new Set([...prev, ...allFilteredIds])));
+    }
+  }, [filtered, checkedIds]);
+
+  // Single Page deletion
   const handleSelectPage = useCallback((id: string) => {
     setSelectedPageId(id);
   }, []);
@@ -288,12 +326,29 @@ export default function PagesPage() {
     const next = pages.filter((p) => p.id !== id);
     setPages(next);
     deletePage(id);
+    setCheckedIds((prev) => prev.filter((i) => i !== id));
     if (selectedPageId === id) {
       setSelectedPageId(next[0]?.id || null);
     }
     setPageToDeleteId(null);
     router.refresh();
   }, [pageToDeleteId, pages, selectedPageId, router]);
+
+  // Bulk Deletion
+  const confirmBulkDeletion = useCallback(() => {
+    if (checkedIds.length === 0) return;
+    const remaining = pages.filter((p) => !checkedIds.includes(p.id));
+    setPages(remaining);
+    savePages(remaining);
+    checkedIds.forEach((id) => deletePage(id));
+
+    if (selectedPageId && checkedIds.includes(selectedPageId)) {
+      setSelectedPageId(remaining[0]?.id || null);
+    }
+    setCheckedIds([]);
+    setShowBulkDeleteModal(false);
+    router.refresh();
+  }, [checkedIds, pages, selectedPageId, router]);
 
   const handleCopyLink = useCallback((page: MagnetPage, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -475,6 +530,47 @@ export default function PagesPage() {
               </div>
             </div>
 
+            {/* Bulk Actions Floating Bar */}
+            {checkedIds.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                className="flex items-center justify-between rounded-xl border border-[#0066B2]/30 bg-[#0066B2]/10 dark:bg-[#0066B2]/15 px-4 py-2.5 text-xs shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-bold text-[#0066B2] dark:text-[#38BDF8]">
+                    {checkedIds.length} lead magnet{checkedIds.length > 1 ? "s" : ""} selected
+                  </span>
+                  <button
+                    onClick={handleToggleSelectAll}
+                    className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-300 hover:underline cursor-pointer"
+                  >
+                    {filtered.length > 0 && filtered.every((p) => checkedIds.includes(p.id))
+                      ? "Deselect All"
+                      : "Select All"}
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCheckedIds([])}
+                    className="px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-[#1A1A1E] font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                  >
+                    Clear Selection
+                  </button>
+
+                  <button
+                    onClick={() => setShowBulkDeleteModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold transition shadow-xs cursor-pointer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Delete Selected ({checkedIds.length})</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
             {/* List / Grid Display */}
             <AnimatePresence mode="popLayout">
               {filtered.length === 0 ? (
@@ -517,7 +613,9 @@ export default function PagesPage() {
                         page={page}
                         index={index}
                         isSelected={selectedPageId === page.id}
+                        isChecked={checkedIds.includes(page.id)}
                         onSelect={handleSelectPage}
+                        onToggleCheck={handleToggleCheck}
                         account={account}
                         copiedId={copiedId}
                         onCopyLink={handleCopyLink}
@@ -538,6 +636,14 @@ export default function PagesPage() {
                   <table className="w-full text-left text-xs text-zinc-600 dark:text-zinc-400">
                     <thead className="bg-zinc-50/80 dark:bg-[#1A1A1E] text-zinc-400 dark:text-zinc-500 uppercase font-semibold text-[10px] tracking-wider border-b border-zinc-200/80 dark:border-zinc-800">
                       <tr>
+                        <th className="px-3 py-3 w-10 text-center">
+                          <input
+                            type="checkbox"
+                            checked={filtered.length > 0 && filtered.every((p) => checkedIds.includes(p.id))}
+                            onChange={handleToggleSelectAll}
+                            className="rounded border-zinc-300 dark:border-zinc-700 text-[#0066B2] focus:ring-[#0066B2] cursor-pointer"
+                          />
+                        </th>
                         <th className="px-4 py-3">Lead Magnet</th>
                         <th className="px-4 py-3">Status</th>
                         <th className="px-4 py-3 text-right">Views</th>
@@ -548,15 +654,26 @@ export default function PagesPage() {
                     <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
                       {paginatedItems.map((page) => {
                         const isSelected = activePage?.id === page.id;
+                        const isChecked = checkedIds.includes(page.id);
                         return (
                           <tr
                             key={page.id}
                             onClick={() => setSelectedPageId(page.id)}
-                            className={`cursor-pointer transition ${isSelected
-                              ? "bg-[#EFF6FF]/60 dark:bg-[#0066B2]/10"
-                              : "hover:bg-zinc-50 dark:hover:bg-[#1A1A1E]/50"
+                            className={`cursor-pointer transition ${isChecked
+                                ? "bg-[#0066B2]/10 dark:bg-[#0066B2]/20"
+                                : isSelected
+                                  ? "bg-[#EFF6FF]/60 dark:bg-[#0066B2]/10"
+                                  : "hover:bg-zinc-50 dark:hover:bg-[#1A1A1E]/50"
                               }`}
                           >
+                            <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => handleToggleCheck(page.id, e as any)}
+                                className="rounded border-zinc-300 dark:border-zinc-700 text-[#0066B2] focus:ring-[#0066B2] cursor-pointer"
+                              />
+                            </td>
                             <td className="px-4 py-3 font-semibold text-zinc-900 dark:text-white">
                               <div className="flex items-center gap-3">
                                 <div className="relative h-9 w-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 shrink-0 overflow-hidden flex items-center justify-center">
@@ -1004,6 +1121,65 @@ export default function PagesPage() {
                 className="rounded-xl border border-rose-500/30 bg-rose-500/15 px-4 py-2.5 text-xs font-bold text-rose-400 hover:bg-rose-500 hover:text-white transition-all cursor-pointer shadow-sm"
               >
                 Delete magnet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 'Delete selected magnets?' Bulk Confirmation Modal */}
+      {showBulkDeleteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 transition-all duration-200 animate-in fade-in duration-150"
+          onClick={() => setShowBulkDeleteModal(false)}
+        >
+          <div
+            className="relative w-full max-w-[440px] rounded-3xl border border-zinc-800 bg-[#18181B] p-6 text-white shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with Danger Warning Icon */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white tracking-tight">
+                  Delete {checkedIds.length} lead magnet{checkedIds.length > 1 ? "s" : ""}?
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowBulkDeleteModal(false)}
+                className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Description Text */}
+            <div className="space-y-2 pt-1 text-xs leading-relaxed text-zinc-400">
+              <p>
+                This will permanently delete the <span className="font-bold text-white">{checkedIds.length}</span> selected lead magnet{checkedIds.length > 1 ? "s" : ""} and stop serving them on their URLs. Any signups already collected will stay on your list.
+              </p>
+              <p className="text-zinc-500 font-medium">
+                This action cannot be undone.
+              </p>
+            </div>
+
+            {/* Modal Action Buttons */}
+            <div className="pt-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowBulkDeleteModal(false)}
+                className="rounded-xl border border-zinc-800 bg-[#25252A] px-4 py-2.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmBulkDeletion}
+                className="rounded-xl border border-rose-500/30 bg-rose-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-rose-700 transition-all cursor-pointer shadow-sm"
+              >
+                Delete {checkedIds.length} magnet{checkedIds.length > 1 ? "s" : ""}
               </button>
             </div>
           </div>
