@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Loader2, ImageIcon, Trash2, Plus, X } from "lucide-react";
+import { Check, Loader2, ImageIcon, Trash2, Plus, X, Sparkles } from "lucide-react";
 import { type TemplateProps } from "./types";
 
 export default function Template1(props: TemplateProps) {
@@ -7,7 +7,8 @@ export default function Template1(props: TemplateProps) {
     account,
     headline,
     subheadline,
-    bullets,
+    pitch,
+    bullets = [],
     bulletsTitle,
     formTitle,
     formSubtitle,
@@ -17,371 +18,439 @@ export default function Template1(props: TemplateProps) {
     setCustomFormFields,
     fileInputRef,
     uploadProgress,
-    handleImageUpload,
+    isGeneratingAICover,
+    handleGenerateAICoverImage,
     headlineRef,
     subheadlineRef,
+    pitchRef,
     setHeadline,
     setSubheadline,
+    setPitch,
+    setBullets,
     setBulletsTitle,
     setFormTitle,
     setFormSubtitle,
-    setBullets,
     setImageUrl,
     setFormButtonText,
-    isEditor = true,
+    mode = "editor",
     isSubmitting = false,
     publicFormValues = {},
     setPublicFormValues,
     onSubmitPublicForm,
   } = props as any;
 
+  const isEditor = mode === "editor";
   const brandColor = account?.brandColor || "#0066B2";
   const themeMode = account?.themeMode || "light";
+  const highlightIntensity = account?.highlightIntensity ?? 100;
   const isDark = themeMode === "dark";
+
+  const getHeadlineFontSize = (text: string) => {
+    const len = text ? text.length : 0;
+    if (len > 60) return "text-base sm:text-lg md:text-xl font-bold";
+    if (len > 35) return "text-lg sm:text-xl md:text-2xl font-extrabold";
+    return "text-xl sm:text-2xl md:text-3xl font-black";
+  };
+
+  const handleBulletChange = (index: number, value: string) => {
+    if (!setBullets) return;
+    const next = [...bullets];
+    next[index] = value;
+    setBullets(next);
+  };
+
+  const handleAddBullet = () => {
+    if (!setBullets) return;
+    setBullets([...bullets, ""]);
+  };
+
+  const handleRemoveBullet = (index: number) => {
+    if (!setBullets) return;
+    setBullets(bullets.filter((_: any, i: number) => i !== index));
+  };
+
+  const displayBullets: string[] =
+    bullets && bullets.length > 0
+      ? bullets
+      : [
+          "101 fill-in-the-blank templates for every content scenario",
+          "Proven structures for storytelling, advice, and transformation posts",
+          "Ready-to-use formats that let you focus on your message",
+        ];
+
 
   return (
     <div
-      className="mx-auto max-w-6xl rounded-3xl overflow-hidden transition-all duration-300 relative"
+      className={`mx-auto max-w-6xl rounded-2xl border p-6 md:p-8 shadow-2xl transition-all duration-300 backdrop-blur-md relative ${
+        isDark ? "text-white" : "text-zinc-900"
+      }`}
       style={{
-        padding: "2px",
-        background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}55 50%, ${brandColor} 100%)`,
-        boxShadow: `0 30px 80px -16px ${brandColor}${Math.round((0.3 + ((account?.highlightIntensity ?? 100) / 100) * 0.4) * 255).toString(16).padStart(2, '0')}`,
+        borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.65) * 255).toString(16).padStart(2, "0")}`,
+        boxShadow:
+          highlightIntensity > 10
+            ? `0 16px 40px -10px ${brandColor}${Math.round((highlightIntensity / 100) * 0.45 * 255).toString(16).padStart(2, "0")}`
+            : "0 4px 12px rgba(0,0,0,0.05)",
+        background: isDark
+          ? `linear-gradient(135deg, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, "0")} 0%, rgba(18, 18, 20, 0.85) 50%)`
+          : `linear-gradient(135deg, ${brandColor}${Math.round((0.02 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, "0")} 0%, rgba(255, 255, 255, 0.85) 50%)`,
       }}
     >
-      <div
-        className="rounded-[22px] overflow-hidden relative"
-        style={{ background: isDark ? "#0b0b10" : "#ffffff", minHeight: "460px" }}
-      >
-        {/* Upload progress overlay */}
-        {uploadProgress !== null && uploadProgress !== undefined && (
-          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 text-center text-white rounded-[22px]">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#0066B2] dark:text-[#38BDF8]">
-              {uploadProgress === 100 ? (
-                <Check className="h-6 w-6 text-emerald-400" />
-              ) : (
-                <Loader2 className="h-6 w-6 animate-spin text-[#0066B2] dark:text-[#38BDF8]" />
-              )}
-            </div>
-            <p className="text-sm font-bold">
-              {uploadProgress === 100 ? "Image uploaded!" : "Uploading cover image..."}
-            </p>
-            <div className="mt-3 w-full max-w-xs overflow-hidden rounded-full bg-zinc-800 p-0.5 border border-zinc-700">
-              <div
-                className="h-2 rounded-full bg-gradient-to-r from-[#0066B2] via-sky-400 to-emerald-400 transition-all duration-200"
-                style={{ width: `${uploadProgress}%` }}
-              />
-            </div>
-            <span className="mt-1 font-mono text-xs text-zinc-300 font-bold">{uploadProgress}%</span>
-          </div>
-        )}
-
-        <div className="flex flex-col md:flex-row" style={{ minHeight: "460px" }}>
-          {/* LEFT: Image panel */}
-          <div className="relative md:w-[55%] h-52 md:h-auto overflow-hidden flex-shrink-0">
-            {imageUrl && imageUrl.trim() !== "" ? (
-              <img src={imageUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
+      {/* Upload progress overlay */}
+      {uploadProgress !== null && uploadProgress !== undefined && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 text-center text-white rounded-2xl">
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#0066B2] dark:text-[#38BDF8]">
+            {uploadProgress === 100 ? (
+              <Check className="h-6 w-6 text-emerald-400" />
             ) : (
-              <div
-                className="absolute inset-0 w-full h-full"
-                style={{ background: `linear-gradient(155deg, ${brandColor}99 0%, #060610 55%, #12001a 100%)` }}
-              >
-                <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-                  {[160, 110, 66, 32].map((size, i) => (
-                    <div key={i} className="absolute rounded-full border border-white" style={{ width: size, height: size, opacity: 1 - i * 0.2 }} />
-                  ))}
-                </div>
-              </div>
+              <Loader2 className="h-6 w-6 animate-spin text-[#0066B2] dark:text-[#38BDF8]" />
             )}
-            {/* Scrim overlays */}
-            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.4) 100%)" }} />
-            <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)" }} />
+          </div>
+          <p className="text-sm font-bold">
+            {uploadProgress === 100 ? "Image uploaded!" : "Uploading cover image..."}
+          </p>
+          <div className="mt-3 w-full max-w-xs overflow-hidden rounded-full bg-zinc-800 p-0.5 border border-zinc-700">
+            <div
+              className="h-2 rounded-full bg-gradient-to-r from-[#0066B2] via-sky-400 to-emerald-400 transition-all duration-200"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+          <span className="mt-1 font-mono text-xs text-zinc-300 font-bold">{uploadProgress}%</span>
+        </div>
+      )}
 
-            {/* Overlaid content */}
-            <div className="absolute inset-0 flex flex-col justify-between p-5 z-10 pointer-events-auto">
-              {/* Top: Image action buttons (Editor Mode only) */}
-              {isEditor ? (
-                <div className="flex items-center justify-start gap-2 max-w-[260px]">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef?.current?.click()}
-                    className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-black px-3.5 py-1.5 text-xs font-bold text-white shadow-xl border border-white/30 backdrop-blur-md transition cursor-pointer"
-                  >
-                    <ImageIcon className="h-3.5 w-3.5 text-sky-400" />
-                    <span>{imageUrl ? "Replace Image" : "Add Image"}</span>
-                  </button>
-                  {imageUrl && setImageUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setImageUrl(null)}
-                      className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-red-950 px-3 py-1.5 text-xs font-bold text-red-400 shadow-xl border border-white/30 backdrop-blur-md transition cursor-pointer"
-                      title="Remove cover image"
-                    >
-                      <Trash2 className="h-3.5 w-3.5 text-red-400" />
-                      <span>Remove</span>
-                    </button>
-                  )}
-                </div>
-              ) : <div />}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+        {/* LEFT COLUMN: Content & Bullets (~58% / 7 cols) */}
+        <div className="md:col-span-7 flex flex-col justify-between h-full py-1 space-y-4">
+          <div className="space-y-3">
+            {/* Headline */}
+            {isEditor ? (
+              <textarea
+                ref={headlineRef}
+                rows={1}
+                value={headline || ""}
+                onChange={(e) => {
+                  setHeadline?.(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+                className={`w-full ${getHeadlineFontSize(headline || "")} bg-transparent outline-none resize-none leading-tight tracking-tight ${
+                  isDark ? "text-white placeholder:text-zinc-600" : "text-zinc-900 placeholder:text-zinc-400"
+                }`}
+                placeholder="101 Winning Viral Templates That Get Results"
+              />
+            ) : (
+              <h1 className={`${getHeadlineFontSize(headline || "")} leading-tight tracking-tight`}>
+                {headline || "101 Winning Viral Templates That Get Results"}
+              </h1>
+            )}
 
-              {/* Bottom: headline + subheadline */}
-              <div className="space-y-2 max-w-[85%] sm:max-w-[340px]">
-                {isEditor ? (
-                  <>
-                    <textarea
-                      ref={headlineRef}
-                      rows={1}
-                      value={headline || ""}
-                      onChange={(e) => {
-                        setHeadline?.(e.target.value);
-                        e.target.style.height = "auto";
-                        e.target.style.height = `${e.target.scrollHeight}px`;
-                      }}
-                      className="w-full text-2xl sm:text-3xl font-black text-white bg-transparent outline-none resize-none leading-tight drop-shadow-2xl"
-                      placeholder="Your headline here"
-                    />
-                    <textarea
-                      ref={subheadlineRef}
-                      rows={1}
-                      value={subheadline || ""}
-                      onChange={(e) => {
-                        setSubheadline?.(e.target.value);
-                        e.target.style.height = "auto";
-                        e.target.style.height = `${e.target.scrollHeight}px`;
-                      }}
-                      className="w-full text-xs sm:text-sm font-medium text-white/75 bg-transparent outline-none resize-none leading-relaxed drop-shadow-md"
-                      placeholder="Your subheadline"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow-2xl">
-                      {headline || "Free Resource"}
-                    </h1>
-                    {subheadline && (
-                      <p className="text-xs sm:text-sm font-medium text-white/75 leading-relaxed drop-shadow-md">
-                        {subheadline}
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
+            {/* Subheadline */}
+            {isEditor ? (
+              <textarea
+                ref={subheadlineRef}
+                rows={1}
+                value={subheadline || ""}
+                onChange={(e) => {
+                  setSubheadline?.(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+                className={`w-full text-sm font-semibold leading-relaxed bg-transparent outline-none resize-none ${
+                  isDark ? "text-zinc-300 placeholder:text-zinc-600" : "text-zinc-700 placeholder:text-zinc-400"
+                }`}
+                placeholder="Stop staring at a blank page. Start creating content that actually connects."
+              />
+            ) : (
+              subheadline && (
+                <p className={`text-sm font-semibold leading-relaxed ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
+                  {subheadline}
+                </p>
+              )
+            )}
+
+            {/* Pitch */}
+            {isEditor ? (
+              <textarea
+                ref={pitchRef}
+                rows={2}
+                value={pitch || ""}
+                onChange={(e) => {
+                  setPitch?.(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+                className={`w-full text-xs leading-relaxed bg-transparent outline-none resize-none ${
+                  isDark ? "text-zinc-400 placeholder:text-zinc-600" : "text-zinc-500 placeholder:text-zinc-400"
+                }`}
+                placeholder="You know what works on LinkedIn. You've seen the posts that blow up..."
+              />
+            ) : (
+              pitch && (
+                <p className={`text-xs leading-relaxed ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
+                  {pitch}
+                </p>
+              )
+            )}
           </div>
 
-          {/* RIGHT: Form panel */}
-          <div
-            className="relative md:w-[45%] flex flex-col justify-center p-5 md:p-6 space-y-3"
-            style={{
-              borderLeft: `1px solid ${isDark ? `${brandColor}30` : `${brandColor}20`}`,
-            }}
-          >
-            <div className="space-y-0.5">
-              {isEditor ? (
-                <>
-                  <input
-                    type="text"
-                    value={bulletsTitle || ""}
-                    onChange={(e) => setBulletsTitle?.(e.target.value)}
-                    className="w-full text-[10px] font-black uppercase tracking-[0.2em] bg-transparent outline-none"
-                    style={{ color: brandColor }}
-                    placeholder="Category / Tag"
-                  />
-                  <input
-                    type="text"
-                    value={formTitle || ""}
-                    onChange={(e) => setFormTitle?.(e.target.value)}
-                    className={`w-full text-base font-black bg-transparent outline-none ${isDark ? "text-white placeholder:text-zinc-600" : "text-zinc-900 placeholder:text-zinc-400"}`}
-                    placeholder="Form Title"
-                  />
-                  <input
-                    type="text"
-                    value={formSubtitle || ""}
-                    onChange={(e) => setFormSubtitle?.(e.target.value)}
-                    className={`w-full text-xs bg-transparent outline-none ${isDark ? "text-zinc-400 placeholder:text-zinc-600" : "text-zinc-500 placeholder:text-zinc-400"}`}
-                    placeholder="Form Subtitle"
-                  />
-                </>
-              ) : (
-                <>
-                  {bulletsTitle && (
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] block" style={{ color: brandColor }}>
-                      {bulletsTitle}
-                    </span>
-                  )}
-                  <h2 className={`text-base font-black ${isDark ? "text-white" : "text-zinc-900"}`}>
-                    {formTitle || "Claim Your Copy"}
-                  </h2>
-                  {formSubtitle && (
-                    <p className={`text-xs ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
-                      {formSubtitle}
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
+          {/* Bullets Section */}
+          <div className="space-y-3 pt-2">
+            {isEditor ? (
+              <input
+                type="text"
+                value={bulletsTitle || ""}
+                onChange={(e) => setBulletsTitle?.(e.target.value)}
+                className="w-full text-xs font-bold uppercase tracking-wider text-[#9B9085] bg-transparent outline-none"
+                placeholder="This playbook breaks down:"
+              />
+            ) : (
+              <p className="text-xs font-bold uppercase tracking-wider text-[#9B9085]">
+                {bulletsTitle || "This playbook breaks down:"}
+              </p>
+            )}
 
-            {/* Divider */}
-            <div className="flex items-center gap-2">
-              <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${brandColor}44, transparent)` }} />
-              <span className={`text-[8px] font-bold uppercase tracking-widest ${isDark ? "text-zinc-600" : "text-zinc-400"}`}>Sign Up Free</span>
-              <div className="h-px flex-1" style={{ background: `linear-gradient(to left, ${brandColor}44, transparent)` }} />
-            </div>
+            <ul className="space-y-2.5">
+              {displayBullets.map((item: string, idx: number) => (
+                <li key={idx} className="flex items-center gap-2 text-xs group">
+                  <span
+                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-300"
+                    style={{
+                      backgroundColor: brandColor,
+                      opacity: 0.5 + (highlightIntensity / 100) * 0.5,
+                      boxShadow:
+                        highlightIntensity > 30
+                          ? `0 0 ${Math.round(14 * (highlightIntensity / 100))}px ${brandColor}${Math.round(
+                              (highlightIntensity / 100) * 0.8 * 255
+                            ).toString(16).padStart(2, "0")}`
+                          : "none",
+                    }}
+                  >
+                    <Check className="h-3 w-3 text-white stroke-[3px]" />
+                  </span>
 
-            {/* Bullets */}
-            <div className="space-y-1.5 pt-1">
-              {bullets && bullets.length > 0 ? (
-                <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
-                  {bullets.map((item: string, idx: number) => (
-                    <div key={idx} className="group flex items-start gap-2">
-                      <div className="flex h-3.5 w-3.5 shrink-0 mt-0.5 items-center justify-center rounded-full" style={{ backgroundColor: `${brandColor}22`, border: `1px solid ${brandColor}55` }}>
-                        <svg width="6" height="6" viewBox="0 0 6 6" fill="none"><path d="M1 3l1.5 1.5L5 1.5" stroke={brandColor} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      </div>
-                      {isEditor ? (
-                        <>
-                          <input
-                            type="text"
-                            value={item}
-                            onChange={(e) => {
-                              if (!bullets || !setBullets) return;
-                              const u = [...bullets];
-                              u[idx] = e.target.value;
-                              setBullets(u);
-                            }}
-                            placeholder={`Bullet point ${idx + 1}`}
-                            className={`w-full bg-transparent outline-none text-xs leading-relaxed ${isDark ? "text-zinc-300 placeholder:text-zinc-600" : "text-zinc-600 placeholder:text-zinc-400"}`}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setBullets?.(bullets.filter((_: any, i: number) => i !== idx))}
-                            className="text-zinc-400 hover:text-red-400 transition cursor-pointer p-0.5 shrink-0"
-                            title="Remove bullet"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </>
-                      ) : (
-                        <span className={`text-xs leading-relaxed ${isDark ? "text-zinc-300" : "text-zinc-600"}`}>
-                          {item}
-                        </span>
+                  {isEditor ? (
+                    <div className="flex-1 flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={item}
+                        onChange={(e) => handleBulletChange(idx, e.target.value)}
+                        className={`flex-1 text-xs bg-transparent outline-none py-0.5 border-b border-transparent focus:border-zinc-400 ${
+                          isDark ? "text-zinc-300" : "text-zinc-700"
+                        }`}
+                        placeholder="Key takeaway or feature bullet..."
+                      />
+                      {displayBullets.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveBullet(idx)}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-zinc-400 hover:text-red-500 transition cursor-pointer"
+                          title="Remove bullet"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
                       )}
                     </div>
-                  ))}
-                </div>
-              ) : isEditor ? (
-                <p className="text-[10px] italic text-zinc-400 my-0.5">
-                  No bullets yet. click + to add one.
-                </p>
-              ) : null}
+                  ) : (
+                    <span className={isDark ? "text-zinc-300" : "text-zinc-700"}>
+                      {item}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
 
-              {isEditor && setBullets && (
-                <button
-                  type="button"
-                  onClick={() => setBullets([...(bullets || []), ""])}
-                  className="inline-flex items-center gap-1 rounded-full border border-zinc-700/60 bg-black/40 hover:bg-black/80 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-md transition cursor-pointer mt-1"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Add bullet</span>
-                </button>
-              )}
-            </div>
+            {isEditor && (
+              <button
+                type="button"
+                onClick={handleAddBullet}
+                className="flex items-center gap-1.5 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline pt-1 cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add key bullet point
+              </button>
+            )}
+          </div>
+        </div>
 
-            {/* Form fields */}
-            {isEditor ? (
-              <div className="space-y-2">
-                {[{ icon: "name", placeholder: "Full name", type: "text" }, { icon: "email", placeholder: "Email address", type: "email" }].map(({ icon, placeholder, type }) => (
-                  <div key={icon} className="flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "#f4f5f8", border: `1px solid ${isDark ? `${brandColor}22` : `${brandColor}20`}` }}>
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0">
-                      {icon === "name" ? <><circle cx="6" cy="4" r="2.5" stroke={brandColor} strokeWidth="1.4" /><path d="M1.5 10.5C1.5 8.567 3.567 7 6 7s4.5 1.567 4.5 3.5" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" /></> : <><rect x="1" y="2.5" width="10" height="7" rx="1.5" stroke={brandColor} strokeWidth="1.4" /><path d="M1 4l5 3.5L11 4" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" /></>}
-                    </svg>
-                    <input type={type} placeholder={placeholder} readOnly className={`w-full bg-transparent text-[11px] outline-none pointer-events-none ${isDark ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`} />
-                  </div>
-                ))}
-                {customFormFields.map((field: any) => (
-                  <div key={field.id} className="relative flex items-center justify-between gap-2 rounded-xl px-3 py-2.5" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "#f4f5f8", border: `1px solid ${brandColor}22` }}>
-                    <input type="text" placeholder={field.placeholder || field.label} readOnly className={`w-full bg-transparent text-[11px] outline-none pointer-events-none ${isDark ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`} />
-                    {setCustomFormFields && (
+        {/* RIGHT COLUMN: Cover Image + Form Card (~42% / 5 cols) */}
+        <div className="md:col-span-5 space-y-4 flex flex-col justify-between">
+          {/* Cover Image */}
+          <div className="relative rounded-xl border aspect-[16/11] w-full overflow-hidden shadow-xs border-zinc-200 dark:border-zinc-800/80 bg-zinc-100 dark:bg-[#121215] group">
+            {imageUrl && imageUrl.trim() !== "" ? (
+              <>
+                <img src={imageUrl} alt="Lead magnet media" className="w-full h-full object-cover" />
+                {isEditor && (
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-3">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef?.current?.click()}
+                      className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-black px-3 py-1.5 text-xs font-bold text-white shadow-xl border border-white/30 backdrop-blur-md transition cursor-pointer"
+                    >
+                      <ImageIcon className="h-3.5 w-3.5 text-sky-400" /> Replace
+                    </button>
+                    {setImageUrl && (
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCustomFormFields((prev: any[]) => prev.filter(f => f.id !== field.id));
-                        }}
-                        className="h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer hover:bg-red-600 transition shadow-xs"
-                        title="Delete field"
+                        onClick={() => setImageUrl(null)}
+                        className="flex items-center gap-1.5 rounded-xl bg-black/80 hover:bg-red-950 px-2.5 py-1.5 text-xs font-bold text-red-400 shadow-xl border border-white/30 backdrop-blur-md transition cursor-pointer"
                       >
-                        -
+                        <Trash2 className="h-3.5 w-3.5" /> Remove
                       </button>
                     )}
                   </div>
-                ))}
+                )}
+              </>
+            ) : (
+              <div
+                className="w-full h-full flex flex-col items-center justify-center p-4 text-center transition-all duration-300"
+                style={{
+                  borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.5) * 255).toString(16).padStart(2, "0")}`,
+                  backgroundColor: `${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, "0")}`,
+                }}
+              >
+                <ImageIcon className="h-8 w-8 mb-2 opacity-50" style={{ color: brandColor }} />
+                <p className="text-xs font-bold mb-3 text-zinc-500 dark:text-zinc-400">Cover Media Preview</p>
+
+                {isEditor && (
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef?.current?.click()}
+                      className="flex items-center gap-1 rounded-lg bg-[#0066B2] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#005799] transition shadow-xs cursor-pointer"
+                    >
+                      <ImageIcon className="h-3 w-3" /> Upload Image
+                    </button>
+                    {handleGenerateAICoverImage && (
+                      <button
+                        type="button"
+                        disabled={isGeneratingAICover}
+                        onClick={handleGenerateAICoverImage}
+                        className="flex items-center gap-1 rounded-lg border border-purple-500/30 bg-purple-500/10 px-3 py-1.5 text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 transition cursor-pointer disabled:opacity-50"
+                      >
+                        {isGeneratingAICover ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                        {isGeneratingAICover ? "Generating..." : "AI Image"}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Form Card */}
+          <div
+            className={`rounded-xl border p-4 transition-all duration-300 backdrop-blur-sm flex flex-col justify-between space-y-3 ${
+              isDark ? "text-white" : "text-zinc-900"
+            }`}
+            style={{
+              borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.55) * 255).toString(16).padStart(2, "0")}`,
+              boxShadow:
+                highlightIntensity > 20
+                  ? `0 8px 24px -4px ${brandColor}${Math.round((highlightIntensity / 100) * 0.35 * 255).toString(16).padStart(2, "0")}`
+                  : "0 2px 8px rgba(0,0,0,0.05)",
+              background: isDark
+                ? `linear-gradient(135deg, ${brandColor}${Math.round((0.08 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, "0")} 0%, rgba(22, 22, 25, 0.95) 60%)`
+                : `linear-gradient(135deg, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, "0")} 0%, rgba(255, 255, 255, 0.95) 60%)`,
+            }}
+          >
+            <div>
+              {/* Form Title */}
+              {isEditor ? (
                 <input
                   type="text"
-                  value={formButtonText || ""}
-                  onChange={(e) => setFormButtonText?.(e.target.value)}
-                  onFocus={(e) => {
-                    if (e.target.value === "Send it to me" || e.target.value === "Unlock Free Access") {
-                      setFormButtonText?.("");
-                    } else {
-                      e.target.select();
-                    }
-                  }}
-                  onBlur={(e) => {
-                    if (!e.target.value.trim()) {
-                      setFormButtonText?.("Send it to me");
-                    }
-                  }}
-                  placeholder="Send it to me"
-                  className="w-full text-center rounded-xl py-3 px-4 text-xs font-black text-white cursor-text outline-none border-2 border-transparent hover:border-white/40 focus:border-white transition duration-150"
-                  style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}bb 100%)`, boxShadow: `0 0 24px -4px ${brandColor}88, 0 4px 12px rgba(0,0,0,0.2)` }}
+                  value={formTitle || ""}
+                  onChange={(e) => setFormTitle?.(e.target.value)}
+                  className={`w-full text-base font-bold text-center bg-transparent outline-none ${
+                    isDark ? "text-white placeholder:text-zinc-600" : "text-zinc-900 placeholder:text-zinc-400"
+                  }`}
+                  placeholder="Download for free now"
                 />
-              </div>
-            ) : (
-              <form onSubmit={onSubmitPublicForm} className="space-y-2">
-                <div className="flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "#f4f5f8", border: `1px solid ${isDark ? `${brandColor}22` : `${brandColor}20`}` }}>
-                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0">
-                    <circle cx="6" cy="4" r="2.5" stroke={brandColor} strokeWidth="1.4" /><path d="M1.5 10.5C1.5 8.567 3.567 7 6 7s4.5 1.567 4.5 3.5" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" />
-                  </svg>
+              ) : (
+                <p className="text-base font-bold text-center">{formTitle || "Download for free now"}</p>
+              )}
+
+              {/* Form Subtitle */}
+              {isEditor ? (
+                <input
+                  type="text"
+                  value={formSubtitle || ""}
+                  onChange={(e) => setFormSubtitle?.(e.target.value)}
+                  className={`w-full text-[11px] text-center mt-0.5 bg-transparent outline-none ${
+                    isDark ? "text-zinc-400 placeholder:text-zinc-600" : "text-zinc-500 placeholder:text-zinc-400"
+                  }`}
+                  placeholder="By opting in you consent to receive this resource by email."
+                />
+              ) : (
+                <p className={`text-[11px] text-center mt-1 leading-normal ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
+                  {formSubtitle || "By opting in you consent to receive this resource by email."}
+                </p>
+              )}
+            </div>
+
+            {/* Inputs & Form Button */}
+            {isEditor ? (
+              <div className="space-y-2 pt-1">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  className={`w-full rounded-md border p-2 text-xs focus:outline-none transition pointer-events-none select-none ${
+                    isDark ? "bg-[#0E0E10] border-[#252529] text-zinc-400" : "border-[#e4e4e7] text-zinc-400"
+                  }`}
+                  readOnly
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className={`w-full rounded-md border p-2 text-xs focus:outline-none transition pointer-events-none select-none ${
+                    isDark ? "bg-[#0E0E10] border-[#252529] text-zinc-400" : "border-[#e4e4e7] text-zinc-400"
+                  }`}
+                  readOnly
+                />
+
+                <div className="pt-1">
                   <input
                     type="text"
-                    required
-                    placeholder="Full name *"
-                    value={publicFormValues.name || ""}
-                    onChange={(e) => setPublicFormValues?.({ ...publicFormValues, name: e.target.value })}
-                    className={`w-full bg-transparent text-[11px] outline-none ${isDark ? "text-white placeholder:text-zinc-500" : "text-zinc-800 placeholder:text-zinc-400"}`}
+                    value={formButtonText || ""}
+                    onChange={(e) => setFormButtonText?.(e.target.value)}
+                    className="w-full rounded-md py-2.5 px-3 text-xs font-bold text-white text-center shadow-md transition outline-none"
+                    style={{ backgroundColor: brandColor }}
+                    placeholder="Send it to me"
                   />
                 </div>
-                <div className="flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "#f4f5f8", border: `1px solid ${isDark ? `${brandColor}22` : `${brandColor}20`}` }}>
-                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0">
-                    <rect x="1" y="2.5" width="10" height="7" rx="1.5" stroke={brandColor} strokeWidth="1.4" /><path d="M1 4l5 3.5L11 4" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" />
-                  </svg>
-                  <input
-                    type="email"
-                    required
-                    placeholder="Email address *"
-                    value={publicFormValues.email || ""}
-                    onChange={(e) => setPublicFormValues?.({ ...publicFormValues, email: e.target.value })}
-                    className={`w-full bg-transparent text-[11px] outline-none ${isDark ? "text-white placeholder:text-zinc-500" : "text-zinc-800 placeholder:text-zinc-400"}`}
-                  />
-                </div>
-                {customFormFields.map((field: any) => (
-                  <div key={field.id} className="flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "#f4f5f8", border: `1px solid ${brandColor}22` }}>
-                    <input
-                      type="text"
-                      required={field.required}
-                      placeholder={`${field.label}${field.required ? " *" : ""}`}
-                      value={publicFormValues[field.id] || ""}
-                      onChange={(e) => setPublicFormValues?.({ ...publicFormValues, [field.id]: e.target.value })}
-                      className={`w-full bg-transparent text-[11px] outline-none ${isDark ? "text-white placeholder:text-zinc-500" : "text-zinc-800 placeholder:text-zinc-400"}`}
-                    />
-                  </div>
-                ))}
+              </div>
+            ) : (
+              <form onSubmit={onSubmitPublicForm} className="space-y-2 pt-1">
+                <input
+                  type="text"
+                  required
+                  placeholder="Name"
+                  value={publicFormValues.name || ""}
+                  onChange={(e) => setPublicFormValues?.({ ...publicFormValues, name: e.target.value })}
+                  className={`w-full rounded-md border p-2 text-xs focus:outline-none transition ${
+                    isDark
+                      ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
+                      : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
+                  }`}
+                />
+                <input
+                  type="email"
+                  required
+                  placeholder="Email"
+                  value={publicFormValues.email || ""}
+                  onChange={(e) => setPublicFormValues?.({ ...publicFormValues, email: e.target.value })}
+                  className={`w-full rounded-md border p-2 text-xs focus:outline-none transition ${
+                    isDark
+                      ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
+                      : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
+                  }`}
+                />
+
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full text-center rounded-xl py-3 px-4 text-xs font-black text-white cursor-pointer outline-none border-2 border-transparent hover:border-white/40 transition duration-150 disabled:opacity-50"
-                  style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}bb 100%)`, boxShadow: `0 0 24px -4px ${brandColor}88, 0 4px 12px rgba(0,0,0,0.2)` }}
+                  className="w-full rounded-md py-2.5 text-xs font-bold text-white shadow-md transition cursor-pointer disabled:opacity-50"
+                  style={{ backgroundColor: brandColor }}
                 >
-                  {isSubmitting ? "Submitting..." : (formButtonText || "Send it to me")}
+                  {isSubmitting ? "Submitting..." : formButtonText || "Send it to me"}
                 </button>
               </form>
             )}
