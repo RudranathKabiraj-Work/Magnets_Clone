@@ -454,12 +454,18 @@ export default function DeliveryEmailTab({
                   <Link2 className="h-3.5 w-3.5" />
                 </button>
 
-                {/* Insert Line */}
+                {/* Insert Horizontal Divider */}
                 <button
                   type="button"
-                  onClick={() => editor?.chain().focus().setHorizontalRule().run()}
+                  onClick={() => {
+                    if (editor) {
+                      editor.chain().focus().setHorizontalRule().run();
+                    } else {
+                      setEmailBody((prev) => prev + "\n<hr />\n");
+                    }
+                  }}
                   title="Insert Horizontal Divider"
-                  className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
+                  className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer text-zinc-700 dark:text-zinc-200"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>

@@ -1146,3 +1146,14 @@ textarea {
   background-color: #0066B2;
   pointer-events: none;
 }
+
+/* ─── Tiptap Horizontal Divider (hr) Styling ───────────────────────────── */
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 24px 0;
+}
+
+.dark .ProseMirror hr {
+  border-top-color: #27272a;
+}
