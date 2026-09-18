@@ -315,9 +315,6 @@ export default function PagesPage() {
                 <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
                   Lead Magnet Control Center
                 </h1>
-                <span className="inline-flex items-center gap-1 rounded-full border border-[#0066B2]/30 bg-[#EFF6FF] px-2.5 py-0.5 text-[10px] font-bold text-[#0066B2] dark:border-[#0066B2]/40 dark:bg-[#0066B2]/15 dark:text-[#38BDF8]">
-                  <Sparkles className="h-3 w-3" /> PRO HUB
-                </span>
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                 Manage landing pages, live lead conversion performance, and direct distribution links.
