@@ -407,29 +407,15 @@ export default function Template1(props: TemplateProps) {
                 />
 
                 {customFormFields.map((field: any) => (
-                  <div key={field.id} className="relative flex items-center justify-between gap-2">
-                    <input
-                      type="text"
-                      placeholder={`${field.label || "New Field"}${field.required ? " *" : ""}`}
-                      readOnly
-                      className={`w-full rounded-md border p-2 text-xs focus:outline-none transition pointer-events-none select-none ${
-                        isDark ? "bg-[#0E0E10] border-[#252529] text-zinc-400" : "border-[#e4e4e7] text-zinc-400"
-                      }`}
-                    />
-                    {setCustomFormFields && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCustomFormFields((prev: any[]) => prev.filter(f => f.id !== field.id));
-                        }}
-                        className="h-5 w-5 rounded-full bg-red-500/80 hover:bg-red-600 text-white flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer transition shadow-xs"
-                        title="Delete field"
-                      >
-                        -
-                      </button>
-                    )}
-                  </div>
+                  <input
+                    key={field.id}
+                    type="text"
+                    placeholder={`${field.label || "New Field"}${field.required ? " *" : ""}`}
+                    readOnly
+                    className={`w-full rounded-md border p-2 text-xs focus:outline-none transition pointer-events-none select-none ${
+                      isDark ? "bg-[#0E0E10] border-[#252529] text-zinc-400" : "border-[#e4e4e7] text-zinc-400"
+                    }`}
+                  />
                 ))}
 
                 <div className="pt-1">

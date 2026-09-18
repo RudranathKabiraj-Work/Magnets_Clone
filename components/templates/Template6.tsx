@@ -284,27 +284,14 @@ export default function Template6(props: TemplateProps) {
                   {customFormFields.map((field: any) => (
                     <div
                       key={field.id}
-                      className={`relative flex items-center justify-between gap-2 rounded-xl px-3.5 py-2.5 bg-black/40 border border-white/10 ${field.type === "textarea" ? "col-span-1 md:col-span-2" : ""}`}
+                      className={`flex items-center gap-2 rounded-xl px-3.5 py-2.5 bg-black/40 border border-white/10 ${field.type === "textarea" ? "col-span-1 md:col-span-2" : ""}`}
                     >
                       <input
                         type="text"
-                        placeholder={`${field.label}${field.required ? " *" : ""}`}
+                        placeholder={`${field.label || "New Field"}${field.required ? " *" : ""}`}
                         readOnly
                         className="w-full bg-transparent text-xs outline-none pointer-events-none text-white placeholder:text-zinc-400"
                       />
-                      {setCustomFormFields && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCustomFormFields((prev: any[]) => prev.filter(f => f.id !== field.id));
-                          }}
-                          className="h-5 w-5 rounded-full bg-red-500/80 hover:bg-red-600 text-white flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer transition shadow-xs"
-                          title="Delete field"
-                        >
-                          -
-                        </button>
-                      )}
                     </div>
                   ))}
                 </div>
