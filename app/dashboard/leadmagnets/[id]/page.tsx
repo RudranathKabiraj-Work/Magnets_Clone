@@ -1620,6 +1620,7 @@ export default function EditLeadMagnetPage() {
                       formButtonText={formButtonText}
                       imageUrl={imageUrl}
                       customFormFields={customFormFields}
+                      setCustomFormFields={setCustomFormFields}
                       fileInputRef={fileInputRef}
                       uploadProgress={uploadProgress}
                       isGeneratingAICover={isGeneratingAICover}

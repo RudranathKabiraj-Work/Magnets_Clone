@@ -22,6 +22,7 @@ export interface TemplateProps {
   formButtonText?: string;
   imageUrl?: string | null;
   customFormFields?: CustomFormField[];
+  setCustomFormFields?: React.Dispatch<React.SetStateAction<CustomFormField[]>>;
 
   // Editor Callbacks & States
   fileInputRef?: React.RefObject<HTMLInputElement>;

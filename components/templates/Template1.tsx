@@ -14,6 +14,7 @@ export default function Template1(props: TemplateProps) {
     formButtonText,
     imageUrl,
     customFormFields = [],
+    setCustomFormFields,
     fileInputRef,
     uploadProgress,
     handleImageUpload,
@@ -296,8 +297,21 @@ export default function Template1(props: TemplateProps) {
                   </div>
                 ))}
                 {customFormFields.map((field: any) => (
-                  <div key={field.id} className="flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "#f4f5f8", border: `1px solid ${brandColor}22` }}>
+                  <div key={field.id} className="relative flex items-center justify-between gap-2 rounded-xl px-3 py-2.5" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "#f4f5f8", border: `1px solid ${brandColor}22` }}>
                     <input type="text" placeholder={field.placeholder || field.label} readOnly className={`w-full bg-transparent text-[11px] outline-none pointer-events-none ${isDark ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`} />
+                    {setCustomFormFields && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCustomFormFields((prev: any[]) => prev.filter(f => f.id !== field.id));
+                        }}
+                        className="h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer hover:bg-red-600 transition shadow-xs"
+                        title="Delete field"
+                      >
+                        -
+                      </button>
+                    )}
                   </div>
                 ))}
                 <input

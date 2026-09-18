@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, Plus } from "lucide-react";
+import { Sparkles, Plus, Minus } from "lucide-react";
 import { type Account, type CustomFormField } from "@/lib/data";
 
 export interface CustomFieldsBuilderProps {
@@ -24,6 +24,9 @@ export default function CustomFieldsBuilder({
           <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
           <span>Custom Form Fields Builder</span>
         </h4>
+        <span className={`text-xs font-medium ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
+          {customFormFields.length} field{customFormFields.length !== 1 ? "s" : ""} added
+        </span>
       </div>
 
       {/* Quick Field Preset Buttons */}
@@ -128,6 +131,22 @@ export default function CustomFieldsBuilder({
             </button>
           );
         })()}
+
+        {/* Dynamically Added Custom Input Fields Pills (showing - minus sign) */}
+        {customFormFields
+          .filter(f => !["field_company", "field_phone", "field_team_size", "field_notes"].includes(f.id))
+          .map((f, idx) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setCustomFormFields(prev => prev.filter(item => item.id !== f.id))}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+              title="Click to remove this custom field"
+            >
+              <Minus className="h-3.5 w-3.5" />
+              <span>- {f.label || `Custom Field ${idx + 1}`}</span>
+            </button>
+          ))}
       </div>
 
       {/* Add Custom Field Form */}
@@ -135,14 +154,124 @@ export default function CustomFieldsBuilder({
         type="button"
         onClick={() => {
           const newId = `field_${Date.now()}`;
-          setCustomFormFields(prev => [...prev, { id: newId, type: "text", label: "New Field", placeholder: "Enter answer...", required: false }]);
+          setCustomFormFields(prev => [...prev, { id: newId, type: "text", label: `Custom Field ${prev.length + 1}`, placeholder: "Enter answer...", required: false }]);
         }}
         className="w-full py-2.5 rounded-xl border border-dashed border-indigo-500/40 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-400 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
       >
         <Plus className="h-3.5 w-3.5" />
         <span>Add Custom Input Field</span>
       </button>
+
+      {/* Active Fields List with Remove/Minus (-) buttons */}
+      {customFormFields.length > 0 && (
+        <div className="space-y-3 mt-4 pt-3 border-t border-indigo-500/20">
+          <p className={`text-xs font-semibold ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
+            Active Custom Fields ({customFormFields.length}):
+          </p>
+          <div className="space-y-2">
+            {customFormFields.map((field) => (
+              <div
+                key={field.id}
+                className={`p-3 rounded-xl border transition flex flex-col md:flex-row md:items-center gap-3 ${
+                  isDark
+                    ? "bg-zinc-900/60 border-white/10 text-white"
+                    : "bg-white border-zinc-200 text-zinc-900 shadow-xs"
+                }`}
+              >
+                {/* Field Label Input */}
+                <div className="flex-1 min-w-0">
+                  <label className="block text-[10px] uppercase font-bold text-zinc-400 mb-1">
+                    Field Label
+                  </label>
+                  <input
+                    type="text"
+                    value={field.label}
+                    onChange={(e) => {
+                      const newLabel = e.target.value;
+                      setCustomFormFields(prev =>
+                        prev.map(f => (f.id === field.id ? { ...f, label: newLabel } : f))
+                      );
+                    }}
+                    placeholder="Field Label"
+                    className={`w-full px-2.5 py-1.5 text-xs rounded-lg border outline-none font-medium transition ${
+                      isDark
+                        ? "bg-black/50 border-white/10 focus:border-indigo-500 text-white"
+                        : "bg-zinc-50 border-zinc-200 focus:border-indigo-500 text-zinc-900"
+                    }`}
+                  />
+                </div>
+
+                {/* Field Type Select */}
+                <div className="w-full md:w-32">
+                  <label className="block text-[10px] uppercase font-bold text-zinc-400 mb-1">
+                    Type
+                  </label>
+                  <select
+                    value={field.type}
+                    onChange={(e) => {
+                      const newType = e.target.value as CustomFormField["type"];
+                      setCustomFormFields(prev =>
+                        prev.map(f => (f.id === field.id ? { ...f, type: newType } : f))
+                      );
+                    }}
+                    className={`w-full px-2.5 py-1.5 text-xs rounded-lg border outline-none font-medium transition cursor-pointer ${
+                      isDark
+                        ? "bg-black/50 border-white/10 focus:border-indigo-500 text-white"
+                        : "bg-zinc-50 border-zinc-200 focus:border-indigo-500 text-zinc-900"
+                    }`}
+                  >
+                    <option value="text">Text</option>
+                    <option value="textarea">Textarea</option>
+                    <option value="number">Number</option>
+                    <option value="select">Dropdown</option>
+                    <option value="checkbox">Checkbox</option>
+                  </select>
+                </div>
+
+                {/* Field Placeholder Input */}
+                <div className="flex-1 min-w-0">
+                  <label className="block text-[10px] uppercase font-bold text-zinc-400 mb-1">
+                    Placeholder
+                  </label>
+                  <input
+                    type="text"
+                    value={field.placeholder || ""}
+                    onChange={(e) => {
+                      const newPlaceholder = e.target.value;
+                      setCustomFormFields(prev =>
+                        prev.map(f => (f.id === field.id ? { ...f, placeholder: newPlaceholder } : f))
+                      );
+                    }}
+                    placeholder="Placeholder..."
+                    className={`w-full px-2.5 py-1.5 text-xs rounded-lg border outline-none font-medium transition ${
+                      isDark
+                        ? "bg-black/50 border-white/10 focus:border-indigo-500 text-white"
+                        : "bg-zinc-50 border-zinc-200 focus:border-indigo-500 text-zinc-900"
+                    }`}
+                  />
+                </div>
+
+                {/* Remove Field (-) Button */}
+                <div className="flex items-center justify-end self-end md:self-auto pt-1 md:pt-4">
+                  <button
+                    type="button"
+                    title="Remove Field"
+                    onClick={() => {
+                      setCustomFormFields(prev => prev.filter(f => f.id !== field.id));
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition cursor-pointer flex items-center gap-1 shrink-0"
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
