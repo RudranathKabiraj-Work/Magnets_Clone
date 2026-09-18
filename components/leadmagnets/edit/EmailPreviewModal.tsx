@@ -134,7 +134,17 @@ export default function EmailPreviewModal({
                   const raw = (emailBody || "Hey {name},\n\nThank you for requesting this resource! Click the button below to get instant access.\n\nEnjoy!")
                     .replace(/\{name\}/g, "Subscriber");
                   const hasHtml = /<[a-z][\s\S]*>/i.test(raw);
-                  return hasHtml ? raw : raw.replace(/\n/g, "<br/>");
+                  let formatted = hasHtml ? raw : raw.replace(/\n/g, "<br/>");
+
+                  // Auto-convert standalone YouTube links into clickable video cards if not inside href
+                  formatted = formatted.replace(
+                    /(?<!href=["'])(https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11}))/g,
+                    (_match: string, url: string, ytId: string) => {
+                      const thumb = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                      return `<div style="text-align: center; margin: 16px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer"><img src="${thumb}" alt="Watch Video on YouTube" style="max-width: 100%; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" /></a><br/><a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0066B2; font-weight: 600; text-decoration: underline;">▶ Watch Video on YouTube</a></div>`;
+                    }
+                  );
+                  return formatted;
                 })(),
               }}
             />
