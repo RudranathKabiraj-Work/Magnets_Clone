@@ -1340,6 +1340,7 @@ export default function EditLeadMagnetPage() {
               <div className="flex items-center gap-3">
                 <Link
                   href="/dashboard/leadmagnets"
+                  prefetch={true}
                   onClick={handleGoBack}
                   className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold active:scale-95 transition-all shadow-xs cursor-pointer ${(account?.themeMode || "light") === "dark"
                     ? "border-[#27272A] bg-[#1E1E24] text-zinc-200 hover:bg-[#27272A]"

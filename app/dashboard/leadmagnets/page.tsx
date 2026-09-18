@@ -609,6 +609,7 @@ export default function PagesPage() {
                                 </button>
                                 <Link
                                   href={`/dashboard/leadmagnets/${page.id}`}
+                                  prefetch={true}
                                   className="p-1.5 rounded-lg text-zinc-400 hover:text-[#0066B2] dark:hover:text-[#38BDF8] hover:bg-zinc-100 dark:hover:bg-zinc-800"
                                   title="Edit"
                                 >
