@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
@@ -391,44 +391,53 @@ export default function SignupsPage() {
     addToast("success", "Exported CSV file successfully.");
   };
 
-  const copyEmailToClipboard = (emailStr: string) => {
+  const copyEmailToClipboard = useCallback((emailStr: string) => {
     navigator.clipboard.writeText(emailStr);
     addToast("success", `Copied ${emailStr} to clipboard!`);
-  };
+  }, [addToast]);
 
   // Magnet Options for Filters
-  const uniqueMagnets = Array.from(new Set(leads.map((l) => l.page).filter(Boolean)));
+  const uniqueMagnets = useMemo(() => Array.from(new Set(leads.map((l) => l.page).filter(Boolean))), [leads]);
 
   // Filtered leads
-  const filtered = leads.filter((l) => {
-    const matchMagnet = filterMagnet === "All lead magnets" || l.page === filterMagnet;
-    const q = search.toLowerCase();
-    const matchSearch =
-      !q ||
-      l.email.toLowerCase().includes(q) ||
-      (l.name && l.name.toLowerCase().includes(q)) ||
-      (l.page && l.page.toLowerCase().includes(q));
-    return matchMagnet && matchSearch;
-  });
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return leads.filter((l) => {
+      const matchMagnet = filterMagnet === "All lead magnets" || l.page === filterMagnet;
+      const matchSearch =
+        !q ||
+        l.email.toLowerCase().includes(q) ||
+        (l.name && l.name.toLowerCase().includes(q)) ||
+        (l.page && l.page.toLowerCase().includes(q));
+      return matchMagnet && matchSearch;
+    });
+  }, [leads, filterMagnet, search]);
 
   // 5. Pagination Logic
-  const totalPages = Math.ceil(filtered.length / pageSize) || 1;
-  const paginatedLeads = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPages = useMemo(() => Math.ceil(filtered.length / pageSize) || 1, [filtered.length, pageSize]);
+  const paginatedLeads = useMemo(
+    () => filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filtered, currentPage, pageSize]
+  );
 
   // Metrics
-  const uniqueSignups = new Set(leads.map((l) => l.email)).size;
-  const recentMonthCount = leads.filter((l) => {
-    if (!l.signedUpAt) return true;
-    const d = new Date(l.signedUpAt);
-    if (isNaN(d.getTime())) return true;
+  const uniqueSignups = useMemo(() => new Set(leads.map((l) => l.email)).size, [leads]);
+
+  const recentMonthCount = useMemo(() => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return d >= thirtyDaysAgo;
-  }).length;
+    return leads.filter((l) => {
+      if (!l.signedUpAt) return true;
+      const d = new Date(l.signedUpAt);
+      if (isNaN(d.getTime())) return true;
+      return d >= thirtyDaysAgo;
+    }).length;
+  }, [leads]);
 
-  const avgConversion = magnetPages.length > 0
-    ? (magnetPages.reduce((acc, p) => acc + (p.conversionRate || 0), 0) / magnetPages.length).toFixed(1)
-    : "0.0";
+  const avgConversion = useMemo(() => {
+    if (magnetPages.length === 0) return "0.0";
+    return (magnetPages.reduce((acc, p) => acc + (p.conversionRate || 0), 0) / magnetPages.length).toFixed(1);
+  }, [magnetPages]);
 
   return (
     <DashboardShell account={account} title="Signups">
@@ -678,17 +687,17 @@ export default function SignupsPage() {
                           {isLockedPdf ? (
                             <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-2xs">
                               <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                              <span>🔒 Locked PDF</span>
+                              <span>Locked PDF</span>
                             </span>
                           ) : isManual ? (
                             <span className="inline-flex items-center gap-1.5 rounded-lg bg-purple-500/10 px-2.5 py-1 text-xs font-bold text-purple-600 dark:text-purple-400 border border-purple-500/20 shadow-2xs">
                               <Upload className="h-3.5 w-3.5 text-purple-500 shrink-0" />
-                              <span>📥 Import / Manual</span>
+                              <span>Import / Manual</span>
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1.5 rounded-lg bg-sky-500/10 px-2.5 py-1 text-xs font-bold text-sky-600 dark:text-sky-400 border border-sky-500/20 shadow-2xs">
                               <Sparkles className="h-3.5 w-3.5 text-sky-500 shrink-0" />
-                              <span>⚡ Form</span>
+                              <span>Form</span>
                             </span>
                           )}
                         </td>

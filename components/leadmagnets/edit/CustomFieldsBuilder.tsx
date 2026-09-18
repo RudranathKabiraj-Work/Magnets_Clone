@@ -15,18 +15,20 @@ export default function CustomFieldsBuilder({
   customFormFields,
   setCustomFormFields,
 }: CustomFieldsBuilderProps) {
+  const isDark = (account?.themeMode || "light") === "dark";
+
   return (
-    <div className={`mt-6 max-w-6xl mx-auto rounded-2xl border p-5 transition ${(account?.themeMode || "light") === "dark" ? "border-white/10 bg-black/30 text-white" : "border-zinc-200 bg-zinc-50 text-zinc-900"}`}>
+    <div className={`mt-6 max-w-6xl mx-auto rounded-2xl border p-5 transition ${isDark ? "border-white/10 bg-black/40 text-white" : "border-zinc-200 bg-zinc-50 text-zinc-900"}`}>
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5" />
+          <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
           <span>Custom Form Fields Builder</span>
         </h4>
       </div>
 
       {/* Quick Field Preset Buttons */}
-      <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-2 font-medium">Quick Presets:</p>
-      <div className="flex flex-wrap gap-1.5 mb-4">
+      <p className={`text-xs mb-2 font-semibold ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>Quick Presets:</p>
+      <div className="flex flex-wrap gap-2 mb-4">
         {/* Company Name Preset */}
         {(() => {
           const isAdded = customFormFields.some(f => f.id === "field_company");
@@ -40,9 +42,11 @@ export default function CustomFieldsBuilder({
                   setCustomFormFields(prev => [...prev, { id: "field_company", type: "text", label: "Company Name", placeholder: "Acme Inc.", required: false }]);
                 }
               }}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition cursor-pointer flex items-center gap-1 ${isAdded
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${isAdded
                 ? "border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                : "border-zinc-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-400"
+                : isDark
+                  ? "border-white/15 bg-white/10 text-zinc-100 hover:bg-indigo-500/20 hover:text-indigo-300 hover:border-indigo-500/40"
+                  : "border-zinc-200 bg-white text-zinc-700 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300 shadow-xs"
                 }`}
             >
               {isAdded ? "- Company Name" : "+ Company Name"}
@@ -63,9 +67,11 @@ export default function CustomFieldsBuilder({
                   setCustomFormFields(prev => [...prev, { id: "field_phone", type: "text", label: "Phone Number", placeholder: "+1 (555) 000-0000", required: false }]);
                 }
               }}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition cursor-pointer flex items-center gap-1 ${isAdded
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${isAdded
                 ? "border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                : "border-zinc-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-400"
+                : isDark
+                  ? "border-white/15 bg-white/10 text-zinc-100 hover:bg-indigo-500/20 hover:text-indigo-300 hover:border-indigo-500/40"
+                  : "border-zinc-200 bg-white text-zinc-700 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300 shadow-xs"
                 }`}
             >
               {isAdded ? "- Phone Number" : "+ Phone Number"}
@@ -86,9 +92,11 @@ export default function CustomFieldsBuilder({
                   setCustomFormFields(prev => [...prev, { id: "field_team_size", type: "select", label: "Company Size", placeholder: "Select company size", required: false, options: ["1-10 employees", "11-50 employees", "51-200 employees", "201+ employees"] }]);
                 }
               }}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition cursor-pointer flex items-center gap-1 ${isAdded
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${isAdded
                 ? "border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                : "border-zinc-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-400"
+                : isDark
+                  ? "border-white/15 bg-white/10 text-zinc-100 hover:bg-indigo-500/20 hover:text-indigo-300 hover:border-indigo-500/40"
+                  : "border-zinc-200 bg-white text-zinc-700 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300 shadow-xs"
                 }`}
             >
               {isAdded ? "- Company Size Dropdown" : "+ Company Size Dropdown"}
@@ -109,9 +117,11 @@ export default function CustomFieldsBuilder({
                   setCustomFormFields(prev => [...prev, { id: "field_notes", type: "textarea", label: "Additional Notes", placeholder: "Tell us about your project...", required: false }]);
                 }
               }}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition cursor-pointer flex items-center gap-1 ${isAdded
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${isAdded
                 ? "border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                : "border-zinc-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-indigo-500/10 hover:text-indigo-400"
+                : isDark
+                  ? "border-white/15 bg-white/10 text-zinc-100 hover:bg-indigo-500/20 hover:text-indigo-300 hover:border-indigo-500/40"
+                  : "border-zinc-200 bg-white text-zinc-700 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300 shadow-xs"
                 }`}
             >
               {isAdded ? "- Notes / Message" : "+ Notes / Message"}
@@ -135,3 +145,4 @@ export default function CustomFieldsBuilder({
     </div>
   );
 }
+

@@ -11,6 +11,62 @@ import { motion, AnimatePresence } from "framer-motion";
 import PasswordInputWithStrength, { validatePasswordStrength } from "@/components/ui/password-input-with-strength";
 import { getPlanLimits } from "@/lib/plan-limits";
 
+function compressAvatarImage(file: File, maxDimension = 400, quality = 0.85): Promise<File> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || !window.FileReader || !window.HTMLCanvasElement) {
+      return resolve(file);
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => resolve(file);
+    reader.onload = (event) => {
+      const img = document.createElement("img");
+      img.onerror = () => resolve(file);
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return resolve(file);
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) return resolve(file);
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".webp"), {
+                type: "image/webp",
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            },
+            "image/webp",
+            quality
+          );
+        } catch (err) {
+          resolve(file);
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function AccountSettingsPage() {
   const router = useRouter();
   const [account, setAccount] = useState<Account | null>(null);
@@ -44,18 +100,44 @@ export default function AccountSettingsPage() {
   const [sendingTestAlert, setSendingTestAlert] = useState(false);
   const [alertStatusMsg, setAlertStatusMsg] = useState("");
 
-  // Account Usage & Limits State
-  const [leadCount, setLeadCount] = useState(740);
-  const [storageMb, setStorageMb] = useState(18.5);
-  const [activeSequencesCount, setActiveSequencesCount] = useState(3);
+  // Data Source State for Memoized Calculations
+  const [pagesData, setPagesData] = useState<any[]>([]);
+  const [leadsData, setLeadsData] = useState<any[]>([]);
+  const [sequencesData, setSequencesData] = useState<any[]>([]);
+  const [resourcesData, setResourcesData] = useState<any[]>([]);
 
-  const planConfig = getPlanLimits(account?.plan || "Pro");
+  const isDemo = useMemo(() => {
+    return !account?.email || account.email === "alex@rivera.studio";
+  }, [account?.email]);
+
+  const planConfig = useMemo(() => {
+    return getPlanLimits(account?.plan || "Pro");
+  }, [account?.plan]);
+
   const leadLimit = planConfig.leadLimit;
   const storageLimitMb = planConfig.storageLimitMb;
   const sequencesLimit = planConfig.sequencesLimit;
 
-  useEffect(() => {
+  // Account Usage & Limits Memoized Calculations
+  const leadCount = useMemo(() => {
+    const pageSignups = (pagesData || []).reduce((sum: number, p: any) => sum + (p.signups || 0), 0);
+    const leadsLen = (leadsData || []).length;
+    return isDemo ? Math.max(740, pageSignups, leadsLen) : Math.max(pageSignups, leadsLen);
+  }, [pagesData, leadsData, isDemo]);
 
+  const activeSequencesCount = useMemo(() => {
+    const liveSeqCount = (sequencesData || []).filter((s) => s.status === "live").length;
+    return isDemo ? Math.max(3, liveSeqCount) : liveSeqCount;
+  }, [sequencesData, isDemo]);
+
+  const storageMb = useMemo(() => {
+    const resourceCount = (resourcesData || []).length;
+    return isDemo
+      ? parseFloat((Math.max(18.5, resourceCount * 2.8)).toFixed(1))
+      : parseFloat((resourceCount * 2.8).toFixed(1));
+  }, [resourcesData, isDemo]);
+
+  useEffect(() => {
     // Load local data instantly
     const localAccount = loadAccount();
     if (localAccount) {
@@ -67,30 +149,21 @@ export default function AccountSettingsPage() {
       setNotifyEmail(localAccount.notifyEmail || localAccount.email || "");
     }
 
-    const isDemo = !localAccount?.email || localAccount.email === "alex@rivera.studio";
-    const localPages = loadPages();
-    const localLeads = loadLeads();
-    const localSeqs = loadSequences();
-    const localRes = loadResources();
+    const localPages = loadPages() || [];
+    const localLeads = loadLeads() || [];
+    const localSeqs = loadSequences() || [];
+    const localRes = loadResources() || [];
 
-    const pageSignups = (localPages || []).reduce((sum: number, p: any) => sum + (p.signups || 0), 0);
-    const leadsLen = (localLeads || []).length;
-    const realLeads = isDemo ? Math.max(740, pageSignups, leadsLen) : Math.max(pageSignups, leadsLen);
-    setLeadCount(realLeads);
-
-    const liveSeqCount = (localSeqs || []).filter((s) => s.status === "live").length;
-    setActiveSequencesCount(isDemo ? Math.max(3, liveSeqCount) : liveSeqCount);
-
-    const resourceCount = (localRes || []).length;
-    setStorageMb(isDemo ? parseFloat((Math.max(18.5, resourceCount * 2.8)).toFixed(1)) : parseFloat((resourceCount * 2.8).toFixed(1)));
+    setPagesData(localPages);
+    setLeadsData(localLeads);
+    setSequencesData(localSeqs);
+    setResourcesData(localRes);
 
     setLoading(false);
 
     // Sync in background silently
     syncWithDatabase().then((data) => {
       if (data) {
-        const curAcc = data.account || localAccount;
-        const curIsDemo = !curAcc?.email || curAcc.email === "alex@rivera.studio";
         if (data.account) {
           setAccount(data.account);
           setName(data.account.name || "");
@@ -100,20 +173,10 @@ export default function AccountSettingsPage() {
           setNotifyEmail(data.account.notifyEmail || data.account.email || "");
         }
 
-        const pList = data.pages || localPages || [];
-        const lList = data.leads || localLeads || [];
-        const sList = data.sequences || localSeqs || [];
-        const rList = data.resources || localRes || [];
-
-        const pSignups = pList.reduce((sum: number, p: any) => sum + (p.signups || 0), 0);
-        const lCount = lList.length;
-        setLeadCount(curIsDemo ? Math.max(740, pSignups, lCount) : Math.max(pSignups, lCount));
-
-        const liveSeqs = sList.filter((s: any) => s.status === "live").length;
-        setActiveSequencesCount(curIsDemo ? Math.max(3, liveSeqs) : liveSeqs);
-
-        const rCount = rList.length;
-        setStorageMb(curIsDemo ? parseFloat((Math.max(18.5, rCount * 2.8)).toFixed(1)) : parseFloat((rCount * 2.8).toFixed(1)));
+        if (data.pages) setPagesData(data.pages);
+        if (data.leads) setLeadsData(data.leads);
+        if (data.sequences) setSequencesData(data.sequences);
+        if (data.resources) setResourcesData(data.resources);
       }
     });
   }, []);
@@ -156,8 +219,9 @@ export default function AccountSettingsPage() {
 
     setUploadingAvatar(true);
     try {
+      const uploadFile = await compressAvatarImage(file);
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", uploadFile);
       formData.append("isPageAsset", "true");
       formData.append("userEmail", email || account?.email || "");
 

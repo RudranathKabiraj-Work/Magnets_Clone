@@ -270,6 +270,21 @@ export default function PdfViewerClient({
     []
   );
 
+  // ── Wheel Event Forwarding to document ──────────────────────────────────
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && (target.closest(".pdf-gate-card") || target.closest(".pdf-side"))) {
+        return;
+      }
+      if (docRef.current) {
+        docRef.current.scrollTop += e.deltaY;
+      }
+    };
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, []);
+
   return (
     <>
       {/* ─── Global styles scoped to this viewer ──────────────────────────── */}
@@ -292,7 +307,7 @@ export default function PdfViewerClient({
         .pdf-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
         .pdf-thumb .pdf-thumb-num { display: block; text-align: center; font-size: 12px; margin-top: 7px; }
         .pdf-thumb.is-locked img { filter: blur(4px); transform: scale(1.08); }
-        .pdf-doc { flex: 1; overflow-y: auto; padding: 24px 16px 80px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+        .pdf-doc { flex: 1; overflow-y: auto; padding: 24px 16px 80px; display: flex; flex-direction: column; align-items: center; gap: 18px; scroll-behavior: smooth; }
         .pdf-page { position: relative; flex: none; width: min(860px, 100%); aspect-ratio: 612/792; background: #e9e4dc; box-shadow: 0 2px 10px rgba(0,0,0,.45); overflow: hidden; }
         .pdf-page img { display: block; width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; }
         .pdf-page.is-locked img { filter: blur(14px); transform: scale(1.06); }
@@ -300,10 +315,10 @@ export default function PdfViewerClient({
         .pdf-page-num { position: absolute; left: 8px; bottom: 6px; font-size: 11px; color: rgba(0,0,0,.35); pointer-events: none; }
 
         /* Gate overlay */
-        .pdf-gate { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: opacity .25s; }
+        .pdf-gate { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: opacity .25s; pointer-events: none; }
         .pdf-gate.is-hidden { opacity: 0; pointer-events: none; }
-        .pdf-gate.is-visible { opacity: 1; pointer-events: auto; }
-        .pdf-gate-card { background: #fff; color: #1c1c1c; border-radius: 20px; padding: 26px 28px; width: min(520px, 100%); box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+        .pdf-gate.is-visible { opacity: 1; pointer-events: none; }
+        .pdf-gate-card { background: #fff; color: #1c1c1c; border-radius: 20px; padding: 26px 28px; width: min(520px, 100%); max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.45); pointer-events: auto; }
         .pdf-gate-card h2 { margin: 0 0 6px; font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
         .pdf-gate-card p.sub { margin: 0 0 20px; font-size: 14px; color: #52525b; }
         .pdf-gate-form { display: flex; gap: 10px; }
@@ -319,6 +334,7 @@ export default function PdfViewerClient({
         .pdf-gate-link { color: inherit; cursor: pointer; text-decoration: underline; background: none; border: none; font: inherit; font-size: 13px; padding: 0; }
         .pdf-brand-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
         .pdf-brand-dot { width: 10px; height: 10px; border-radius: 50%; }
+
 
         @media (max-width: 760px) {
           .pdf-side { position: absolute; top: 56px; bottom: 0; left: 0; z-index: 15; width: 150px !important; box-shadow: 4px 0 16px rgba(0,0,0,.4); }

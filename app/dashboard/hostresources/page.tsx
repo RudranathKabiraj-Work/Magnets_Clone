@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import {
@@ -254,35 +254,35 @@ export default function ResourcesPage() {
     }
   };
 
-  const copyToClipboard = (url: string, id: string) => {
+  const copyToClipboard = useCallback((url: string, id: string) => {
     navigator.clipboard.writeText(url);
     setCopiedId(id);
     addToast("success", "Link copied! Paste it into lead magnets or email sequences.");
     setTimeout(() => {
       setCopiedId(null);
     }, 2000);
-  };
+  }, [addToast]);
 
-  const formatBytes = (bytes: number, decimals = 2) => {
+  const formatBytes = useCallback((bytes: number, decimals = 2) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
-  };
+  }, []);
 
   // Extension helpers for icons & badges
-  const getFileCategory = (filename: string) => {
+  const getFileCategory = useCallback((filename: string) => {
     const ext = filename.split(".").pop()?.toLowerCase() || "";
     if (["pdf", "doc", "docx", "txt", "rtf", "xlsx", "pptx"].includes(ext)) return "docs";
     if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ext)) return "images";
     if (["mp4", "mp3", "mov", "avi", "wav", "m4a"].includes(ext)) return "media";
     if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return "archives";
     return "docs";
-  };
+  }, []);
 
-  const getFileBadge = (filename: string) => {
+  const getFileBadge = useCallback((filename: string) => {
     const ext = filename.split(".").pop()?.toLowerCase() || "file";
     const category = getFileCategory(filename);
 
@@ -319,30 +319,37 @@ export default function ResourcesPage() {
           ext: ext.toUpperCase(),
         };
     }
-  };
+  }, [getFileCategory]);
 
   // Filtering & Sorting
-  const totalSizeBytes = resources.reduce((acc, r) => acc + (r.size || 0), 0);
-  const maxStorageBytes = 500 * 1024 * 1024; // 500 MB quota
-  const storagePercentage = Math.min(100, Math.round((totalSizeBytes / maxStorageBytes) * 100));
+  const totalSizeBytes = useMemo(() => {
+    return resources.reduce((acc, r) => acc + (r.size || 0), 0);
+  }, [resources]);
 
-  const filteredResources = resources
-    .filter((r: any) => {
-      // Exclude page presentation assets/lead magnet images if marked as page assets
-      if (r.isPageAsset === true || r.type === "page_asset" || (r.name && r.name.startsWith("page_asset_"))) {
-        return false;
-      }
-      const matchesSearch = r.name.toLowerCase().includes(searchQuery.toLowerCase());
-      if (!matchesSearch) return false;
-      if (activeCategory === "all") return true;
-      return getFileCategory(r.name) === activeCategory;
-    })
-    .sort((a, b) => {
-      if (sortBy === "name") return a.name.localeCompare(b.name);
-      if (sortBy === "size") return (b.size || 0) - (a.size || 0);
-      if (sortBy === "oldest") return a.id.localeCompare(b.id);
-      return b.id.localeCompare(a.id); // Default newest
-    });
+  const storagePercentage = useMemo(() => {
+    const maxStorageBytes = 500 * 1024 * 1024; // 500 MB quota
+    return Math.min(100, Math.round((totalSizeBytes / maxStorageBytes) * 100));
+  }, [totalSizeBytes]);
+
+  const filteredResources = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return resources
+      .filter((r: any) => {
+        if (r.isPageAsset === true || r.type === "page_asset" || (r.name && r.name.startsWith("page_asset_"))) {
+          return false;
+        }
+        const matchesSearch = !q || r.name.toLowerCase().includes(q);
+        if (!matchesSearch) return false;
+        if (activeCategory === "all") return true;
+        return getFileCategory(r.name) === activeCategory;
+      })
+      .sort((a, b) => {
+        if (sortBy === "name") return a.name.localeCompare(b.name);
+        if (sortBy === "size") return (b.size || 0) - (a.size || 0);
+        if (sortBy === "oldest") return a.id.localeCompare(b.id);
+        return b.id.localeCompare(a.id);
+      });
+  }, [resources, searchQuery, activeCategory, sortBy, getFileCategory]);
 
   return (
     <DashboardShell account={account} title="Hosted Resources">

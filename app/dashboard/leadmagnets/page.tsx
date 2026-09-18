@@ -195,7 +195,7 @@ export default function PagesPage() {
   }, [pages, search, statusFilter]);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = 10;
 
   const totalPagesCount = Math.ceil(filtered.length / itemsPerPage) || 1;
 

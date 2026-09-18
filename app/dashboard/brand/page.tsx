@@ -1,11 +1,67 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { Palette, Check, Upload, Sun, Moon, Trash2, Loader2, X, ArrowLeft, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { syncWithDatabase, saveAccount, loadAccount, loadPages, savePages } from "@/lib/store";
 import type { Account, MagnetPage } from "@/lib/data";
+
+function compressLogoImage(file: File, maxDimension = 400, quality = 0.85): Promise<File> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || !window.FileReader || !window.HTMLCanvasElement) {
+      return resolve(file);
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => resolve(file);
+    reader.onload = (event) => {
+      const img = document.createElement("img");
+      img.onerror = () => resolve(file);
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return resolve(file);
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) return resolve(file);
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".webp"), {
+                type: "image/webp",
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            },
+            "image/webp",
+            quality
+          );
+        } catch (err) {
+          resolve(file);
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function BrandPage() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -26,26 +82,26 @@ export default function BrandPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const PRESET_COLORS = [
+  const PRESET_COLORS = useMemo(() => [
     { name: "Ocean Blue", hex: "#0066B2" },
     { name: "Royal Violet", hex: "#7C3AED" },
     { name: "Emerald Growth", hex: "#10B981" },
     { name: "Rose Crimson", hex: "#F43F5E" },
     { name: "Amber Glow", hex: "#F59E0B" },
     { name: "Midnight Obsidian", hex: "#0F172A" },
-  ];
+  ], []);
 
-  function triggerToast(msg: string) {
+  const triggerToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
-  }
+  }, []);
 
-  function normalizeTemplateId(t: any): string {
+  const normalizeTemplateId = useCallback((t: any): string => {
     if (!t) return "template1";
     const s = String(t).trim();
     if (/^\d+$/.test(s)) return `template${s}`;
     return s;
-  }
+  }, []);
 
   useEffect(() => {
     // 1. Load local Account & Pages instantly
@@ -123,9 +179,9 @@ export default function BrandPage() {
       window.removeEventListener("storage", refreshPages);
       window.removeEventListener("focus", refreshPages);
     };
-  }, []);
+  }, [normalizeTemplateId]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     setSaving(true);
     const currentUserEmail = (typeof window !== "undefined" ? localStorage.getItem("currentUserEmail") : null) || account?.email || "";
 
@@ -178,21 +234,22 @@ export default function BrandPage() {
     } finally {
       setSaving(false);
     }
-  };
+  }, [account, businessName, brandColor, themeMode, highlightIntensity, templateId, logo, stateLatestPage, triggerToast]);
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert("File size exceeds 2MB limit.");
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size exceeds 5MB limit.");
       return;
     }
 
     setUploadingLogo(true);
     try {
+      const uploadFile = await compressLogoImage(file);
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", uploadFile);
       formData.append("isPageAsset", "true");
       if (account?.email) {
         formData.append("userEmail", account.email);
@@ -215,30 +272,36 @@ export default function BrandPage() {
     } finally {
       setUploadingLogo(false);
     }
-  };
+  }, [account?.email]);
 
-  const removeLogo = () => {
+  const removeLogo = useCallback(() => {
     setLogo(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  };
+  }, []);
 
-  const hasUnsavedChanges =
-    businessName !== (account?.name || "") ||
-    brandColor !== (account?.brandColor || "#0066B2") ||
-    themeMode !== (account?.themeMode || "light") ||
-    highlightIntensity !== (account?.highlightIntensity ?? 100) ||
-    templateId !== (account?.templateId || "template1") ||
-    logo !== (account?.logo || null);
+  const hasUnsavedChanges = useMemo(() => {
+    return (
+      businessName !== (account?.name || "") ||
+      brandColor !== (account?.brandColor || "#0066B2") ||
+      themeMode !== (account?.themeMode || "light") ||
+      highlightIntensity !== (account?.highlightIntensity ?? 100) ||
+      templateId !== (account?.templateId || "template1") ||
+      logo !== (account?.logo || null)
+    );
+  }, [businessName, brandColor, themeMode, highlightIntensity, templateId, logo, account]);
 
-  const reversedPages = [...allPages].reverse();
-  const liveTemplatePage = reversedPages.find((p) => (p.template as string) === templateId && p.status === "live");
-  const templateSpecificPage = reversedPages.find((p) => (p.template as string) === templateId);
-  const latestPublishedPage = reversedPages.find((p) => p.status === "live");
-  const latestOverallPage = reversedPages[0];
-
-  const latestPage = liveTemplatePage || templateSpecificPage || latestPublishedPage || latestOverallPage || stateLatestPage;
+  const latestPage = useMemo(() => {
+    const reversed = [...allPages].reverse();
+    return (
+      reversed.find((p) => (p.template as string) === templateId && p.status === "live") ||
+      reversed.find((p) => (p.template as string) === templateId) ||
+      reversed.find((p) => p.status === "live") ||
+      reversed[0] ||
+      stateLatestPage
+    );
+  }, [allPages, templateId, stateLatestPage]);
 
   return (
     <DashboardShell account={account} title="Brand">
