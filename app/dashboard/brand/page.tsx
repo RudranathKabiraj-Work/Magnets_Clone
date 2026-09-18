@@ -215,20 +215,6 @@ export default function BrandPage() {
       logo,
     };
 
-    // Update all local/stored user pages so template is 100% synchronized
-    const all = loadPages();
-    if (all && all.length > 0) {
-      const updatedPages = all.map((p) => ({ ...p, template: templateId as any }));
-      setAllPages(updatedPages);
-      const active = updatedPages.find((p) => p.status === "live") || updatedPages[0];
-      if (active) setLatestPage(active);
-      savePages(updatedPages);
-    } else if (stateLatestPage) {
-      const updatedPage = { ...stateLatestPage, template: templateId as any };
-      setLatestPage(updatedPage);
-      savePages([updatedPage]);
-    }
-
     try {
       const res = await saveAccount(updatedAccount);
       const savedAcc = res.account || updatedAccount;
@@ -253,7 +239,7 @@ export default function BrandPage() {
     } finally {
       setSaving(false);
     }
-  }, [account, businessName, brandColor, themeMode, highlightIntensity, templateId, logo, stateLatestPage, triggerToast]);
+  }, [account, businessName, brandColor, themeMode, highlightIntensity, templateId, logo, triggerToast]);
 
   const handleLogoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
