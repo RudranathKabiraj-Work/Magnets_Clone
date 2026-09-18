@@ -299,13 +299,17 @@ export default function BrandPage() {
 
   const latestPage = useMemo(() => {
     const reversed = [...allPages].reverse();
-    return (
+    const pageForTemplate =
       reversed.find((p) => (p.template as string) === templateId && p.status === "live") ||
-      reversed.find((p) => (p.template as string) === templateId) ||
-      reversed.find((p) => p.status === "live") ||
-      reversed[0] ||
-      stateLatestPage
-    );
+      reversed.find((p) => (p.template as string) === templateId);
+
+    if (pageForTemplate) return pageForTemplate;
+
+    if (stateLatestPage && (stateLatestPage.template as string) === templateId) {
+      return stateLatestPage;
+    }
+
+    return undefined;
   }, [allPages, templateId, stateLatestPage]);
 
   return (
