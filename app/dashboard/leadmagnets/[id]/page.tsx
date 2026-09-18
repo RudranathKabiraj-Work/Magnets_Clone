@@ -124,8 +124,14 @@ function compressImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 
 export default function EditLeadMagnetPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const [account, setAccount] = useState<Account | null>(null);
-  const [page, setPage] = useState<MagnetPage | undefined>(undefined);
+  const [account, setAccount] = useState<Account | null>(() => {
+    if (typeof window !== "undefined") return loadAccount();
+    return null;
+  });
+  const [page, setPage] = useState<MagnetPage | undefined>(() => {
+    if (typeof window !== "undefined") return loadPages().find((p) => p.id === params.id);
+    return undefined;
+  });
 
   // Single Init Effect — ONE syncWithDatabase() call fans out all data
   // Eliminates the previous 3 separate calls that fired simultaneously on mount

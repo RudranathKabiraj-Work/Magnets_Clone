@@ -123,6 +123,7 @@ const MagnetCard = React.memo(
             <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
               <Link
                 href={`/dashboard/leadmagnets/${page.id}`}
+                prefetch={true}
                 className="flex items-center gap-1 rounded-lg bg-[#0066B2]/10 dark:bg-[#0066B2]/20 px-2.5 py-1 text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:bg-[#0066B2] hover:text-white dark:hover:bg-[#0066B2] dark:hover:text-white transition"
               >
                 <Pencil className="h-3 w-3" /> Edit
@@ -722,6 +723,7 @@ export default function PagesPage() {
                 <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
                   <Link
                     href={`/dashboard/leadmagnets/${activePage.id}`}
+                    prefetch={true}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005799] transition shadow-sm"
                   >
                     <Pencil className="h-4 w-4" /> Open Full Editor
