@@ -401,16 +401,54 @@ export default function DeliveryEmailTab({
                   )}
                 </div>
 
-                {/* Insert Link */}
+                {/* Insert / Edit / Remove Hyperlink */}
                 <button
                   type="button"
                   onClick={() => {
-                    const url = prompt("Enter Hyperlink URL:");
-                    if (url && editor) {
-                      editor.chain().focus().setLink({ href: url }).run();
+                    if (!editor) return;
+
+                    // Case 1: Cursor is currently inside an existing link -> Edit or Remove
+                    if (editor.isActive("link")) {
+                      const currentHref = editor.getAttributes("link").href || "";
+                      const choice = prompt(`Current Link URL: ${currentHref}\n\nType NEW URL to update, or leave blank to REMOVE link:`, currentHref);
+                      if (choice === null) return;
+                      const trimmed = choice.trim();
+                      if (!trimmed) {
+                        editor.chain().focus().unsetLink().run();
+                      } else {
+                        const formattedUrl = trimmed.match(/^https?:\/\//i) ? trimmed : `https://${trimmed}`;
+                        editor.chain().focus().setLink({ href: formattedUrl }).run();
+                      }
+                      return;
+                    }
+
+                    // Case 2: Text is selected vs No text selected
+                    const { from, to } = editor.state.selection;
+                    const selectedText = editor.state.doc.textBetween(from, to, " ");
+
+                    if (selectedText && selectedText.trim().length > 0) {
+                      // Text IS selected -> attach hyperlink to selected text
+                      const rawUrl = prompt(`Enter URL for selected text ("${selectedText.trim()}"):`);
+                      if (!rawUrl) return;
+                      const trimmed = rawUrl.trim();
+                      if (!trimmed) return;
+                      const formattedUrl = trimmed.match(/^https?:\/\//i) ? trimmed : `https://${trimmed}`;
+                      editor.chain().focus().setLink({ href: formattedUrl }).run();
+                    } else {
+                      // NO text selected -> ask for URL + display label
+                      const rawUrl = prompt("Enter Link URL (e.g. https://example.com):");
+                      if (!rawUrl) return;
+                      const trimmedUrl = rawUrl.trim();
+                      if (!trimmedUrl) return;
+                      const formattedUrl = trimmedUrl.match(/^https?:\/\//i) ? trimmedUrl : `https://${trimmedUrl}`;
+
+                      const displayText = prompt("Enter Text to Display for the link:", trimmedUrl);
+                      const finalLabel = (displayText && displayText.trim()) ? displayText.trim() : formattedUrl;
+
+                      editor.chain().focus().insertContent(`<a href="${formattedUrl}" target="_blank" rel="noopener noreferrer">${finalLabel}</a>`).run();
                     }
                   }}
-                  title="Insert Link"
+                  title={editor?.isActive("link") ? "Edit or Remove Hyperlink" : "Insert Hyperlink"}
                   className={`p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer ${editor?.isActive("link") ? "bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8]" : ""}`}
                 >
                   <Link2 className="h-3.5 w-3.5" />
