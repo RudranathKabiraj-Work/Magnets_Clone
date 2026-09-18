@@ -283,9 +283,29 @@ export default function DeliveryEmailTab({
                 <button
                   type="button"
                   onClick={() => {
-                    const url = prompt("Enter YouTube / Video Embed URL:");
-                    if (url && editor) {
-                      editor.chain().focus().insertContent(`<p><iframe src="${url}" width="100%" height="315" frameborder="0" allowfullscreen></iframe></p>`).run();
+                    const inputUrl = prompt("Enter YouTube or Video URL (e.g. YouTube, Loom, Vimeo):");
+                    if (!inputUrl) return;
+                    const url = inputUrl.trim();
+                    if (!url) return;
+
+                    const ytMatch = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/);
+                    const ytId = (ytMatch && ytMatch[2] && ytMatch[2].length === 11) ? ytMatch[2] : null;
+
+                    if (ytId) {
+                      const thumbUrl = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                      const ytHtml = `<p><a href="${url}" target="_blank" rel="noopener noreferrer"><img src="${thumbUrl}" alt="Watch Video on YouTube" /></a></p><p><a href="${url}" target="_blank" rel="noopener noreferrer">▶ Watch Video on YouTube</a></p>`;
+                      if (editor) {
+                        editor.chain().focus().insertContent(ytHtml).run();
+                      } else {
+                        setEmailBody((prev) => prev + `\n${ytHtml}\n`);
+                      }
+                    } else {
+                      const videoHtml = `<p><a href="${url}" target="_blank" rel="noopener noreferrer">▶ Watch Video (${url})</a></p>`;
+                      if (editor) {
+                        editor.chain().focus().insertContent(videoHtml).run();
+                      } else {
+                        setEmailBody((prev) => prev + `\n${videoHtml}\n`);
+                      }
                     }
                   }}
                   title="Insert Video"
