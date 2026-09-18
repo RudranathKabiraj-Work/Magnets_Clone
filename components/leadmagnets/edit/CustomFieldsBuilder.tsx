@@ -17,6 +17,8 @@ export default function CustomFieldsBuilder({
 }: CustomFieldsBuilderProps) {
   const isDark = (account?.themeMode || "light") === "dark";
 
+  const fieldsList = customFormFields || [];
+
   return (
     <div className={`mt-6 max-w-6xl mx-auto rounded-2xl border p-5 transition ${isDark ? "border-white/10 bg-black/40 text-white" : "border-zinc-200 bg-zinc-50 text-zinc-900"}`}>
       <div className="flex items-center justify-between mb-3">
@@ -25,7 +27,7 @@ export default function CustomFieldsBuilder({
           <span>Custom Form Fields Builder</span>
         </h4>
         <span className={`text-xs font-medium ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
-          {customFormFields.length} field{customFormFields.length !== 1 ? "s" : ""} added
+          {fieldsList.length} field{fieldsList.length !== 1 ? "s" : ""} added
         </span>
       </div>
 
@@ -34,7 +36,7 @@ export default function CustomFieldsBuilder({
       <div className="flex flex-wrap gap-2 mb-4">
         {/* Company Name Preset */}
         {(() => {
-          const isAdded = customFormFields.some(f => f.id === "field_company");
+          const isAdded = fieldsList.some(f => f.id === "field_company");
           return (
             <button
               type="button"
@@ -59,7 +61,7 @@ export default function CustomFieldsBuilder({
 
         {/* Phone Number Preset */}
         {(() => {
-          const isAdded = customFormFields.some(f => f.id === "field_phone");
+          const isAdded = fieldsList.some(f => f.id === "field_phone");
           return (
             <button
               type="button"
@@ -84,7 +86,7 @@ export default function CustomFieldsBuilder({
 
         {/* Company Size Preset */}
         {(() => {
-          const isAdded = customFormFields.some(f => f.id === "field_team_size");
+          const isAdded = fieldsList.some(f => f.id === "field_team_size");
           return (
             <button
               type="button"
@@ -109,7 +111,7 @@ export default function CustomFieldsBuilder({
 
         {/* Notes / Message Preset */}
         {(() => {
-          const isAdded = customFormFields.some(f => f.id === "field_notes");
+          const isAdded = fieldsList.some(f => f.id === "field_notes");
           return (
             <button
               type="button"
@@ -133,7 +135,7 @@ export default function CustomFieldsBuilder({
         })()}
 
         {/* Dynamically Added Custom Input Fields Pills (showing - minus sign) */}
-        {customFormFields
+        {fieldsList
           .filter(f => !["field_company", "field_phone", "field_team_size", "field_notes"].includes(f.id))
           .map((f, idx) => (
             <button
@@ -154,7 +156,7 @@ export default function CustomFieldsBuilder({
         type="button"
         onClick={() => {
           const newId = `field_${Date.now()}`;
-          setCustomFormFields(prev => [...prev, { id: newId, type: "text", label: `Custom Field ${prev.length + 1}`, placeholder: "Enter answer...", required: false }]);
+          setCustomFormFields(prev => [...(prev || []), { id: newId, type: "text", label: `Custom Field ${(prev || []).length + 1}`, placeholder: "Enter answer...", required: false }]);
         }}
         className="w-full py-2.5 rounded-xl border border-dashed border-indigo-500/40 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-400 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
       >
@@ -163,13 +165,13 @@ export default function CustomFieldsBuilder({
       </button>
 
       {/* Active Fields List with Remove/Minus (-) buttons */}
-      {customFormFields.length > 0 && (
+      {fieldsList.length > 0 && (
         <div className="space-y-3 mt-4 pt-3 border-t border-indigo-500/20">
           <p className={`text-xs font-semibold ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
-            Active Custom Fields ({customFormFields.length}):
+            Active Custom Fields ({fieldsList.length}):
           </p>
           <div className="space-y-2">
-            {customFormFields.map((field) => (
+            {fieldsList.map((field) => (
               <div
                 key={field.id}
                 className={`p-3 rounded-xl border transition flex flex-col md:flex-row md:items-center gap-3 ${

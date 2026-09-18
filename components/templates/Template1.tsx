@@ -406,6 +406,32 @@ export default function Template1(props: TemplateProps) {
                   readOnly
                 />
 
+                {customFormFields.map((field: any) => (
+                  <div key={field.id} className="relative flex items-center justify-between gap-2">
+                    <input
+                      type="text"
+                      placeholder={`${field.label || "New Field"}${field.required ? " *" : ""}`}
+                      readOnly
+                      className={`w-full rounded-md border p-2 text-xs focus:outline-none transition pointer-events-none select-none ${
+                        isDark ? "bg-[#0E0E10] border-[#252529] text-zinc-400" : "border-[#e4e4e7] text-zinc-400"
+                      }`}
+                    />
+                    {setCustomFormFields && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCustomFormFields((prev: any[]) => prev.filter(f => f.id !== field.id));
+                        }}
+                        className="h-5 w-5 rounded-full bg-red-500/80 hover:bg-red-600 text-white flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer transition shadow-xs"
+                        title="Delete field"
+                      >
+                        -
+                      </button>
+                    )}
+                  </div>
+                ))}
+
                 <div className="pt-1">
                   <input
                     type="text"
@@ -443,6 +469,54 @@ export default function Template1(props: TemplateProps) {
                       : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
                   }`}
                 />
+
+                {customFormFields.map((field: any) => (
+                  <div key={field.id}>
+                    {field.type === "textarea" ? (
+                      <textarea
+                        required={field.required}
+                        placeholder={`${field.label || field.placeholder || "Answer"}${field.required ? " *" : ""}`}
+                        value={publicFormValues[field.id] || ""}
+                        onChange={(e) => setPublicFormValues?.({ ...publicFormValues, [field.id]: e.target.value })}
+                        rows={2}
+                        className={`w-full rounded-md border p-2 text-xs focus:outline-none transition ${
+                          isDark
+                            ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
+                            : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
+                        }`}
+                      />
+                    ) : field.type === "select" ? (
+                      <select
+                        required={field.required}
+                        value={publicFormValues[field.id] || ""}
+                        onChange={(e) => setPublicFormValues?.({ ...publicFormValues, [field.id]: e.target.value })}
+                        className={`w-full rounded-md border p-2 text-xs focus:outline-none transition ${
+                          isDark
+                            ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
+                            : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
+                        }`}
+                      >
+                        <option value="">{field.label || "Select..."}</option>
+                        {field.options?.map((opt: string) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type={field.type || "text"}
+                        required={field.required}
+                        placeholder={`${field.label || field.placeholder || "Answer"}${field.required ? " *" : ""}`}
+                        value={publicFormValues[field.id] || ""}
+                        onChange={(e) => setPublicFormValues?.({ ...publicFormValues, [field.id]: e.target.value })}
+                        className={`w-full rounded-md border p-2 text-xs focus:outline-none transition ${
+                          isDark
+                            ? "bg-[#0E0E10] border-[#252529] text-white focus:border-zinc-700"
+                            : "border-[#e4e4e7] text-zinc-800 focus:border-[#0066B2]/50"
+                        }`}
+                      />
+                    )}
+                  </div>
+                ))}
 
                 <button
                   type="submit"

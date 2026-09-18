@@ -75,10 +75,10 @@ const EmailPreviewModal = dynamic(() => import("@/components/leadmagnets/edit/Em
 const DeliveryEmailTab = dynamic(() => import("@/components/leadmagnets/edit/DeliveryEmailTab"));
 const SequenceTab = dynamic(() => import("@/components/leadmagnets/edit/SequenceTab"));
 const AfterSignupTab = dynamic(() => import("@/components/leadmagnets/edit/AfterSignupTab"));
-const CustomFieldsBuilder = dynamic(() => import("@/components/leadmagnets/edit/CustomFieldsBuilder"));
 const LockedPdfSetup = dynamic(() => import("@/components/leadmagnets/locked-pdf-setup"));
 import { ImageGeneration } from "@/components/agents/image-generation";
 import TemplateRenderer from "@/components/templates/TemplateRenderer";
+import CustomFieldsBuilder from "@/components/leadmagnets/edit/CustomFieldsBuilder";
 
 function compressImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {

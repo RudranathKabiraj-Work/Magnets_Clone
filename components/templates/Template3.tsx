@@ -14,6 +14,7 @@ export default function Template3(props: TemplateProps) {
     formButtonText,
     imageUrl,
     customFormFields = [],
+    setCustomFormFields,
     fileInputRef,
     uploadProgress,
     headlineRef,
@@ -280,13 +281,27 @@ export default function Template3(props: TemplateProps) {
                 <input type="text" placeholder="Name *" readOnly className={`w-full rounded-xl px-3 py-2 text-xs opacity-60 outline-none border border-zinc-200 dark:border-[#252529] ${isDark ? "bg-[#18181C] text-white placeholder:text-zinc-500" : "bg-white text-zinc-800 placeholder:text-zinc-400"}`} />
                 <input type="email" placeholder="Email *" readOnly className={`w-full rounded-xl px-3 py-2 text-xs opacity-60 outline-none border border-zinc-200 dark:border-[#252529] ${isDark ? "bg-[#18181C] text-white placeholder:text-zinc-500" : "bg-white text-zinc-800 placeholder:text-zinc-400"}`} />
                 {customFormFields.map((field: any) => (
-                  <input
-                    key={field.id}
-                    type="text"
-                    placeholder={`${field.label}${field.required ? " *" : ""}`}
-                    readOnly
-                    className={`w-full rounded-xl px-3 py-2 text-xs opacity-60 outline-none border border-zinc-200 dark:border-[#252529] ${isDark ? "bg-[#18181C] text-white placeholder:text-zinc-500" : "bg-white text-zinc-800 placeholder:text-zinc-400"}`}
-                  />
+                  <div key={field.id} className="relative flex items-center justify-between gap-2">
+                    <input
+                      type="text"
+                      placeholder={`${field.label || "New Field"}${field.required ? " *" : ""}`}
+                      readOnly
+                      className={`w-full rounded-xl px-3 py-2 text-xs opacity-60 outline-none border border-zinc-200 dark:border-[#252529] ${isDark ? "bg-[#18181C] text-white placeholder:text-zinc-500" : "bg-white text-zinc-800 placeholder:text-zinc-400"}`}
+                    />
+                    {setCustomFormFields && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCustomFormFields((prev: any[]) => prev.filter(f => f.id !== field.id));
+                        }}
+                        className="h-5 w-5 rounded-full bg-red-500/80 hover:bg-red-600 text-white flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer transition shadow-xs"
+                        title="Delete field"
+                      >
+                        -
+                      </button>
+                    )}
+                  </div>
                 ))}
                 <input
                   type="text"

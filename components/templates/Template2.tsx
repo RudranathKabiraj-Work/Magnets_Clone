@@ -14,6 +14,7 @@ export default function Template2(props: TemplateProps) {
     formButtonText,
     imageUrl,
     customFormFields = [],
+    setCustomFormFields,
     fileInputRef,
     uploadProgress,
     isGeneratingAICover,
@@ -290,13 +291,27 @@ export default function Template2(props: TemplateProps) {
                 />
 
                 {customFormFields.map((field: any) => (
-                  <input
-                    key={field.id}
-                    type="text"
-                    placeholder={`${field.label}${field.required ? " *" : ""}`}
-                    readOnly
-                    className="w-full rounded-xl border border-zinc-200 dark:border-[#252529] bg-white dark:bg-[#18181C] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none transition shadow-xs"
-                  />
+                  <div key={field.id} className="relative flex items-center justify-between gap-2">
+                    <input
+                      type="text"
+                      placeholder={`${field.label || "New Field"}${field.required ? " *" : ""}`}
+                      readOnly
+                      className="w-full rounded-xl border border-zinc-200 dark:border-[#252529] bg-white dark:bg-[#18181C] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none transition shadow-xs"
+                    />
+                    {setCustomFormFields && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCustomFormFields((prev: any[]) => prev.filter(f => f.id !== field.id));
+                        }}
+                        className="h-5 w-5 rounded-full bg-red-500/80 hover:bg-red-600 text-white flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer transition shadow-xs"
+                        title="Delete field"
+                      >
+                        -
+                      </button>
+                    )}
+                  </div>
                 ))}
 
                 <input
