@@ -1066,3 +1066,20 @@ textarea {
 .magnet-card-enter {
   animation: magnetCardIn 0.15s ease both;
 }
+
+/* ─── Tiptap & ProseMirror Email Editor Canvas Reset ─────────────────────────
+   Removes browser-default white focus outlines/rings so the email body
+   feels like a clean, seamless email composer canvas.
+   ──────────────────────────────────────────────────────────────────────── */
+.ProseMirror,
+.ProseMirror:focus,
+.ProseMirror:focus-visible,
+.ProseMirror-focused,
+[contenteditable]:focus,
+[contenteditable]:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  ring: 0 !important;
+  min-height: 220px;
+}

@@ -369,6 +369,11 @@ export default function EditLeadMagnetPage() {
   // Production-grade Tiptap Rich Text Editor instance for Delivery Email
   const editor = useEditor({
     immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        class: "outline-none focus:outline-none focus:ring-0 min-h-[220px]",
+      },
+    },
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },

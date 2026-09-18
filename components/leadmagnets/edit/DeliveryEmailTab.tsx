@@ -62,6 +62,22 @@ export default function DeliveryEmailTab({
   customPromptPlaceholder,
   setCustomPromptPlaceholder,
 }: DeliveryEmailTabProps) {
+  const [activeMenu, setActiveMenu] = React.useState<"headings" | "color" | "lists" | "align" | null>(null);
+  const toolbarRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (toolbarRef.current && !toolbarRef.current.contains(event.target as Node)) {
+        setActiveMenu(null);
+        setShowInsertResourceMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [setShowInsertResourceMenu]);
+
   const renderEmailBlockEditor = (
     val: string,
     onValChange: (next: string) => void,
@@ -144,23 +160,28 @@ export default function DeliveryEmailTab({
             {/* Rich Text Editor Container */}
             <div className={`rounded-2xl border overflow-hidden shadow-xs ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B]" : "border-zinc-200/90 bg-white"}`}>
               {/* Toolbar matching exact screenshot design */}
-              <div className={`flex flex-wrap items-center gap-1.5 border-b px-3 py-2 text-xs font-semibold ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-zinc-300" : "border-zinc-200 bg-[#F9F9FB] text-zinc-600"}`}>
+              <div ref={toolbarRef} className={`flex flex-wrap items-center gap-1.5 border-b px-3 py-2 text-xs font-semibold ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-zinc-300" : "border-zinc-200 bg-[#F9F9FB] text-zinc-600"}`}>
                 {/* Headings Dropdown: T ⌄ */}
-                <div className="relative group">
+                <div className="relative">
                   <button
                     type="button"
                     title="Headings"
-                    className="flex items-center gap-1 px-2 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer text-zinc-700 dark:text-zinc-200"
+                    onClick={() => setActiveMenu((m) => m === "headings" ? null : "headings")}
+                    className={`flex items-center gap-1 px-2 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer text-zinc-700 dark:text-zinc-200 ${activeMenu === "headings" ? "bg-zinc-200 dark:bg-zinc-800" : ""}`}
                   >
                     <Type className="h-3.5 w-3.5" />
                     <ChevronDown className="h-3 w-3 text-zinc-400" />
                   </button>
-                  <div className="hidden group-hover:flex flex-col absolute left-0 top-full mt-1 w-32 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50 p-1">
-                    <button type="button" onClick={() => editor?.chain().focus().setParagraph().run()} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Paragraph</button>
-                    <button type="button" onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()} className="text-left px-2.5 py-1.5 text-xs font-bold rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 1</button>
-                    <button type="button" onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()} className="text-left px-2.5 py-1.5 text-xs font-semibold rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 2</button>
-                    <button type="button" onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()} className="text-left px-2.5 py-1.5 text-xs font-medium rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 3</button>
-                  </div>
+                  {activeMenu === "headings" && (
+                    <div className="absolute left-0 top-full pt-1 z-50">
+                      <div className={`w-32 rounded-lg border shadow-lg p-1 flex flex-col ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24] text-white" : "border-zinc-200 bg-white text-zinc-800"}`}>
+                        <button type="button" onClick={() => { editor?.chain().focus().setParagraph().run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Paragraph</button>
+                        <button type="button" onClick={() => { editor?.chain().focus().toggleHeading({ level: 1 }).run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs font-bold rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 1</button>
+                        <button type="button" onClick={() => { editor?.chain().focus().toggleHeading({ level: 2 }).run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs font-semibold rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 2</button>
+                        <button type="button" onClick={() => { editor?.chain().focus().toggleHeading({ level: 3 }).run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs font-medium rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Heading 3</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
@@ -196,25 +217,30 @@ export default function DeliveryEmailTab({
                 </button>
 
                 {/* Text Color: A */}
-                <div className="relative group">
+                <div className="relative">
                   <button
                     type="button"
                     title="Text Color"
-                    className="flex items-center gap-0.5 p-1.5 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer"
+                    onClick={() => setActiveMenu((m) => m === "color" ? null : "color")}
+                    className={`flex items-center gap-0.5 p-1.5 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer ${activeMenu === "color" ? "bg-zinc-200 dark:bg-zinc-800" : ""}`}
                   >
                     <span className="font-extrabold text-xs underline decoration-2 decoration-[#0066B2]">A</span>
                   </button>
-                  <div className="hidden group-hover:flex gap-1.5 absolute left-0 top-full mt-1 p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50">
-                    {["#18181b", "#0066B2", "#2563eb", "#059669", "#dc2626", "#d97706", "#7c3aed"].map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        onClick={() => editor?.chain().focus().setColor(color).run()}
-                        className="h-4 w-4 rounded-full border border-black/10 cursor-pointer"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </div>
+                  {activeMenu === "color" && (
+                    <div className="absolute left-0 top-full pt-1 z-50">
+                      <div className={`flex gap-1.5 p-2 rounded-lg border shadow-lg ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24]" : "border-zinc-200 bg-white"}`}>
+                        {["#18181b", "#0066B2", "#2563eb", "#059669", "#dc2626", "#d97706", "#7c3aed"].map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => { editor?.chain().focus().setColor(color).run(); setActiveMenu(null); }}
+                            className="h-4 w-4 rounded-full border border-black/10 cursor-pointer hover:scale-110 transition"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Clear Format: 🧹 */}
@@ -230,36 +256,58 @@ export default function DeliveryEmailTab({
                 <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
 
                 {/* Lists: ⋮= ⌄ */}
-                <div className="relative group">
+                <div className="relative">
                   <button
                     type="button"
                     title="Lists"
-                    className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer"
+                    onClick={() => setActiveMenu((m) => m === "lists" ? null : "lists")}
+                    className={`flex items-center gap-1 px-1.5 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer ${activeMenu === "lists" ? "bg-zinc-200 dark:bg-zinc-800" : ""}`}
                   >
                     <span className="text-xs font-bold">⋮=</span>
                     <ChevronDown className="h-3 w-3 text-zinc-400" />
                   </button>
-                  <div className="hidden group-hover:flex flex-col absolute left-0 top-full mt-1 w-36 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50 p-1">
-                    <button type="button" onClick={() => editor?.chain().focus().toggleBulletList().run()} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Bullet List</button>
-                    <button type="button" onClick={() => editor?.chain().focus().toggleOrderedList().run()} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Numbered List</button>
-                  </div>
+                  {activeMenu === "lists" && (
+                    <div className="absolute left-0 top-full pt-1 z-50">
+                      <div className={`w-36 rounded-lg border shadow-lg p-1 flex flex-col ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24] text-white" : "border-zinc-200 bg-white text-zinc-800"}`}>
+                        <button
+                          type="button"
+                          onClick={() => { editor?.chain().focus().toggleBulletList().run(); setActiveMenu(null); }}
+                          className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer font-medium"
+                        >
+                          Bullet List
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { editor?.chain().focus().toggleOrderedList().run(); setActiveMenu(null); }}
+                          className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer font-medium"
+                        >
+                          Numbered List
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Alignment: ≡ ⌄ */}
-                <div className="relative group">
+                <div className="relative">
                   <button
                     type="button"
                     title="Text Align"
-                    className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer"
+                    onClick={() => setActiveMenu((m) => m === "align" ? null : "align")}
+                    className={`flex items-center gap-1 px-1.5 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-800 transition cursor-pointer ${activeMenu === "align" ? "bg-zinc-200 dark:bg-zinc-800" : ""}`}
                   >
                     <AlignLeft className="h-3.5 w-3.5" />
                     <ChevronDown className="h-3 w-3 text-zinc-400" />
                   </button>
-                  <div className="hidden group-hover:flex flex-col absolute left-0 top-full mt-1 w-32 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1E1E24] shadow-lg z-50 p-1">
-                    <button type="button" onClick={() => editor?.chain().focus().setTextAlign("left").run()} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignLeft className="h-3.5 w-3.5" /> Left</button>
-                    <button type="button" onClick={() => editor?.chain().focus().setTextAlign("center").run()} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignCenter className="h-3.5 w-3.5" /> Center</button>
-                    <button type="button" onClick={() => editor?.chain().focus().setTextAlign("right").run()} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignRight className="h-3.5 w-3.5" /> Right</button>
-                  </div>
+                  {activeMenu === "align" && (
+                    <div className="absolute left-0 top-full pt-1 z-50">
+                      <div className={`w-32 rounded-lg border shadow-lg p-1 flex flex-col ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24] text-white" : "border-zinc-200 bg-white text-zinc-800"}`}>
+                        <button type="button" onClick={() => { editor?.chain().focus().setTextAlign("left").run(); setActiveMenu(null); }} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignLeft className="h-3.5 w-3.5" /> Left</button>
+                        <button type="button" onClick={() => { editor?.chain().focus().setTextAlign("center").run(); setActiveMenu(null); }} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignCenter className="h-3.5 w-3.5" /> Center</button>
+                        <button type="button" onClick={() => { editor?.chain().focus().setTextAlign("right").run(); setActiveMenu(null); }} className="flex items-center gap-2 px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"><AlignRight className="h-3.5 w-3.5" /> Right</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
@@ -401,7 +449,7 @@ export default function DeliveryEmailTab({
                 {editor ? (
                   <EditorContent
                     editor={editor}
-                    className={`prose dark:prose-invert max-w-none text-sm leading-relaxed outline-none min-h-[200px] ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-800"}`}
+                    className={`prose dark:prose-invert max-w-none text-sm leading-relaxed outline-none focus:outline-none focus:ring-0 ring-0 border-none min-h-[220px] ${(account?.themeMode || "light") === "dark" ? "text-zinc-100" : "text-zinc-800"}`}
                   />
                 ) : (
                   renderEmailBlockEditor(emailBody, setEmailBody, false)
