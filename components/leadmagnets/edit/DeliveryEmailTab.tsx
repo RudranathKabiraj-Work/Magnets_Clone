@@ -62,7 +62,7 @@ export default function DeliveryEmailTab({
   customPromptPlaceholder,
   setCustomPromptPlaceholder,
 }: DeliveryEmailTabProps) {
-  const [activeMenu, setActiveMenu] = React.useState<"headings" | "color" | "lists" | "align" | null>(null);
+  const [activeMenu, setActiveMenu] = React.useState<"headings" | "color" | "lists" | "align" | "table" | null>(null);
   const toolbarRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -362,15 +362,44 @@ export default function DeliveryEmailTab({
                   <Video className="h-3.5 w-3.5" />
                 </button>
 
-                {/* Insert Table */}
-                <button
-                  type="button"
-                  onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-                  title="Insert Table"
-                  className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
-                >
-                  <TableIcon className="h-3.5 w-3.5" />
-                </button>
+                {/* Insert / Edit Table */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    title="Insert or Manage Table"
+                    onClick={() => setActiveMenu((m) => m === "table" ? null : "table")}
+                    className={`p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer ${activeMenu === "table" || editor?.isActive("table") ? "bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8]" : ""}`}
+                  >
+                    <TableIcon className="h-3.5 w-3.5" />
+                  </button>
+                  {activeMenu === "table" && (
+                    <div className="absolute left-0 top-full pt-1 z-50">
+                      <div className={`w-44 rounded-lg border shadow-lg p-1 flex flex-col space-y-0.5 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#1E1E24] text-white" : "border-zinc-200 bg-white text-zinc-800"}`}>
+                        {editor?.isActive("table") ? (
+                          <>
+                            <div className="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">TABLE CONTROLS</div>
+                            <button type="button" onClick={() => { editor.chain().focus().addRowBefore().run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">➕ Add Row Above</button>
+                            <button type="button" onClick={() => { editor.chain().focus().addRowAfter().run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">➕ Add Row Below</button>
+                            <button type="button" onClick={() => { editor.chain().focus().deleteRow().run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs text-rose-500 rounded hover:bg-rose-500/10 cursor-pointer">❌ Delete Row</button>
+                            <div className="h-px bg-zinc-200 dark:bg-zinc-700/50 my-1" />
+                            <button type="button" onClick={() => { editor.chain().focus().addColumnBefore().run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">➕ Add Column Left</button>
+                            <button type="button" onClick={() => { editor.chain().focus().addColumnAfter().run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">➕ Add Column Right</button>
+                            <button type="button" onClick={() => { editor.chain().focus().deleteColumn().run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs text-rose-500 rounded hover:bg-rose-500/10 cursor-pointer">❌ Delete Column</button>
+                            <div className="h-px bg-zinc-200 dark:bg-zinc-700/50 my-1" />
+                            <button type="button" onClick={() => { editor.chain().focus().deleteTable().run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs text-rose-600 font-bold rounded hover:bg-rose-500/10 cursor-pointer">🗑️ Delete Table</button>
+                          </>
+                        ) : (
+                          <>
+                            <div className="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">INSERT TABLE</div>
+                            <button type="button" onClick={() => { editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Grid 3 × 3 Table</button>
+                            <button type="button" onClick={() => { editor?.chain().focus().insertTable({ rows: 2, cols: 2, withHeaderRow: true }).run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Grid 2 × 2 Table</button>
+                            <button type="button" onClick={() => { editor?.chain().focus().insertTable({ rows: 4, cols: 4, withHeaderRow: true }).run(); setActiveMenu(null); }} className="text-left px-2.5 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer">Grid 4 × 4 Table</button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Insert Link */}
                 <button
