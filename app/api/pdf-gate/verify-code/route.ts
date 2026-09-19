@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     otpRecord.used = true;
     await otpRecord.save();
 
-    // ── Create Lead in MongoDB so it shows in Signups & Leads dashboard ─────
+    // ── Create Lead in MongoDB so it shows in Leads dashboard ─────
     try {
       const mongoose = await import("mongoose");
       let pageDoc = await MagnetPageModel.findOne({ id: magnetId }).lean();

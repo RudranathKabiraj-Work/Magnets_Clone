@@ -14,7 +14,7 @@ import { signOut } from "next-auth/react";
 
 const mobileNav: { href: string; label: string; icon: any; isModal?: boolean }[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/signups", label: "Leads", icon: Users },
+  { href: "/dashboard/leads", label: "Leads", icon: Users },
   { href: "/dashboard/landing-page", label: "Landing Page", icon: FileText },
   { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: Lock },
   { href: "/dashboard/sequences", label: "Email Sequences", icon: Mail },
@@ -295,7 +295,7 @@ export default function DashboardShell({
       title: "MANAGE",
       count: "4 topics",
       items: [
-        { text: "Manage signups", icon: "Users" },
+        { text: "Manage leads", icon: "Users" },
         { text: "Analytics and A/B tests", icon: "BarChart3" },
         { text: "Account settings", icon: "User" },
         { text: "Video walkthrough", icon: "PlayCircle" },
@@ -1066,7 +1066,7 @@ export default function DashboardShell({
                   </div>
                 </div>
               </div>
-            ) : selectedTopic === "Manage signups" ? (
+            ) : selectedTopic === "Manage leads" ? (
               <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                 {/* Header: LEAD MANAGEMENT */}
                 <div className="space-y-4">
@@ -1076,12 +1076,12 @@ export default function DashboardShell({
                     </span>
                     <div>
                       <p className="text-xs font-bold text-zinc-500 dark:text-[#9B9085] uppercase tracking-wider">LEAD MANAGEMENT</p>
-                      <h2 className="text-xl font-bold text-zinc-900 dark:text-white leading-tight">How do I manage signups?</h2>
+                      <h2 className="text-xl font-bold text-zinc-900 dark:text-white leading-tight">How do I manage leads?</h2>
                     </div>
                   </div>
 
                   <p className="text-sm text-zinc-600 dark:text-[#d4c8bc] leading-relaxed">
-                    The Signups area contains everyone who has requested one of your lead magnets.
+                    The Leads area contains everyone who has requested one of your lead magnets.
                   </p>
                 </div>
 
@@ -1107,7 +1107,7 @@ export default function DashboardShell({
                   <div className="rounded-2xl border border-[#0066B2]/30 bg-white text-zinc-900 shadow-xs dark:border-[#0066B2]/35 dark:bg-[#18181B] dark:text-white p-4 space-y-1.5 text-left">
                     <h4 className="text-base font-bold text-zinc-900 dark:text-white">Export</h4>
                     <p className="text-sm text-zinc-500 dark:text-[#9B9085] leading-relaxed">
-                      Download the current signup list as a CSV file.
+                      Download the current lead list as a CSV file.
                     </p>
                   </div>
 
@@ -1115,7 +1115,7 @@ export default function DashboardShell({
                   <div className="rounded-2xl border border-[#0066B2]/30 bg-white text-zinc-900 shadow-xs dark:border-[#0066B2]/35 dark:bg-[#18181B] dark:text-white p-4 space-y-1.5 text-left">
                     <h4 className="text-base font-bold text-zinc-900 dark:text-white">Control follow-up</h4>
                     <p className="text-sm text-zinc-500 dark:text-[#9B9085] leading-relaxed">
-                      Start a missing sequence or stop an active sequence for an individual signup.
+                      Start a missing sequence or stop an active sequence for an individual lead.
                     </p>
                   </div>
                 </div>
@@ -1123,11 +1123,11 @@ export default function DashboardShell({
                 {/* Bottom Action Button */}
                 <div className="pt-2 text-left">
                   <Link
-                    href="/dashboard/signups"
+                    href="/dashboard/leads"
                     onClick={() => setShowHelp(false)}
                     className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                   >
-                    <span>Open Signups</span>
+                    <span>Open Leads</span>
                     <span className="text-base font-bold">→</span>
                   </Link>
                 </div>
@@ -1574,7 +1574,7 @@ export default function DashboardShell({
                   </div>
                 </div>
               </div>
-            ) : selectedTopic === "Substack and Kit" || selectedTopic === "Beehiiv and Substack" || selectedTopic === "Manage signups" ? (
+            ) : selectedTopic === "Substack and Kit" || selectedTopic === "Beehiiv and Substack" || selectedTopic === "Manage leads" ? (
               <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                 {/* Header: AUDIENCE SYNC */}
                 <div className="space-y-4">
@@ -2515,7 +2515,7 @@ export default function DashboardShell({
                   {/* Dark Red Warning Card */}
                   <div className="rounded-2xl border border-red-200 bg-red-50/80 dark:border-[#4d2226] dark:bg-[#221617] p-5 shadow-xs">
                     <p className="text-xs text-red-700 dark:text-[#f87171] leading-relaxed">
-                      Deleting a lead magnet removes its public page and cannot be undone. Signups already collected remain in your Signups area.
+                      Deleting a lead magnet removes its public page and cannot be undone. Signups already collected remain in your Leads area.
                     </p>
                   </div>
 

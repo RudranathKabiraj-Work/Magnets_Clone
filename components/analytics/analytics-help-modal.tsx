@@ -55,23 +55,23 @@ export default function AnalyticsHelpModal({ isOpen, onClose }: AnalyticsHelpMod
             transition={{ type: "spring", stiffness: 400, damping: 30, mass: 0.8 }}
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
-            className="relative w-full max-w-3xl rounded-2xl bg-[#111318] text-white border border-zinc-800/90 shadow-[0_25px_70px_-10px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[88vh] z-10 font-sans"
+            className="relative w-full max-w-3xl rounded-2xl bg-white dark:bg-[#111318] text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800/90 shadow-2xl overflow-hidden flex flex-col max-h-[88vh] z-10 font-sans"
           >
             {/* Top Navigation Bar */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-[#15171D] shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50 dark:bg-[#15171D] shrink-0">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0066B2] text-white shadow-xs">
                   <ListChecks className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white leading-snug">Help centre</h3>
-                  <p className="text-xs text-zinc-400">Learn the basics or find your next step.</p>
+                  <h3 className="text-base font-bold text-zinc-900 dark:text-white leading-snug">Help centre</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Learn the basics or find your next step.</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-white transition cursor-pointer"
+                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white transition cursor-pointer"
                 aria-label="Close modal"
               >
                 <X className="h-5 w-5" />
@@ -79,16 +79,16 @@ export default function AnalyticsHelpModal({ isOpen, onClose }: AnalyticsHelpMod
             </div>
 
             {/* Sub-header navigation row */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-800/60 bg-[#0D0E12] text-xs font-semibold text-zinc-400 shrink-0">
+            <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-100 dark:border-zinc-800/60 bg-white dark:bg-[#0D0E12] text-xs font-semibold text-zinc-500 dark:text-zinc-400 shrink-0">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex items-center gap-2 hover:text-white transition cursor-pointer"
+                className="flex items-center gap-2 hover:text-zinc-900 dark:hover:text-white transition cursor-pointer"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span>All help topics</span>
               </button>
-              <span className="uppercase tracking-wider text-[10px] text-zinc-500 font-bold">LEARN</span>
+              <span className="uppercase tracking-wider text-[10px] text-zinc-400 dark:text-zinc-500 font-bold">LEARN</span>
             </div>
 
             {/* Content Body - Explicit max-height & scroll trapping */}
@@ -101,14 +101,14 @@ export default function AnalyticsHelpModal({ isOpen, onClose }: AnalyticsHelpMod
               {/* Category Eyebrow & Hero Header */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#003865]/70 border border-[#0066B2]/40 text-[#38BDF8]">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EFF6FF] dark:bg-[#003865]/70 border border-[#0066B2]/30 dark:border-[#0066B2]/40 text-[#0066B2] dark:text-[#38BDF8]">
                     <BarChart2 className="h-4 w-4" />
                   </div>
-                  <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                     MEASURE RESULTS
                   </span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight pt-1">
+                <h2 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight leading-tight pt-1">
                   How do analytics and A/B tests work?
                 </h2>
               </div>
@@ -116,17 +116,17 @@ export default function AnalyticsHelpModal({ isOpen, onClose }: AnalyticsHelpMod
               {/* Analytics vs A/B Testing Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                 {/* Card 1: Analytics */}
-                <div className="rounded-2xl border border-[#0066B2]/30 bg-[#16181F] p-5 space-y-2.5 shadow-xs">
-                  <h4 className="text-base font-bold text-white">Analytics</h4>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
+                <div className="rounded-2xl border border-[#0066B2]/30 bg-zinc-50/70 dark:bg-[#16181F] p-5 space-y-2.5 shadow-xs">
+                  <h4 className="text-base font-bold text-zinc-900 dark:text-white">Analytics</h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
                     Open a lead magnet and choose Analytics to see total signups, unique people, tracked visits and conversions, conversion rate, engagement, and results from the after-signup experience. Total signups include repeat requests. Conversion rate uses only signups matched to a tracked visit.
                   </p>
                 </div>
 
                 {/* Card 2: A/B testing */}
-                <div className="rounded-2xl border border-[#0066B2]/30 bg-[#16181F] p-5 space-y-2.5 shadow-xs">
-                  <h4 className="text-base font-bold text-white">A/B testing</h4>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
+                <div className="rounded-2xl border border-[#0066B2]/30 bg-zinc-50/70 dark:bg-[#16181F] p-5 space-y-2.5 shadow-xs">
+                  <h4 className="text-base font-bold text-zinc-900 dark:text-white">A/B testing</h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
                     Test a different title or image against the current page. LeadMagnets splits new visitors between the versions and keeps each visitor on the same version.
                   </p>
                 </div>
@@ -136,12 +136,12 @@ export default function AnalyticsHelpModal({ isOpen, onClose }: AnalyticsHelpMod
               <div className="space-y-4 pt-2">
                 {/* Step 1 */}
                 <div className="flex items-start gap-3.5">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#102a45] border border-[#0066B2]/40 text-[#38BDF8] font-black text-xs mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF] dark:bg-[#102a45] border border-[#0066B2]/30 dark:border-[#0066B2]/40 text-[#0066B2] dark:text-[#38BDF8] font-black text-xs mt-0.5">
                     1
                   </div>
                   <div>
-                    <h5 className="text-sm font-bold text-white leading-snug">Create a second version</h5>
-                    <p className="text-xs text-zinc-400 mt-0.5 leading-normal">
+                    <h5 className="text-sm font-bold text-zinc-900 dark:text-white leading-snug">Create a second version</h5>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-normal">
                       Open the landing-page editor and find Test title and image.
                     </p>
                   </div>
@@ -149,12 +149,12 @@ export default function AnalyticsHelpModal({ isOpen, onClose }: AnalyticsHelpMod
 
                 {/* Step 2 */}
                 <div className="flex items-start gap-3.5">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#102a45] border border-[#0066B2]/40 text-[#38BDF8] font-black text-xs mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF] dark:bg-[#102a45] border border-[#0066B2]/30 dark:border-[#0066B2]/40 text-[#0066B2] dark:text-[#38BDF8] font-black text-xs mt-0.5">
                     2
                   </div>
                   <div>
-                    <h5 className="text-sm font-bold text-white leading-snug">Start the comparison</h5>
-                    <p className="text-xs text-zinc-400 mt-0.5 leading-normal">
+                    <h5 className="text-sm font-bold text-zinc-900 dark:text-white leading-snug">Start the comparison</h5>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-normal">
                       Change the title, image, or both, then start the test.
                     </p>
                   </div>
@@ -162,12 +162,12 @@ export default function AnalyticsHelpModal({ isOpen, onClose }: AnalyticsHelpMod
 
                 {/* Step 3 */}
                 <div className="flex items-start gap-3.5">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#102a45] border border-[#0066B2]/40 text-[#38BDF8] font-black text-xs mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF] dark:bg-[#102a45] border border-[#0066B2]/30 dark:border-[#0066B2]/40 text-[#0066B2] dark:text-[#38BDF8] font-black text-xs mt-0.5">
                     3
                   </div>
                   <div>
-                    <h5 className="text-sm font-bold text-white leading-snug">Watch the results</h5>
-                    <p className="text-xs text-zinc-400 mt-0.5 leading-normal">
+                    <h5 className="text-sm font-bold text-zinc-900 dark:text-white leading-snug">Watch the results</h5>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-normal">
                       Review each version&apos;s visits and conversion rate in Analytics.
                     </p>
                   </div>
@@ -175,12 +175,12 @@ export default function AnalyticsHelpModal({ isOpen, onClose }: AnalyticsHelpMod
 
                 {/* Step 4 */}
                 <div className="flex items-start gap-3.5">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#102a45] border border-[#0066B2]/40 text-[#38BDF8] font-black text-xs mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF] dark:bg-[#102a45] border border-[#0066B2]/30 dark:border-[#0066B2]/40 text-[#0066B2] dark:text-[#38BDF8] font-black text-xs mt-0.5">
                     4
                   </div>
                   <div>
-                    <h5 className="text-sm font-bold text-white leading-snug">Use the winner</h5>
-                    <p className="text-xs text-zinc-400 mt-0.5 leading-normal">
+                    <h5 className="text-sm font-bold text-zinc-900 dark:text-white leading-snug">Use the winner</h5>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-normal">
                       After 7 days, once every version has at least 25 visitors, LeadMagnets selects by conversion rate and applies the winner automatically.
                     </p>
                   </div>

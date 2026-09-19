@@ -265,30 +265,30 @@ export default function AnalyticsLinearView({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="min-h-screen bg-[#09090B] text-zinc-100 p-4 sm:p-6 lg:p-8 font-sans selection:bg-white/10 selection:text-white"
+      className="min-h-screen bg-gradient-to-b from-[#EFF6FF]/50 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#09090B] text-zinc-900 dark:text-zinc-100 p-4 sm:p-6 lg:p-8 font-sans selection:bg-[#0066B2]/10 dark:selection:bg-white/10"
     >
       <div className="max-w-[1600px] mx-auto space-y-6">
 
         {/* 1. LINEAR HEADER BAR */}
         <motion.header
           variants={itemVariants}
-          className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]"
+          className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-200/80 dark:border-white/[0.08]"
         >
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white flex items-center gap-2.5">
                 Analytics
               </h1>
               <button
                 type="button"
                 onClick={onOpenHelp}
-                className="cursor-pointer flex h-5 w-5 items-center justify-center rounded-full border border-white/[0.12] bg-[#121215] text-[11px] font-mono text-zinc-400 hover:text-white hover:border-white/30 transition-all"
+                className="cursor-pointer flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-white/[0.12] bg-white dark:bg-[#121215] text-[11px] font-mono text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-400 dark:hover:border-white/30 transition-all"
                 title="Analytics Help"
               >
                 ?
               </button>
             </div>
-            <p className="text-xs text-zinc-400 font-medium">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
               {isPerMagnet
                 ? page?.name || "Magnet Analytics"
                 : `${account?.name || "LeadMagnets"} · Performance Dashboard`}
@@ -297,7 +297,7 @@ export default function AnalyticsLinearView({
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Timeframe Segmented Control (Apple / Linear Smooth Sliding Pill) */}
-            <div className="relative flex items-center p-1 rounded-xl bg-[#121215] border border-white/[0.08] text-xs">
+            <div className="relative flex items-center p-1 rounded-xl bg-white/80 dark:bg-[#121215] border border-zinc-200/80 dark:border-white/[0.08] text-xs shadow-xs backdrop-blur-sm">
               {(["7d", "30d", "90d", "all"] as TimeRange[]).map((r) => {
                 const isActive = timeRange === r;
                 return (
@@ -305,14 +305,14 @@ export default function AnalyticsLinearView({
                     key={r}
                     type="button"
                     onClick={() => setTimeRange(r)}
-                    className={`relative z-10 px-3.5 py-1.5 rounded-lg font-mono text-[11px] font-semibold transition-colors duration-200 cursor-pointer ${isActive ? "text-white" : "text-zinc-400 hover:text-zinc-200"
+                    className={`relative z-10 px-3.5 py-1.5 rounded-lg font-mono text-[11px] font-semibold transition-colors duration-200 cursor-pointer ${isActive ? "text-zinc-900 dark:text-white" : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
                       }`}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="analyticsActiveTimeframePill"
                         transition={{ type: "spring", stiffness: 450, damping: 32 }}
-                        className="absolute inset-0 rounded-lg bg-white/[0.12] border border-white/[0.16] shadow-xs"
+                        className="absolute inset-0 rounded-lg bg-zinc-100 dark:bg-white/[0.12] border border-zinc-200/80 dark:border-white/[0.16] shadow-xs"
                       />
                     )}
                     <span className="relative z-10">
@@ -328,7 +328,7 @@ export default function AnalyticsLinearView({
               whileTap={{ scale: 0.98 }}
               type="button"
               onClick={exportToCSV}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#121215] border border-white/[0.08] hover:border-white/[0.2] text-xs font-semibold text-zinc-200 transition-all shadow-xs cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white dark:bg-[#121215] border border-zinc-200/80 dark:border-white/[0.08] hover:bg-zinc-50 dark:hover:border-white/[0.2] text-xs font-semibold text-zinc-700 dark:text-zinc-200 transition-all shadow-xs cursor-pointer"
             >
               <Download className="h-3.5 w-3.5 text-zinc-400" />
               <span>Export CSV</span>
@@ -340,7 +340,7 @@ export default function AnalyticsLinearView({
                 e.preventDefault();
                 window.location.href = "/dashboard/leadmagnets";
               }}
-              className="relative z-20 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#121215] border border-white/[0.08] hover:border-white/[0.2] hover:bg-zinc-800/60 text-xs font-semibold text-zinc-200 transition-all shadow-xs cursor-pointer select-none"
+              className="relative z-20 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white dark:bg-[#121215] border border-zinc-200/80 dark:border-white/[0.08] hover:bg-zinc-50 dark:hover:border-white/[0.2] dark:hover:bg-zinc-800/60 text-xs font-semibold text-zinc-700 dark:text-zinc-200 transition-all shadow-xs cursor-pointer select-none"
             >
               <ArrowLeft className="h-3.5 w-3.5 text-zinc-400" />
               <span>All pages</span>
@@ -353,7 +353,7 @@ export default function AnalyticsLinearView({
                   e.preventDefault();
                   window.location.href = `/dashboard/leadmagnets/${targetMagnetId}`;
                 }}
-                className="relative z-20 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white text-zinc-950 font-bold text-xs hover:bg-zinc-200 transition-all shadow-md cursor-pointer select-none"
+                className="relative z-20 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#0066B2] text-white hover:bg-[#005291] dark:bg-white dark:text-zinc-950 font-bold text-xs dark:hover:bg-zinc-200 transition-all shadow-md cursor-pointer select-none"
               >
                 <Pencil className="h-3.5 w-3.5" />
                 <span>Edit magnet</span>
@@ -362,23 +362,23 @@ export default function AnalyticsLinearView({
           </div>
         </motion.header>
 
-        {/* 2. THE 5 CORE METRIC CARDS (Linear/Vercel Obsidian Style) */}
+        {/* 2. THE 5 CORE METRIC CARDS */}
         <motion.div
           variants={itemVariants}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5"
         >
           {/* Card 1: Visits */}
           <motion.div
-            whileHover={{ y: -2, borderColor: "rgba(255, 255, 255, 0.16)" }}
-            className="rounded-2xl bg-[#0E0E11] border border-white/[0.08] p-5 space-y-2.5 transition-all shadow-xs"
+            whileHover={{ y: -2 }}
+            className="rounded-2xl bg-white/80 dark:bg-[#0E0E11] border border-zinc-200/80 dark:border-white/[0.08] p-5 space-y-2.5 transition-all shadow-sm backdrop-blur-sm"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono tracking-wider uppercase text-zinc-400">Visits</span>
-              <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+              <span className="text-[11px] font-mono tracking-wider uppercase text-zinc-500 dark:text-zinc-400">Visits</span>
+              <Sparkles className="h-3.5 w-3.5 text-[#0066B2] dark:text-cyan-400" />
             </div>
             <div>
-              <div className="text-3xl font-mono font-bold text-white tracking-tight">{visitsCount}</div>
-              <div className="text-[11px] font-mono text-cyan-400 mt-1">
+              <div className="text-3xl font-mono font-bold text-zinc-900 dark:text-white tracking-tight">{visitsCount}</div>
+              <div className="text-[11px] font-mono text-[#0066B2] dark:text-cyan-400 mt-1">
                 {statsInRange.visitsInRange} in {rangeLabel}
               </div>
             </div>
@@ -386,16 +386,16 @@ export default function AnalyticsLinearView({
 
           {/* Card 2: Total Signups */}
           <motion.div
-            whileHover={{ y: -2, borderColor: "rgba(255, 255, 255, 0.16)" }}
-            className="rounded-2xl bg-[#0E0E11] border border-white/[0.08] p-5 space-y-2.5 transition-all shadow-xs"
+            whileHover={{ y: -2 }}
+            className="rounded-2xl bg-white/80 dark:bg-[#0E0E11] border border-zinc-200/80 dark:border-white/[0.08] p-5 space-y-2.5 transition-all shadow-sm backdrop-blur-sm"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono tracking-wider uppercase text-zinc-400">Total Signups</span>
-              <Users className="h-3.5 w-3.5 text-emerald-400" />
+              <span className="text-[11px] font-mono tracking-wider uppercase text-zinc-500 dark:text-zinc-400">Total Signups</span>
+              <Users className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <div className="text-3xl font-mono font-bold text-white tracking-tight">{signupsCount}</div>
-              <div className="text-[11px] font-mono text-emerald-400 mt-1 truncate">
+              <div className="text-3xl font-mono font-bold text-zinc-900 dark:text-white tracking-tight">{signupsCount}</div>
+              <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 mt-1 truncate">
                 {signupsCount} unique · {statsInRange.signupsInRange} in range
               </div>
             </div>
@@ -403,16 +403,16 @@ export default function AnalyticsLinearView({
 
           {/* Card 3: Conversion Rate */}
           <motion.div
-            whileHover={{ y: -2, borderColor: "rgba(255, 255, 255, 0.16)" }}
-            className="rounded-2xl bg-[#0E0E11] border border-white/[0.08] p-5 space-y-2.5 transition-all shadow-xs"
+            whileHover={{ y: -2 }}
+            className="rounded-2xl bg-white/80 dark:bg-[#0E0E11] border border-zinc-200/80 dark:border-white/[0.08] p-5 space-y-2.5 transition-all shadow-sm backdrop-blur-sm"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono tracking-wider uppercase text-zinc-400">Conversion Rate</span>
-              <BarChart2 className="h-3.5 w-3.5 text-blue-400" />
+              <span className="text-[11px] font-mono tracking-wider uppercase text-zinc-500 dark:text-zinc-400">Conversion Rate</span>
+              <BarChart2 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <div className="text-3xl font-mono font-bold text-white tracking-tight">{conversionRate}</div>
-              <div className="text-[11px] font-mono text-zinc-400 mt-1">
+              <div className="text-3xl font-mono font-bold text-zinc-900 dark:text-white tracking-tight">{conversionRate}</div>
+              <div className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 mt-1">
                 Tracked conversions ÷ visits
               </div>
             </div>
@@ -420,16 +420,16 @@ export default function AnalyticsLinearView({
 
           {/* Card 4: Tracked Conversions */}
           <motion.div
-            whileHover={{ y: -2, borderColor: "rgba(255, 255, 255, 0.16)" }}
-            className="rounded-2xl bg-[#0E0E11] border border-white/[0.08] p-5 space-y-2.5 transition-all shadow-xs"
+            whileHover={{ y: -2 }}
+            className="rounded-2xl bg-white/80 dark:bg-[#0E0E11] border border-zinc-200/80 dark:border-white/[0.08] p-5 space-y-2.5 transition-all shadow-sm backdrop-blur-sm"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono tracking-wider uppercase text-zinc-400">Tracked Conversions</span>
-              <CheckCircle2 className="h-3.5 w-3.5 text-orange-400" />
+              <span className="text-[11px] font-mono tracking-wider uppercase text-zinc-500 dark:text-zinc-400">Tracked Conversions</span>
+              <CheckCircle2 className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
-              <div className="text-3xl font-mono font-bold text-white tracking-tight">{signupsCount}</div>
-              <div className="text-[11px] font-mono text-orange-400 mt-1">
+              <div className="text-3xl font-mono font-bold text-zinc-900 dark:text-white tracking-tight">{signupsCount}</div>
+              <div className="text-[11px] font-mono text-orange-600 dark:text-orange-400 mt-1">
                 {statsInRange.signupsInRange} in {rangeLabel}
               </div>
             </div>
@@ -437,16 +437,16 @@ export default function AnalyticsLinearView({
 
           {/* Card 5: Average Engaged Time */}
           <motion.div
-            whileHover={{ y: -2, borderColor: "rgba(255, 255, 255, 0.16)" }}
-            className="rounded-2xl bg-[#0E0E11] border border-white/[0.08] p-5 space-y-2.5 transition-all shadow-xs sm:col-span-2 lg:col-span-1 xl:col-span-1"
+            whileHover={{ y: -2 }}
+            className="rounded-2xl bg-white/80 dark:bg-[#0E0E11] border border-zinc-200/80 dark:border-white/[0.08] p-5 space-y-2.5 transition-all shadow-sm backdrop-blur-sm sm:col-span-2 lg:col-span-1 xl:col-span-1"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono tracking-wider uppercase text-zinc-400">Engaged Time</span>
-              <Clock className="h-3.5 w-3.5 text-amber-400" />
+              <span className="text-[11px] font-mono tracking-wider uppercase text-zinc-500 dark:text-zinc-400">Engaged Time</span>
+              <Clock className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
             </div>
             <div>
-              <div className="text-3xl font-mono font-bold text-white tracking-tight">0s</div>
-              <div className="text-[11px] font-mono text-zinc-400 mt-1 truncate">
+              <div className="text-3xl font-mono font-bold text-zinc-900 dark:text-white tracking-tight">0s</div>
+              <div className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 mt-1 truncate">
                 Time page was visible
               </div>
             </div>
@@ -466,20 +466,20 @@ export default function AnalyticsLinearView({
           />
         </motion.div>
 
-        {/* 4. A/B TESTING VARIANT SPLIT CARD (WHEN A/B TEST ACTIVE) */}
+        {/* 4. A/B TESTING VARIANT SPLIT CARD */}
         {isPerMagnet && (page?.hasVariantB || page?.testStarted) && (
           <motion.div
             variants={itemVariants}
-            className="rounded-2xl bg-[#0E0E11] border border-white/[0.08] p-6 space-y-4 shadow-xs"
+            className="rounded-2xl bg-white/80 dark:bg-[#0E0E11] border border-zinc-200/80 dark:border-white/[0.08] p-6 space-y-4 shadow-sm backdrop-blur-sm"
           >
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <div className="flex items-center justify-between border-b border-zinc-200/80 dark:border-white/[0.08] pb-3">
               <div className="flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-amber-400" />
-                <h3 className="text-sm font-bold text-white">
+                <Trophy className="h-4 w-4 text-amber-500 dark:text-amber-400" />
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
                   A/B Test Variant Comparison
                 </h3>
               </div>
-              <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                 ACTIVE EXPERIMENT
               </span>
             </div>
@@ -488,33 +488,33 @@ export default function AnalyticsLinearView({
               {/* Variant A */}
               <div
                 className={`p-4 rounded-xl border space-y-2 transition-all ${!isBWinning
-                    ? "border-emerald-500/40 bg-emerald-950/10"
-                    : "border-white/[0.08] bg-[#121215]"
+                    ? "border-emerald-500/40 bg-emerald-50/60 dark:bg-emerald-950/10"
+                    : "border-zinc-200/80 bg-zinc-50/60 dark:border-white/[0.08] dark:bg-[#121215]"
                   }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">Variant A (Control)</span>
+                  <span className="text-xs font-bold text-zinc-900 dark:text-white">Variant A (Control)</span>
                   {!isBWinning && (
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-black">
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white dark:text-black">
                       LEADING
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-zinc-400 truncate">
+                <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
                   &ldquo;{page?.headline || "Original Title"}&rdquo;
                 </div>
                 <div className="grid grid-cols-3 gap-2 pt-2 text-center text-xs font-mono">
                   <div>
                     <div className="text-zinc-500 text-[10px]">Views</div>
-                    <div className="font-bold text-white">{variantAViews}</div>
+                    <div className="font-bold text-zinc-900 dark:text-white">{variantAViews}</div>
                   </div>
                   <div>
                     <div className="text-zinc-500 text-[10px]">Signups</div>
-                    <div className="font-bold text-white">{variantASignups}</div>
+                    <div className="font-bold text-zinc-900 dark:text-white">{variantASignups}</div>
                   </div>
                   <div>
                     <div className="text-zinc-500 text-[10px]">Conv. Rate</div>
-                    <div className="font-bold text-emerald-400">{variantAConv}%</div>
+                    <div className="font-bold text-emerald-600 dark:text-emerald-400">{variantAConv}%</div>
                   </div>
                 </div>
               </div>
@@ -522,33 +522,33 @@ export default function AnalyticsLinearView({
               {/* Variant B */}
               <div
                 className={`p-4 rounded-xl border space-y-2 transition-all ${isBWinning
-                    ? "border-emerald-500/40 bg-emerald-950/10"
-                    : "border-white/[0.08] bg-[#121215]"
+                    ? "border-emerald-500/40 bg-emerald-50/60 dark:bg-emerald-950/10"
+                    : "border-zinc-200/80 bg-zinc-50/60 dark:border-white/[0.08] dark:bg-[#121215]"
                   }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">Variant B (Challenger)</span>
+                  <span className="text-xs font-bold text-zinc-900 dark:text-white">Variant B (Challenger)</span>
                   {isBWinning && (
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-black">
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white dark:text-black">
                       LEADING
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-zinc-400 truncate">
+                <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
                   &ldquo;{page?.variantBTitle || "Challenger Title"}&rdquo;
                 </div>
                 <div className="grid grid-cols-3 gap-2 pt-2 text-center text-xs font-mono">
                   <div>
                     <div className="text-zinc-500 text-[10px]">Views</div>
-                    <div className="font-bold text-white">{variantBViews}</div>
+                    <div className="font-bold text-zinc-900 dark:text-white">{variantBViews}</div>
                   </div>
                   <div>
                     <div className="text-zinc-500 text-[10px]">Signups</div>
-                    <div className="font-bold text-white">{variantBSignups}</div>
+                    <div className="font-bold text-zinc-900 dark:text-white">{variantBSignups}</div>
                   </div>
                   <div>
                     <div className="text-zinc-500 text-[10px]">Conv. Rate</div>
-                    <div className="font-bold text-emerald-400">{variantBConv}%</div>
+                    <div className="font-bold text-emerald-600 dark:text-emerald-400">{variantBConv}%</div>
                   </div>
                 </div>
               </div>
@@ -559,87 +559,87 @@ export default function AnalyticsLinearView({
         {/* 5. BREAKDOWN CARDS (DEVICE BREAKDOWN & TRAFFIC REFERRERS) */}
         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Device Breakdown Card */}
-          <div className="rounded-2xl bg-[#0E0E11] border border-white/[0.08] p-5 space-y-4 shadow-xs">
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+          <div className="rounded-2xl bg-white/80 dark:bg-[#0E0E11] border border-zinc-200/80 dark:border-white/[0.08] p-5 space-y-4 shadow-sm backdrop-blur-sm">
+            <div className="flex items-center justify-between border-b border-zinc-200/80 dark:border-white/[0.08] pb-3">
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Laptop className="h-4 w-4 text-cyan-400" />
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                  <Laptop className="h-4 w-4 text-[#0066B2] dark:text-cyan-400" />
                   <span>Device Breakdown</span>
                 </h3>
-                <p className="text-xs text-zinc-400 mt-0.5">Desktop vs Mobile & Tablet Visitors</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Desktop vs Mobile & Tablet Visitors</p>
               </div>
-              <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08] text-zinc-300">
+              <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-zinc-100 dark:bg-white/[0.05] border border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300">
                 {desktopPct}% / {mobilePct}%
               </span>
             </div>
 
             <div className="space-y-3 pt-1">
               <div>
-                <div className="flex justify-between text-xs font-semibold text-zinc-300 mb-1.5">
+                <div className="flex justify-between text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
                   <span className="flex items-center gap-2">
-                    <Laptop className="h-3.5 w-3.5 text-cyan-400" />
+                    <Laptop className="h-3.5 w-3.5 text-[#0066B2] dark:text-cyan-400" />
                     Desktop Visitors
                   </span>
-                  <span className="font-mono text-white">{desktopPct}%</span>
+                  <span className="font-mono text-zinc-900 dark:text-white">{desktopPct}%</span>
                 </div>
-                <div className="h-2 w-full rounded-full bg-white/[0.05] overflow-hidden">
-                  <div className="h-full bg-cyan-400 rounded-full transition-all duration-500" style={{ width: `${desktopPct}%` }} />
+                <div className="h-2 w-full rounded-full bg-zinc-100 dark:bg-white/[0.05] overflow-hidden">
+                  <div className="h-full bg-[#0066B2] dark:bg-cyan-400 rounded-full transition-all duration-500" style={{ width: `${desktopPct}%` }} />
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between text-xs font-semibold text-zinc-300 mb-1.5">
+                <div className="flex justify-between text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
                   <span className="flex items-center gap-2">
-                    <Smartphone className="h-3.5 w-3.5 text-orange-400" />
+                    <Smartphone className="h-3.5 w-3.5 text-orange-500 dark:text-orange-400" />
                     Mobile & Tablet Visitors
                   </span>
-                  <span className="font-mono text-white">{mobilePct}%</span>
+                  <span className="font-mono text-zinc-900 dark:text-white">{mobilePct}%</span>
                 </div>
-                <div className="h-2 w-full rounded-full bg-white/[0.05] overflow-hidden">
-                  <div className="h-full bg-orange-400 rounded-full transition-all duration-500" style={{ width: `${mobilePct}%` }} />
+                <div className="h-2 w-full rounded-full bg-zinc-100 dark:bg-white/[0.05] overflow-hidden">
+                  <div className="h-full bg-orange-500 dark:bg-orange-400 rounded-full transition-all duration-500" style={{ width: `${mobilePct}%` }} />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Top Traffic Referrers Card */}
-          <div className="rounded-2xl bg-[#0E0E11] border border-white/[0.08] p-5 space-y-4 shadow-xs">
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+          <div className="rounded-2xl bg-white/80 dark:bg-[#0E0E11] border border-zinc-200/80 dark:border-white/[0.08] p-5 space-y-4 shadow-sm backdrop-blur-sm">
+            <div className="flex items-center justify-between border-b border-zinc-200/80 dark:border-white/[0.08] pb-3">
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-emerald-400" />
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   <span>Top Traffic Referrers</span>
                 </h3>
-                <p className="text-xs text-zinc-400 mt-0.5">Source Domain Breakdown</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Source Domain Breakdown</p>
               </div>
-              <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08] text-zinc-300">
+              <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-zinc-100 dark:bg-white/[0.05] border border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300">
                 Sources
               </span>
             </div>
 
             <div className="space-y-2 pt-1 text-xs">
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#131316] border border-white/[0.06]">
-                <span className="text-zinc-200 font-semibold flex items-center gap-2">
-                  <Share2 className="h-3.5 w-3.5 text-cyan-400" />
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50/80 dark:bg-[#131316] border border-zinc-200/60 dark:border-white/[0.06]">
+                <span className="text-zinc-800 dark:text-zinc-200 font-semibold flex items-center gap-2">
+                  <Share2 className="h-3.5 w-3.5 text-[#0066B2] dark:text-cyan-400" />
                   Direct / Social Links
                 </span>
-                <span className="font-mono font-bold text-cyan-400">{directPct}%</span>
+                <span className="font-mono font-bold text-[#0066B2] dark:text-cyan-400">{directPct}%</span>
               </div>
 
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#131316] border border-white/[0.06]">
-                <span className="text-zinc-200 font-semibold flex items-center gap-2">
-                  <SearchIcon className="h-3.5 w-3.5 text-emerald-400" />
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50/80 dark:bg-[#131316] border border-zinc-200/60 dark:border-white/[0.06]">
+                <span className="text-zinc-800 dark:text-zinc-200 font-semibold flex items-center gap-2">
+                  <SearchIcon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                   Google / Search Engine
                 </span>
-                <span className="font-mono font-bold text-emerald-400">{searchPct}%</span>
+                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{searchPct}%</span>
               </div>
 
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#131316] border border-white/[0.06]">
-                <span className="text-zinc-200 font-semibold flex items-center gap-2">
-                  <Globe className="h-3.5 w-3.5 text-amber-400" />
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50/80 dark:bg-[#131316] border border-zinc-200/60 dark:border-white/[0.06]">
+                <span className="text-zinc-800 dark:text-zinc-200 font-semibold flex items-center gap-2">
+                  <Globe className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
                   Twitter / X / LinkedIn
                 </span>
-                <span className="font-mono font-bold text-amber-400">{socialPct}%</span>
+                <span className="font-mono font-bold text-amber-500 dark:text-amber-400">{socialPct}%</span>
               </div>
             </div>
           </div>
@@ -648,34 +648,34 @@ export default function AnalyticsLinearView({
         {/* 6. RECENT CONVERSIONS ACTIVITY STREAM */}
         <motion.div
           variants={itemVariants}
-          className="rounded-2xl bg-[#0E0E11] border border-white/[0.08] p-6 space-y-4 shadow-xs"
+          className="rounded-2xl bg-white/80 dark:bg-[#0E0E11] border border-zinc-200/80 dark:border-white/[0.08] p-6 space-y-4 shadow-sm backdrop-blur-sm"
         >
-          <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+          <div className="flex items-center justify-between border-b border-zinc-200/80 dark:border-white/[0.08] pb-3">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <UserCheck className="h-4 w-4 text-cyan-400" />
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                <UserCheck className="h-4 w-4 text-[#0066B2] dark:text-cyan-400" />
                 <span>Recent Conversions & Lead Activity</span>
               </h3>
-              <p className="text-xs text-zinc-400 mt-0.5">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 {isPerMagnet
                   ? `Form submissions captured on "${page?.name || "Magnet"}"`
                   : "Latest signups captured across all lead magnets"}
               </p>
             </div>
-            <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08] text-zinc-300">
+            <span className="text-xs font-mono px-2.5 py-0.5 rounded-md bg-zinc-100 dark:bg-white/[0.05] border border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300">
               {leads.length} Leads
             </span>
           </div>
 
           {leads.length === 0 ? (
-            <div className="text-center py-8 text-xs font-mono text-zinc-400">
+            <div className="text-center py-8 text-xs font-mono text-zinc-500 dark:text-zinc-400">
               No recent lead signups recorded yet.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-sans">
                 <thead>
-                  <tr className="border-b border-white/[0.08] text-zinc-400 font-mono text-[11px] uppercase tracking-wider">
+                  <tr className="border-b border-zinc-200/80 dark:border-white/[0.08] text-zinc-500 dark:text-zinc-400 font-mono text-[11px] uppercase tracking-wider">
                     <th className="pb-2.5">Subscriber Name</th>
                     <th className="pb-2.5">Email</th>
                     {!isPerMagnet && <th className="pb-2.5">Lead Magnet</th>}
@@ -683,18 +683,18 @@ export default function AnalyticsLinearView({
                     <th className="pb-2.5">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.04] font-medium text-zinc-300">
+                <tbody className="divide-y divide-zinc-200/60 dark:divide-white/[0.04] font-medium text-zinc-700 dark:text-zinc-300">
                   {leads.slice(0, 5).map((lead) => (
                     <tr
                       key={lead.id}
-                      className="hover:bg-white/[0.02] transition-colors"
+                      className="hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors"
                     >
-                      <td className="py-3 font-bold text-white">{lead.name}</td>
-                      <td className="py-3 font-mono text-zinc-400">{lead.email}</td>
+                      <td className="py-3 font-bold text-zinc-900 dark:text-white">{lead.name}</td>
+                      <td className="py-3 font-mono text-zinc-500 dark:text-zinc-400">{lead.email}</td>
                       {!isPerMagnet && <td className="py-3">{lead.page}</td>}
-                      <td className="py-3 font-mono text-zinc-400">{lead.signedUpAt}</td>
+                      <td className="py-3 font-mono text-zinc-500 dark:text-zinc-400">{lead.signedUpAt}</td>
                       <td className="py-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                           {lead.status || "delivered"}
                         </span>
                       </td>
@@ -709,7 +709,7 @@ export default function AnalyticsLinearView({
         {/* 7. METHODOLOGY NOTICE */}
         <motion.footer
           variants={itemVariants}
-          className="rounded-2xl border border-white/[0.08] bg-[#0C0C0E] p-5 text-xs text-zinc-400 leading-relaxed font-normal"
+          className="rounded-2xl border border-zinc-200/80 bg-white/80 dark:border-white/[0.08] dark:bg-[#0C0C0E] p-5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-normal shadow-xs backdrop-blur-sm"
         >
           Total signups count every successful submission, including repeat requests from the same person. The unique people figure deduplicates those records by email address. A tracked conversion is a successful signup matched to an anonymous browser-tab visit; tracked conversions are used for the conversion rate, chart, and A/B tests. Refreshing the same page does not inflate visits. Engaged time only counts while the page is visible. A video play is one successful signup explicitly pressing Play, counted once. A quiz completion requires every configured answer to be saved. No names, emails, cookies, or raw IP addresses are stored in visit analytics. Historical visit activity from before tracking began cannot be reconstructed.
         </motion.footer>

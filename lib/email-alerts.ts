@@ -57,7 +57,7 @@ export async function sendInstantLeadAlert(payload: LeadAlertPayload): Promise<{
         </div>
 
         <div style="text-align: center; margin-top: 28px;">
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/signups" style="background-color: #0066B2; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 2px 8px rgba(0, 102, 178, 0.25);">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/leads" style="background-color: #0066B2; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 2px 8px rgba(0, 102, 178, 0.25);">
             View All Subscribers →
           </a>
         </div>
