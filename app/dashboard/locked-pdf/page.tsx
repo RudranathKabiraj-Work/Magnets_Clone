@@ -383,21 +383,16 @@ export default function LockedPdfPage() {
         </AnimatePresence>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 space-y-6">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
-              <Lock className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                Locked PDF
-              </h1>
-              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-                Upload your document, set free preview pages, configure delivery emails and lead nurture sequences.
-              </p>
-            </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+              Locked PDF
+            </h1>
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+              Upload your document, set free preview pages, configure delivery emails and lead nurture sequences.
+            </p>
           </div>
         </div>
 
