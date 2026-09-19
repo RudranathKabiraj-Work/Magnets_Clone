@@ -15,7 +15,7 @@ import { signOut } from "next-auth/react";
 const mobileNav: { href: string; label: string; icon: any; isModal?: boolean }[] = [
   { href: "/dashboard/leadmagnets", label: "Lead magnets", icon: FileText },
   { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: Lock },
-  { href: "/dashboard/hostresources", label: "Hosted resources", icon: FolderOpen },
+  { href: "/dashboard/assets", label: "Assets", icon: FolderOpen },
   { href: "/dashboard/signups", label: "Leads", icon: Users },
   { href: "/dashboard/integration", label: "Integration", icon: Sliders },
   { href: "/dashboard/brand", label: "Brand", icon: Palette },
@@ -260,7 +260,7 @@ export default function DashboardShell({
       items: [
         { text: "Create your first lead magnet", icon: "Compass" },
         { text: "Edit and publish a magnet", icon: "FileText" },
-        { text: "Hosted resources", icon: "FolderOpen" },
+        { text: "Assets", icon: "FolderOpen" },
         { text: "Brand colours and logo", icon: "Palette" },
         { text: "Delivery emails", icon: "Send" },
         { text: "Follow-up sequences", icon: "GitFork" },
@@ -1204,7 +1204,7 @@ export default function DashboardShell({
                   {/* Bottom Action Button */}
                   <div className="pt-2 text-left">
                     <Link
-                      href="/dashboard/setup#connections-section"
+                      href="/dashboard/integration#connections-section"
                       onClick={() => setShowHelp(false)}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                     >
@@ -1294,7 +1294,7 @@ export default function DashboardShell({
                   {/* Bottom Action Button */}
                   <div className="pt-2 text-left">
                     <Link
-                      href="/dashboard/setup#connections-section"
+                      href="/dashboard/integration#connections-section"
                       onClick={() => setShowHelp(false)}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                     >
@@ -1374,7 +1374,7 @@ export default function DashboardShell({
                   {/* Bottom Action Button */}
                   <div className="pt-2 text-left">
                     <Link
-                      href="/dashboard/setup#connections-section"
+                      href="/dashboard/integration#connections-section"
                       onClick={() => setShowHelp(false)}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                     >
@@ -1467,7 +1467,7 @@ export default function DashboardShell({
                   {/* Bottom Action Button */}
                   <div className="pt-2 text-left">
                     <Link
-                      href="/dashboard/setup#connections-section"
+                      href="/dashboard/integration#connections-section"
                       onClick={() => setShowHelp(false)}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                     >
@@ -1560,7 +1560,7 @@ export default function DashboardShell({
                   {/* Bottom Action Button */}
                   <div className="pt-2 text-left">
                     <Link
-                      href="/dashboard/setup#connections-section"
+                      href="/dashboard/integration#connections-section"
                       onClick={() => setShowHelp(false)}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                     >
@@ -1619,7 +1619,7 @@ export default function DashboardShell({
                 {/* Bottom Action Button */}
                 <div className="pt-2 text-left">
                   <Link
-                    href="/dashboard/setup#connections-section"
+                    href="/dashboard/integration#connections-section"
                     onClick={() => setShowHelp(false)}
                     className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                   >
@@ -1712,7 +1712,7 @@ export default function DashboardShell({
                   {/* Bottom Action Button */}
                   <div className="pt-2 text-left">
                     <Link
-                      href="/dashboard/setup"
+                      href="/dashboard/integration"
                       onClick={() => setShowHelp(false)}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                     >
@@ -1811,7 +1811,7 @@ export default function DashboardShell({
                   {/* Bottom Action Button */}
                   <div className="pt-1 text-left">
                     <Link
-                      href="/dashboard/setup"
+                      href="/dashboard/integration"
                       onClick={() => setShowHelp(false)}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                     >
@@ -1890,7 +1890,7 @@ export default function DashboardShell({
                   {/* Divider & Bottom Action Button */}
                   <div className="pt-4 border-t border-[#2e2e38]">
                     <Link
-                      href="/dashboard/setup"
+                      href="/dashboard/integration"
                       onClick={() => setShowHelp(false)}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                     >
@@ -2319,7 +2319,7 @@ export default function DashboardShell({
                   </Link>
                 </div>
               </div>
-            ) : selectedTopic === "Hosted resources" ? (
+            ) : selectedTopic === "Assets" || selectedTopic === "Hosted resources" ? (
               <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                 {/* Header: FILES AND DOWNLOADS */}
                 <div className="space-y-4">
@@ -2348,7 +2348,7 @@ export default function DashboardShell({
                     <div className="space-y-1">
                       <h4 className="text-sm font-bold text-zinc-900 dark:text-white">Upload the file</h4>
                       <p className="text-xs text-zinc-500 dark:text-[#9B9085] leading-relaxed">
-                        Open Hosted resources from the sidebar and choose Upload resource.
+                        Open Assets from the sidebar and choose Upload resource.
                       </p>
                     </div>
                   </div>
@@ -2390,11 +2390,11 @@ export default function DashboardShell({
                   {/* Bottom Action Button */}
                   <div className="pt-2">
                     <Link
-                      href="/dashboard/hostresources"
+                      href="/dashboard/assets"
                       onClick={() => setShowHelp(false)}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                     >
-                      <span>Open Hosted resources</span>
+                      <span>Open Assets</span>
                       <span className="text-base font-bold">→</span>
                     </Link>
                   </div>
@@ -2624,7 +2624,7 @@ export default function DashboardShell({
                     </button>
 
                     <Link
-                      href="/dashboard/setup"
+                      href="/dashboard/integration"
                       onClick={() => setShowHelp(false)}
                       className="inline-flex items-center rounded-xl border border-[#2e2e38] bg-[#222228] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2c2c34] transition-all cursor-pointer"
                     >
