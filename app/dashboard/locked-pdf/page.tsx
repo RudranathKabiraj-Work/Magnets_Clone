@@ -110,6 +110,37 @@ export default function LockedPdfPage() {
   const [buttonUrl, setButtonUrl] = useState("");
   const [quizFunnelEnabled, setQuizFunnelEnabled] = useState(false);
 
+  // Enterprise Keyboard Navigation & Accessibility (a11y) Refs
+  const tabRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+
+  const handleTabKeyDown = (e: React.KeyboardEvent, currentId: string) => {
+    const tabIds = ["locked", "email", "sequence", "after"];
+    const currentIndex = tabIds.indexOf(currentId);
+    if (currentIndex === -1) return;
+
+    let targetIndex = currentIndex;
+
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      targetIndex = (currentIndex + 1) % tabIds.length;
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      targetIndex = (currentIndex - 1 + tabIds.length) % tabIds.length;
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      targetIndex = 0;
+    } else if (e.key === "End") {
+      e.preventDefault();
+      targetIndex = tabIds.length - 1;
+    } else {
+      return;
+    }
+
+    const nextTabId = tabIds[targetIndex] as "locked" | "email" | "sequence" | "after";
+    setActiveTab(nextTabId);
+    tabRefs.current[nextTabId]?.focus();
+  };
+
   // Enterprise Auto-Save & Debounce State
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("saved");
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -473,9 +504,11 @@ export default function LockedPdfPage() {
           </div>
         </div>
 
-        {/* 4 Tabs Bar — Workflow Navigation */}
+        {/* 4 Tabs Bar — Workflow Navigation (WAI-ARIA Compliant) */}
         <div
-          className={`grid grid-cols-2 lg:grid-cols-4 rounded-2xl border p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#0E0E11]" : "border-zinc-200 bg-zinc-100/80"}`}
+          role="tablist"
+          aria-label="Locked PDF Workflow Navigation"
+          className={`grid grid-cols-2 lg:grid-cols-4 rounded-2xl border p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24]" : "border-zinc-200 bg-zinc-100/80"}`}
           onMouseLeave={() => setHoveredTab(null)}
         >
           {[
@@ -492,12 +525,21 @@ export default function LockedPdfPage() {
             return (
               <motion.button
                 key={tab.id}
+                ref={(el) => { tabRefs.current[tab.id] = el; }}
+                id={`tab-${tab.id}`}
+                role="tab"
                 type="button"
+                aria-selected={isActive}
+                aria-controls={`panel-${tab.id}`}
+                tabIndex={isActive ? 0 : -1}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 600, damping: 28 }}
                 onMouseEnter={() => setHoveredTab(tab.id)}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`relative flex items-center justify-center gap-3 px-4 py-2.5 sm:py-3 rounded-xl text-xs font-bold transition-colors w-full cursor-pointer border ${
+                onKeyDown={(e) => handleTabKeyDown(e, tab.id)}
+                className={`relative flex items-center justify-center gap-3 px-4 py-2.5 sm:py-3 rounded-xl text-xs font-bold transition-colors w-full cursor-pointer border outline-none focus-visible:ring-2 focus-visible:ring-[#0066B2] focus-visible:ring-offset-2 ${
+                  isDark ? "dark:focus-visible:ring-offset-zinc-900" : "focus-visible:ring-offset-white"
+                } ${
                   isActive
                     ? isDark
                       ? "border-[#27272A] text-white shadow-sm"
@@ -533,13 +575,19 @@ export default function LockedPdfPage() {
           })}
         </div>
 
-        {/* Tab Content Body */}
+        {/* Tab Content Body (WAI-ARIA Tabpanel) */}
         {loading ? (
           <div className="flex h-64 items-center justify-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
             <Loader2 className="h-6 w-6 animate-spin text-[#0066B2]" />
           </div>
         ) : activePage ? (
-          <div className="space-y-4">
+          <div
+            role="tabpanel"
+            id={`panel-${activeTab}`}
+            aria-labelledby={`tab-${activeTab}`}
+            tabIndex={0}
+            className="space-y-4 outline-none focus-visible:ring-2 focus-visible:ring-[#0066B2]/40 rounded-2xl"
+          >
             {/* TAB 1: LOCKED PDF SETUP */}
             {activeTab === "locked" && (
               <LockedPdfSetup
