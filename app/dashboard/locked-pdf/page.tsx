@@ -19,6 +19,9 @@ import {
   AlertCircle,
   Loader2,
   Trash2,
+  X,
+  Sparkles,
+  FileText,
 } from "lucide-react";
 import {
   loadPages,
@@ -77,6 +80,9 @@ export default function LockedPdfPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createMagnetName, setCreateMagnetName] = useState("");
+  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
 
   // Delivery Email tab state
   const [emailSubject, setEmailSubject] = useState("Your PDF resource is inside!");
@@ -186,7 +192,7 @@ export default function LockedPdfPage() {
 
   // Enterprise DOM Hygiene: Scroll Locking & Clean Unmount Cleanup for Modals
   useEffect(() => {
-    if (showEmailPreviewModal || showSequencePreviewModal || showDeleteModal) {
+    if (showEmailPreviewModal || showSequencePreviewModal || showDeleteModal || showCreateModal) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -194,7 +200,7 @@ export default function LockedPdfPage() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [showEmailPreviewModal, showSequencePreviewModal, showDeleteModal]);
+  }, [showEmailPreviewModal, showSequencePreviewModal, showDeleteModal, showCreateModal]);
 
   // Ensure unmount cleanup flushes any pending unsaved state
   useEffect(() => {
@@ -399,16 +405,45 @@ export default function LockedPdfPage() {
     }
   };
 
-  const createNewLockedPdfDocument = () => {
-    const newId = Date.now().toString();
-    const docCount = lockedPdfPages.length + 1;
-    const name = `Locked PDF Document ${String(docCount).padStart(2, "0")}`;
-    const slug = `locked-pdf-${docCount}-${Math.floor(1000 + Math.random() * 9000)}`;
+  const derivedSlug = useMemo(() => {
+    return (
+      createMagnetName
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-") || "untitled-page"
+    );
+  }, [createMagnetName]);
+
+  const handleGenerateAiTitle = async () => {
+    setIsGeneratingTitle(true);
+    try {
+      const res = await fetch("/api/ai/optimize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "suggest_titles", magnetTitle: createMagnetName.trim() || "AI Pipeline Playbook" }),
+      });
+      const data = await res.json();
+      if (data.suggestions?.length) {
+        const randomTitle = data.suggestions[Math.floor(Math.random() * data.suggestions.length)];
+        setCreateMagnetName(randomTitle);
+      }
+    } catch (e) {
+      console.error("AI Title Generator Error:", e);
+    } finally {
+      setIsGeneratingTitle(false);
+    }
+  };
+
+  const handleCreateLockedPdf = () => {
+    const name = createMagnetName.trim() || "Locked PDF Document";
+    const cleanSlug = derivedSlug || "locked-pdf";
+    const newId = `page-${Date.now()}`;
 
     const newMagnet: MagnetPage = {
       id: newId,
       name,
-      slug,
+      slug: cleanSlug,
       status: "draft",
       views: 0,
       signups: 0,
@@ -417,7 +452,7 @@ export default function LockedPdfPage() {
       subheadline: "Enter your email to verify and unlock full PDF access instantly.",
       cta: "Verify & Unlock PDF",
       deliverable: "Locked PDF Document",
-      updatedAt: new Date().toISOString().split("T")[0],
+      updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       publishedAt: null,
       template: "locked-pdf",
       accent: "#0066B2",
@@ -431,7 +466,40 @@ export default function LockedPdfPage() {
     setPages(updated);
     savePages(updated);
     setSelectedPageId(newId);
+    setShowCreateModal(false);
+    setCreateMagnetName("");
     addToast(`Created "${name}". Ready for PDF upload!`);
+  };
+
+  const handleCreateLandingPage = () => {
+    const name = createMagnetName.trim() || "Untitled Landing Page";
+    const cleanSlug = derivedSlug || "untitled-page";
+    const newId = `page-${Date.now()}`;
+
+    const newMagnet: MagnetPage = {
+      id: newId,
+      name,
+      slug: cleanSlug,
+      status: "draft",
+      views: 0,
+      signups: 0,
+      conversionRate: 0,
+      headline: name,
+      subheadline: "Enter your email to get instant access.",
+      cta: "Get instant access",
+      deliverable: "Instant Access",
+      updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      publishedAt: null,
+      template: "classic",
+      accent: account?.brandColor || "#0066B2",
+    };
+
+    const updated = [newMagnet, ...pages];
+    setPages(updated);
+    savePages(updated);
+    setShowCreateModal(false);
+    setCreateMagnetName("");
+    router.push(`/dashboard/leadmagnets/${newId}`);
   };
 
   const handleDeleteActiveDocument = () => {
@@ -522,7 +590,7 @@ export default function LockedPdfPage() {
             )}
 
             <button
-              onClick={createNewLockedPdfDocument}
+              onClick={() => setShowCreateModal(true)}
               className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#005799] transition shadow-md shadow-[#0066B2]/20 cursor-pointer active:scale-95"
             >
               <Plus className="h-4 w-4 stroke-[2.5px]" />
@@ -765,7 +833,7 @@ export default function LockedPdfPage() {
               Create a Locked PDF document to upload your PDF file, set free preview pages, and collect email verification signups.
             </p>
             <button
-              onClick={createNewLockedPdfDocument}
+              onClick={() => setShowCreateModal(true)}
               className="mt-5 flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#005291] transition cursor-pointer"
             >
               <Plus className="h-4 w-4" />
@@ -838,6 +906,119 @@ export default function LockedPdfPage() {
                   {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                   <span>Delete</span>
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 'Create a magnet' Popup Modal Overlay */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-200"
+            onClick={() => {
+              setShowCreateModal(false);
+              setCreateMagnetName("");
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="relative w-full max-w-[460px] rounded-2xl border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#18181c] p-6 text-zinc-900 dark:text-white shadow-2xl space-y-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-zinc-900 dark:text-white">Create a magnet</h3>
+                  <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Name the page and choose its URL.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setCreateMagnetName("");
+                  }}
+                  className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#25252b] dark:hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Form Body */}
+              <div className="space-y-4">
+                {/* Page Name Field */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-zinc-700 dark:text-[#d4c8bc]">Page name</label>
+                    <button
+                      type="button"
+                      disabled={isGeneratingTitle}
+                      onClick={handleGenerateAiTitle}
+                      className="flex items-center gap-1 text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline cursor-pointer disabled:opacity-50"
+                    >
+                      {isGeneratingTitle ? (
+                        <Loader2 className="h-3 w-3 animate-spin text-[#0066B2] dark:text-[#38BDF8]" />
+                      ) : (
+                        <Sparkles className="h-3 w-3 text-[#0066B2] dark:text-[#38BDF8]" />
+                      )}
+                      <span>AI Title Generator</span>
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    autoFocus
+                    value={createMagnetName}
+                    onChange={(e) => setCreateMagnetName(e.target.value)}
+                    placeholder="AI Pipeline Playbook"
+                    className="w-full rounded-xl border border-[#0066B2]/40 bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#52525b] outline-none focus:border-[#0066B2] focus:ring-1 focus:ring-[#0066B2] dark:border-[#0066B2]/60 dark:focus:border-[#0066B2] dark:focus:ring-[#0066B2] transition-all"
+                  />
+                </div>
+
+                {/* URL Slug Field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-zinc-700 dark:text-[#d4c8bc]">URL slug</label>
+                  <div className="flex items-center rounded-xl border border-zinc-200 dark:border-[#2e2e38] bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs text-zinc-500 dark:text-[#9B9085]">
+                    <span className="text-zinc-400 dark:text-[#666675] shrink-0 mr-1.5">/</span>
+                    <span className="font-mono text-zinc-800 dark:text-[#d4c8bc] truncate">{derivedSlug}</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 dark:text-[#666675]">The path of the page. Lowercase, digits, and hyphens only.</p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="pt-3 flex flex-wrap items-center justify-end gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      setCreateMagnetName("");
+                    }}
+                    className="rounded-xl border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#222228] px-4 py-2 text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#2c2c34] transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCreateLockedPdf}
+                    className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
+                  >
+                    <Lock className="h-3.5 w-3.5" />
+                    <span>Locked PDF</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCreateLandingPage}
+                    className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition-all cursor-pointer shadow-sm"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    <span>Landing Page</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

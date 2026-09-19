@@ -42,6 +42,22 @@ interface Toast {
   message: string;
 }
 
+function formatDateOnly(dateStr?: string) {
+  if (!dateStr) return "";
+  if (dateStr.includes(" at ")) {
+    return dateStr.split(" at ")[0];
+  }
+  const dateObj = new Date(dateStr);
+  if (!isNaN(dateObj.getTime())) {
+    return dateObj.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+  return dateStr;
+}
+
 export default function LeadsPage() {
   const [account, setAccount] = useState<Account | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -709,7 +725,7 @@ export default function LeadsPage() {
                         </td>
 
                         <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                          {lead.signedUpAt}
+                          {formatDateOnly(lead.signedUpAt)}
                         </td>
 
                         <td className="px-6 py-4 whitespace-nowrap">
