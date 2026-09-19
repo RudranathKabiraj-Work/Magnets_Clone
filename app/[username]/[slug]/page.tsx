@@ -5,6 +5,8 @@ import AnalyticsAndExitIntent from "@/components/analytics-and-exit-intent";
 import { dbConnect } from "@/lib/mongodb";
 import { MagnetPageModel, AccountModel } from "@/lib/models";
 import { type MagnetPage } from "@/lib/data";
+import { verifySessionToken } from "@/lib/session-token";
+
 
 export const dynamic = "force-dynamic";
 
@@ -96,14 +98,26 @@ export default async function MagnetPageRoute({
     console.warn("MongoDB connection fallback in MagnetPageRoute:", err);
   }
 
-  // Cookie session check to identify if the current viewer is the logged-in owner
+  // Identify whether the current viewer is the actual owner of this page.
+  // We decode the session token and compare the email against the page owner —
+  // simply having any session is NOT enough (a logged-in visitor to someone
+  // else's magnet is not the owner).
   const cookieStore = cookies();
-  const sessionToken =
+  const rawToken =
     cookieStore.get("session_token")?.value ||
     cookieStore.get("next-auth.session-token")?.value ||
     cookieStore.get("__Secure-next-auth.session-token")?.value;
 
-  const isOwner = Boolean(sessionToken);
+  let viewerEmail: string | null = null;
+  if (rawToken) {
+    try {
+      const decoded = verifySessionToken(rawToken);
+      if (decoded?.email) viewerEmail = decoded.email.trim().toLowerCase();
+    } catch { /* invalid token — treat as unauthenticated */ }
+  }
+
+  const pageOwnerEmail = pageDoc?.userEmail ? pageDoc.userEmail.trim().toLowerCase() : null;
+  const isOwner = Boolean(viewerEmail && pageOwnerEmail && viewerEmail === pageOwnerEmail);
   const isDraftMode = pageDoc?.status === "draft";
 
   // Draft Access Protection: If page is in Draft and viewer is NOT the logged-in owner, block public access

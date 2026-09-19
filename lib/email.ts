@@ -34,7 +34,9 @@ function getTransporter() {
       pass,
     },
     tls: {
-      rejectUnauthorized: false,
+      // Enforce TLS certificate verification in production.
+      // false only in local dev to tolerate self-signed certs on dev SMTP servers.
+      rejectUnauthorized: process.env.NODE_ENV === "production",
     },
   });
 

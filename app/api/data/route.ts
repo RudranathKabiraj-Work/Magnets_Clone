@@ -38,6 +38,7 @@ import {
   handleSendTestZapierAlert,
   handleSendTestSlackAlert,
 } from "@/lib/controllers/integrations";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -130,8 +131,23 @@ export async function POST(req: Request) {
       // Account Controller
       case "saveAccount":
         return handleSaveAccount(data, authEmail);
-      case "checkEmail":
+      case "checkEmail": {
+        // Rate-limit email existence checks to prevent user enumeration attacks.
+        // 10 requests per 60 seconds per IP is generous for legitimate use (e.g.
+        // typing an email into the register form) but stops bulk enumeration scripts.
+        const rlIp =
+          (req as any).headers?.get?.("x-forwarded-for")?.split(",")[0]?.trim() ||
+          (req as any).headers?.get?.("x-real-ip") ||
+          "unknown";
+        const rl = await checkRateLimit(rlIp, "check_email", 10, 60 * 1000);
+        if (!rl.success) {
+          return NextResponse.json(
+            { error: "Too many requests. Please slow down." },
+            { status: 429 }
+          );
+        }
         return handleCheckEmail(data);
+      }
       case "deleteAccount":
         return handleDeleteAccount(data, authEmail);
       case "login":
