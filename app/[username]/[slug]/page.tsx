@@ -638,7 +638,7 @@ export default async function MagnetPageRoute({
         ) : ((page.template as string) === "template6" || (!page.template && (accountDoc?.templateId as string) === "template6")) ? (
           /* TEMPLATE 6: Full Bleed Image Card */
           <div
-            className="mx-auto max-w-6xl rounded-3xl overflow-hidden relative min-h-[500px] flex flex-col justify-between transition-all duration-300 shadow-2xl"
+            className="w-full mx-auto max-w-6xl rounded-3xl overflow-hidden relative min-h-[560px] flex flex-col justify-between transition-all duration-300 shadow-2xl"
             style={{
               border: `1px solid ${themeMode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
               boxShadow: themeMode === "dark"
@@ -723,6 +723,7 @@ export default async function MagnetPageRoute({
                   customFormFields={page.customFormFields}
                   username={params.username}
                   isVariantB={isVariantB}
+                  layout="horizontal-glass"
                 />
               </div>
             </div>

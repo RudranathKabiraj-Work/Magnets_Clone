@@ -24,6 +24,7 @@ export default function MagnetSignupForm({
   customFormFields = [],
   username,
   isVariantB = false,
+  layout = "standard",
 }: {
   cta: string;
   formTitle?: string;
@@ -44,6 +45,7 @@ export default function MagnetSignupForm({
   customFormFields?: CustomFormField[];
   username?: string;
   isVariantB?: boolean;
+  layout?: "standard" | "horizontal-glass";
 }) {
   const [done, setDone] = useState(false);
   const [name, setName] = useState("");
@@ -190,9 +192,9 @@ export default function MagnetSignupForm({
   };
 
   const inputStyle = {
-    backgroundColor: themeMode === "dark" ? "#18181C" : "#ffffff",
-    color: themeMode === "dark" ? "#ffffff" : "#09090b",
-    borderColor: themeMode === "dark" ? "#252529" : "#d4d4d8"
+    backgroundColor: themeMode === "dark" ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.9)",
+    borderColor: themeMode === "dark" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)",
+    color: themeMode === "dark" ? "#ffffff" : "#000000",
   };
 
   return (
@@ -220,6 +222,123 @@ export default function MagnetSignupForm({
             <span>📥 Click Here to Download Resource Immediately</span>
           </a>
         </div>
+      ) : layout === "horizontal-glass" ? (
+        <form onSubmit={handleSubmit}>
+          {customFormFields && customFormFields.length > 0 ? (
+            <div className="rounded-2xl p-4 bg-black/50 border border-white/15 backdrop-blur-xl space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                <div className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 bg-black/40 border border-white/10">
+                  <span className="text-xs text-zinc-400">👤</span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Name *"
+                    value={name}
+                    disabled={loading}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-transparent text-xs outline-none text-white placeholder:text-zinc-400"
+                  />
+                </div>
+                <div className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 bg-black/40 border border-white/10">
+                  <span className="text-xs text-zinc-400">✉️</span>
+                  <input
+                    type="email"
+                    required
+                    placeholder="Email *"
+                    value={email}
+                    disabled={loading}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-transparent text-xs outline-none text-white placeholder:text-zinc-400"
+                  />
+                </div>
+                {customFormFields.map((field) => (
+                  <div
+                    key={field.id}
+                    className={`flex items-center gap-2 rounded-xl px-3.5 py-2.5 bg-black/40 border border-white/10 ${field.type === "textarea" ? "col-span-1 md:col-span-2" : ""}`}
+                  >
+                    <input
+                      type="text"
+                      required={field.required}
+                      placeholder={`${field.label}${field.required ? " *" : ""}`}
+                      value={customFieldValues[field.id] || ""}
+                      disabled={loading}
+                      onChange={(e) => handleCustomFieldChange(field.id, e.target.value)}
+                      className="w-full bg-transparent text-xs outline-none text-white placeholder:text-zinc-400"
+                    />
+                  </div>
+                ))}
+              </div>
+              {enableAiPersonalizedDeliverable && (
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-[#0066B2] flex items-center gap-1">
+                    ✨ {customPromptQuestion || "What is your main goal or bottleneck?"}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={customAnswer}
+                    disabled={loading}
+                    onChange={(e) => setCustomAnswer(e.target.value)}
+                    placeholder={customPromptPlaceholder || "e.g. Scaling outreach, Lead generation"}
+                    className="w-full rounded-xl border border-white/10 bg-black/40 px-3.5 py-2.5 text-xs text-white placeholder:text-zinc-400 outline-none"
+                  />
+                </div>
+              )}
+              {errorMsg && (
+                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs font-semibold text-rose-500 text-center">
+                  {errorMsg}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-xl py-3 text-xs font-extrabold text-white outline-none cursor-pointer transition text-center disabled:opacity-50"
+                style={{
+                  background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)`,
+                  boxShadow: `0 4px 16px -4px ${brandColor}88`
+                }}
+              >
+                {loading ? "Submitting..." : (formButtonText || cta || "Send it to me")}
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center rounded-2xl p-1.5 gap-2 bg-black/50 border border-white/15 backdrop-blur-xl">
+              <div className="flex-1 flex items-center gap-2 px-3 py-1.5">
+                <span className="text-xs text-zinc-400">👤</span>
+                <input
+                  type="text"
+                  required
+                  placeholder="Name *"
+                  value={name}
+                  disabled={loading}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-transparent text-xs outline-none text-white placeholder:text-zinc-400"
+                />
+              </div>
+              <div className="hidden sm:block w-px h-5 shrink-0 bg-white/20" />
+              <div className="flex-1 flex items-center gap-2 px-3 py-1.5">
+                <span className="text-xs text-zinc-400">✉️</span>
+                <input
+                  type="email"
+                  required
+                  placeholder="Email *"
+                  value={email}
+                  disabled={loading}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-transparent text-xs outline-none text-white placeholder:text-zinc-400"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="shrink-0 rounded-xl px-5 py-2.5 text-xs font-extrabold text-white outline-none cursor-pointer transition disabled:opacity-50"
+                style={{ background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)`, boxShadow: `0 4px 16px -4px ${brandColor}88` }}
+              >
+                {loading ? "Submitting..." : (formButtonText || cta || "Send it to me")}
+              </button>
+            </div>
+          )}
+        </form>
       ) : (
         <div className={`rounded-xl border p-5 sm:p-6 text-left transition-all duration-300 backdrop-blur-sm ${themeMode === "dark"
           ? "text-white"
