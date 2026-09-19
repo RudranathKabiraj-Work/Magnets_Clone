@@ -47,8 +47,8 @@ export async function POST(req: NextRequest) {
     const name = (body.name || "").trim();
     const customFields = body.customFields || {};
 
-    if (!email || !magnetId) {
-      return NextResponse.json({ error: "Email and magnetId are required." }, { status: 400 });
+    if (!name || !email || !magnetId) {
+      return NextResponse.json({ error: "Name, email, and magnetId are required." }, { status: 400 });
     }
 
     // Basic email format validation

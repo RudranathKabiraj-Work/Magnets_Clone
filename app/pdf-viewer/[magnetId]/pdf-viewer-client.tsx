@@ -175,6 +175,10 @@ export default function PdfViewerClient({
   const handleSendCode = useCallback(
     async (e?: React.FormEvent) => {
       e?.preventDefault();
+      if (!name.trim()) {
+        setHint({ msg: "Please enter your name.", isError: true });
+        return;
+      }
       if (!email.trim()) {
         setHint({ msg: "Please enter your email address.", isError: true });
         return;
@@ -323,10 +327,10 @@ export default function PdfViewerClient({
         .pdf-gate-card p.sub { margin: 0 0 20px; font-size: 14px; color: #52525b; }
         .pdf-gate-form { display: flex; gap: 10px; }
         .pdf-gate-row { display: flex; gap: 10px; width: 100%; }
-        .pdf-gate-input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 13px 15px; border: 1.5px solid #d9d4cc; border-radius: 10px; outline: none; background: #fff; color: #1c1c1c; }
+        .pdf-gate-input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 13px 15px; border: 1.5px solid #d9d4cc; border-radius: 14px; outline: none; background: #fff; color: #1c1c1c; }
         .pdf-gate-input:focus { border-color: #1c1c1c; }
         .pdf-gate-input.is-code { letter-spacing: .3em; text-align: center; font-size: 22px; }
-        .pdf-gate-btn { font: inherit; font-size: 15px; font-weight: 600; background: #111; color: #fff; border: 0; border-radius: 10px; padding: 13px 22px; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
+        .pdf-gate-btn { font: inherit; font-size: 15px; font-weight: 600; background: #111; color: #fff; border: 0; border-radius: 14px; padding: 13px 22px; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
         .pdf-gate-btn:disabled { opacity: .5; cursor: default; }
         .pdf-gate-btn:not(:disabled):hover { opacity: 0.88; }
         .pdf-gate-hint { margin: 12px 0 0; font-size: 13px; color: #666; }
@@ -485,8 +489,9 @@ export default function PdfViewerClient({
                         id="pdf-gate-name"
                         className="pdf-gate-input"
                         type="text"
-                        placeholder="Your name"
+                        placeholder="Your name *"
                         autoComplete="name"
+                        required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         disabled={sending}
