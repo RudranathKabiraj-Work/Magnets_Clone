@@ -82,7 +82,7 @@ export function loadSequences(): Sequence[] {
         return JSON.parse(cached);
       } catch (e) { }
     }
-    return seedSequences;
+    return [];
   }
   return [];
 }
@@ -131,7 +131,7 @@ export function deleteSequence(id: string) {
 }
 
 export function resetSequences() {
-  saveSequences(seedSequences);
+  saveSequences([]);
 }
 
 export function setSessionExpiry(days = 7) {
@@ -211,7 +211,7 @@ export function loadIntegrations(): Integration[] {
         return JSON.parse(cached);
       } catch (e) { }
     }
-    return seedIntegrations;
+    return [];
   }
   return [];
 }
@@ -238,7 +238,7 @@ export function loadLeads(): Lead[] {
         return JSON.parse(cached);
       } catch (e) { }
     }
-    return seedLeads;
+    return [];
   }
   return [];
 }

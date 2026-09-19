@@ -43,6 +43,8 @@ const AccountSchema = new Schema({
   dkimVerified: { type: Boolean, default: false },
 });
 
+AccountSchema.index({ resetPasswordToken: 1 });
+
 // MagnetPage Schema
 const MagnetPageSchema = new Schema({
   id: { type: String, required: true },
@@ -121,6 +123,7 @@ const LeadSchema = new Schema({
 
 LeadSchema.index({ userEmail: 1, pageId: 1 });
 LeadSchema.index({ userEmail: 1, page: 1 });
+LeadSchema.index({ userEmail: 1, email: 1 });
 
 // Sequence Email Schema
 const SequenceEmailSchema = new Schema({
@@ -207,5 +210,6 @@ const PdfOtpSchema = new Schema({
   customFields: { type: Schema.Types.Mixed, default: {} },
 });
 PdfOtpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+PdfOtpSchema.index({ email: 1, magnetId: 1, used: 1 });
 
 export const PdfOtpModel = mongoose.models.PdfOtp || mongoose.model("PdfOtp", PdfOtpSchema);

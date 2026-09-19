@@ -1,25 +1,75 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { checkRateLimit } from "@/lib/rate-limit";
-// NOTE: Do NOT import verifySessionToken here — it uses Node.js `crypto` which
-// is not available in Edge Runtime (where middleware executes). The real
-// cryptographic verification happens inside the API routes (Node.js runtime).
+
+/**
+ * Edge-compatible HMAC-SHA256 JWT Verification using Web Crypto API (crypto.subtle)
+ * Runs in microseconds in Edge Runtime without importing Node.js `crypto`
+ */
+async function verifySessionTokenEdge(token: string, secret: string): Promise<boolean> {
+  try {
+    if (!token) return false;
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+
+    const [headerB64, payloadB64, signatureB64] = parts;
+    const dataToSign = `${headerB64}.${payloadB64}`;
+
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+
+    // Base64URL decode signature
+    const base64 = signatureB64.replace(/-/g, "+").replace(/_/g, "/");
+    const padLen = (4 - (base64.length % 4)) % 4;
+    const paddedSig = base64 + "=".repeat(padLen);
+    const binarySig = Uint8Array.from(atob(paddedSig), (c) => c.charCodeAt(0));
+
+    // Verify signature
+    const isValid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      binarySig,
+      encoder.encode(dataToSign)
+    );
+
+    if (!isValid) return false;
+
+    // Verify expiration timestamp
+    const payloadJson = atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/"));
+    const payload = JSON.parse(payloadJson);
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      return false; // Token expired
+    }
+
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host") || "";
   const ip = request.ip || request.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+  const secret = process.env.JWT_SECRET || "";
 
   const sessionToken = request.cookies.get("session_token")?.value;
   const nextAuthToken =
     request.cookies.get("next-auth.session-token")?.value ||
     request.cookies.get("__Secure-next-auth.session-token")?.value;
 
-  // Lightweight JWT shape check — Edge Runtime cannot use Node.js `crypto`.
-  // We only verify the cookie looks like a signed JWT (3 base64url parts).
-  // Full cryptographic verification happens in getAuthenticatedUserEmail() on API routes.
-  const validCustomSession = sessionToken && sessionToken.split(".").length === 3 ? true : null;
-  const isValidSession = Boolean(validCustomSession || nextAuthToken);
+  // Real cryptographic HMAC verification for Edge Runtime
+  const isValidCustomSession = sessionToken && secret
+    ? await verifySessionTokenEdge(sessionToken, secret)
+    : false;
+
+  const isValidSession = Boolean(isValidCustomSession || nextAuthToken);
 
   // Rate Limiting Protection for Auth & API Endpoints
   if (pathname.startsWith("/api/auth") || pathname.startsWith("/login") || pathname.startsWith("/register") || pathname.startsWith("/reset-password")) {
@@ -42,7 +92,7 @@ export async function middleware(request: NextRequest) {
     host.endsWith("leadmagnets.so") ||
     host.endsWith("magnets.bdatech.in");
 
-  // Protect /dashboard routes — require valid, signed session
+  // Protect /dashboard routes — require cryptographically signed session
   if (pathname.startsWith("/dashboard")) {
     if (!isValidSession) {
       const loginUrl = new URL("/login", request.url);
@@ -69,3 +119,4 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
+
