@@ -14,6 +14,7 @@ import { signOut } from "next-auth/react";
 
 const mobileNav: { href: string; label: string; icon: any; isModal?: boolean }[] = [
   { href: "/dashboard/leadmagnets", label: "Lead magnets", icon: FileText },
+  { href: "/dashboard/sequences", label: "Email Sequences", icon: Mail },
   { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: Lock },
   { href: "/dashboard/assets", label: "Assets", icon: FolderOpen },
   { href: "/dashboard/signups", label: "Leads", icon: Users },

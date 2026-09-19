@@ -377,14 +377,6 @@ export default function PagesPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <Link
-                href="/dashboard/sequences"
-                className="flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#1A1A1E] px-4 py-2.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition shadow-xs"
-              >
-                <Mail className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" />
-                <span>Email Sequences</span>
-              </Link>
-
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#005799] transition shadow-md shadow-[#0066B2]/20 cursor-pointer active:scale-95"
