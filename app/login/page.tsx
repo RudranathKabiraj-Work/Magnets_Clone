@@ -41,13 +41,8 @@ export default function LoginPage() {
       }
 
       if (res.ok && data?.success) {
-        // Set HTTP-Only session cookie via auth endpoint
-        await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim(), name: data.account?.name }),
-        }).catch(console.error);
-
+        // Session cookie is now set directly by the /api/data login response.
+        // No separate /api/auth/login call is needed.
         if (typeof window !== "undefined") {
           safeSetItem("currentUserEmail", email.trim().toLowerCase());
           setSessionExpiry(7);
@@ -57,6 +52,7 @@ export default function LoginPage() {
         }
         setStatus("opening_dashboard");
         window.location.href = "/dashboard";
+
       } else {
         setError(data?.error || (res.ok ? "Failed to login. Please check database connection." : "Incorrect password or account not found."));
         setStatus("idle");

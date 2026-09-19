@@ -1,41 +1,52 @@
 import { NextResponse } from "next/server";
-import { setAuthCookie } from "@/lib/auth";
-import { dbConnect } from "@/lib/mongodb";
-import { AccountModel } from "@/lib/models";
+import { setAuthCookie, getAuthenticatedUserEmail } from "@/lib/auth";
 
+/**
+ * POST /api/auth/login
+ *
+ * INTERNAL USE ONLY — Google OAuth / onboarding session synchronisation.
+ *
+ * This endpoint converts an existing NextAuth Google session into a custom
+ * HttpOnly session_token cookie. It requires that the caller ALREADY holds
+ * a valid session (either a custom session_token or a NextAuth session-token
+ * cookie). Without a prior verified session it returns 403.
+ *
+ * For password-based login, the cookie is set directly by handleLogin()
+ * inside /api/data, which verifies the password before issuing the cookie.
+ */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email, name } = body || {};
+    // ── Require an already-authenticated session ─────────────────────────
+    // getAuthenticatedUserEmail() checks both the custom session_token cookie
+    // and the NextAuth session-token cookie. If neither is present and valid,
+    // it returns null and we reject the request.
+    const sessionEmail = await getAuthenticatedUserEmail();
 
-    if (!email || typeof email !== "string" || !email.includes("@")) {
-      return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
+    if (!sessionEmail) {
+      return NextResponse.json(
+        { error: "Forbidden. A valid session is required to call this endpoint." },
+        { status: 403 }
+      );
     }
 
-    const normEmail = email.trim().toLowerCase();
-
-    // Ensure database connection
+    // ── Optionally accept a display name from the body ────────────────────
+    let name: string | undefined;
     try {
-      await dbConnect();
-      let account = await AccountModel.findOne({ email: normEmail });
-      if (!account) {
-        account = await AccountModel.create({
-          email: normEmail,
-          name: name || normEmail.split("@")[0],
-          username: normEmail.split("@")[0],
-          plan: "Free",
-          joinedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-        });
-      }
-    } catch (dbErr) {
-      console.warn("Database connection warning during login:", dbErr);
+      const body = await req.json();
+      name = typeof body?.name === "string" ? body.name : undefined;
+    } catch {
+      // body is optional — ignore parse failures
     }
 
-    const response = NextResponse.json({ success: true, email: normEmail });
-    setAuthCookie(response, normEmail, name);
-
+    // ── Issue / refresh the custom session cookie ─────────────────────────
+    const response = NextResponse.json({ success: true, email: sessionEmail });
+    setAuthCookie(response, sessionEmail, name);
     return response;
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to log in" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to synchronise session." },
+      { status: 500 }
+    );
   }
 }
+

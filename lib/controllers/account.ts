@@ -171,7 +171,11 @@ export async function handleLogin(data: any) {
     await account.save();
   }
 
-  return NextResponse.json({ success: true, account });
+  // Set the HttpOnly session cookie right here — identity is verified above.
+  // The login page no longer needs a separate POST to /api/auth/login.
+  const res = NextResponse.json({ success: true, account });
+  setAuthCookie(res, account.email, account.name);
+  return res;
 }
 
 export async function handleUpdatePassword(data: any, authEmail: string | null) {
