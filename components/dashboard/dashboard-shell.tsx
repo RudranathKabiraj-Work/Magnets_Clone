@@ -3302,20 +3302,103 @@ export default function DashboardShell({
                 </div>
 
                 {/* Modal Action Buttons */}
-                <div className="pt-3 flex items-center justify-end gap-2.5">
+                <div className="pt-3 flex flex-wrap items-center justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => setShowCreateMagnetModal(false)}
-                    className="rounded-xl border border-[#2e2e38] bg-[#222228] px-4 py-2 text-xs font-semibold text-white hover:bg-[#2c2c34] transition-all cursor-pointer"
+                    className="rounded-xl border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#222228] px-4 py-2 text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#2c2c34] transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => {
+                      const name = createMagnetName.trim() || "Locked PDF Document";
+                      const cleanSlug = createMagnetName
+                        .toLowerCase()
+                        .trim()
+                        .replace(/[^a-z0-9\s-]/g, "")
+                        .replace(/\s+/g, "-") || "locked-pdf";
+                      const newId = `page-${Date.now()}`;
+                      try {
+                        const { loadPages, savePages } = require("@/lib/store");
+                        const currentPages = loadPages();
+                        const newPage = {
+                          id: newId,
+                          name,
+                          slug: cleanSlug,
+                          status: "draft",
+                          headline: name,
+                          subheadline: "Enter your email to verify and unlock full PDF access instantly.",
+                          cta: "Verify & Unlock PDF",
+                          deliverable: "Locked PDF Document",
+                          accent: "#0066B2",
+                          views: 0,
+                          signups: 0,
+                          conversionRate: 0,
+                          template: "locked-pdf",
+                          pdfPages: [],
+                          pdfFreePages: 2,
+                          pdfTitle: name,
+                          pdfPageCount: 0,
+                          updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                        };
+                        savePages([newPage, ...currentPages]);
+                      } catch (_) { }
+
+                      setShowCreateMagnetModal(false);
+                      setCreateMagnetName("");
+                      router.push("/dashboard/locked-pdf");
+                    }}
                     className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                   >
-                    <span>+</span>
-                    <span>Create page</span>
+                    <Lock className="h-3.5 w-3.5" />
+                    <span>Locked PDF</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const name = createMagnetName.trim() || "Untitled Landing Page";
+                      const cleanSlug = createMagnetName
+                        .toLowerCase()
+                        .trim()
+                        .replace(/[^a-z0-9\s-]/g, "")
+                        .replace(/\s+/g, "-") || "untitled-page";
+                      const newId = `page-${Date.now()}`;
+                      try {
+                        const { loadPages, savePages } = require("@/lib/store");
+                        const currentPages = loadPages();
+                        const newPage = {
+                          id: newId,
+                          name,
+                          slug: cleanSlug,
+                          status: "draft",
+                          headline: name,
+                          subheadline: "Enter your email to get instant access.",
+                          buttonText: "Get instant access",
+                          accent: "#0066B2",
+                          views: 0,
+                          signups: 0,
+                          updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                          deliveryEmail: {
+                            subject: "Your resource is inside",
+                            previewText: "Here is your link",
+                            body: "Thanks for signing up!",
+                            linkText: "Access resource",
+                            linkUrl: "",
+                          },
+                        };
+                        savePages([newPage, ...currentPages]);
+                      } catch (_) { }
+
+                      setShowCreateMagnetModal(false);
+                      setCreateMagnetName("");
+                      router.push(`/dashboard/leadmagnets/${newId}`);
+                    }}
+                    className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition-all cursor-pointer shadow-sm"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    <span>Landing Page</span>
                   </button>
                 </div>
               </form>
