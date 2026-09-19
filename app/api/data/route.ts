@@ -8,6 +8,8 @@ import { sendMail } from "@/lib/email";
 import { clearAuthCookie, getAuthenticatedUserEmail, setAuthCookie } from "@/lib/auth";
 import { hashPassword, comparePassword } from "@/lib/auth-helpers";
 
+import { deleteCloudinaryAsset, deleteCloudinaryAssets } from "@/lib/cloudinary";
+
 function serverValidatePassword(pass: string): string | null {
   if (!pass || pass.length < 8) return "Password must be at least 8 characters long.";
   if (!/[A-Z]/.test(pass)) return "Password must contain at least one uppercase letter.";
@@ -109,6 +111,38 @@ export async function POST(req: Request) {
 
     if (action === "savePages") {
       if (Array.isArray(data) && data.length > 0) {
+        // Collect old Cloudinary assets being replaced
+        const incomingIds = data.map((item: any) => item.id).filter(Boolean);
+        const existingPages = await MagnetPageModel.find({ id: { $in: incomingIds } }).lean();
+        const existingMap = new Map<string, any>(existingPages.map((p: any) => [p.id, p]));
+
+        const replacedAssets: string[] = [];
+        data.forEach((item: any) => {
+          const oldPage = existingMap.get(item.id);
+          if (oldPage) {
+            if (oldPage.imageUrl && item.imageUrl && oldPage.imageUrl !== item.imageUrl) {
+              replacedAssets.push(oldPage.imageUrl);
+            }
+            if (oldPage.variantBImage && item.variantBImage && oldPage.variantBImage !== item.variantBImage) {
+              replacedAssets.push(oldPage.variantBImage);
+            }
+            if (Array.isArray(oldPage.pdfPages) && Array.isArray(item.pdfPages)) {
+              const newSet = new Set(item.pdfPages);
+              oldPage.pdfPages.forEach((oldPdfUrl: string) => {
+                if (oldPdfUrl && !newSet.has(oldPdfUrl)) {
+                  replacedAssets.push(oldPdfUrl);
+                }
+              });
+            }
+          }
+        });
+
+        if (replacedAssets.length > 0) {
+          deleteCloudinaryAssets(replacedAssets).catch((err) =>
+            console.error("Cloudinary cleanup error on savePages:", err)
+          );
+        }
+
         const ops = data.map((item: any) => {
           const itemEmail = normEmail || item.userEmail || "";
           return {
@@ -129,11 +163,53 @@ export async function POST(req: Request) {
       const filter = normEmail
         ? { id, userEmail: { $regex: new RegExp(`^${normEmail}$`, "i") } }
         : { id };
+
+      const targetPage = await MagnetPageModel.findOne(filter).lean();
+      if (targetPage) {
+        const assetsToDelete: string[] = [];
+        if ((targetPage as any).imageUrl) assetsToDelete.push((targetPage as any).imageUrl);
+        if ((targetPage as any).variantBImage) assetsToDelete.push((targetPage as any).variantBImage);
+        if (Array.isArray((targetPage as any).pdfPages)) {
+          (targetPage as any).pdfPages.forEach((url: string) => {
+            if (url) assetsToDelete.push(url);
+          });
+        }
+        if (assetsToDelete.length > 0) {
+          deleteCloudinaryAssets(assetsToDelete).catch((err) =>
+            console.error("Cloudinary cleanup error on deletePage:", err)
+          );
+        }
+      }
+
       await MagnetPageModel.deleteOne(filter);
       return NextResponse.json({ success: true });
     }
 
     if (action === "addPage") {
+      const existingPage = await MagnetPageModel.findOne({ id: data.id }).lean();
+      if (existingPage) {
+        const replacedAssets: string[] = [];
+        if ((existingPage as any).imageUrl && data.imageUrl && (existingPage as any).imageUrl !== data.imageUrl) {
+          replacedAssets.push((existingPage as any).imageUrl);
+        }
+        if ((existingPage as any).variantBImage && data.variantBImage && (existingPage as any).variantBImage !== data.variantBImage) {
+          replacedAssets.push((existingPage as any).variantBImage);
+        }
+        if (Array.isArray((existingPage as any).pdfPages) && Array.isArray(data.pdfPages)) {
+          const newSet = new Set(data.pdfPages);
+          (existingPage as any).pdfPages.forEach((oldPdfUrl: string) => {
+            if (oldPdfUrl && !newSet.has(oldPdfUrl)) {
+              replacedAssets.push(oldPdfUrl);
+            }
+          });
+        }
+        if (replacedAssets.length > 0) {
+          deleteCloudinaryAssets(replacedAssets).catch((err) =>
+            console.error("Cloudinary cleanup error on addPage:", err)
+          );
+        }
+      }
+
       const pageToInsert = normEmail ? { ...data, userEmail: normEmail } : data;
       await MagnetPageModel.findOneAndUpdate(
         { id: data.id },
@@ -287,6 +363,30 @@ export async function POST(req: Request) {
         }
       }
       const normDelEmail = email.trim().toLowerCase();
+
+      // Clean up all Cloudinary assets owned by this user
+      const userPages = await MagnetPageModel.find({ userEmail: normDelEmail }).lean();
+      const userResources = await ResourceModel.find({ userEmail: normDelEmail }).lean();
+
+      const allUserAssets: string[] = [];
+      userPages.forEach((p: any) => {
+        if (p.imageUrl) allUserAssets.push(p.imageUrl);
+        if (p.variantBImage) allUserAssets.push(p.variantBImage);
+        if (Array.isArray(p.pdfPages)) {
+          p.pdfPages.forEach((u: string) => { if (u) allUserAssets.push(u); });
+        }
+      });
+      userResources.forEach((r: any) => {
+        const u = r.url || r.fileUrl;
+        if (u) allUserAssets.push(u);
+      });
+
+      if (allUserAssets.length > 0) {
+        deleteCloudinaryAssets(allUserAssets).catch((err) =>
+          console.error("Cloudinary cleanup error on deleteAccount:", err)
+        );
+      }
+
       await AccountModel.deleteOne({ email: normDelEmail });
       await MagnetPageModel.deleteMany({ userEmail: normDelEmail });
       await LeadModel.deleteMany({ userEmail: normDelEmail });
@@ -851,6 +951,20 @@ export async function POST(req: Request) {
 
     if (action === "saveResources") {
       if (normEmail) {
+        const existingRes = await ResourceModel.find({ userEmail: normEmail }).lean();
+        const newUrls = new Set(Array.isArray(data) ? data.map((r: any) => r.url || r.fileUrl).filter(Boolean) : []);
+        const removedAssets: string[] = [];
+        existingRes.forEach((r: any) => {
+          const u = r.url || r.fileUrl;
+          if (u && !newUrls.has(u)) {
+            removedAssets.push(u);
+          }
+        });
+        if (removedAssets.length > 0) {
+          deleteCloudinaryAssets(removedAssets).catch((err) =>
+            console.error("Cloudinary cleanup error on saveResources:", err)
+          );
+        }
         await ResourceModel.deleteMany({ userEmail: normEmail });
       }
       if (Array.isArray(data) && data.length > 0) {
@@ -862,8 +976,15 @@ export async function POST(req: Request) {
 
     if (action === "deleteResource") {
       const { id } = data;
-      // SECURITY: Only delete the resource if it belongs to the logged-in user
-      // The duplicate block below this was also removed (dead code that never ran)
+      const targetResource = await ResourceModel.findOne({ id, userEmail: normEmail }).lean();
+      if (targetResource) {
+        const u = (targetResource as any).url || (targetResource as any).fileUrl;
+        if (u) {
+          deleteCloudinaryAsset(u).catch((err) =>
+            console.error("Cloudinary cleanup error on deleteResource:", err)
+          );
+        }
+      }
       await ResourceModel.deleteOne({ id, userEmail: normEmail });
       return NextResponse.json({ success: true });
     }
