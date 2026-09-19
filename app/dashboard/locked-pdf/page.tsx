@@ -22,6 +22,7 @@ import {
   X,
   Sparkles,
   FileText,
+  TrendingUp,
 } from "lucide-react";
 import {
   loadPages,
@@ -314,6 +315,22 @@ export default function LockedPdfPage() {
     });
   }, [pages]);
 
+  // Aggregate statistics for Locked PDFs
+  const lockedPdfStats = useMemo(() => {
+    const publishedCount = lockedPdfPages.filter((p) => p.status === "live").length;
+    const totalViews = lockedPdfPages.reduce((acc, p) => acc + (p.views || 0), 0);
+    const totalSignups = lockedPdfPages.reduce((acc, p) => acc + (p.signups || 0), 0);
+    const convRate = totalViews > 0 ? ((totalSignups / totalViews) * 100).toFixed(1) + "%" : "0.0%";
+
+    return {
+      publishedCount,
+      totalCount: lockedPdfPages.length,
+      totalViews,
+      totalSignups,
+      convRate,
+    };
+  }, [lockedPdfPages]);
+
   // Active selected locked PDF page object
   const activePage = useMemo(() => {
     if (selectedPageId) {
@@ -596,6 +613,61 @@ export default function LockedPdfPage() {
               <Plus className="h-4 w-4 stroke-[2.5px]" />
               <span>Create Lead Magnet</span>
             </button>
+          </div>
+        </div>
+
+        {/* Locked PDF Statistics Bar */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+          {/* Active Locked PDFs */}
+          <div className="flex items-center gap-3.5 rounded-2xl border border-zinc-200/80 bg-white dark:border-[#1F1F24] dark:bg-[#151518] p-4 shadow-xs">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+              <FileLock className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold tracking-wider text-zinc-500 dark:text-[#9B9085] uppercase">Active PDFs</p>
+              <p className="text-lg font-extrabold text-zinc-900 dark:text-white mt-0.5">
+                {lockedPdfStats.publishedCount} <span className="text-xs font-semibold text-zinc-400">/ {lockedPdfStats.totalCount}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Preview Traffic */}
+          <div className="flex items-center gap-3.5 rounded-2xl border border-zinc-200/80 bg-white dark:border-[#1F1F24] dark:bg-[#151518] p-4 shadow-xs">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Eye className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold tracking-wider text-zinc-500 dark:text-[#9B9085] uppercase">Preview Traffic</p>
+              <p className="text-lg font-extrabold text-zinc-900 dark:text-white mt-0.5">
+                {lockedPdfStats.totalViews.toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          {/* Unlocked Leads */}
+          <div className="flex items-center gap-3.5 rounded-2xl border border-zinc-200/80 bg-white dark:border-[#1F1F24] dark:bg-[#151518] p-4 shadow-xs">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+              <Lock className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold tracking-wider text-zinc-500 dark:text-[#9B9085] uppercase">Unlocked Leads</p>
+              <p className="text-lg font-extrabold text-zinc-900 dark:text-white mt-0.5">
+                {lockedPdfStats.totalSignups.toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          {/* Avg. Unlock Rate */}
+          <div className="flex items-center gap-3.5 rounded-2xl border border-zinc-200/80 bg-white dark:border-[#1F1F24] dark:bg-[#151518] p-4 shadow-xs">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+              <TrendingUp className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold tracking-wider text-zinc-500 dark:text-[#9B9085] uppercase">Avg. Unlock Rate</p>
+              <p className="text-lg font-extrabold text-zinc-900 dark:text-white mt-0.5">
+                {lockedPdfStats.convRate}
+              </p>
+            </div>
           </div>
         </div>
 
