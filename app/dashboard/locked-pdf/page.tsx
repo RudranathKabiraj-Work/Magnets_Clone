@@ -40,8 +40,14 @@ import LockedPdfSetup from "@/components/leadmagnets/locked-pdf-setup";
 import AfterSignupTab from "@/components/leadmagnets/edit/AfterSignupTab";
 
 // Production Code-Splitting for Editor Islands (Keeps @tiptap out of initial bundle)
-const DeliveryEmailTab = dynamic(() => import("@/components/leadmagnets/edit/DeliveryEmailTab"), { ssr: false });
-const SequenceTab = dynamic(() => import("@/components/leadmagnets/edit/SequenceTab"), { ssr: false });
+const DeliveryEmailTab = dynamic(() => import("@/components/leadmagnets/edit/DeliveryEmailTab"), {
+  ssr: false,
+  loading: () => <div className="p-12 text-center text-sm text-zinc-400 font-medium">Loading Delivery Email Editor...</div>,
+});
+const SequenceTab = dynamic(() => import("@/components/leadmagnets/edit/SequenceTab"), {
+  ssr: false,
+  loading: () => <div className="p-12 text-center text-sm text-zinc-400 font-medium">Loading Email Sequences...</div>,
+});
 // Enterprise Dynamic Lazy-Loading for Preview Modals (Zero initial bundle footprint)
 const EmailPreviewModal = dynamic(
   () => import("@/components/leadmagnets/edit/EmailPreviewModal"),

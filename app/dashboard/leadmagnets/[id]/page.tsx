@@ -66,8 +66,14 @@ import AfterSignupTab from "@/components/leadmagnets/edit/AfterSignupTab";
 import LockedPdfSetup from "@/components/leadmagnets/locked-pdf-setup";
 
 // Production Code-Splitting for Editor Islands (Keeps @tiptap out of initial bundle)
-const DeliveryEmailTab = dynamic(() => import("@/components/leadmagnets/edit/DeliveryEmailTab"), { ssr: false });
-const SequenceTab = dynamic(() => import("@/components/leadmagnets/edit/SequenceTab"), { ssr: false });
+const DeliveryEmailTab = dynamic(() => import("@/components/leadmagnets/edit/DeliveryEmailTab"), {
+  ssr: false,
+  loading: () => <div className="p-12 text-center text-sm text-zinc-400 font-medium">Loading Delivery Email Editor...</div>,
+});
+const SequenceTab = dynamic(() => import("@/components/leadmagnets/edit/SequenceTab"), {
+  ssr: false,
+  loading: () => <div className="p-12 text-center text-sm text-zinc-400 font-medium">Loading Email Sequences...</div>,
+});
 import { ImageGeneration } from "@/components/agents/image-generation";
 import TemplateRenderer from "@/components/templates/TemplateRenderer";
 import CustomFieldsBuilder from "@/components/leadmagnets/edit/CustomFieldsBuilder";
