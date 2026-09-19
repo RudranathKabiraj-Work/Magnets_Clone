@@ -1514,7 +1514,12 @@ export default function EditLeadMagnetPage() {
               onMouseLeave={() => setHoveredTab(null)}
             >
               {[
-                { id: "landing", label: "Landing page", desc: "Design the page", icon: Monitor },
+                {
+                  id: "landing",
+                  label: (templateId === "locked-pdf" || page?.template === "locked-pdf") ? "Locked PDF" : "Landing page",
+                  desc: (templateId === "locked-pdf" || page?.template === "locked-pdf") ? "Design the PDF" : "Design the page",
+                  icon: (templateId === "locked-pdf" || page?.template === "locked-pdf") ? Lock : Monitor,
+                },
                 { id: "email", label: "Delivery email", desc: "Send the resource", icon: Mail },
                 { id: "sequence", label: "Sequence", desc: "Nurture leads", icon: Clock },
                 { id: "after", label: "After signup", desc: "Choose the next step", icon: Home },
