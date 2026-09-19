@@ -507,8 +507,8 @@ export default function LockedPdfPage() {
             </p>
           </div>
 
-          {/* Production-grade Keystroke Auto-Save Status Badge */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Production-grade Keystroke Auto-Save Status Badge & Create Action */}
+          <div className="flex items-center gap-3 shrink-0">
             {saveStatus === "saving" ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-2xs">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -520,6 +520,14 @@ export default function LockedPdfPage() {
                 <span>All changes saved</span>
               </span>
             )}
+
+            <button
+              onClick={createNewLockedPdfDocument}
+              className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#005799] transition shadow-md shadow-[#0066B2]/20 cursor-pointer active:scale-95"
+            >
+              <Plus className="h-4 w-4 stroke-[2.5px]" />
+              <span>Create Lead Magnet</span>
+            </button>
           </div>
         </div>
 
