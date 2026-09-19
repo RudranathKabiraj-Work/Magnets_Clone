@@ -288,6 +288,7 @@
   gap: 24px;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .adobe-page-wrapper {

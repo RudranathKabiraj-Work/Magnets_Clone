@@ -16,6 +16,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ unlocked: false, error: "Missing magnetId." }, { status: 400 });
     }
 
+    const resetParam = searchParams.get("reset") === "1";
+    if (resetParam) {
+      const res = NextResponse.json({ unlocked: false });
+      res.cookies.set(cookieName(magnetId), "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 0,
+        path: "/",
+      });
+      return res;
+    }
+
     const cookieValue = req.cookies.get(cookieName(magnetId))?.value;
     const tokenToVerify = queryToken || cookieValue || "";
 

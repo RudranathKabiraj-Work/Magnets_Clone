@@ -50,9 +50,12 @@ export default async function PdfViewerPage({ params, searchParams }: Props) {
   const tokenFromQuery = searchParams?.token;
   const rawToken = tokenFromQuery || tokenFromCookie;
 
-  let effectivePdfPages: string[] = Array.isArray(pageDoc.pdfPages) ? pageDoc.pdfPages : [];
+  let effectivePdfPages: string[] = Array.isArray(pageDoc.pdfPages) && pageDoc.pdfPages.length > 0
+    ? pageDoc.pdfPages
+    : [];
 
-  if (rawToken && rawToken !== "1") {
+  // Fallback to token payload only if DB doc has no pages
+  if (effectivePdfPages.length === 0 && rawToken && rawToken !== "1") {
     const verifiedPayload = verifyPdfUnlockToken(rawToken);
     if (verifiedPayload && (verifiedPayload.magnetId === magnetId || !verifiedPayload.magnetId)) {
       if (verifiedPayload.pdfPages && verifiedPayload.pdfPages.length > 0) {

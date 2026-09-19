@@ -199,6 +199,17 @@ export default function LockedPdfSetup({
     setSaving(true);
     setSaved(false);
     try {
+      // Clear any leftover server httpOnly & localStorage unlock tokens
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.removeItem(`pdf_unlock_token_${magnetId}`);
+          await fetch("/api/pdf-gate/reset", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ magnetId }),
+          }).catch(() => {});
+        } catch (e) {}
+      }
       await onSave({
         pdfPages: pages,
         pdfFreePages: safeFreePages,
@@ -421,7 +432,7 @@ export default function LockedPdfSetup({
                 {viewerUrl}
               </code>
               <a
-                href={viewerUrl}
+                href={`${viewerUrl}?reset=1`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[11px] text-zinc-500 hover:text-zinc-800 dark:hover:text-white transition whitespace-nowrap"

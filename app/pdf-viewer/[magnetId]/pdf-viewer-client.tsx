@@ -86,17 +86,59 @@ export default function PdfViewerClient({
   const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const visibleLocked = useRef<Set<number>>(new Set());
 
+  // ── Disable Lenis smooth scroll while PDF viewer is open ───────────────────
+  useEffect(() => {
+    const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
+    if (lenis && typeof lenis.stop === "function") {
+      lenis.stop();
+    }
+    return () => {
+      if (lenis && typeof lenis.start === "function") {
+        lenis.start();
+      }
+    };
+  }, []);
+
+  // ── Handle Ctrl + Wheel for zooming document ──────────────────────────────
+  useEffect(() => {
+    const viewportEl = docRef.current;
+    if (!viewportEl) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          setZoomScale((z) => Math.min(200, z + 15));
+        } else if (e.deltaY > 0) {
+          setZoomScale((z) => Math.max(50, z - 15));
+        }
+      }
+    };
+
+    viewportEl.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      viewportEl.removeEventListener("wheel", handleWheel);
+    };
+  }, []);
+
   // ── Check unlock status on mount ──────────────────────────────────────────
   useEffect(() => {
     let localToken = "";
+    let isReset = false;
     if (typeof window !== "undefined") {
       try {
-        localToken = localStorage.getItem(`pdf_unlock_token_${magnetId}`) || "";
+        const urlParams = new URLSearchParams(window.location.search);
+        isReset = urlParams.get("reset") === "1";
+        if (isReset) {
+          localStorage.removeItem(`pdf_unlock_token_${magnetId}`);
+        } else {
+          localToken = localStorage.getItem(`pdf_unlock_token_${magnetId}`) || "";
+        }
       } catch (e) {}
     }
 
     const statusUrl = `/api/pdf-gate/status?magnetId=${encodeURIComponent(magnetId)}${
-      localToken ? `&token=${encodeURIComponent(localToken)}` : ""
+      isReset ? "&reset=1" : localToken ? `&token=${encodeURIComponent(localToken)}` : ""
     }`;
 
     fetch(statusUrl, { cache: "no-store" })
@@ -149,13 +191,14 @@ export default function PdfViewerClient({
       { root: docRef.current, rootMargin: "-45% 0px -45% 0px" }
     );
 
+    visibleLocked.current.clear();
+
     const gateObs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           const idx = Number((e.target as HTMLElement).dataset.pageIndex);
-          const isLocked = idx >= pdfFreePages;
-          if (!isLocked) return;
-          if (e.isIntersecting) {
+          const isLocked = !unlocked && idx >= pdfFreePages;
+          if (isLocked && e.isIntersecting) {
             visibleLocked.current.add(idx);
           } else {
             visibleLocked.current.delete(idx);
@@ -302,7 +345,7 @@ export default function PdfViewerClient({
   };
 
   return (
-    <div className="adobe-viewer-root">
+    <div className="adobe-viewer-root" data-lenis-prevent>
       {/* ── Top Header Toolbar ────────────────────────────────────────────── */}
       <header className="adobe-bar">
         <div className="adobe-bar-left">
@@ -440,36 +483,6 @@ export default function PdfViewerClient({
           <button className="adobe-icon-btn" title="Download PDF" onClick={handleDownload}>
             <Download size={16} />
           </button>
-
-          {unlocked && (
-            <button
-              onClick={() => {
-                document.cookie = `pdf_unlocked_${magnetId}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-                try {
-                  localStorage.removeItem(`pdf_unlock_token_${magnetId}`);
-                } catch (e) {}
-                setUnlocked(false);
-                setGateVisible(pdfFreePages === 0);
-              }}
-              style={{
-                background: "rgba(239, 68, 68, 0.2)",
-                color: "#fca5a5",
-                border: "1px solid rgba(239, 68, 68, 0.4)",
-                borderRadius: "4px",
-                padding: "4px 8px",
-                fontSize: "11px",
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-              title="Test mode: re-locks the lead magnet"
-            >
-              <Lock size={12} />
-              Re-lock
-            </button>
-          )}
         </div>
       </header>
 
@@ -506,7 +519,7 @@ export default function PdfViewerClient({
               <div className="adobe-thumb-header">
                 {activeTab === "thumbnails" ? "Page Thumbnails" : activeTab === "bookmarks" ? "Bookmarks" : "Attachments"}
               </div>
-              <div className="adobe-thumb-list">
+              <div className="adobe-thumb-list" data-lenis-prevent>
                 {activeTab === "thumbnails" ? (
                   pdfPages.map((url, idx) => {
                     const isLocked = !unlocked && idx >= pdfFreePages;
@@ -537,7 +550,7 @@ export default function PdfViewerClient({
         )}
 
         {/* Document View Canvas */}
-        <main className="adobe-doc-viewport" ref={docRef}>
+        <main className="adobe-doc-viewport" ref={docRef} data-lenis-prevent>
           {pdfPages.map((url, idx) => {
             const isLocked = !unlocked && idx >= pdfFreePages;
             const displayUrl = isLocked ? getBlurUrl(url) : url;
@@ -568,7 +581,7 @@ export default function PdfViewerClient({
 
       {/* ── Gate Modal Overlay ──────────────────────────────────────────────── */}
       <div className={`pdf-gate ${gateVisible ? "is-visible" : "is-hidden"}`}>
-        <div className="pdf-gate-card">
+        <div className="pdf-gate-card" data-lenis-prevent>
           <div className="pdf-brand-bar">
             <span className="pdf-brand-dot" style={{ background: brandColor }} />
             <span style={{ fontSize: 12, color: "#71717a", fontWeight: 500 }}>
