@@ -55,6 +55,14 @@ export function createSessionToken(payload: { email: string; name?: string }, ex
   return `${encodedHeader}.${encodedPayload}.${signature}`;
 }
 
+function safeCompareSignatures(sigA: string, sigB: string): boolean {
+  if (!sigA || !sigB) return false;
+  const bufA = Buffer.from(sigA);
+  const bufB = Buffer.from(sigB);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
 export function verifySessionToken(token: string): SessionUser | null {
   try {
     if (!token) return null;
@@ -72,7 +80,7 @@ export function verifySessionToken(token: string): SessionUser | null {
       .replace(/\+/g, "-")
       .replace(/\//g, "_");
 
-    if (signature !== expectedSignature) return null;
+    if (!safeCompareSignatures(signature, expectedSignature)) return null;
 
     const payload: SessionUser = JSON.parse(base64UrlDecode(encodedPayload));
     if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
@@ -141,7 +149,7 @@ export function verifyPdfUnlockToken(token: string): PdfUnlockPayload | null {
       .replace(/\+/g, "-")
       .replace(/\//g, "_");
 
-    if (signature !== expectedSignature) return null;
+    if (!safeCompareSignatures(signature, expectedSignature)) return null;
 
     const payload: PdfUnlockPayload = JSON.parse(base64UrlDecode(encodedPayload));
     if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {

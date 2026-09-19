@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { dbConnect } from "@/lib/mongodb";
 import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationModel, ResourceModel } from "@/lib/models";
-import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations } from "@/lib/data";
+import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations, type MagnetPage } from "@/lib/data";
 import { sendInstantLeadAlert } from "@/lib/email-alerts";
 import { sendMail } from "@/lib/email";
 import { clearAuthCookie, getAuthenticatedUserEmail, setAuthCookie } from "@/lib/auth";
@@ -55,8 +55,8 @@ export async function GET(req: Request) {
 
     let finalLeads = leads;
     if (pages.length > 0) {
-      const pageNames = pages.map((p: any) => p.name).filter(Boolean);
-      const pageIds = pages.map((p: any) => p.id).filter(Boolean);
+      const pageNames = (pages as unknown as MagnetPage[]).map((p) => p.name).filter(Boolean);
+      const pageIds = (pages as unknown as MagnetPage[]).map((p) => p.id).filter(Boolean);
       const fallbackLeads = await LeadModel.find({
         $or: [
           { userEmail: normEmail },

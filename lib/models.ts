@@ -95,6 +95,9 @@ const MagnetPageSchema = new Schema({
   pdfPageCount: { type: Number, default: 0 },
 });
 
+MagnetPageSchema.index({ userEmail: 1, slug: 1 });
+MagnetPageSchema.index({ userEmail: 1, id: 1 });
+
 // Lead Schema
 const LeadSchema = new Schema({
   id: { type: String, required: true },

@@ -31,6 +31,10 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
+  public handleTryAgain = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
   public render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
@@ -49,12 +53,22 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-sm text-slate-400 mb-6">
               An unexpected error occurred while rendering this section.
             </p>
-            <button
-              onClick={this.handleReset}
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-500 rounded-lg transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              Reload Page
-            </button>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={this.handleTryAgain}
+                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-slate-200 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors border border-slate-700 focus:outline-none"
+              >
+                Try Again
+              </button>
+              <button
+                type="button"
+                onClick={this.handleReset}
+                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-500 rounded-lg transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              >
+                Reload Page
+              </button>
+            </div>
           </div>
         </div>
       );
