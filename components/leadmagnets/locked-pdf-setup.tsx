@@ -39,9 +39,14 @@ interface Props {
 // ─── PDF.js helpers (npm, worker served from /public/pdf.worker.min.mjs) ────
 async function loadPdfJs(): Promise<any> {
   // Dynamic import so Next.js code-splits this large module.
-  // The worker file was copied to public/ via the postinstall script.
   const pdfjs = await import(/* webpackChunkName: "pdfjs-dist" */ "pdfjs-dist");
-  pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+  if (typeof window !== "undefined") {
+    // Use same-origin local worker file from public/ to avoid browser CORS/cross-origin worker blocking
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+      "/pdf.worker.min.mjs",
+      window.location.origin
+    ).toString();
+  }
   return pdfjs;
 }
 
