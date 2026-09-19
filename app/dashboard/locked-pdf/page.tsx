@@ -46,8 +46,15 @@ import LockedPdfSetup from "@/components/leadmagnets/locked-pdf-setup";
 import DeliveryEmailTab from "@/components/leadmagnets/edit/DeliveryEmailTab";
 import SequenceTab from "@/components/leadmagnets/edit/SequenceTab";
 import AfterSignupTab from "@/components/leadmagnets/edit/AfterSignupTab";
-import EmailPreviewModal from "@/components/leadmagnets/edit/EmailPreviewModal";
-import SequencePreviewModal from "@/components/leadmagnets/edit/SequencePreviewModal";
+// Enterprise Dynamic Lazy-Loading for Preview Modals (Zero initial bundle footprint)
+const EmailPreviewModal = dynamic(
+  () => import("@/components/leadmagnets/edit/EmailPreviewModal"),
+  { ssr: false }
+);
+const SequencePreviewModal = dynamic(
+  () => import("@/components/leadmagnets/edit/SequencePreviewModal"),
+  { ssr: false }
+);
 
 interface Toast {
   id: string;
@@ -176,6 +183,18 @@ export default function LockedPdfPage() {
     savePages(updatedPages);
     setSaveStatus("saved");
   };
+
+  // Enterprise DOM Hygiene: Scroll Locking & Clean Unmount Cleanup for Modals
+  useEffect(() => {
+    if (showEmailPreviewModal || showSequencePreviewModal || showDeleteModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showEmailPreviewModal, showSequencePreviewModal, showDeleteModal]);
 
   // Ensure unmount cleanup flushes any pending unsaved state
   useEffect(() => {
