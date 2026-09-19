@@ -4,9 +4,6 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Printer,
-  Download,
-  Search,
   ZoomIn,
   ZoomOut,
   RotateCw,
@@ -17,7 +14,6 @@ import {
   Layers,
   Lock,
   Menu,
-  X,
 } from "lucide-react";
 import "./pdf-viewer.css";
 
@@ -65,8 +61,6 @@ export default function PdfViewerClient({
   const [zoomScale, setZoomScale] = useState(100);
   const [rotation, setRotation] = useState(0);
   const [gateVisible, setGateVisible] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   // Gate form state
   const [step, setStep] = useState<"email" | "code">("email");
@@ -329,20 +323,7 @@ export default function PdfViewerClient({
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
 
-  const handleDownload = () => {
-    if (pdfPages.length > 0) {
-      const a = document.createElement("a");
-      a.href = pdfPages[0];
-      a.download = `${pdfTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-  };
 
   return (
     <div className="adobe-viewer-root" data-lenis-prevent>
@@ -446,44 +427,7 @@ export default function PdfViewerClient({
           </button>
         </div>
 
-        <div className="adobe-bar-right">
-          {showSearch ? (
-            <div className="adobe-search-box">
-              <Search size={14} color="#aaa" />
-              <input
-                type="text"
-                className="adobe-search-input"
-                placeholder="Find text..."
-                autoFocus
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button
-                className="adobe-icon-btn"
-                style={{ width: 20, height: 20 }}
-                onClick={() => setShowSearch(false)}
-              >
-                <X size={14} />
-              </button>
-            </div>
-          ) : (
-            <button
-              className="adobe-icon-btn"
-              title="Search document"
-              onClick={() => setShowSearch(true)}
-            >
-              <Search size={16} />
-            </button>
-          )}
-
-          <button className="adobe-icon-btn" title="Print document" onClick={handlePrint}>
-            <Printer size={16} />
-          </button>
-
-          <button className="adobe-icon-btn" title="Download PDF" onClick={handleDownload}>
-            <Download size={16} />
-          </button>
-        </div>
+        <div className="adobe-bar-right" />
       </header>
 
       {/* ── Main Workspace ──────────────────────────────────────────────────── */}
