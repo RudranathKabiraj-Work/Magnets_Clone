@@ -351,13 +351,17 @@ export default function LockedPdfSetup({
                 return (
                   <div
                     key={i}
-                    className="relative aspect-[612/792] rounded overflow-hidden border border-zinc-200 dark:border-zinc-700"
+                    className="relative aspect-[612/792] rounded overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-800 animate-pulse"
                     title={`Page ${i + 1} — ${isLocked ? "locked" : "free preview"}`}
                   >
                     <img
                       src={isLocked ? getBlurPreviewUrl(url) : url}
                       alt={`Page ${i + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-opacity duration-300 opacity-0"
+                      onLoad={(e) => {
+                        e.currentTarget.classList.remove("opacity-0");
+                        e.currentTarget.parentElement?.classList.remove("animate-pulse");
+                      }}
                       loading="lazy"
                     />
                     <div className="absolute bottom-0.5 inset-x-0 flex items-center justify-center">
