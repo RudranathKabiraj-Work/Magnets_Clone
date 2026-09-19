@@ -65,7 +65,7 @@ export async function GET(req: Request) {
     const userFilter = { userEmail: normEmail };
 
     const [account, pages, leads, sequences, integrations, resources] = await Promise.all([
-      AccountModel.findOne({ email: normEmail }).lean(),
+      AccountModel.findOne({ email: normEmail }).select("-password").lean(),
       MagnetPageModel.find(pageFilter).lean(),
       LeadModel.find(userFilter).lean(),
       SequenceModel.find(userFilter).lean(),

@@ -1,7 +1,10 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { TypographyVortexCanvas } from "@/src/shaders/typography-vortex/TypographyVortexCanvas";
+import dynamic from "next/dynamic";
+
+const TypographyVortexCanvas = dynamic(
+  () => import("@/src/shaders/typography-vortex/TypographyVortexCanvas").then((mod) => mod.TypographyVortexCanvas),
+  { ssr: false }
+);
 
 function getActiveTheme(): "dark" | "light" {
   if (typeof window === "undefined") return "dark";

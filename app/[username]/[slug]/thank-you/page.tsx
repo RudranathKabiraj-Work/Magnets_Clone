@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { dbConnect } from "@/lib/mongodb";
 import { MagnetPageModel, AccountModel, ResourceModel } from "@/lib/models";
 import ThankYouAnimatedContent from "@/components/thank-you-animated-content";
-import ThreeMagnet3DCanvas from "@/components/three-magnet-3d-canvas";
 
 export const dynamic = "force-dynamic";
 
