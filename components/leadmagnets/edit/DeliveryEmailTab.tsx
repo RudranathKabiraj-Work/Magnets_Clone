@@ -1,7 +1,17 @@
 "use client";
 
 import React from "react";
-import { EditorContent, type Editor } from "@tiptap/react";
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import LinkExtension from "@tiptap/extension-link";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
+import ImageExtension from "@tiptap/extension-image";
+import { Table as TableExtension } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { TextAlign } from "@tiptap/extension-text-align";
 import {
   Mail,
   Eye,
@@ -28,7 +38,7 @@ export interface DeliveryEmailTabProps {
   setEmailSubject: (subject: string) => void;
   emailPreviewText: string;
   setEmailPreviewText: (previewText: string) => void;
-  editor: Editor | null;
+  editor?: Editor | null;
   showInsertResourceMenu: boolean;
   setShowInsertResourceMenu: React.Dispatch<React.SetStateAction<boolean>>;
   hostedResources: any[];
@@ -49,7 +59,7 @@ export default function DeliveryEmailTab({
   setEmailSubject,
   emailPreviewText,
   setEmailPreviewText,
-  editor,
+  editor: propEditor,
   showInsertResourceMenu,
   setShowInsertResourceMenu,
   hostedResources,
@@ -62,6 +72,46 @@ export default function DeliveryEmailTab({
   customPromptPlaceholder,
   setCustomPromptPlaceholder,
 }: DeliveryEmailTabProps) {
+  const internalEditor = useEditor({
+    immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        class: "outline-none focus:outline-none focus:ring-0 min-h-[220px]",
+      },
+    },
+    extensions: [
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3] },
+      }),
+      TextStyle,
+      Color,
+      ImageExtension,
+      TableExtension.configure({ resizable: true }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      LinkExtension.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: "text-[#0066B2] dark:text-[#38BDF8] underline font-medium",
+        },
+      }),
+    ],
+    content: emailBody,
+    onUpdate: ({ editor }) => {
+      setEmailBody(editor.getHTML());
+    },
+  });
+
+  const editor = propEditor || internalEditor;
+
+  React.useEffect(() => {
+    if (editor && emailBody && editor.getHTML() !== emailBody && !editor.isFocused) {
+      editor.commands.setContent(emailBody);
+    }
+  }, [emailBody, editor]);
+
   const [activeMenu, setActiveMenu] = React.useState<"headings" | "color" | "lists" | "align" | "table" | null>(null);
   const toolbarRef = React.useRef<HTMLDivElement>(null);
 

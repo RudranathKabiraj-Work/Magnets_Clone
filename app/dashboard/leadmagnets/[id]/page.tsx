@@ -51,17 +51,6 @@ import {
   Minus,
   MoreVertical,
 } from "lucide-react";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import LinkExtension from "@tiptap/extension-link";
-import { TextStyle } from "@tiptap/extension-text-style";
-import { Color } from "@tiptap/extension-color";
-import ImageExtension from "@tiptap/extension-image";
-import { Table as TableExtension } from "@tiptap/extension-table";
-import { TableRow } from "@tiptap/extension-table-row";
-import { TableCell } from "@tiptap/extension-table-cell";
-import { TableHeader } from "@tiptap/extension-table-header";
-import { TextAlign } from "@tiptap/extension-text-align";
 import { useEffect, useState, useRef, useCallback } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { type MagnetPage, type Account } from "@/lib/data";
@@ -73,10 +62,12 @@ import SocialCardModal from "@/components/leadmagnets/social-card-modal";
 import DeleteModal from "@/components/leadmagnets/edit/DeleteModal";
 import SequencePreviewModal from "@/components/leadmagnets/edit/SequencePreviewModal";
 import EmailPreviewModal from "@/components/leadmagnets/edit/EmailPreviewModal";
-import DeliveryEmailTab from "@/components/leadmagnets/edit/DeliveryEmailTab";
-import SequenceTab from "@/components/leadmagnets/edit/SequenceTab";
 import AfterSignupTab from "@/components/leadmagnets/edit/AfterSignupTab";
 import LockedPdfSetup from "@/components/leadmagnets/locked-pdf-setup";
+
+// Production Code-Splitting for Editor Islands (Keeps @tiptap out of initial bundle)
+const DeliveryEmailTab = dynamic(() => import("@/components/leadmagnets/edit/DeliveryEmailTab"), { ssr: false });
+const SequenceTab = dynamic(() => import("@/components/leadmagnets/edit/SequenceTab"), { ssr: false });
 import { ImageGeneration } from "@/components/agents/image-generation";
 import TemplateRenderer from "@/components/templates/TemplateRenderer";
 import CustomFieldsBuilder from "@/components/leadmagnets/edit/CustomFieldsBuilder";
@@ -366,46 +357,6 @@ export default function EditLeadMagnetPage() {
   const [emailSubject, setEmailSubject] = useState(initialEmailSubject);
   const [emailPreviewText, setEmailPreviewText] = useState(initialEmailPreviewText);
   const [emailBody, setEmailBody] = useState(initialEmailBody);
-
-  // Production-grade Tiptap Rich Text Editor instance for Delivery Email
-  const editor = useEditor({
-    immediatelyRender: false,
-    editorProps: {
-      attributes: {
-        class: "outline-none focus:outline-none focus:ring-0 min-h-[220px]",
-      },
-    },
-    extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2, 3] },
-      }),
-      TextStyle,
-      Color,
-      ImageExtension,
-      TableExtension.configure({ resizable: true }),
-      TableRow,
-      TableHeader,
-      TableCell,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      LinkExtension.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "text-[#0066B2] dark:text-[#38BDF8] underline font-medium",
-        },
-      }),
-    ],
-    content: emailBody,
-    onUpdate: ({ editor }) => {
-      setEmailBody(editor.getHTML());
-    },
-  });
-
-  // Sync external changes into Tiptap editor content if changed programmatically
-  useEffect(() => {
-    if (editor && emailBody && editor.getHTML() !== emailBody && !editor.isFocused) {
-      editor.commands.setContent(emailBody);
-    }
-  }, [emailBody, editor]);
 
   // Sequence State (Tab 3: Sequence)
   const [sequenceEnabled, setSequenceEnabled] = useState(page?.sequenceEnabled || false);
@@ -1942,7 +1893,6 @@ export default function EditLeadMagnetPage() {
                   setEmailSubject={setEmailSubject}
                   emailPreviewText={emailPreviewText}
                   setEmailPreviewText={setEmailPreviewText}
-                  editor={editor}
                   showInsertResourceMenu={showInsertResourceMenu}
                   setShowInsertResourceMenu={setShowInsertResourceMenu}
                   hostedResources={hostedResources}

@@ -124,6 +124,7 @@ const LeadSchema = new Schema({
 LeadSchema.index({ userEmail: 1, pageId: 1 });
 LeadSchema.index({ userEmail: 1, page: 1 });
 LeadSchema.index({ userEmail: 1, email: 1 });
+LeadSchema.index({ userEmail: 1, signedUpAt: -1 });
 
 // Sequence Email Schema
 const SequenceEmailSchema = new Schema({

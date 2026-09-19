@@ -34,22 +34,14 @@ import {
 } from "@/lib/store";
 import type { Account, MagnetPage } from "@/lib/data";
 
-import { useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import LinkExtension from "@tiptap/extension-link";
-import { TextStyle } from "@tiptap/extension-text-style";
-import { Color } from "@tiptap/extension-color";
-import { Table as TableExtension } from "@tiptap/extension-table";
-import { TableRow } from "@tiptap/extension-table-row";
-import { TableCell } from "@tiptap/extension-table-cell";
-import { TableHeader } from "@tiptap/extension-table-header";
-import { TextAlign } from "@tiptap/extension-text-align";
 import type { SequenceEmailItem } from "@/components/leadmagnets/edit/SequenceTab";
 
 import LockedPdfSetup from "@/components/leadmagnets/locked-pdf-setup";
-import DeliveryEmailTab from "@/components/leadmagnets/edit/DeliveryEmailTab";
-import SequenceTab from "@/components/leadmagnets/edit/SequenceTab";
 import AfterSignupTab from "@/components/leadmagnets/edit/AfterSignupTab";
+
+// Production Code-Splitting for Editor Islands (Keeps @tiptap out of initial bundle)
+const DeliveryEmailTab = dynamic(() => import("@/components/leadmagnets/edit/DeliveryEmailTab"), { ssr: false });
+const SequenceTab = dynamic(() => import("@/components/leadmagnets/edit/SequenceTab"), { ssr: false });
 // Enterprise Dynamic Lazy-Loading for Preview Modals (Zero initial bundle footprint)
 const EmailPreviewModal = dynamic(
   () => import("@/components/leadmagnets/edit/EmailPreviewModal"),
@@ -222,49 +214,6 @@ export default function LockedPdfPage() {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3500);
   };
-
-  // Tiptap Editor for Delivery Email Tab
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      LinkExtension.configure({ openOnClick: false }),
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      TextStyle,
-      Color,
-      TableExtension.configure({ resizable: true }),
-      TableRow,
-      TableHeader,
-      TableCell,
-    ],
-    content: emailBody,
-    onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      setEmailBody(html);
-      if (activePage) {
-        const updated = pages.map((p) =>
-          p.id === activePage.id
-            ? {
-                ...p,
-                deliveryEmail: {
-                  subject: emailSubject,
-                  previewText: emailPreviewText,
-                  body: html,
-                  linkText: "Access document",
-                  linkUrl: "",
-                },
-              }
-            : p
-        );
-        triggerDebouncedSave(updated);
-      }
-    },
-  });
-
-  useEffect(() => {
-    if (editor && emailBody && editor.getHTML() !== emailBody) {
-      editor.commands.setContent(emailBody);
-    }
-  }, [emailBody, editor]);
 
   // Initial Load & Store Sync
   useEffect(() => {
@@ -843,7 +792,6 @@ export default function LockedPdfPage() {
                     savePages(updated);
                   }
                 }}
-                editor={editor}
                 showInsertResourceMenu={showInsertResourceMenu}
                 setShowInsertResourceMenu={setShowInsertResourceMenu}
                 hostedResources={hostedResources}
