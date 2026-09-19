@@ -322,6 +322,7 @@ export default function PdfViewerClient({
         .pdf-gate-card h2 { margin: 0 0 6px; font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
         .pdf-gate-card p.sub { margin: 0 0 20px; font-size: 14px; color: #52525b; }
         .pdf-gate-form { display: flex; gap: 10px; }
+        .pdf-gate-row { display: flex; gap: 10px; width: 100%; }
         .pdf-gate-input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 13px 15px; border: 1.5px solid #d9d4cc; border-radius: 10px; outline: none; background: #fff; color: #1c1c1c; }
         .pdf-gate-input:focus { border-color: #1c1c1c; }
         .pdf-gate-input.is-code { letter-spacing: .3em; text-align: center; font-size: 22px; }
@@ -346,6 +347,11 @@ export default function PdfViewerClient({
           .pdf-gate-card h2 { font-size: 18px; }
           .pdf-bar-title { font-size: 13px; }
         }
+        @media (max-width: 480px) {
+          .pdf-gate-row { flex-direction: column; }
+        }
+      ` }}
+    />
       ` }} />
 
       <div className="pdf-viewer-root">
@@ -474,27 +480,29 @@ export default function PdfViewerClient({
                 <p className="sub">Free — no credit card required.</p>
                 <form className="pdf-gate-form" onSubmit={handleSendCode}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
-                    <input
-                      id="pdf-gate-name"
-                      className="pdf-gate-input"
-                      type="text"
-                      placeholder="Your name"
-                      autoComplete="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      disabled={sending}
-                    />
-                    <input
-                      id="pdf-gate-email"
-                      className="pdf-gate-input"
-                      type="email"
-                      placeholder="Your email address *"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      disabled={sending}
-                    />
+                    <div className="pdf-gate-row">
+                      <input
+                        id="pdf-gate-name"
+                        className="pdf-gate-input"
+                        type="text"
+                        placeholder="Your name"
+                        autoComplete="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        disabled={sending}
+                      />
+                      <input
+                        id="pdf-gate-email"
+                        className="pdf-gate-input"
+                        type="email"
+                        placeholder="Your email address *"
+                        autoComplete="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={sending}
+                      />
+                    </div>
 
                     {customFormFields && customFormFields.length > 0 && (
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px", paddingTop: "4px" }}>
