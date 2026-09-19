@@ -535,7 +535,7 @@ export default function LockedPdfPage() {
         <div
           role="tablist"
           aria-label="Locked PDF Workflow Navigation"
-          className={`grid grid-cols-2 lg:grid-cols-4 rounded-2xl border p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24]" : "border-zinc-200 bg-zinc-100/80"}`}
+          className="grid grid-cols-2 lg:grid-cols-4 rounded-2xl border border-zinc-200/80 bg-zinc-100/80 dark:border-[#1F1F24] dark:bg-[#121215] p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full transition-colors duration-200"
           onMouseLeave={() => setHoveredTab(null)}
         >
           {[
@@ -547,7 +547,6 @@ export default function LockedPdfPage() {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             const isHovered = hoveredTab === tab.id;
-            const isDark = (account?.themeMode || "light") === "dark";
 
             return (
               <motion.button
@@ -565,13 +564,9 @@ export default function LockedPdfPage() {
                 onClick={() => setActiveTab(tab.id as any)}
                 onKeyDown={(e) => handleTabKeyDown(e, tab.id)}
                 className={`relative flex items-center justify-center gap-3 px-4 py-2.5 sm:py-3 rounded-xl text-xs font-bold transition-colors w-full cursor-pointer border outline-none focus-visible:ring-2 focus-visible:ring-[#0066B2] focus-visible:ring-offset-2 ${
-                  isDark ? "dark:focus-visible:ring-offset-zinc-900" : "focus-visible:ring-offset-white"
-                } ${
                   isActive
-                    ? isDark
-                      ? "border-[#27272A] text-white shadow-sm"
-                      : "border-zinc-200 text-zinc-900 shadow-sm"
-                    : "border-transparent text-zinc-600 dark:text-zinc-400 dark:hover:text-white"
+                    ? "border-zinc-200/80 dark:border-[#27272A] text-zinc-900 dark:text-white shadow-sm"
+                    : "border-transparent text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
                 }`}
               >
                 {/* Active Tab Solid Pill */}
@@ -579,7 +574,7 @@ export default function LockedPdfPage() {
                   <motion.div
                     layoutId="activeLockedPdfTabPill"
                     transition={{ type: "spring", stiffness: 500, damping: 32 }}
-                    className={`absolute inset-0 rounded-xl ${isDark ? "bg-[#1E1E24]" : "bg-white"}`}
+                    className="absolute inset-0 rounded-xl bg-white dark:bg-[#1E1E24] shadow-sm border border-zinc-200/60 dark:border-[#27272A]"
                   />
                 )}
                 {/* Hover Morphing Pill */}
@@ -587,15 +582,19 @@ export default function LockedPdfPage() {
                   <motion.div
                     layoutId="hoverLockedPdfTabPill"
                     transition={{ type: "spring", stiffness: 500, damping: 32 }}
-                    className={`absolute inset-0 rounded-xl ${isDark ? "bg-[#18181C]" : "bg-zinc-200/80"}`}
+                    className="absolute inset-0 rounded-xl bg-zinc-200/70 dark:bg-[#18181C]"
                   />
                 )}
-                <div className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-lg ${isDark ? "bg-[#27272A] text-zinc-300" : "bg-zinc-200/60 text-zinc-700"}`}>
+                <div className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${
+                  isActive
+                    ? "bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]"
+                    : "bg-zinc-200/60 text-zinc-600 dark:bg-[#27272A] dark:text-zinc-400"
+                }`}>
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="relative z-10 text-left leading-tight">
-                  <span className={`block text-xs font-bold ${isDark ? "text-zinc-100" : "text-zinc-900"}`}>{tab.label}</span>
-                  <span className="block text-[10px] font-normal text-zinc-400">{tab.desc}</span>
+                  <span className="block text-xs font-bold text-zinc-900 dark:text-white">{tab.label}</span>
+                  <span className="block text-[10px] font-normal text-zinc-500 dark:text-zinc-400">{tab.desc}</span>
                 </div>
               </motion.button>
             );

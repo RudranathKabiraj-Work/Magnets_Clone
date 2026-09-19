@@ -1451,16 +1451,10 @@ export default function EditLeadMagnetPage() {
                   </button>
 
                   {showMenu && (
-                    <div className={`absolute right-0 top-9 w-48 rounded-2xl border p-1.5 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${(account?.themeMode || "light") === "dark"
-                      ? "border-[#27272A] bg-[#18181C] text-zinc-200"
-                      : "border-zinc-200 bg-white text-zinc-900"
-                      }`}>
+                    <div className="absolute right-0 top-9 w-48 rounded-2xl border p-1.5 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 border-zinc-200 bg-white text-zinc-900 dark:border-[#27272A] dark:bg-[#18181C] dark:text-zinc-200">
                       <button
                         onClick={handleAnalytics}
-                        className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer ${(account?.themeMode || "light") === "dark"
-                          ? "text-zinc-300 hover:bg-[#27272A] hover:text-white"
-                          : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
-                          }`}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-[#27272A] dark:hover:text-white"
                       >
                         <BarChart2 className="h-4 w-4 text-zinc-400" />
                         <span>Analytics</span>
@@ -1468,17 +1462,13 @@ export default function EditLeadMagnetPage() {
 
                       <button
                         onClick={handleDownloadQR}
-                        className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer ${(account?.themeMode || "light") === "dark"
-                          ? "text-zinc-300 hover:bg-[#27272A] hover:text-white"
-                          : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
-                          }`}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-[#27272A] dark:hover:text-white"
                       >
                         <QrCode className="h-4 w-4 text-zinc-400" />
                         <span>Download QR code</span>
                       </button>
 
-                      <div className={`my-1 h-px ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-200"
-                        }`} />
+                      <div className="my-1 h-px bg-zinc-200 dark:bg-[#27272A]" />
 
                       <button
                         onClick={handleDeletePage}
@@ -1494,14 +1484,11 @@ export default function EditLeadMagnetPage() {
                 {/* Status Pill */}
                 <button
                   onClick={() => update({ status: live ? "draft" : "live", publishedAt: live ? page.publishedAt : new Date().toISOString() })}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer shadow-xs ${live
-                    ? ((account?.themeMode || "light") === "dark"
-                      ? "bg-emerald-950/80 text-emerald-300 border border-emerald-700/60"
-                      : "bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100")
-                    : ((account?.themeMode || "light") === "dark"
-                      ? "bg-[#1E1E24] text-zinc-300 border border-[#27272A] hover:bg-[#27272A]"
-                      : "bg-zinc-100 text-zinc-700 border border-zinc-300 hover:bg-zinc-200")
-                    }`}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer shadow-xs ${
+                    live
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-700/60"
+                      : "bg-zinc-100 text-zinc-700 border border-zinc-300 hover:bg-zinc-200 dark:bg-[#1E1E24] dark:text-zinc-300 dark:border-[#27272A] dark:hover:bg-[#27272A]"
+                  }`}
                 >
                   <span className={`h-2 w-2 rounded-full ${live ? "bg-emerald-500" : "bg-zinc-400"}`} />
                   <span>{live ? "Published" : "Draft"}</span>
@@ -1509,9 +1496,9 @@ export default function EditLeadMagnetPage() {
               </div>
             </div>
 
-            {/* 4 Tabs Bar - Adapts dynamically to Brand Theme Mode */}
+            {/* 4 Tabs Bar - Adapts dynamically to Light & Dark Mode */}
             <div
-              className={`grid grid-cols-2 lg:grid-cols-4 border-b p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full transition-colors duration-200 ${(account?.themeMode || "light") === "dark" ? "border-[#1F1F24] bg-[#0E0E11]" : "border-zinc-200 bg-zinc-100/70"}`}
+              className="grid grid-cols-2 lg:grid-cols-4 rounded-2xl border border-zinc-200/80 bg-zinc-100/80 dark:border-[#1F1F24] dark:bg-[#0E0E11] p-2.5 sm:p-3 gap-2.5 sm:gap-4 w-full transition-colors duration-200"
               onMouseLeave={() => setHoveredTab(null)}
             >
               {[
@@ -1528,7 +1515,6 @@ export default function EditLeadMagnetPage() {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
                 const isHovered = hoveredTab === tab.id;
-                const isDark = (account?.themeMode || "light") === "dark";
 
                 return (
                   <motion.button
@@ -1538,19 +1524,18 @@ export default function EditLeadMagnetPage() {
                     transition={{ type: "spring", stiffness: 600, damping: 28 }}
                     onMouseEnter={() => setHoveredTab(tab.id)}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`relative flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-colors w-full cursor-pointer border ${isActive
-                      ? isDark
-                        ? "border-[#27272A] text-white shadow-sm"
-                        : "border-zinc-200 text-zinc-900 shadow-sm"
-                      : "border-transparent text-zinc-600 dark:text-zinc-400 dark:hover:text-white"
-                      }`}
+                    className={`relative flex items-center justify-center gap-3 px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-colors w-full cursor-pointer border ${
+                      isActive
+                        ? "border-zinc-200/80 dark:border-[#27272A] text-zinc-900 dark:text-white shadow-sm"
+                        : "border-transparent text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                    }`}
                   >
                     {/* Active Tab Solid Pill */}
                     {isActive && (
                       <motion.div
                         layoutId="activeEditTabPill"
                         transition={{ type: "spring", stiffness: 500, damping: 32 }}
-                        className={`absolute inset-0 rounded-xl ${isDark ? "bg-[#1E1E24]" : "bg-white"}`}
+                        className="absolute inset-0 rounded-xl bg-white dark:bg-[#1E1E24] shadow-sm border border-zinc-200/60 dark:border-[#27272A]"
                       />
                     )}
                     {/* Hover Morphing Pill */}
@@ -1558,15 +1543,19 @@ export default function EditLeadMagnetPage() {
                       <motion.div
                         layoutId="hoverEditTabPill"
                         transition={{ type: "spring", stiffness: 500, damping: 32 }}
-                        className={`absolute inset-0 rounded-xl ${isDark ? "bg-[#18181C]" : "bg-zinc-200/80"}`}
+                        className="absolute inset-0 rounded-xl bg-zinc-200/70 dark:bg-[#18181C]"
                       />
                     )}
-                    <div className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-lg ${isDark ? "bg-[#27272A] text-zinc-300" : "bg-zinc-200/60 text-zinc-700"}`}>
+                    <div className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${
+                      isActive
+                        ? "bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]"
+                        : "bg-zinc-200/60 text-zinc-600 dark:bg-[#27272A] dark:text-zinc-400"
+                    }`}>
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="relative z-10 text-left leading-tight">
-                      <span className={`block text-xs font-bold ${isDark ? "text-zinc-100" : "text-zinc-900"}`}>{tab.label}</span>
-                      <span className="block text-[10px] font-normal text-zinc-400">{tab.desc}</span>
+                      <span className="block text-xs font-bold text-zinc-900 dark:text-white">{tab.label}</span>
+                      <span className="block text-[10px] font-normal text-zinc-500 dark:text-zinc-400">{tab.desc}</span>
                     </div>
                   </motion.button>
                 );
