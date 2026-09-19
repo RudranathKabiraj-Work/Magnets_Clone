@@ -281,7 +281,7 @@ export default function LockedPdfPage() {
         (p) => p.template === "locked-pdf" || p.pdfFreePages !== undefined || (p.pdfPages && p.pdfPages.length > 0)
       );
       if (lockedPages.length > 0) {
-        setSelectedPageId(lockedPages[0].id);
+        setSelectedPageId((prev) => prev || lockedPages[0].id);
       }
     }
     setLoading(false);

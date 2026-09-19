@@ -228,8 +228,8 @@ export default function PagesPage() {
     if (localPages.length > 0) {
       setPages(localPages);
       const initialLanding = localPages.filter((p) => p.template !== "locked-pdf");
-      if (!selectedPageId && initialLanding[0]) {
-        setSelectedPageId(initialLanding[0].id);
+      if (initialLanding[0]) {
+        setSelectedPageId((prev) => prev || initialLanding[0].id);
       }
     }
     if (localAccount) setAccount(localAccount);
@@ -241,8 +241,8 @@ export default function PagesPage() {
           if (data.pages) {
             setPages(data.pages);
             const landingList = data.pages.filter((p) => p.template !== "locked-pdf");
-            if (!selectedPageId && landingList.length > 0) {
-              setSelectedPageId(landingList[0].id);
+            if (landingList.length > 0) {
+              setSelectedPageId((prev) => prev || landingList[0].id);
             }
           }
           if (data.account) setAccount(data.account);
