@@ -12,15 +12,13 @@ import { ExpandableScreen, ExpandableScreenTrigger, ExpandableScreenContent } fr
 import { isSessionValid, loadAccount, setSessionExpiry } from "@/lib/store";
 import { signOut } from "next-auth/react";
 
-const mobileNav = [
+const mobileNav: { href: string; label: string; icon: any; isModal?: boolean }[] = [
   { href: "/dashboard/leadmagnets", label: "Lead magnets", icon: FileText },
   { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: Lock },
   { href: "/dashboard/hostresources", label: "Hosted resources", icon: FolderOpen },
   { href: "/dashboard/signups", label: "Leads", icon: Users },
   { href: "/dashboard/setup", label: "Workspace setup", icon: Sliders },
   { href: "/dashboard/brand", label: "Brand", icon: Palette },
-  { href: "/dashboard/settings", label: "Account", icon: User },
-  { href: "/dashboard/help", label: "Help", icon: CircleHelp, isModal: true },
 ];
 
 export default function DashboardShell({
@@ -461,6 +459,50 @@ export default function DashboardShell({
                         type="button"
                         whileTap={{ scale: 0.97 }}
                         transition={{ type: "spring", stiffness: 600, damping: 28 }}
+                        onMouseEnter={() => setHoveredProfileMenuKey("account")}
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          router.push("/dashboard/settings");
+                        }}
+                        className="relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-zinc-600 transition-colors w-full dark:text-zinc-400 dark:hover:text-white cursor-pointer"
+                      >
+                        {hoveredProfileMenuKey === "account" && (
+                          <motion.div
+                            layoutId="profileMenuHoverPill"
+                            transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                            className="absolute inset-0 rounded-lg bg-[#E2F0FD] dark:bg-zinc-800"
+                          />
+                        )}
+                        <User className="h-4 w-4 relative z-10 text-zinc-500 dark:text-zinc-400" />
+                        <span className="relative z-10">Account</span>
+                      </motion.button>
+
+                      <motion.button
+                        type="button"
+                        whileTap={{ scale: 0.97 }}
+                        transition={{ type: "spring", stiffness: 600, damping: 28 }}
+                        onMouseEnter={() => setHoveredProfileMenuKey("help")}
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          setShowHelp(true);
+                        }}
+                        className="relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-zinc-600 transition-colors w-full dark:text-zinc-400 dark:hover:text-white cursor-pointer"
+                      >
+                        {hoveredProfileMenuKey === "help" && (
+                          <motion.div
+                            layoutId="profileMenuHoverPill"
+                            transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                            className="absolute inset-0 rounded-lg bg-[#E2F0FD] dark:bg-zinc-800"
+                          />
+                        )}
+                        <CircleHelp className="h-4 w-4 relative z-10 text-zinc-500 dark:text-zinc-400" />
+                        <span className="relative z-10">Help</span>
+                      </motion.button>
+
+                      <motion.button
+                        type="button"
+                        whileTap={{ scale: 0.97 }}
+                        transition={{ type: "spring", stiffness: 600, damping: 28 }}
                         onMouseEnter={() => setHoveredProfileMenuKey("bug")}
                         onClick={() => {
                           openGmailCompose("bug");
@@ -669,6 +711,26 @@ export default function DashboardShell({
                         );
                       })}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        router.push("/dashboard/settings");
+                      }}
+                      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                    >
+                      <User className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Account
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        setShowHelp(true);
+                      }}
+                      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                    >
+                      <CircleHelp className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Help
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
