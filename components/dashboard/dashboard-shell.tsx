@@ -14,10 +14,11 @@ import { signOut } from "next-auth/react";
 
 const mobileNav: { href: string; label: string; icon: any; isModal?: boolean }[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/sequences", label: "Email Sequences", icon: Mail },
-  { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: Lock },
-  { href: "/dashboard/assets", label: "Assets", icon: FolderOpen },
   { href: "/dashboard/signups", label: "Leads", icon: Users },
+  { href: "/dashboard/landing-page", label: "Landing Page", icon: FileText },
+  { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: Lock },
+  { href: "/dashboard/sequences", label: "Email Sequences", icon: Mail },
+  { href: "/dashboard/assets", label: "Assets", icon: FolderOpen },
   { href: "/dashboard/integration", label: "Integration", icon: Sliders },
   { href: "/dashboard/brand", label: "Brand", icon: Palette },
 ];
@@ -343,7 +344,7 @@ export default function DashboardShell({
                 ? pathname === "/dashboard" || pathname === "/dashboard/leadmagnets" || pathname.startsWith("/dashboard/leadmagnets/")
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);
               const isHovered = hoveredNavHref === item.href;
-              const isDividerAfter = item.href === "/dashboard/signups"; // Divider after Signups
+              const isDividerAfter = item.href === "/dashboard/locked-pdf"; // Divider after Locked PDF
 
               if (item.isModal) {
                 return (
