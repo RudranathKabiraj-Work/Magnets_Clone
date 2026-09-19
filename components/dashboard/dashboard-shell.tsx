@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Monitor, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink, ListChecks, Loader2, FileLock, Lock } from "lucide-react";
+import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Monitor, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink, ListChecks, Loader2, FileLock, Lock, LayoutDashboard } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
@@ -13,7 +13,7 @@ import { isSessionValid, loadAccount, setSessionExpiry } from "@/lib/store";
 import { signOut } from "next-auth/react";
 
 const mobileNav: { href: string; label: string; icon: any; isModal?: boolean }[] = [
-  { href: "/dashboard/leadmagnets", label: "Lead magnets", icon: FileText },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/sequences", label: "Email Sequences", icon: Mail },
   { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: Lock },
   { href: "/dashboard/assets", label: "Assets", icon: FolderOpen },
@@ -339,7 +339,9 @@ export default function DashboardShell({
             onMouseLeave={() => setHoveredNavHref(null)}
           >
             {mobileNav.map((item, idx) => {
-              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const active = item.href === "/dashboard"
+                ? pathname === "/dashboard" || pathname === "/dashboard/leadmagnets" || pathname.startsWith("/dashboard/leadmagnets/")
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
               const isHovered = hoveredNavHref === item.href;
               const isDividerAfter = item.href === "/dashboard/signups"; // Divider after Signups
 
