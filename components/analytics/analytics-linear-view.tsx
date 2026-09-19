@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -68,6 +68,15 @@ export default function AnalyticsLinearView({
 
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
   const [statsInRange, setStatsInRange] = useState({ visitsInRange: 0, signupsInRange: 0 });
+
+  const handleDataCalculated = useCallback((stats: { visitsInRange: number; signupsInRange: number }) => {
+    setStatsInRange((prev) => {
+      if (prev.visitsInRange === stats.visitsInRange && prev.signupsInRange === stats.signupsInRange) {
+        return prev;
+      }
+      return stats;
+    });
+  }, []);
 
   // Calculated overall metrics
   const visitsCount = isPerMagnet
@@ -453,7 +462,7 @@ export default function AnalyticsLinearView({
             range={timeRange}
             title={`Visits over the ${rangeLabel}`}
             subtitle="Each bar is one day. Orange shows tracked conversions."
-            onDataCalculated={(stats) => setStatsInRange(stats)}
+            onDataCalculated={handleDataCalculated}
           />
         </motion.div>
 
