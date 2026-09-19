@@ -36,17 +36,39 @@ export async function GET(req: NextRequest) {
     let deliveredCount = 0;
     const now = new Date().getTime();
 
+    // 3. Pre-fetch all unique magnet pages in ONE query instead of one-per-lead.
+    //    This eliminates the N+1 query problem: 1,000 leads across 50 pages used
+    //    to fire 1,000 DB round-trips. Now it fires exactly 1.
+    const uniquePageIds = [
+      ...new Set(activeLeads.map((l) => l.pageId).filter((id): id is string => Boolean(id))),
+    ];
+    const uniquePageNames = [
+      ...new Set(activeLeads.map((l) => l.page).filter((n): n is string => Boolean(n))),
+    ];
+
+    const pageDocs = await MagnetPageModel.find({
+      $or: [
+        ...(uniquePageIds.length > 0 ? [{ id: { $in: uniquePageIds } }] : []),
+        ...(uniquePageNames.length > 0 ? [{ name: { $in: uniquePageNames } }] : []),
+      ],
+    }).lean();
+
+    // Build O(1) lookup maps so the loop never touches the database for pages
+    const pageById = new Map(pageDocs.filter((p) => p.id).map((p) => [p.id, p]));
+    const pageByName = new Map(pageDocs.filter((p) => p.name).map((p) => [p.name, p]));
+
     for (const lead of activeLeads) {
       if (!lead.pageId && !lead.page) continue;
 
-      // Find the associated magnet page or sequence
-      const pageDoc = await MagnetPageModel.findOne({
-        $or: [{ id: lead.pageId }, { name: lead.page }],
-      });
+      // Map lookup — zero DB calls
+      const pageDoc = (lead.pageId ? pageById.get(lead.pageId) : null) ??
+        (lead.page ? pageByName.get(lead.page) : null) ??
+        null;
 
       if (!pageDoc || !pageDoc.sequenceEmails || pageDoc.sequenceEmails.length === 0) {
         continue;
       }
+
 
       const sequenceEmails = pageDoc.sequenceEmails;
       // Calculate how many minutes have passed since lead signed up

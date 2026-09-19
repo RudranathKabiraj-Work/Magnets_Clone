@@ -248,35 +248,40 @@ export async function handleDeleteLead(data: any, normEmail: string | null) {
 }
 
 export async function handleSaveLeads(data: any, normEmail: string | null) {
-  let pageNames: string[] = [];
-  let pageIds: string[] = [];
-  if (normEmail) {
-    const userPages = await MagnetPageModel.find({ userEmail: normEmail }).lean();
-    pageNames = userPages.map((p: any) => p.name).filter(Boolean);
-    pageIds = userPages.map((p: any) => p.id).filter(Boolean);
+  if (!Array.isArray(data) || data.length === 0) {
+    return NextResponse.json({ success: true });
   }
-  const deleteFilter = normEmail
-    ? {
-      $or: [
-        { userEmail: normEmail },
-        ...(pageIds.length > 0 ? [{ pageId: { $in: pageIds } }] : []),
-        ...(pageNames.length > 0 ? [{ page: { $in: pageNames } }] : []),
-      ],
-    }
-    : {};
-  await LeadModel.deleteMany(deleteFilter);
-  if (Array.isArray(data) && data.length > 0) {
-    const leadsToInsert = data.map((item: any) => {
-      const { _id, ...cleanItem } = item;
-      return {
-        ...cleanItem,
-        userEmail: normEmail || item.userEmail || "",
-      };
-    });
-    await LeadModel.insertMany(leadsToInsert);
-  }
+
+  // Use bulkWrite upserts instead of deleteMany + insertMany.
+  //
+  // The old pattern (delete all → re-insert) had a race condition: if two browser
+  // tabs saved simultaneously, the second save would overwrite the first, silently
+  // dropping any leads the first tab had just written.
+  //
+  // bulkWrite with upsert:true is atomic per-document: each lead is independently
+  // updated (if it exists) or created (if it doesn't). Concurrent saves from
+  // multiple tabs can never destroy each other's changes.
+  //
+  // This matches the pattern already used correctly in handleSavePages.
+  const ops = (data as any[]).map((item) => {
+    const { _id, ...cleanItem } = item;
+    const itemEmail = normEmail || cleanItem.userEmail || "";
+    return {
+      updateOne: {
+        filter: {
+          id: cleanItem.id,
+          ...(normEmail ? { userEmail: normEmail } : {}),
+        },
+        update: { $set: { ...cleanItem, userEmail: itemEmail } },
+        upsert: true,
+      },
+    };
+  });
+
+  await LeadModel.bulkWrite(ops);
   return NextResponse.json({ success: true });
 }
+
 
 export async function handleSendTestLeadAlert(data: any, normEmail: string | null) {
   const targetEmail = data.email || normEmail;
