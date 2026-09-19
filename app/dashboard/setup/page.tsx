@@ -185,19 +185,19 @@ export default function WorkspaceSetupPage() {
   const labelClass = "block text-[12.2px] font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5";
 
   return (
-    <DashboardShell account={account} title="Workspace setup">
+    <DashboardShell account={account} title="Integration">
       <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-[#F8FBFF] dark:bg-[#0E0E10]">
         <div className="flex-1 px-6 py-6 lg:px-8">
 
           {/* Page heading */}
           <div className="mb-6">
             <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-900 dark:text-white">
-              Workspace setup
+              Integration
               <button
                 type="button"
                 onClick={() => setShowHelpModal(true)}
                 className="flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 text-xs font-normal text-zinc-500 hover:bg-zinc-200 dark:border-[#2e2e38] dark:text-[#9B9085] dark:hover:bg-[#18181B] dark:hover:text-white transition cursor-pointer"
-                title="Help: What belongs in Workspace setup?"
+                title="Help: What belongs in Integration?"
               >
                 ?
               </button>
@@ -1926,11 +1926,11 @@ export default function WorkspaceSetupPage() {
                     </div>
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">YOUR ACCOUNT FOUNDATIONS</span>
-                      <h2 className="text-xl font-bold text-white leading-tight">What belongs in Workspace setup?</h2>
+                      <h2 className="text-xl font-bold text-white leading-tight">What belongs in Integration?</h2>
                     </div>
                   </div>
                   <p className="text-sm text-zinc-400 leading-relaxed">
-                    Workspace setup controls where your pages live, where emails come from, and which other tools receive new signups. You do not need to connect every option before creating a lead magnet.
+                    Integration controls where your pages live, where emails come from, and which other tools receive new signups. You do not need to connect every option before creating a lead magnet.
                   </p>
                 </div>
 

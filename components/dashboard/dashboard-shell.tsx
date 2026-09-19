@@ -17,7 +17,7 @@ const mobileNav: { href: string; label: string; icon: any; isModal?: boolean }[]
   { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: Lock },
   { href: "/dashboard/hostresources", label: "Hosted resources", icon: FolderOpen },
   { href: "/dashboard/signups", label: "Leads", icon: Users },
-  { href: "/dashboard/setup", label: "Workspace setup", icon: Sliders },
+  { href: "/dashboard/integration", label: "Integration", icon: Sliders },
   { href: "/dashboard/brand", label: "Brand", icon: Palette },
 ];
 
@@ -271,7 +271,7 @@ export default function DashboardShell({
       title: "SET UP",
       count: "4 topics",
       items: [
-        { text: "Workspace setup", icon: "Settings" },
+        { text: "Integration", icon: "Settings" },
         { text: "Custom domains", icon: "Globe" },
         { text: "Send from my email", icon: "Mail" },
         { text: "Legal links", icon: "BookOpen" },
@@ -328,7 +328,7 @@ export default function DashboardShell({
 
         <aside className="shadow-sm hidden h-screen w-[14.5rem] shrink-0 flex-col border-r border-[#E0EDFB] bg-[#F0F7FF] text-zinc-900 sticky top-0 md:flex z-50 dark:border-white/10 dark:bg-[#18181B] dark:text-[#9B9085]">
           <div className="flex shrink-0 items-center border-b border-[#E0EDFB] px-3.5 py-2.5 dark:border-white/10">
-            <Link href="/dashboard/setup" aria-label="Workspace setup" className="flex items-center">
+            <Link href="/dashboard/integration" aria-label="Integration" className="flex items-center">
               <BrandLogo height="h-9" />
             </Link>
           </div>
@@ -595,7 +595,7 @@ export default function DashboardShell({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
-                <Link href="/dashboard/setup" aria-label="Workspace setup" onClick={() => setMenuOpen(false)}>
+                <Link href="/dashboard/integration" aria-label="Integration" onClick={() => setMenuOpen(false)}>
                   <BrandLogo height="h-9" />
                 </Link>
                 <button
@@ -1900,7 +1900,7 @@ export default function DashboardShell({
                   </div>
                 </div>
               </div>
-            ) : selectedTopic === "Workspace setup" ? (
+            ) : selectedTopic === "Integration" || selectedTopic === "Workspace setup" ? (
               <div className="max-w-[43rem] mx-auto space-y-6 py-2">
                 {/* Header: YOUR ACCOUNT FOUNDATIONS */}
                 <div className="space-y-4">
@@ -1910,12 +1910,12 @@ export default function DashboardShell({
                     </span>
                     <div>
                       <p className="text-xs font-bold text-zinc-500 dark:text-[#9B9085] uppercase tracking-wider">YOUR ACCOUNT FOUNDATIONS</p>
-                      <h2 className="text-xl font-bold text-zinc-900 dark:text-white leading-tight">What belongs in Workspace setup?</h2>
+                      <h2 className="text-xl font-bold text-zinc-900 dark:text-white leading-tight">What belongs in Integration?</h2>
                     </div>
                   </div>
 
                   <p className="text-sm text-zinc-600 dark:text-[#d4c8bc] leading-relaxed">
-                    Workspace setup controls where your pages live, where emails come from, and which other tools receive new signups. You do not need to connect every option before creating a lead magnet.
+                    Integration controls where your pages live, where emails come from, and which other tools receive new signups. You do not need to connect every option before creating a lead magnet.
                   </p>
                 </div>
 
@@ -1972,11 +1972,11 @@ export default function DashboardShell({
                 {/* Bottom Action Button */}
                 <div className="pt-1 text-left">
                   <Link
-                    href="/dashboard/setup"
+                    href="/dashboard/integration"
                     onClick={() => setShowHelp(false)}
                     className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                   >
-                    <span>Open Workspace setup</span>
+                    <span>Open Integration</span>
                     <span className="text-base font-bold">→</span>
                   </Link>
                 </div>
