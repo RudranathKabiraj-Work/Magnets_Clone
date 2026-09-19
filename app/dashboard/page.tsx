@@ -177,18 +177,22 @@ export default function PagesPage() {
       .replace(/\s+/g, "-") || "untitled-page";
   }, [newName]);
 
-  const liveCount = useMemo(() => pages.filter((p) => p.status === "live").length, [pages]);
-  const draftCount = useMemo(() => pages.filter((p) => p.status === "draft").length, [pages]);
-  const total = pages.length;
+  const landingPages = useMemo(() => {
+    return pages.filter((p) => p.template !== "locked-pdf");
+  }, [pages]);
 
-  const totalViews = useMemo(() => pages.reduce((sum, p) => sum + (p.views || 0), 0), [pages]);
-  const totalSignups = useMemo(() => pages.reduce((sum, p) => sum + (p.signups || 0), 0), [pages]);
+  const liveCount = useMemo(() => landingPages.filter((p) => p.status === "live").length, [landingPages]);
+  const draftCount = useMemo(() => landingPages.filter((p) => p.status === "draft").length, [landingPages]);
+  const total = landingPages.length;
+
+  const totalViews = useMemo(() => landingPages.reduce((sum, p) => sum + (p.views || 0), 0), [landingPages]);
+  const totalSignups = useMemo(() => landingPages.reduce((sum, p) => sum + (p.signups || 0), 0), [landingPages]);
   const avgConversion = useMemo(() => totalViews > 0 ? ((totalSignups / totalViews) * 100).toFixed(1) : "0.0", [totalViews, totalSignups]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q && statusFilter === "all") return pages;
-    return pages.filter((p) => {
+    if (!q && statusFilter === "all") return landingPages;
+    return landingPages.filter((p) => {
       const matchesStatus = statusFilter === "all" || p.status === statusFilter;
       if (!matchesStatus) return false;
       if (!q) return true;
@@ -198,7 +202,7 @@ export default function PagesPage() {
         (p.headline && p.headline.toLowerCase().includes(q))
       );
     });
-  }, [pages, search, statusFilter]);
+  }, [landingPages, search, statusFilter]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -214,17 +218,18 @@ export default function PagesPage() {
   }, [search, statusFilter]);
 
   const activePage = useMemo(() => {
-    if (!selectedPageId) return filtered[0] || pages[0] || null;
-    return pages.find((p) => p.id === selectedPageId) || filtered[0] || pages[0] || null;
-  }, [selectedPageId, pages, filtered]);
+    if (!selectedPageId) return filtered[0] || landingPages[0] || null;
+    return landingPages.find((p) => p.id === selectedPageId) || filtered[0] || landingPages[0] || null;
+  }, [selectedPageId, landingPages, filtered]);
 
   useEffect(() => {
     const localPages = loadPages();
     const localAccount = loadAccount();
     if (localPages.length > 0) {
       setPages(localPages);
-      if (!selectedPageId && localPages[0]) {
-        setSelectedPageId(localPages[0].id);
+      const initialLanding = localPages.filter((p) => p.template !== "locked-pdf");
+      if (!selectedPageId && initialLanding[0]) {
+        setSelectedPageId(initialLanding[0].id);
       }
     }
     if (localAccount) setAccount(localAccount);
@@ -235,8 +240,9 @@ export default function PagesPage() {
         if (data) {
           if (data.pages) {
             setPages(data.pages);
-            if (!selectedPageId && data.pages.length > 0) {
-              setSelectedPageId(data.pages[0].id);
+            const landingList = data.pages.filter((p) => p.template !== "locked-pdf");
+            if (!selectedPageId && landingList.length > 0) {
+              setSelectedPageId(landingList[0].id);
             }
           }
           if (data.account) setAccount(data.account);
@@ -880,6 +886,7 @@ export default function PagesPage() {
                 };
 
                 const nextPages = [newMagnetPage, ...pages];
+                setPages(nextPages);
                 savePages(nextPages);
                 router.push(`/dashboard/leadmagnets/${newId}`);
               }}
@@ -981,6 +988,7 @@ export default function PagesPage() {
                     };
 
                     const nextPages = [newMagnetPage, ...pages];
+                    setPages(nextPages);
                     savePages(nextPages);
                     setShowCreateModal(false);
                     setNewName("");
@@ -1021,6 +1029,7 @@ export default function PagesPage() {
                     };
 
                     const nextPages = [newMagnetPage, ...pages];
+                    setPages(nextPages);
                     savePages(nextPages);
                     setShowCreateModal(false);
                     setNewName("");
