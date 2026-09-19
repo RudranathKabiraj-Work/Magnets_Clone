@@ -48,8 +48,6 @@ export default function LockedPdfPage() {
 
   // Toasts
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [showDocumentDropdown, setShowDocumentDropdown] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -148,18 +146,7 @@ export default function LockedPdfPage() {
     setPages(updated);
     savePages(updated);
     setSelectedPageId(newId);
-    setShowDocumentDropdown(false);
     addToast(`Created "${name}". Ready for PDF upload!`);
-  };
-
-  const handleCopyLink = () => {
-    if (!activePage) return;
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const pdfUrl = `${origin}/pdf-viewer/${activePage.id}`;
-    navigator.clipboard.writeText(pdfUrl);
-    setCopiedLink(true);
-    addToast("Viewer URL copied to clipboard!");
-    setTimeout(() => setCopiedLink(false), 2500);
   };
 
   const handleDeleteActiveDocument = () => {
@@ -240,109 +227,7 @@ export default function LockedPdfPage() {
             </div>
           </div>
 
-          {/* Top Document Actions & Switcher */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Selector Dropdown if documents exist */}
-            {lockedPdfPages.length > 0 && (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowDocumentDropdown(!showDocumentDropdown)}
-                  className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-bold text-zinc-800 shadow-xs hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer"
-                >
-                  <Lock className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
-                  <span className="max-w-[160px] truncate">{activePage?.name || "Select Document"}</span>
-                  <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
-                </button>
 
-                <AnimatePresence>
-                  {showDocumentDropdown && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 6 }}
-                      className="absolute right-0 mt-2 w-64 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-xl z-30 dark:border-zinc-800 dark:bg-zinc-900"
-                    >
-                      <div className="px-2 py-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Locked PDF Documents ({lockedPdfPages.length})
-                      </div>
-                      <div className="max-h-56 overflow-y-auto space-y-0.5">
-                        {lockedPdfPages.map((doc) => (
-                          <button
-                            key={doc.id}
-                            onClick={() => {
-                              setSelectedPageId(doc.id);
-                              setShowDocumentDropdown(false);
-                            }}
-                            className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition cursor-pointer ${
-                              activePage?.id === doc.id
-                                ? "bg-[#0066B2]/10 text-[#0066B2] font-bold dark:bg-[#0066B2]/20 dark:text-[#38BDF8]"
-                                : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                            }`}
-                          >
-                            <span className="truncate">{doc.name}</span>
-                            {activePage?.id === doc.id && <Check className="h-3.5 w-3.5 shrink-0" />}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
-
-                      <button
-                        onClick={createNewLockedPdfDocument}
-                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-bold text-[#0066B2] hover:bg-[#0066B2]/10 transition dark:text-[#38BDF8] cursor-pointer"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                        <span>Create New Locked PDF</span>
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
-
-            {/* Create New Document Button */}
-            <button
-              onClick={createNewLockedPdfDocument}
-              className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-3.5 py-2 text-xs font-bold text-white shadow-md hover:bg-[#005291] transition cursor-pointer"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span>New Document</span>
-            </button>
-
-            {/* Quick Action Links if active document exists */}
-            {activePage && (
-              <>
-                <a
-                  href={`/pdf-viewer/${activePage.id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  title="Preview PDF Viewer"
-                  className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-xs hover:border-[#0066B2] hover:text-[#0066B2] dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 transition"
-                >
-                  <Eye className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Preview</span>
-                </a>
-
-                <button
-                  onClick={handleCopyLink}
-                  title="Copy Viewer URL"
-                  className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-xs hover:border-[#0066B2] hover:text-[#0066B2] dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 transition cursor-pointer"
-                >
-                  {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Link2 className="h-3.5 w-3.5" />}
-                  <span className="hidden sm:inline">{copiedLink ? "Copied" : "Copy Link"}</span>
-                </button>
-
-                <button
-                  onClick={() => setShowDeleteModal(true)}
-                  title="Delete document"
-                  className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 transition cursor-pointer"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </>
-            )}
-          </div>
         </div>
 
         {/* Main Content Area: Interactive Locked PDF Setup Component */}
