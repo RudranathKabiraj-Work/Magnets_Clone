@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import MagnetSignupForm from "@/components/magnet-signup-form";
@@ -9,6 +10,86 @@ import { verifySessionToken } from "@/lib/session-token";
 
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { username: string; slug: string };
+}): Promise<Metadata> {
+  let accountDoc: any = null;
+  let pageDoc: any = null;
+
+  try {
+    await dbConnect();
+    const decodedUsername = decodeURIComponent(params.username || "");
+    const escapedUsername = decodedUsername.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+
+    accountDoc = await AccountModel.findOne(
+      escapedUsername ? { username: { $regex: new RegExp(`^${escapedUsername}$`, "i") } } : {}
+    ).lean();
+
+    if (accountDoc && accountDoc.email) {
+      pageDoc = await MagnetPageModel.findOne({
+        userEmail: accountDoc.email.trim().toLowerCase(),
+        $or: [{ id: params.slug }, { slug: params.slug }]
+      }).lean();
+    }
+
+    if (!pageDoc) {
+      pageDoc = await MagnetPageModel.findOne({
+        $or: [{ id: params.slug }, { slug: params.slug }]
+      }).lean();
+    }
+  } catch (err) {
+    console.warn("MongoDB metadata query fallback in generateMetadata:", err);
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in";
+  const username = params.username || "user";
+  const slug = params.slug || "resource";
+
+  if (!pageDoc) {
+    return {
+      title: "Lead Magnet Not Found | LeadMagnets",
+      description: "The requested lead magnet page could not be found.",
+    };
+  }
+
+  const title = pageDoc.headline || pageDoc.name || "Free Resource";
+  const rawDescription = pageDoc.subheadline || pageDoc.pitch || `Download ${title} instantly.`;
+  const description = rawDescription.replace(/<[^>]*>/g, "").trim().slice(0, 200);
+  const authorName = accountDoc?.name || username;
+  const canonicalUrl = `${appUrl}/${encodeURIComponent(username)}/${encodeURIComponent(slug)}`;
+  const ogImageUrl = pageDoc.imageUrl || accountDoc?.ogImageUrl || "/landing-dashboard.png";
+
+  return {
+    title: `${title} | ${authorName}`,
+    description: description,
+    authors: [{ name: authorName }],
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      type: "article",
+      url: canonicalUrl,
+      title: title,
+      description: description,
+      siteName: `${authorName} · LeadMagnets`,
+      images: [
+        {
+          url: ogImageUrl,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: title,
+      description: description,
+      images: [ogImageUrl],
+    },
+  };
+}
 
 function Icon({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
