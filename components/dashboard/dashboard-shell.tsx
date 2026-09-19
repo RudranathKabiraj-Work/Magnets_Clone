@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Monitor, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink, ListChecks, Loader2, FileLock } from "lucide-react";
+import { FileText, FolderOpen, Users, Sliders, Palette, User, CircleHelp, Menu, X, Search, ChevronRight, HelpCircle, Sun, Moon, Monitor, Bug, Lightbulb, LogOut, BookOpen, Gift, Compass, Send, GitFork, Calendar, Settings, Globe, Mail, Share2, Cpu, Slack, Zap, Link as LinkIcon, BarChart3, PlayCircle, CheckCircle2, ArrowLeft, Sparkles, Rocket, ExternalLink, ListChecks, Loader2, FileLock, Lock } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import BrandLogo from "@/components/brand";
@@ -14,9 +14,9 @@ import { signOut } from "next-auth/react";
 
 const mobileNav = [
   { href: "/dashboard/leadmagnets", label: "Lead magnets", icon: FileText },
-  { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: FileLock },
+  { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: Lock },
   { href: "/dashboard/hostresources", label: "Hosted resources", icon: FolderOpen },
-  { href: "/dashboard/signups", label: "Signups", icon: Users },
+  { href: "/dashboard/signups", label: "Leads", icon: Users },
   { href: "/dashboard/setup", label: "Workspace setup", icon: Sliders },
   { href: "/dashboard/brand", label: "Brand", icon: Palette },
   { href: "/dashboard/settings", label: "Account", icon: User },

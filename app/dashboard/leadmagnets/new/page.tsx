@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, SlidersHorizontal, Sparkles, Lock } from "lucide-react";
+import { ArrowLeft, ArrowRight, SlidersHorizontal, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
@@ -27,7 +27,6 @@ export default function NewPage() {
   const [account, setAccount] = useState<Account | null>(null);
   const [name, setName] = useState("");
   const [showAIModal, setShowAIModal] = useState(false);
-  const [isLockedPdf, setIsLockedPdf] = useState(false);
   const slug = slugify(name);
 
   useEffect(() => {
@@ -93,15 +92,13 @@ export default function NewPage() {
       views: 0,
       signups: 0,
       conversionRate: 0,
-      headline: isLockedPdf ? (name.trim() || "Unlock the full guide") : "Your headline goes here",
-      subheadline: isLockedPdf
-        ? "Enter your email to unlock all pages."
-        : "Tell visitors what they get and why it is worth their email.",
+      headline: "Your headline goes here",
+      subheadline: "Tell visitors what they get and why it is worth their email.",
       cta: "Send me the resource",
       deliverable: "Describe what people receive",
       updatedAt: "Just now",
       publishedAt: null,
-      template: isLockedPdf ? ("locked-pdf" as any) : ((account?.templateId as any) || "template1"),
+      template: (account?.templateId as any) || "template1",
       accent: "#FE6F34",
     };
     const next = [page, ...loadPages()];
@@ -163,42 +160,7 @@ export default function NewPage() {
             </p>
           </div>
 
-          {/* Page type toggle */}
-          <div>
-            <FieldLabel>Page type</FieldLabel>
-            <div className="mt-1.5 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setIsLockedPdf(false)}
-                className={`flex flex-1 items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition cursor-pointer ${
-                  !isLockedPdf
-                    ? "border-[#0066B2] bg-[#0066B2]/5 text-[#0066B2] dark:border-[#38BDF8] dark:text-[#38BDF8]"
-                    : "border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-400 hover:border-ink-300"
-                }`}
-              >
-                <SlidersHorizontal className="h-4 w-4 shrink-0" />
-                <div className="text-left">
-                  <span className="block font-bold">Standard</span>
-                  <span className="block text-[10px] font-normal opacity-70">Classic lead magnet with email form</span>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsLockedPdf(true)}
-                className={`flex flex-1 items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition cursor-pointer ${
-                  isLockedPdf
-                    ? "border-[#0066B2] bg-[#0066B2]/5 text-[#0066B2] dark:border-[#38BDF8] dark:text-[#38BDF8]"
-                    : "border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-400 hover:border-ink-300"
-                }`}
-              >
-                <Lock className="h-4 w-4 shrink-0" />
-                <div className="text-left">
-                  <span className="block font-bold">Locked PDF</span>
-                  <span className="block text-[10px] font-normal opacity-70">Show preview, gate rest behind email</span>
-                </div>
-              </button>
-            </div>
-          </div>
+
 
           <div className="flex items-center justify-between gap-3 pt-1">
             <p className="text-xs text-ink-500 dark:text-ink-400">Free forever. No credit card.</p>

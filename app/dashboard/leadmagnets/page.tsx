@@ -185,7 +185,6 @@ export default function PagesPage() {
   const [newName, setNewName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
-  const [isLockedPdfModal, setIsLockedPdfModal] = useState(false);
 
   const newSlug = useMemo(() => {
     return newName
@@ -888,7 +887,7 @@ export default function PagesPage() {
       {showCreateModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-200"
-          onClick={() => { setShowCreateModal(false); setIsLockedPdfModal(false); setNewName(""); }}
+          onClick={() => { setShowCreateModal(false); setNewName(""); }}
         >
           <div
             className="relative w-full max-w-[460px] rounded-2xl border border-[#0066B2]/30 bg-white p-6 text-zinc-900 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 dark:border-[#0066B2]/35 dark:bg-[#18181c] dark:text-white"
@@ -901,7 +900,7 @@ export default function PagesPage() {
                 <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Name the page and choose its URL.</p>
               </div>
               <button
-                onClick={() => { setShowCreateModal(false); setIsLockedPdfModal(false); setNewName(""); }}
+                onClick={() => { setShowCreateModal(false); setNewName(""); }}
                 className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#25252b] dark:hover:text-white transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
@@ -933,9 +932,7 @@ export default function PagesPage() {
                   conversionRate: 0,
                   updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
                   publishedAt: null,
-                  template: isLockedPdfModal
-                    ? ("locked-pdf" as any)
-                    : ((account?.templateId as any) || "template1")
+                  template: (account?.templateId as any) || "template1"
                 };
 
                 const nextPages = [newMagnetPage, ...pages];
@@ -998,43 +995,6 @@ export default function PagesPage() {
                   <span className="font-mono text-zinc-800 dark:text-[#d4c8bc] truncate">{newSlug}</span>
                 </div>
                 <p className="text-[11px] text-zinc-500 dark:text-[#666675]">The path of the page. Lowercase, digits, and hyphens only.</p>
-              </div>
-
-              {/* Page type toggle */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-[#d4c8bc]">Page type</label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsLockedPdfModal(false)}
-                    className={`flex flex-1 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition cursor-pointer ${
-                      !isLockedPdfModal
-                        ? "border-[#0066B2] bg-[#0066B2]/5 text-[#0066B2] dark:border-[#38BDF8] dark:text-[#38BDF8]"
-                        : "border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300"
-                    }`}
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
-                    <div className="text-left">
-                      <span className="block font-bold text-[11px]">Standard</span>
-                      <span className="block text-[10px] font-normal opacity-70">Classic lead magnet</span>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsLockedPdfModal(true)}
-                    className={`flex flex-1 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition cursor-pointer ${
-                      isLockedPdfModal
-                        ? "border-[#0066B2] bg-[#0066B2]/5 text-[#0066B2] dark:border-[#38BDF8] dark:text-[#38BDF8]"
-                        : "border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300"
-                    }`}
-                  >
-                    <Lock className="h-3.5 w-3.5 shrink-0" />
-                    <div className="text-left">
-                      <span className="block font-bold text-[11px]">Locked PDF</span>
-                      <span className="block text-[10px] font-normal opacity-70">Gate PDF behind email</span>
-                    </div>
-                  </button>
-                </div>
               </div>
 
               {/* Modal Action Buttons */}

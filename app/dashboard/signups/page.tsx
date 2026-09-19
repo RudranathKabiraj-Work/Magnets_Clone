@@ -440,7 +440,7 @@ export default function SignupsPage() {
   }, [magnetPages]);
 
   return (
-    <DashboardShell account={account} title="Signups">
+    <DashboardShell account={account} title="Leads">
       <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/50 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">
         <div className="flex-1 px-6 py-6 lg:px-8 max-w-7xl mx-auto w-full">
 
@@ -449,7 +449,7 @@ export default function SignupsPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                  Signups & Leads
+                  Leads
                 </h2>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   <Check className="h-3 w-3" /> Live Email Alerts Active

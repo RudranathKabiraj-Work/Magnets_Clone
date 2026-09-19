@@ -228,7 +228,7 @@ export default function LockedPdfPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-zinc-200 pb-5 dark:border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
-              <FileLock className="h-5 w-5" />
+              <Lock className="h-5 w-5" />
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
@@ -250,7 +250,7 @@ export default function LockedPdfPage() {
                   onClick={() => setShowDocumentDropdown(!showDocumentDropdown)}
                   className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-bold text-zinc-800 shadow-xs hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 transition cursor-pointer"
                 >
-                  <FileLock className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
+                  <Lock className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
                   <span className="max-w-[160px] truncate">{activePage?.name || "Select Document"}</span>
                   <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
                 </button>
