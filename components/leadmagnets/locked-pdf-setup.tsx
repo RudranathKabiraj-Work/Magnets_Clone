@@ -214,6 +214,30 @@ export default function LockedPdfSetup({
     }
   }
 
+  // ── Remove PDF & persist to DB ──────────────────────────────────────────
+  async function handleRemove() {
+    if (!confirm("Remove this PDF and all uploaded pages?")) return;
+    setSaving(true);
+    setSaved(false);
+    try {
+      setPages([]);
+      setFreePages(0);
+      setPdfTitle("");
+      await onSave({
+        pdfPages: [],
+        pdfFreePages: 0,
+        pdfTitle: "",
+        pdfPageCount: 0,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err: any) {
+      setError(err.message || "Failed to remove PDF. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const isDark = typeof document !== "undefined" &&
     document.documentElement.classList.contains("dark");
 
@@ -428,17 +452,12 @@ export default function LockedPdfSetup({
         {pages.length > 0 && (
           <button
             type="button"
-            onClick={() => {
-              if (confirm("Remove this PDF and all uploaded pages?")) {
-                setPages([]);
-                setFreePages(2);
-                setSaved(false);
-              }
-            }}
-            className="inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 dark:text-red-400 transition"
+            onClick={handleRemove}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 dark:text-red-400 transition disabled:opacity-50 cursor-pointer"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Remove PDF
+            {saving ? "Removing…" : "Remove PDF"}
           </button>
         )}
       </div>
