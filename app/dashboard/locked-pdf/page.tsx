@@ -208,93 +208,81 @@ export default function LockedPdfPage() {
       setEmailPreviewText(activePage.deliveryEmail.previewText || "Here is your link to view the document.");
       if (activePage.deliveryEmail.body) setEmailBody(activePage.deliveryEmail.body);
     }
-  }, [activePage]);
+    if (activePage.sequenceEnabled !== undefined) {
+      setSequenceEnabled(activePage.sequenceEnabled);
+    }
+    if (activePage.sequenceEmails && Array.isArray(activePage.sequenceEmails)) {
+      setSequenceEmails(activePage.sequenceEmails);
+    }
+  }, [activePage?.id]);
 
-  // Create a new Locked PDF document
-  const createNewLockedPdfDocument = () => {
-    const newId = Date.now().toString();
-    const docCount = lockedPdfPages.length + 1;
-    const name = `Locked PDF Document ${String(docCount).padStart(2, "0")}`;
-    const slug = `locked-pdf-${docCount}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    const newMagnet: MagnetPage = {
-      id: newId,
-      name,
-      slug,
-      status: "draft",
-      views: 0,
-      signups: 0,
-      conversionRate: 0,
-      headline: name,
-      subheadline: "Enter your email to verify and unlock full PDF access instantly.",
-      cta: "Verify & Unlock PDF",
-      deliverable: "Locked PDF Document",
-      updatedAt: new Date().toISOString().split("T")[0],
-      publishedAt: null,
-      template: "locked-pdf",
-      accent: "#0066B2",
-      pdfPages: [],
-      pdfFreePages: 2,
-      pdfTitle: name,
-      pdfPageCount: 0,
-    };
-
-    const updated = [newMagnet, ...pages];
-    setPages(updated);
-    savePages(updated);
-    setSelectedPageId(newId);
-    addToast(`Created "${name}". Ready for PDF upload!`);
-  };
-
-  const handleDeleteActiveDocument = () => {
-    if (!activePage) return;
-    setIsDeleting(true);
-    try {
-      deletePage(activePage.id);
-      const remaining = pages.filter((p) => p.id !== activePage.id);
-      setPages(remaining);
-      savePages(remaining);
-
-      const remainingLocked = remaining.filter(
-        (p) => p.template === "locked-pdf" || p.pdfFreePages !== undefined
+  const handleToggleSequenceEnabled = (enabled: boolean) => {
+    setSequenceEnabled(enabled);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, sequenceEnabled: enabled } : p
       );
-      if (remainingLocked.length > 0) {
-        setSelectedPageId(remainingLocked[0].id);
-      } else if (remaining[0]) {
-        setSelectedPageId(remaining[0].id);
-      } else {
-        setSelectedPageId(null);
-      }
-
-      addToast(`Deleted "${activePage.name}".`);
-      setShowDeleteModal(false);
-    } catch (e) {
-      addToast("Failed to delete document.", "error");
-    } finally {
-      setIsDeleting(false);
+      setPages(updated);
+      savePages(updated);
     }
   };
 
+  const handleUpdateSequenceEmails: React.Dispatch<React.SetStateAction<SequenceEmailItem[]>> = (value) => {
+    setSequenceEmails((prev) => {
+      const next = typeof value === "function" ? value(prev) : value;
+      if (activePage) {
+        const updated = pages.map((p) =>
+          p.id === activePage.id ? { ...p, sequenceEmails: next } : p
+        );
+        setPages(updated);
+        savePages(updated);
+      }
+      return next;
+    });
+  };
+
   const addSequenceEmail = () => {
-    const newId = `seq-${Date.now()}`;
+    const nextNum = sequenceEmails.length + 1;
+    const newId = Date.now().toString();
     const newItem: SequenceEmailItem = {
       id: newId,
-      subject: `Follow up #${sequenceEmails.length + 1}`,
+      subject: `Follow-up ${nextNum}: Check out this document`,
       delayDays: 1,
       delayUnit: "hours",
-      previewText: "Checking in regarding your access",
-      body: "Hi there,\n\nFollowing up to check if you have any questions!\n\nBest,",
+      previewText: "Quick follow-up regarding your access",
+      body: `Hi there,\n\nFollowing up to see if you had any questions regarding the document!\n\nBest,\n${account?.name || "The Team"}`,
     };
-    setSequenceEmails((prev) => [...prev, newItem]);
-    setSelectedSequenceIndex(sequenceEmails.length);
+    const updated = [...sequenceEmails, newItem];
+    setSequenceEmails(updated);
+    setSelectedSequenceIndex(updated.length - 1);
+    setSequenceEnabled(true);
+
+    if (activePage) {
+      const nextPages = pages.map((p) =>
+        p.id === activePage.id ? { ...p, sequenceEnabled: true, sequenceEmails: updated } : p
+      );
+      setPages(nextPages);
+      savePages(nextPages);
+    }
   };
 
   const removeSequenceEmail = (id: string) => {
-    if (sequenceEmails.length <= 1) return;
-    const next = sequenceEmails.filter((item) => item.id !== id);
-    setSequenceEmails(next);
-    if (selectedSequenceIndex >= next.length) {
-      setSelectedSequenceIndex(next.length - 1);
+    const updated = sequenceEmails.filter((item) => item.id !== id);
+    setSequenceEmails(updated);
+    const nextEnabled = updated.length > 0 ? sequenceEnabled : false;
+    if (updated.length === 0) {
+      setSequenceEnabled(false);
+      setSelectedSequenceIndex(0);
+    } else if (selectedSequenceIndex >= updated.length) {
+      setSelectedSequenceIndex(updated.length - 1);
+    }
+
+    if (activePage) {
+      const nextPages = pages.map((p) =>
+        p.id === activePage.id ? { ...p, sequenceEnabled: nextEnabled, sequenceEmails: updated } : p
+      );
+      setPages(nextPages);
+      savePages(nextPages);
     }
   };
 
@@ -517,11 +505,11 @@ export default function LockedPdfPage() {
               <SequenceTab
                 account={account}
                 sequenceEnabled={sequenceEnabled}
-                setSequenceEnabled={setSequenceEnabled}
+                setSequenceEnabled={handleToggleSequenceEnabled}
                 stopOnCall={stopOnCall}
                 setStopOnCall={setStopOnCall}
                 sequenceEmails={sequenceEmails}
-                setSequenceEmails={setSequenceEmails}
+                setSequenceEmails={handleUpdateSequenceEmails}
                 selectedSequenceIndex={selectedSequenceIndex}
                 setSelectedSequenceIndex={setSelectedSequenceIndex}
                 addSequenceEmail={addSequenceEmail}
