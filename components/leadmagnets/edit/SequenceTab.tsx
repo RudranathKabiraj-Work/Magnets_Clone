@@ -11,6 +11,11 @@ import {
   Redo2,
   ChevronLeft,
   ChevronRight,
+  Strikethrough,
+  Image as ImageIcon,
+  Link2,
+  Minus,
+  ChevronDown,
 } from "lucide-react";
 import { type Account } from "@/lib/data";
 
@@ -54,6 +59,43 @@ export default function SequenceTab({
   setShowSequencePreviewModal,
   setPreviewSequenceIndex,
 }: SequenceTabProps) {
+  const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+
+  const insertFormatting = (prefix: string, suffix = "") => {
+    const activeEmail = sequenceEmails[selectedSequenceIndex];
+    const el = textareaRef.current;
+    if (!el) {
+      const updatedBody = (activeEmail?.body || "") + prefix + suffix;
+      setSequenceEmails(
+        sequenceEmails.map((item, idx) =>
+          idx === selectedSequenceIndex ? { ...item, body: updatedBody } : item
+        )
+      );
+      return;
+    }
+
+    const start = el.selectionStart || 0;
+    const end = el.selectionEnd || 0;
+    const currentText = activeEmail?.body || "";
+    const selectedText = currentText.substring(start, end);
+    const replacement = prefix + (selectedText || "") + suffix;
+    const nextText = currentText.substring(0, start) + replacement + currentText.substring(end);
+
+    setSequenceEmails(
+      sequenceEmails.map((item, idx) =>
+        idx === selectedSequenceIndex ? { ...item, body: nextText } : item
+      )
+    );
+
+    setTimeout(() => {
+      if (el) {
+        el.focus();
+        const cursorPosition = start + prefix.length + (selectedText ? selectedText.length : 0);
+        el.setSelectionRange(cursorPosition, cursorPosition);
+      }
+    }, 0);
+  };
+
   const renderEmailBlockEditor = (
     val: string,
     onValChange: (next: string) => void,
@@ -61,6 +103,7 @@ export default function SequenceTab({
   ) => {
     return (
       <textarea
+        ref={textareaRef}
         disabled={isDisabled}
         value={val}
         onChange={(e) => onValChange(e.target.value)}
@@ -328,26 +371,111 @@ export default function SequenceTab({
                         <label className={`text-xs font-semibold block mb-1.5 ${(account?.themeMode || "light") === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Body</label>
                         <div className={`rounded-xl border overflow-hidden transition ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B]" : "border-zinc-200 bg-white"}`}>
                           {/* Toolbar */}
-                          <div className={`flex flex-wrap items-center gap-1 px-3 py-2 border-b text-xs text-zinc-400 ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B]" : "border-zinc-100 bg-zinc-50"}`}>
-                            <button title="Undo" type="button" onClick={() => { }} className="p-1 hover:text-white transition cursor-pointer"><Undo2 className="h-3.5 w-3.5" /></button>
-                            <button title="Redo" type="button" onClick={() => { }} className="p-1 hover:text-white transition cursor-pointer"><Redo2 className="h-3.5 w-3.5" /></button>
-                            <div className="h-3 w-px bg-zinc-700 mx-1" />
-                            <span className="px-1 font-extrabold text-[11px] cursor-pointer">Aa</span>
-                            <span className="px-1 font-bold italic cursor-pointer">B</span>
-                            <span className="px-1 italic cursor-pointer">I</span>
-                            <span className="px-1 font-serif cursor-pointer">&rdquo;</span>
-                            <span className="px-1 cursor-pointer">≡</span>
-                            <span className="px-1 cursor-pointer">-</span>
-                            <div className="h-3 w-px bg-zinc-700 mx-1" />
+                          <div className={`flex flex-wrap items-center gap-1.5 px-3 py-2 border-b text-xs select-none ${(account?.themeMode || "light") === "dark" ? "border-[#27272A] bg-[#18181B] text-zinc-300" : "border-zinc-100 bg-zinc-50 text-zinc-700"}`}>
+                            {/* Undo / Redo */}
+                            <button title="Undo" type="button" disabled={!sequenceEnabled} onClick={() => insertFormatting("", "")} className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer disabled:opacity-40"><Undo2 className="h-3.5 w-3.5" /></button>
+                            <button title="Redo" type="button" disabled={!sequenceEnabled} onClick={() => insertFormatting("", "")} className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer disabled:opacity-40"><Redo2 className="h-3.5 w-3.5" /></button>
+
+                            <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
+
+                            {/* Headings: Aa */}
                             <button
                               type="button"
-                              onClick={() => {
-                                const updatedBody = (activeEmail.body || "") + " {name}";
-                                setSequenceEmails(sequenceEmails.map((item, idx) => idx === selectedSequenceIndex ? { ...item, body: updatedBody } : item));
-                              }}
-                              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-[11px] text-zinc-200 transition cursor-pointer"
+                              disabled={!sequenceEnabled}
+                              onClick={() => insertFormatting("<h2>", "</h2>")}
+                              title="Heading"
+                              className="px-1.5 py-1 rounded font-extrabold text-xs transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer disabled:opacity-40"
                             >
-                              <Plus className="h-3 w-3" />
+                              Aa
+                            </button>
+
+                            {/* Bold: B */}
+                            <button
+                              type="button"
+                              disabled={!sequenceEnabled}
+                              onClick={() => insertFormatting("<b>", "</b>")}
+                              title="Bold"
+                              className="px-1.5 py-1 rounded font-extrabold text-xs transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer disabled:opacity-40"
+                            >
+                              B
+                            </button>
+
+                            {/* Italic: I */}
+                            <button
+                              type="button"
+                              disabled={!sequenceEnabled}
+                              onClick={() => insertFormatting("<i>", "</i>")}
+                              title="Italic"
+                              className="px-1.5 py-1 rounded italic font-serif text-xs transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer disabled:opacity-40"
+                            >
+                              I
+                            </button>
+
+                            {/* Strikethrough */}
+                            <button
+                              type="button"
+                              disabled={!sequenceEnabled}
+                              onClick={() => insertFormatting("<s>", "</s>")}
+                              title="Strikethrough"
+                              className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer disabled:opacity-40"
+                            >
+                              <Strikethrough className="h-3.5 w-3.5" />
+                            </button>
+
+                            <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
+
+                            {/* Insert Link */}
+                            <button
+                              type="button"
+                              disabled={!sequenceEnabled}
+                              onClick={() => {
+                                const url = prompt("Enter Link URL (e.g. https://example.com):");
+                                if (!url) return;
+                                const label = prompt("Enter text to display:", "Click here");
+                                insertFormatting(`<a href="${url}" target="_blank" rel="noopener noreferrer">${label || url}</a>`, "");
+                              }}
+                              title="Insert Link"
+                              className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer disabled:opacity-40"
+                            >
+                              <Link2 className="h-3.5 w-3.5" />
+                            </button>
+
+                            {/* Insert Image */}
+                            <button
+                              type="button"
+                              disabled={!sequenceEnabled}
+                              onClick={() => {
+                                const url = prompt("Enter Image URL:");
+                                if (url) insertFormatting(`<img src="${url}" alt="image" style="max-width:100%;" />`, "");
+                              }}
+                              title="Insert Image"
+                              className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer disabled:opacity-40"
+                            >
+                              <ImageIcon className="h-3.5 w-3.5" />
+                            </button>
+
+                            {/* Insert Horizontal Divider */}
+                            <button
+                              type="button"
+                              disabled={!sequenceEnabled}
+                              onClick={() => insertFormatting("<hr />\n", "")}
+                              title="Insert Divider"
+                              className="p-1.5 rounded transition hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer disabled:opacity-40"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+
+                            <div className={`h-4 w-px mx-0.5 ${(account?.themeMode || "light") === "dark" ? "bg-[#27272A]" : "bg-zinc-300"}`} />
+
+                            {/* + Insert {name} button */}
+                            <button
+                              type="button"
+                              disabled={!sequenceEnabled}
+                              onClick={() => insertFormatting("{name}", "")}
+                              title="Insert subscriber name variable"
+                              className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#0066B2]/15 text-[#0066B2] dark:bg-[#0066B2]/25 dark:text-[#38BDF8] font-bold text-xs transition hover:bg-[#0066B2]/25 dark:hover:bg-[#0066B2]/40 cursor-pointer disabled:opacity-40"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
                               <span>Insert &#123;name&#125;</span>
                             </button>
                           </div>

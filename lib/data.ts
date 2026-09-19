@@ -31,6 +31,13 @@ export interface MagnetPage {
   emailSubject?: string;
   emailPreviewText?: string;
   emailBody?: string;
+  deliveryEmail?: {
+    subject?: string;
+    previewText?: string;
+    body?: string;
+    linkText?: string;
+    linkUrl?: string;
+  };
   sequenceEnabled?: boolean;
   stopOnCall?: boolean;
   sequenceEmails?: { id: string; subject: string; delayDays: number; body: string }[];

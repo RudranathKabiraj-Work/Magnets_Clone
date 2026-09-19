@@ -42,12 +42,12 @@ import { TableHeader } from "@tiptap/extension-table-header";
 import { TextAlign } from "@tiptap/extension-text-align";
 import type { SequenceEmailItem } from "@/components/leadmagnets/edit/SequenceTab";
 
-const LockedPdfSetup = dynamic(() => import("@/components/leadmagnets/locked-pdf-setup"));
-const DeliveryEmailTab = dynamic(() => import("@/components/leadmagnets/edit/DeliveryEmailTab"));
-const SequenceTab = dynamic(() => import("@/components/leadmagnets/edit/SequenceTab"));
-const AfterSignupTab = dynamic(() => import("@/components/leadmagnets/edit/AfterSignupTab"));
-const EmailPreviewModal = dynamic(() => import("@/components/leadmagnets/edit/EmailPreviewModal"));
-const SequencePreviewModal = dynamic(() => import("@/components/leadmagnets/edit/SequencePreviewModal"));
+import LockedPdfSetup from "@/components/leadmagnets/locked-pdf-setup";
+import DeliveryEmailTab from "@/components/leadmagnets/edit/DeliveryEmailTab";
+import SequenceTab from "@/components/leadmagnets/edit/SequenceTab";
+import AfterSignupTab from "@/components/leadmagnets/edit/AfterSignupTab";
+import EmailPreviewModal from "@/components/leadmagnets/edit/EmailPreviewModal";
+import SequencePreviewModal from "@/components/leadmagnets/edit/SequencePreviewModal";
 
 interface Toast {
   id: string;
@@ -98,6 +98,7 @@ export default function LockedPdfPage() {
   const [selectedSequenceIndex, setSelectedSequenceIndex] = useState(0);
   const [showSequencePreviewModal, setShowSequencePreviewModal] = useState(false);
   const [previewSequenceIndex, setPreviewSequenceIndex] = useState(0);
+  const [previewDeviceMode, setPreviewDeviceMode] = useState<"desktop" | "mobile">("desktop");
 
   // After Signup tab state
   const [afterSignupOption, setAfterSignupOption] = useState<"standard" | "elsewhere" | "custom">("standard");
@@ -283,6 +284,70 @@ export default function LockedPdfPage() {
       );
       setPages(nextPages);
       savePages(nextPages);
+    }
+  };
+
+  const createNewLockedPdfDocument = () => {
+    const newId = Date.now().toString();
+    const docCount = lockedPdfPages.length + 1;
+    const name = `Locked PDF Document ${String(docCount).padStart(2, "0")}`;
+    const slug = `locked-pdf-${docCount}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const newMagnet: MagnetPage = {
+      id: newId,
+      name,
+      slug,
+      status: "draft",
+      views: 0,
+      signups: 0,
+      conversionRate: 0,
+      headline: name,
+      subheadline: "Enter your email to verify and unlock full PDF access instantly.",
+      cta: "Verify & Unlock PDF",
+      deliverable: "Locked PDF Document",
+      updatedAt: new Date().toISOString().split("T")[0],
+      publishedAt: null,
+      template: "locked-pdf",
+      accent: "#0066B2",
+      pdfPages: [],
+      pdfFreePages: 2,
+      pdfTitle: name,
+      pdfPageCount: 0,
+    };
+
+    const updated = [newMagnet, ...pages];
+    setPages(updated);
+    savePages(updated);
+    setSelectedPageId(newId);
+    addToast(`Created "${name}". Ready for PDF upload!`);
+  };
+
+  const handleDeleteActiveDocument = () => {
+    if (!activePage) return;
+    setIsDeleting(true);
+    try {
+      deletePage(activePage.id);
+      const remaining = pages.filter((p) => p.id !== activePage.id);
+      setPages(remaining);
+      savePages(remaining);
+
+      const remainingLocked = remaining.filter(
+        (p) => p.template === "locked-pdf" || p.pdfFreePages !== undefined
+      );
+      if (remainingLocked.length > 0) {
+        setSelectedPageId(remainingLocked[0].id);
+      } else if (remaining[0]) {
+        setSelectedPageId(remaining[0].id);
+      } else {
+        setSelectedPageId(null);
+      }
+
+      addToast(`Deleted "${activePage.name}".`);
+      setShowDeleteModal(false);
+    } catch (e) {
+      addToast("Failed to delete document.", "error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -569,8 +634,11 @@ export default function LockedPdfPage() {
         <EmailPreviewModal
           account={account}
           emailSubject={emailSubject}
+          emailPreviewText={emailPreviewText}
           emailBody={emailBody}
-          setShowEmailPreviewModal={setShowEmailPreviewModal}
+          page={activePage!}
+          pageId={activePage?.id || ""}
+          onClose={() => setShowEmailPreviewModal(false)}
         />
       )}
 
@@ -578,9 +646,15 @@ export default function LockedPdfPage() {
       {showSequencePreviewModal && (
         <SequencePreviewModal
           account={account}
+          emailSubject={emailSubject}
+          emailPreviewText={emailPreviewText}
+          emailBody={emailBody}
           sequenceEmails={sequenceEmails}
           previewSequenceIndex={previewSequenceIndex}
-          setShowSequencePreviewModal={setShowSequencePreviewModal}
+          previewDeviceMode={previewDeviceMode}
+          onSetPreviewSequenceIndex={setPreviewSequenceIndex}
+          onSetPreviewDeviceMode={setPreviewDeviceMode}
+          onClose={() => setShowSequencePreviewModal(false)}
         />
       )}
 

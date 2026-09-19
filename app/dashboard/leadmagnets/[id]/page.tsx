@@ -18,6 +18,7 @@ import {
   Mail,
   Clock,
   Home,
+  Lock,
   Undo2,
   Redo2,
   ExternalLink,
@@ -67,15 +68,15 @@ import { type MagnetPage, type Account } from "@/lib/data";
 import { loadPages, savePages, deletePage, loadAccount, loadResources, syncWithDatabase } from "@/lib/store";
 import dynamic from "next/dynamic";
 
-const AIMagnetModal = dynamic(() => import("@/components/leadmagnets/ai-magnet-modal"));
-const SocialCardModal = dynamic(() => import("@/components/leadmagnets/social-card-modal"));
-const DeleteModal = dynamic(() => import("@/components/leadmagnets/edit/DeleteModal"));
-const SequencePreviewModal = dynamic(() => import("@/components/leadmagnets/edit/SequencePreviewModal"));
-const EmailPreviewModal = dynamic(() => import("@/components/leadmagnets/edit/EmailPreviewModal"));
-const DeliveryEmailTab = dynamic(() => import("@/components/leadmagnets/edit/DeliveryEmailTab"));
-const SequenceTab = dynamic(() => import("@/components/leadmagnets/edit/SequenceTab"));
-const AfterSignupTab = dynamic(() => import("@/components/leadmagnets/edit/AfterSignupTab"));
-const LockedPdfSetup = dynamic(() => import("@/components/leadmagnets/locked-pdf-setup"));
+import AIMagnetModal from "@/components/leadmagnets/ai-magnet-modal";
+import SocialCardModal from "@/components/leadmagnets/social-card-modal";
+import DeleteModal from "@/components/leadmagnets/edit/DeleteModal";
+import SequencePreviewModal from "@/components/leadmagnets/edit/SequencePreviewModal";
+import EmailPreviewModal from "@/components/leadmagnets/edit/EmailPreviewModal";
+import DeliveryEmailTab from "@/components/leadmagnets/edit/DeliveryEmailTab";
+import SequenceTab from "@/components/leadmagnets/edit/SequenceTab";
+import AfterSignupTab from "@/components/leadmagnets/edit/AfterSignupTab";
+import LockedPdfSetup from "@/components/leadmagnets/locked-pdf-setup";
 import { ImageGeneration } from "@/components/agents/image-generation";
 import TemplateRenderer from "@/components/templates/TemplateRenderer";
 import CustomFieldsBuilder from "@/components/leadmagnets/edit/CustomFieldsBuilder";
