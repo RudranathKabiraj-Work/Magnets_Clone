@@ -288,7 +288,7 @@ export default function PdfViewerClient({
   return (
     <>
       {/* ─── Global styles scoped to this viewer ──────────────────────────── */}
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         html, body { margin: 0; overflow: hidden; height: 100%; }
         .pdf-viewer-root { height: 100vh; overflow: hidden; display: flex; flex-direction: column; background: #323639; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
         .pdf-bar { position: relative; z-index: 20; height: 56px; background: #3c3f43; display: flex; align-items: center; gap: 16px; padding: 0 20px; box-shadow: 0 1px 0 rgba(0,0,0,.35); flex-shrink: 0; }
@@ -335,7 +335,6 @@ export default function PdfViewerClient({
         .pdf-brand-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
         .pdf-brand-dot { width: 10px; height: 10px; border-radius: 50%; }
 
-
         @media (max-width: 760px) {
           .pdf-side { position: absolute; top: 56px; bottom: 0; left: 0; z-index: 15; width: 150px !important; box-shadow: 4px 0 16px rgba(0,0,0,.4); }
           .pdf-side[aria-hidden="true"] { width: 0 !important; }
@@ -347,7 +346,7 @@ export default function PdfViewerClient({
           .pdf-gate-card h2 { font-size: 18px; }
           .pdf-bar-title { font-size: 13px; }
         }
-      `}</style>
+      ` }} />
 
       <div className="pdf-viewer-root">
         {/* ── Top Bar ────────────────────────────────────────────────────────── */}
