@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { dbConnect } from "@/lib/mongodb";
 import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationModel, ResourceModel } from "@/lib/models";
-import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations, type MagnetPage } from "@/lib/data";
+import { account as seedAccount, pages as seedPages, leads as seedLeads, sequences as seedSequences, integrations as seedIntegrations, type MagnetPage, type Sequence, type Resource, type Lead, type Account, type Integration } from "@/lib/data";
 import { sendInstantLeadAlert } from "@/lib/email-alerts";
 import { sendMail } from "@/lib/email";
 import { clearAuthCookie, getAuthenticatedUserEmail, setAuthCookie } from "@/lib/auth";
@@ -112,12 +112,12 @@ export async function POST(req: Request) {
     if (action === "savePages") {
       if (Array.isArray(data) && data.length > 0) {
         // Collect old Cloudinary assets being replaced
-        const incomingIds = data.map((item: any) => item.id).filter(Boolean);
+        const incomingIds = (data as MagnetPage[]).map((item) => item.id).filter(Boolean);
         const existingPages = await MagnetPageModel.find({ id: { $in: incomingIds } }).lean();
-        const existingMap = new Map<string, any>(existingPages.map((p: any) => [p.id, p]));
+        const existingMap = new Map<string, MagnetPage>((existingPages as unknown as MagnetPage[]).map((p) => [p.id, p]));
 
         const replacedAssets: string[] = [];
-        data.forEach((item: any) => {
+        (data as MagnetPage[]).forEach((item) => {
           const oldPage = existingMap.get(item.id);
           if (oldPage) {
             if (oldPage.imageUrl && item.imageUrl && oldPage.imageUrl !== item.imageUrl) {
@@ -143,7 +143,7 @@ export async function POST(req: Request) {
           );
         }
 
-        const ops = data.map((item: any) => {
+        const ops = (data as MagnetPage[]).map((item) => {
           const itemEmail = normEmail || item.userEmail || "";
           return {
             updateOne: {
@@ -164,13 +164,13 @@ export async function POST(req: Request) {
         ? { id, userEmail: { $regex: new RegExp(`^${normEmail}$`, "i") } }
         : { id };
 
-      const targetPage = await MagnetPageModel.findOne(filter).lean();
+      const targetPage = (await MagnetPageModel.findOne(filter).lean()) as unknown as MagnetPage | null;
       if (targetPage) {
         const assetsToDelete: string[] = [];
-        if ((targetPage as any).imageUrl) assetsToDelete.push((targetPage as any).imageUrl);
-        if ((targetPage as any).variantBImage) assetsToDelete.push((targetPage as any).variantBImage);
-        if (Array.isArray((targetPage as any).pdfPages)) {
-          (targetPage as any).pdfPages.forEach((url: string) => {
+        if (targetPage.imageUrl) assetsToDelete.push(targetPage.imageUrl);
+        if (targetPage.variantBImage) assetsToDelete.push(targetPage.variantBImage);
+        if (Array.isArray(targetPage.pdfPages)) {
+          targetPage.pdfPages.forEach((url: string) => {
             if (url) assetsToDelete.push(url);
           });
         }
@@ -186,18 +186,18 @@ export async function POST(req: Request) {
     }
 
     if (action === "addPage") {
-      const existingPage = await MagnetPageModel.findOne({ id: data.id }).lean();
+      const existingPage = (await MagnetPageModel.findOne({ id: data.id }).lean()) as unknown as MagnetPage | null;
       if (existingPage) {
         const replacedAssets: string[] = [];
-        if ((existingPage as any).imageUrl && data.imageUrl && (existingPage as any).imageUrl !== data.imageUrl) {
-          replacedAssets.push((existingPage as any).imageUrl);
+        if (existingPage.imageUrl && data.imageUrl && existingPage.imageUrl !== data.imageUrl) {
+          replacedAssets.push(existingPage.imageUrl);
         }
-        if ((existingPage as any).variantBImage && data.variantBImage && (existingPage as any).variantBImage !== data.variantBImage) {
-          replacedAssets.push((existingPage as any).variantBImage);
+        if (existingPage.variantBImage && data.variantBImage && existingPage.variantBImage !== data.variantBImage) {
+          replacedAssets.push(existingPage.variantBImage);
         }
-        if (Array.isArray((existingPage as any).pdfPages) && Array.isArray(data.pdfPages)) {
+        if (Array.isArray(existingPage.pdfPages) && Array.isArray(data.pdfPages)) {
           const newSet = new Set(data.pdfPages);
-          (existingPage as any).pdfPages.forEach((oldPdfUrl: string) => {
+          existingPage.pdfPages.forEach((oldPdfUrl: string) => {
             if (oldPdfUrl && !newSet.has(oldPdfUrl)) {
               replacedAssets.push(oldPdfUrl);
             }
@@ -221,7 +221,7 @@ export async function POST(req: Request) {
 
     if (action === "saveSequences") {
       if (Array.isArray(data) && data.length > 0) {
-        const ops = data.map((item: any) => {
+        const ops = (data as Sequence[]).map((item) => {
           const itemEmail = normEmail || item.userEmail || "";
           return {
             updateOne: {
@@ -239,8 +239,8 @@ export async function POST(req: Request) {
     if (action === "deleteSequence") {
       const { id } = data;
       const filter = normEmail ? { id, userEmail: normEmail } : { id };
-      const targetSeq = await SequenceModel.findOne(filter).lean();
-      const pageIdToUpdate = (targetSeq as any)?.pageId || id;
+      const targetSeq = (await SequenceModel.findOne(filter).lean()) as unknown as Sequence | null;
+      const pageIdToUpdate = targetSeq?.pageId || id;
 
       await SequenceModel.deleteOne(filter);
       await MagnetPageModel.updateMany(
@@ -365,18 +365,18 @@ export async function POST(req: Request) {
       const normDelEmail = email.trim().toLowerCase();
 
       // Clean up all Cloudinary assets owned by this user
-      const userPages = await MagnetPageModel.find({ userEmail: normDelEmail }).lean();
-      const userResources = await ResourceModel.find({ userEmail: normDelEmail }).lean();
+      const userPages = (await MagnetPageModel.find({ userEmail: normDelEmail }).lean()) as unknown as MagnetPage[];
+      const userResources = (await ResourceModel.find({ userEmail: normDelEmail }).lean()) as unknown as Resource[];
 
       const allUserAssets: string[] = [];
-      userPages.forEach((p: any) => {
+      userPages.forEach((p) => {
         if (p.imageUrl) allUserAssets.push(p.imageUrl);
         if (p.variantBImage) allUserAssets.push(p.variantBImage);
         if (Array.isArray(p.pdfPages)) {
           p.pdfPages.forEach((u: string) => { if (u) allUserAssets.push(u); });
         }
       });
-      userResources.forEach((r: any) => {
+      userResources.forEach((r) => {
         const u = r.url || r.fileUrl;
         if (u) allUserAssets.push(u);
       });

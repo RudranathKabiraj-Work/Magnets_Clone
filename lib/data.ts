@@ -107,6 +107,7 @@ export interface SequenceEmail {
 
 export interface Sequence {
   id: string;
+  userEmail?: string;
   name: string;
   pageId?: string;
   status: "draft" | "live";
@@ -165,6 +166,19 @@ export interface Integration {
   description: string;
   connected: boolean;
   trigger: string;
+}
+
+export interface Resource {
+  id: string;
+  userEmail?: string;
+  name: string;
+  size: number;
+  uploadedAt: string;
+  url: string;
+  fileUrl?: string;
+  fileExt?: string;
+  isPageAsset?: boolean;
+  type?: string;
 }
 
 export const account: Account = {
