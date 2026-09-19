@@ -1,10 +1,27 @@
 "use client";
 
+// Adobe Acrobat PDF Viewer Client — Updated 2026
+
 import { useEffect, useRef, useState, useCallback } from "react";
+import {
+  Printer,
+  Download,
+  Search,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  ChevronUp,
+  ChevronDown,
+  FileText,
+  Bookmark,
+  Layers,
+  Lock,
+  Menu,
+  X,
+} from "lucide-react";
+import "./pdf-viewer.css";
 
 // ─── Cloudinary blur helper ───────────────────────────────────────────────────
-// Inserts e_blur:900 into a Cloudinary URL to get the blurred version.
-// No extra storage needed — Cloudinary transforms on-the-fly.
 function getBlurUrl(url: string): string {
   if (!url) return url;
   if (url.includes("/image/upload/f_auto,q_auto/")) {
@@ -44,7 +61,12 @@ export default function PdfViewerClient({
   const [unlocked, setUnlocked] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<"thumbnails" | "bookmarks" | "layers">("thumbnails");
+  const [zoomScale, setZoomScale] = useState(100);
+  const [rotation, setRotation] = useState(0);
   const [gateVisible, setGateVisible] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Gate form state
   const [step, setStep] = useState<"email" | "code">("email");
@@ -77,9 +99,7 @@ export default function PdfViewerClient({
       localToken ? `&token=${encodeURIComponent(localToken)}` : ""
     }`;
 
-    fetch(statusUrl, {
-      cache: "no-store",
-    })
+    fetch(statusUrl, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (data.unlocked) {
@@ -92,7 +112,6 @@ export default function PdfViewerClient({
         if (pdfFreePages === 0) setGateVisible(true);
       });
 
-    // Sidebar: close by default on small screens
     if (typeof window !== "undefined" && window.innerWidth <= 760) {
       setSidebarOpen(false);
     }
@@ -112,18 +131,15 @@ export default function PdfViewerClient({
   useEffect(() => {
     if (!docRef.current) return;
 
-    // Observer 1: page counter — updates current page number in top bar
     const counterObs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (!e.isIntersecting) return;
           const idx = Number((e.target as HTMLElement).dataset.pageIndex);
           setCurrentPage(idx + 1);
-          // Highlight active thumbnail
           thumbRefs.current.forEach((t, i) => {
             if (t) t.dataset.active = String(i === idx);
           });
-          // Scroll active thumb into view
           const activeThumb = thumbRefs.current[idx];
           if (activeThumb && sideRef.current && sidebarOpen) {
             activeThumb.scrollIntoView({ block: "nearest" });
@@ -133,7 +149,6 @@ export default function PdfViewerClient({
       { root: docRef.current, rootMargin: "-45% 0px -45% 0px" }
     );
 
-    // Observer 2: gate trigger — watches locked pages
     const gateObs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -261,397 +276,462 @@ export default function PdfViewerClient({
         setVerifying(false);
       }
     },
-    [code, token, email, magnetId, name, customAnswers, performUnlock]
+    [code, email, magnetId, name, token, customAnswers, performUnlock]
   );
 
-  // ── Scroll to page ────────────────────────────────────────────────────────
-  const scrollToPage = useCallback(
-    (idx: number) => {
-      const el = pageRefs.current[idx];
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      if (window.innerWidth <= 760) setSidebarOpen(false);
-    },
-    []
-  );
+  const scrollToPage = (idx: number) => {
+    const el = pageRefs.current[idx];
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
-  // ── Wheel Event Forwarding to document ──────────────────────────────────
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      const target = e.target as HTMLElement;
-      if (target && (target.closest(".pdf-gate-card") || target.closest(".pdf-side"))) {
-        return;
-      }
-      if (docRef.current) {
-        docRef.current.scrollTop += e.deltaY;
-      }
-    };
-    window.addEventListener("wheel", handleWheel, { passive: true });
-    return () => window.removeEventListener("wheel", handleWheel);
-  }, []);
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleDownload = () => {
+    if (pdfPages.length > 0) {
+      const a = document.createElement("a");
+      a.href = pdfPages[0];
+      a.download = `${pdfTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  };
 
   return (
-    <>
-      {/* ─── Global styles scoped to this viewer ──────────────────────────── */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        html, body { margin: 0; overflow: hidden; height: 100%; }
-        .pdf-viewer-root { height: 100vh; overflow: hidden; display: flex; flex-direction: column; background: #323639; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
-        .pdf-bar { position: relative; z-index: 20; height: 56px; background: #3c3f43; display: flex; align-items: center; gap: 16px; padding: 0 20px; box-shadow: 0 1px 0 rgba(0,0,0,.35); flex-shrink: 0; }
-        .pdf-bar-title { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
-        .pdf-page-count { font-size: 13px; display: flex; align-items: center; gap: 6px; color: #ddd; white-space: nowrap; }
-        .pdf-page-count b { background: #1f2124; color: #fff; padding: 3px 9px; border-radius: 4px; font-weight: 500; }
-        .pdf-menu-btn { background: none; border: 0; color: #fff; width: 36px; height: 36px; border-radius: 6px; cursor: pointer; display: grid; place-items: center; padding: 0; flex-shrink: 0; }
-        .pdf-menu-btn:hover { background: rgba(255,255,255,.1); }
-        .pdf-menu-btn span { display: block; width: 18px; height: 2px; background: #fff; box-shadow: 0 -6px 0 #fff, 0 6px 0 #fff; }
-        .pdf-layout { display: flex; flex: 1; overflow: hidden; }
-        .pdf-side { width: 200px; flex: none; background: #262a2d; border-right: 1px solid rgba(0,0,0,.4); overflow-y: auto; padding: 18px 0 40px; scrollbar-width: thin; scrollbar-color: #555 transparent; transition: width 0.2s; }
-        .pdf-side[aria-hidden="true"] { width: 0; padding: 0; overflow: hidden; border: none; }
-        .pdf-thumb { display: block; width: 100%; background: none; border: 0; padding: 8px 20px 12px; cursor: pointer; color: #ddd; font-family: inherit; }
-        .pdf-thumb .pdf-frame { position: relative; width: 100%; aspect-ratio: 612/792; background: #e9e4dc; border: 3px solid transparent; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.5); overflow: hidden; }
-        .pdf-thumb[data-active="true"] .pdf-frame { border-color: #8ab4f8; }
-        .pdf-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
-        .pdf-thumb .pdf-thumb-num { display: block; text-align: center; font-size: 12px; margin-top: 7px; }
-        .pdf-thumb.is-locked img { filter: blur(4px); transform: scale(1.08); }
-        .pdf-doc { flex: 1; overflow-y: auto; padding: 24px 16px 80px; display: flex; flex-direction: column; align-items: center; gap: 18px; scroll-behavior: smooth; }
-        .pdf-page { position: relative; flex: none; width: min(860px, 100%); aspect-ratio: 612/792; background: #e9e4dc; box-shadow: 0 2px 10px rgba(0,0,0,.45); overflow: hidden; }
-        .pdf-page img { display: block; width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; }
-        .pdf-page.is-locked img { filter: blur(14px); transform: scale(1.06); }
-        .pdf-page.is-locked::after { content: ""; position: absolute; inset: 0; background: rgba(255,255,255,.08); }
-        .pdf-page-num { position: absolute; left: 8px; bottom: 6px; font-size: 11px; color: rgba(0,0,0,.35); pointer-events: none; }
+    <div className="adobe-viewer-root">
+      {/* ── Top Header Toolbar ────────────────────────────────────────────── */}
+      <header className="adobe-bar">
+        <div className="adobe-bar-left">
+          <div className="adobe-logo-badge">
+            <div className="adobe-pdf-icon">PDF</div>
+            <span className="adobe-bar-title" title={pdfTitle}>
+              {pdfTitle}
+            </span>
+          </div>
 
-        /* Gate overlay */
-        .pdf-gate { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: opacity .25s; pointer-events: none; }
-        .pdf-gate.is-hidden { opacity: 0; pointer-events: none; }
-        .pdf-gate.is-visible { opacity: 1; pointer-events: none; }
-        .pdf-gate-card { background: #fff; color: #1c1c1c; border-radius: 20px; padding: 26px 28px; width: min(520px, 100%); max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.45); pointer-events: auto; }
-        .pdf-gate-card h2 { margin: 0 0 6px; font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
-        .pdf-gate-card p.sub { margin: 0 0 20px; font-size: 14px; color: #52525b; }
-        .pdf-gate-form { display: flex; gap: 10px; }
-        .pdf-gate-row { display: flex; gap: 10px; width: 100%; }
-        .pdf-gate-input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 13px 15px; border: 1.5px solid #d9d4cc; border-radius: 14px; outline: none; background: #fff; color: #1c1c1c; }
-        .pdf-gate-input:focus { border-color: #1c1c1c; }
-        .pdf-gate-input.is-code { letter-spacing: .3em; text-align: center; font-size: 22px; }
-        .pdf-gate-btn { font: inherit; font-size: 15px; font-weight: 600; background: #111; color: #fff; border: 0; border-radius: 14px; padding: 13px 22px; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
-        .pdf-gate-btn:disabled { opacity: .5; cursor: default; }
-        .pdf-gate-btn:not(:disabled):hover { opacity: 0.88; }
-        .pdf-gate-hint { margin: 12px 0 0; font-size: 13px; color: #666; }
-        .pdf-gate-hint.is-error { color: #b3261e; }
-        .pdf-gate-hint.is-hidden { display: none; }
-        .pdf-gate-link { color: inherit; cursor: pointer; text-decoration: underline; background: none; border: none; font: inherit; font-size: 13px; padding: 0; }
-        .pdf-brand-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
-        .pdf-brand-dot { width: 10px; height: 10px; border-radius: 50%; }
-
-        @media (max-width: 760px) {
-          .pdf-side { position: absolute; top: 56px; bottom: 0; left: 0; z-index: 15; width: 150px !important; box-shadow: 4px 0 16px rgba(0,0,0,.4); }
-          .pdf-side[aria-hidden="true"] { width: 0 !important; }
-          .pdf-thumb { padding: 6px 14px 10px; }
-        }
-        @media (max-width: 520px) {
-          .pdf-gate-form { flex-direction: column; }
-          .pdf-gate-card { padding: 22px 20px; }
-          .pdf-gate-card h2 { font-size: 18px; }
-          .pdf-bar-title { font-size: 13px; }
-        }
-        @media (max-width: 480px) {
-          .pdf-gate-row { flex-direction: column; }
-        }
-      ` }}
-    />
-      ` }} />
-
-      <div className="pdf-viewer-root">
-        {/* ── Top Bar ────────────────────────────────────────────────────────── */}
-        <header className="pdf-bar">
           <button
-            className="pdf-menu-btn"
-            aria-label="Toggle page thumbnails"
+            className="adobe-icon-btn"
+            title="Toggle Navigation Sidebar"
+            aria-pressed={sidebarOpen}
             onClick={() => setSidebarOpen((o) => !o)}
           >
-            <span />
+            <Menu size={18} />
           </button>
-          <div className="pdf-bar-title">{pdfTitle}</div>
+
+          <div className="adobe-divider" />
+
+          <button
+            className="adobe-icon-btn"
+            title="Previous Page"
+            disabled={currentPage <= 1}
+            onClick={() => scrollToPage(Math.max(0, currentPage - 2))}
+          >
+            <ChevronUp size={18} />
+          </button>
+
+          <div className="adobe-page-counter">
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              className="adobe-page-input"
+              value={currentPage}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (val >= 1 && val <= totalPages) {
+                  scrollToPage(val - 1);
+                }
+              }}
+            />
+            <span>/ {totalPages}</span>
+          </div>
+
+          <button
+            className="adobe-icon-btn"
+            title="Next Page"
+            disabled={currentPage >= totalPages}
+            onClick={() => scrollToPage(Math.min(totalPages - 1, currentPage))}
+          >
+            <ChevronDown size={18} />
+          </button>
+        </div>
+
+        <div className="adobe-bar-center">
+          <button
+            className="adobe-icon-btn"
+            title="Zoom Out"
+            disabled={zoomScale <= 50}
+            onClick={() => setZoomScale((z) => Math.max(50, z - 25))}
+          >
+            <ZoomOut size={16} />
+          </button>
+
+          <select
+            className="adobe-zoom-select"
+            value={zoomScale}
+            onChange={(e) => setZoomScale(Number(e.target.value))}
+          >
+            <option value={50}>50%</option>
+            <option value={75}>75%</option>
+            <option value={100}>100%</option>
+            <option value={125}>125%</option>
+            <option value={150}>150%</option>
+            <option value={200}>200%</option>
+          </select>
+
+          <button
+            className="adobe-icon-btn"
+            title="Zoom In"
+            disabled={zoomScale >= 200}
+            onClick={() => setZoomScale((z) => Math.min(200, z + 25))}
+          >
+            <ZoomIn size={16} />
+          </button>
+
+          <div className="adobe-divider" />
+
+          <button
+            className="adobe-icon-btn"
+            title="Rotate Clockwise"
+            onClick={() => setRotation((r) => (r + 90) % 360)}
+          >
+            <RotateCw size={16} />
+          </button>
+        </div>
+
+        <div className="adobe-bar-right">
+          {showSearch ? (
+            <div className="adobe-search-box">
+              <Search size={14} color="#aaa" />
+              <input
+                type="text"
+                className="adobe-search-input"
+                placeholder="Find text..."
+                autoFocus
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button
+                className="adobe-icon-btn"
+                style={{ width: 20, height: 20 }}
+                onClick={() => setShowSearch(false)}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <button
+              className="adobe-icon-btn"
+              title="Search document"
+              onClick={() => setShowSearch(true)}
+            >
+              <Search size={16} />
+            </button>
+          )}
+
+          <button className="adobe-icon-btn" title="Print document" onClick={handlePrint}>
+            <Printer size={16} />
+          </button>
+
+          <button className="adobe-icon-btn" title="Download PDF" onClick={handleDownload}>
+            <Download size={16} />
+          </button>
+
           {unlocked && (
             <button
               onClick={() => {
                 document.cookie = `pdf_unlocked_${magnetId}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                try {
+                  localStorage.removeItem(`pdf_unlock_token_${magnetId}`);
+                } catch (e) {}
                 setUnlocked(false);
                 setGateVisible(pdfFreePages === 0);
               }}
               style={{
                 background: "rgba(239, 68, 68, 0.2)",
-                border: "1px solid rgba(239, 68, 68, 0.4)",
                 color: "#fca5a5",
+                border: "1px solid rgba(239, 68, 68, 0.4)",
+                borderRadius: "4px",
+                padding: "4px 8px",
                 fontSize: "11px",
                 fontWeight: 600,
-                padding: "4px 10px",
-                borderRadius: "6px",
                 cursor: "pointer",
-                whiteSpace: "nowrap",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
               }}
-              title="Reset unlock cookie to test locked state"
+              title="Test mode: re-locks the lead magnet"
             >
-              🔒 Re-lock (Test Gate)
+              <Lock size={12} />
+              Re-lock
             </button>
           )}
-          <div className="pdf-page-count">
-            <b>{currentPage}</b>
-            <span>/ {totalPages}</span>
-          </div>
-        </header>
-
-        <div className="pdf-layout">
-          {/* ── Sidebar thumbnails ──────────────────────────────────────────── */}
-          <nav
-            ref={sideRef}
-            className="pdf-side"
-            aria-label="Pages"
-            aria-hidden={!sidebarOpen}
-          >
-            {pdfPages.map((pageUrl, i) => {
-              const isLocked = i >= pdfFreePages && !unlocked;
-              const thumbSrc = isLocked ? getBlurUrl(pageUrl) : pageUrl;
-              return (
-                <button
-                  key={i}
-                  ref={(el) => { thumbRefs.current[i] = el; }}
-                  className={`pdf-thumb${isLocked ? " is-locked" : ""}`}
-                  data-active={String(i === currentPage - 1)}
-                  onClick={() => scrollToPage(i)}
-                  aria-label={`Go to page ${i + 1}`}
-                >
-                  <span className="pdf-frame">
-                    <img
-                      src={thumbSrc}
-                      alt=""
-                      loading="lazy"
-                    />
-                  </span>
-                  <span className="pdf-thumb-num">{i + 1}</span>
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* ── Main document area ──────────────────────────────────────────── */}
-          <main className="pdf-doc" ref={docRef} id="pdf-doc">
-            {pdfPages.map((pageUrl, i) => {
-              const isLocked = i >= pdfFreePages && !unlocked;
-              const src = isLocked ? getBlurUrl(pageUrl) : pageUrl;
-              return (
-                <div
-                  key={i}
-                  ref={(el) => { pageRefs.current[i] = el; }}
-                  className={`pdf-page${isLocked ? " is-locked" : ""}`}
-                  data-page-index={i}
-                >
-                  <img
-                    src={src}
-                    alt={`Page ${i + 1}`}
-                    loading={i < 3 ? "eager" : "lazy"}
-                  />
-                  <span className="pdf-page-num">{i + 1}</span>
-                </div>
-              );
-            })}
-          </main>
         </div>
+      </header>
 
-        {/* ── Email Gate Overlay ─────────────────────────────────────────────── */}
-        <div
-          className={`pdf-gate ${gateVisible ? "is-visible" : "is-hidden"}`}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Unlock full access"
-        >
-          <div className="pdf-gate-card">
-            {/* Brand pill */}
-            <div className="pdf-brand-bar">
-              <span
-                className="pdf-brand-dot"
-                style={{ background: brandColor }}
-              />
-              <span style={{ fontSize: 12, color: "#71717a", fontWeight: 500 }}>
-                {businessName}
-              </span>
+      {/* ── Main Workspace ──────────────────────────────────────────────────── */}
+      <div className="adobe-main-layout">
+        {/* Left Navigation Sidebar */}
+        {sidebarOpen && (
+          <div className="adobe-sidebar-wrapper" ref={sideRef as any}>
+            <div className="adobe-rail">
+              <button
+                className={`adobe-rail-item ${activeTab === "thumbnails" ? "active" : ""}`}
+                title="Page Thumbnails"
+                onClick={() => setActiveTab("thumbnails")}
+              >
+                <FileText size={16} />
+              </button>
+              <button
+                className={`adobe-rail-item ${activeTab === "bookmarks" ? "active" : ""}`}
+                title="Bookmarks"
+                onClick={() => setActiveTab("bookmarks")}
+              >
+                <Bookmark size={16} />
+              </button>
+              <button
+                className={`adobe-rail-item ${activeTab === "layers" ? "active" : ""}`}
+                title="Attachments & Layers"
+                onClick={() => setActiveTab("layers")}
+              >
+                <Layers size={16} />
+              </button>
             </div>
 
-            {step === "email" ? (
-              <>
-                <h2>
-                  {pdfFreePages === 0
-                    ? "Enter your details to read this guide."
-                    : `You've read the preview. Enter your details to unlock all ${totalPages} pages.`}
-                </h2>
-                <p className="sub">Free — no credit card required.</p>
-                <form className="pdf-gate-form" onSubmit={handleSendCode}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
-                    <div className="pdf-gate-row">
-                      <input
-                        id="pdf-gate-name"
-                        className="pdf-gate-input"
-                        type="text"
-                        placeholder="Your name *"
-                        autoComplete="name"
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        disabled={sending}
-                      />
-                      <input
-                        id="pdf-gate-email"
-                        className="pdf-gate-input"
-                        type="email"
-                        placeholder="Your email address *"
-                        autoComplete="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        disabled={sending}
-                      />
-                    </div>
-
-                    {customFormFields && customFormFields.length > 0 && (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "8px", paddingTop: "4px" }}>
-                        {customFormFields.map((field) => (
-                          <div key={field.id} style={{ textAlign: "left" }}>
-                            <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#666", marginBottom: "3px" }}>
-                              {field.label} {field.required ? "*" : ""}
-                            </label>
-                            {field.type === "select" ? (
-                              <select
-                                className="pdf-gate-input"
-                                style={{ fontSize: "14px", padding: "10px 12px" }}
-                                required={field.required}
-                                value={customAnswers[field.label] || customAnswers[field.id] || ""}
-                                onChange={(e) =>
-                                  setCustomAnswers((prev) => ({
-                                    ...prev,
-                                    [field.label || field.id]: e.target.value,
-                                  }))
-                                }
-                              >
-                                <option value="">{field.placeholder || "Select option..."}</option>
-                                {(field.options || []).map((opt) => (
-                                  <option key={opt} value={opt}>
-                                    {opt}
-                                  </option>
-                                ))}
-                              </select>
-                            ) : field.type === "textarea" ? (
-                              <textarea
-                                className="pdf-gate-input"
-                                style={{ fontSize: "14px", padding: "10px 12px" }}
-                                rows={2}
-                                placeholder={field.placeholder || field.label}
-                                required={field.required}
-                                value={customAnswers[field.label] || customAnswers[field.id] || ""}
-                                onChange={(e) =>
-                                  setCustomAnswers((prev) => ({
-                                    ...prev,
-                                    [field.label || field.id]: e.target.value,
-                                  }))
-                                }
-                              />
-                            ) : (
-                              <input
-                                type={field.type === "number" ? "number" : "text"}
-                                className="pdf-gate-input"
-                                style={{ fontSize: "14px", padding: "10px 12px" }}
-                                placeholder={field.placeholder || field.label}
-                                required={field.required}
-                                value={customAnswers[field.label] || customAnswers[field.id] || ""}
-                                onChange={(e) =>
-                                  setCustomAnswers((prev) => ({
-                                    ...prev,
-                                    [field.label || field.id]: e.target.value,
-                                  }))
-                                }
-                              />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <button
-                      type="submit"
-                      className="pdf-gate-btn"
-                      disabled={sending}
-                      style={{ background: brandColor, marginTop: "4px" }}
-                    >
-                      {sending ? "Sending code…" : "Send code →"}
-                    </button>
+            <div className="adobe-thumb-panel">
+              <div className="adobe-thumb-header">
+                {activeTab === "thumbnails" ? "Page Thumbnails" : activeTab === "bookmarks" ? "Bookmarks" : "Attachments"}
+              </div>
+              <div className="adobe-thumb-list">
+                {activeTab === "thumbnails" ? (
+                  pdfPages.map((url, idx) => {
+                    const isLocked = !unlocked && idx >= pdfFreePages;
+                    const displayUrl = isLocked ? getBlurUrl(url) : url;
+                    return (
+                      <button
+                        key={idx}
+                        ref={(el) => { thumbRefs.current[idx] = el; }}
+                        className={`adobe-thumb-card ${isLocked ? "is-locked" : ""}`}
+                        data-active={currentPage === idx + 1}
+                        onClick={() => scrollToPage(idx)}
+                      >
+                        <div className="adobe-thumb-frame">
+                          <img src={displayUrl} alt={`Thumbnail page ${idx + 1}`} className="adobe-thumb-img" />
+                        </div>
+                        <span className="adobe-thumb-num">{idx + 1}</span>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div style={{ padding: "12px", fontSize: "12px", color: "#888", textAlign: "center" }}>
+                    No {activeTab} available.
                   </div>
-                </form>
-              </>
-            ) : (
-              <>
-                <h2>Enter the 6-digit code we just sent you.</h2>
-                <p className="sub">Check your spam folder if it isn't there in a minute.</p>
-                <form className="pdf-gate-form" onSubmit={handleVerifyCode}>
-                  <input
-                    id="pdf-gate-code"
-                    className="pdf-gate-input is-code"
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]{6}"
-                    maxLength={6}
-                    placeholder="000000"
-                    autoComplete="one-time-code"
-                    required
-                    value={code}
-                    onChange={(e) =>
-                      setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
-                    }
-                    disabled={verifying}
-                  />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Document View Canvas */}
+        <main className="adobe-doc-viewport" ref={docRef}>
+          {pdfPages.map((url, idx) => {
+            const isLocked = !unlocked && idx >= pdfFreePages;
+            const displayUrl = isLocked ? getBlurUrl(url) : url;
+
+            return (
+              <div
+                key={idx}
+                ref={(el) => { pageRefs.current[idx] = el; }}
+                data-page-index={idx}
+                className={`adobe-page-wrapper ${isLocked ? "is-locked" : ""}`}
+                style={{
+                  transform: `scale(${zoomScale / 100}) rotate(${rotation}deg)`,
+                  transformOrigin: "top center",
+                  maxWidth: `${zoomScale * 8.6}px`,
+                }}
+              >
+                <img
+                  src={displayUrl}
+                  alt={`Document Page ${idx + 1}`}
+                  className="adobe-page-img"
+                  loading={idx < 3 ? "eager" : "lazy"}
+                />
+              </div>
+            );
+          })}
+        </main>
+      </div>
+
+      {/* ── Gate Modal Overlay ──────────────────────────────────────────────── */}
+      <div className={`pdf-gate ${gateVisible ? "is-visible" : "is-hidden"}`}>
+        <div className="pdf-gate-card">
+          <div className="pdf-brand-bar">
+            <span className="pdf-brand-dot" style={{ background: brandColor }} />
+            <span style={{ fontSize: 12, color: "#71717a", fontWeight: 500 }}>
+              {businessName}
+            </span>
+          </div>
+
+          {step === "email" ? (
+            <>
+              <h2>
+                {pdfFreePages === 0
+                  ? "Enter your details to read this guide."
+                  : `You've read the preview. Enter your details to unlock all ${totalPages} pages.`}
+              </h2>
+              <p className="sub">Free — no credit card required.</p>
+              <form className="pdf-gate-form" onSubmit={handleSendCode}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
+                  <div className="pdf-gate-row">
+                    <input
+                      id="pdf-gate-name"
+                      className="pdf-gate-input"
+                      type="text"
+                      placeholder="Your name *"
+                      autoComplete="name"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      disabled={sending}
+                    />
+                    <input
+                      id="pdf-gate-email"
+                      className="pdf-gate-input"
+                      type="email"
+                      placeholder="Your email address *"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={sending}
+                    />
+                  </div>
+
+                  {customFormFields && customFormFields.length > 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", paddingTop: "4px" }}>
+                      {customFormFields.map((field) => (
+                        <div key={field.id} style={{ textAlign: "left" }}>
+                          <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#666", marginBottom: "3px" }}>
+                            {field.label} {field.required ? "*" : ""}
+                          </label>
+                          {field.type === "select" ? (
+                            <select
+                              className="pdf-gate-input"
+                              style={{ fontSize: "14px", padding: "10px 12px" }}
+                              required={field.required}
+                              value={customAnswers[field.label] || customAnswers[field.id] || ""}
+                              onChange={(e) =>
+                                setCustomAnswers((prev) => ({
+                                  ...prev,
+                                  [field.label || field.id]: e.target.value,
+                                }))
+                              }
+                            >
+                              <option value="">{field.placeholder || "Select option..."}</option>
+                              {(field.options || []).map((opt) => (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              ))}
+                            </select>
+                          ) : field.type === "textarea" ? (
+                            <textarea
+                              className="pdf-gate-input"
+                              style={{ fontSize: "14px", padding: "10px 12px" }}
+                              rows={2}
+                              placeholder={field.placeholder || field.label}
+                              required={field.required}
+                              value={customAnswers[field.label] || customAnswers[field.id] || ""}
+                              onChange={(e) =>
+                                setCustomAnswers((prev) => ({
+                                  ...prev,
+                                  [field.label || field.id]: e.target.value,
+                                }))
+                              }
+                            />
+                          ) : (
+                            <input
+                              type={field.type === "number" ? "number" : "text"}
+                              className="pdf-gate-input"
+                              style={{ fontSize: "14px", padding: "10px 12px" }}
+                              placeholder={field.placeholder || field.label}
+                              required={field.required}
+                              value={customAnswers[field.label] || customAnswers[field.id] || ""}
+                              onChange={(e) =>
+                                setCustomAnswers((prev) => ({
+                                  ...prev,
+                                  [field.label || field.id]: e.target.value,
+                                }))
+                              }
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <button
                     type="submit"
                     className="pdf-gate-btn"
-                    disabled={verifying || code.length < 6}
-                    style={{ background: brandColor }}
+                    disabled={sending}
+                    style={{ background: brandColor, marginTop: "4px" }}
                   >
-                    {verifying ? "Checking…" : "Unlock"}
+                    {sending ? "Sending code…" : "Send code →"}
                   </button>
-                </form>
-              </>
-            )}
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              <h2>Enter the 6-digit code we just sent you.</h2>
+              <p className="sub">Check your spam folder if it isn't there in a minute.</p>
+              <form className="pdf-gate-form" onSubmit={handleVerifyCode}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  autoFocus
+                  placeholder="000000"
+                  className="pdf-gate-input is-code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                  disabled={verifying}
+                />
+                <button
+                  type="submit"
+                  className="pdf-gate-btn"
+                  disabled={verifying}
+                  style={{ background: brandColor, marginTop: "10px" }}
+                >
+                  {verifying ? "Verifying…" : "Unlock guide →"}
+                </button>
+              </form>
+              <p className="pdf-gate-hint" style={{ marginTop: "14px", textAlign: "center" }}>
+                Didn't receive it?{" "}
+                <button
+                  type="button"
+                  className="pdf-gate-link"
+                  disabled={sending}
+                  onClick={() => handleSendCode()}
+                >
+                  Resend code
+                </button>
+              </p>
+            </>
+          )}
 
-            {/* Hint / error text */}
-            <p
-              className={`pdf-gate-hint ${hint ? "" : "is-hidden"} ${
-                hint?.isError ? "is-error" : ""
-              }`}
-            >
-              {hint?.msg}
-              {step === "code" && !hint?.isError && (
-                <>
-                  {" "}
-                  <button
-                    className="pdf-gate-link"
-                    onClick={() => handleSendCode()}
-                    type="button"
-                  >
-                    Resend
-                  </button>{" "}
-                  ·{" "}
-                  <button
-                    className="pdf-gate-link"
-                    onClick={() => {
-                      setStep("email");
-                      setToken(null);
-                      setCode("");
-                      setHint(null);
-                    }}
-                    type="button"
-                  >
-                    Change email
-                  </button>
-                </>
-              )}
+          {hint && (
+            <p className={`pdf-gate-hint ${hint.isError ? "is-error" : ""}`}>
+              {hint.msg}
             </p>
-          </div>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
