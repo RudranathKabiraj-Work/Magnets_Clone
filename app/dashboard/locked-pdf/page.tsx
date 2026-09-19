@@ -110,6 +110,54 @@ export default function LockedPdfPage() {
   const [buttonUrl, setButtonUrl] = useState("");
   const [quizFunnelEnabled, setQuizFunnelEnabled] = useState(false);
 
+  // Enterprise Auto-Save & Debounce State
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("saved");
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingPagesRef = useRef<MagnetPage[] | null>(null);
+
+  // Production-grade debounced save handler (500ms delay)
+  const triggerDebouncedSave = (updatedPages: MagnetPage[]) => {
+    setPages(updatedPages);
+    pendingPagesRef.current = updatedPages;
+    setSaveStatus("saving");
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      if (pendingPagesRef.current) {
+        savePages(pendingPagesRef.current);
+        pendingPagesRef.current = null;
+      }
+      setSaveStatus("saved");
+    }, 500);
+  };
+
+  // Immediate save for explicit actions (like delete or manual create)
+  const triggerImmediateSave = (updatedPages: MagnetPage[]) => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    pendingPagesRef.current = null;
+    setPages(updatedPages);
+    savePages(updatedPages);
+    setSaveStatus("saved");
+  };
+
+  // Ensure unmount cleanup flushes any pending unsaved state
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      if (pendingPagesRef.current) {
+        savePages(pendingPagesRef.current);
+      }
+    };
+  }, []);
+
   const addToast = (message: string, type: "success" | "error" | "info" = "success") => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, type, message }]);
@@ -133,7 +181,25 @@ export default function LockedPdfPage() {
     ],
     content: emailBody,
     onUpdate: ({ editor }) => {
-      setEmailBody(editor.getHTML());
+      const html = editor.getHTML();
+      setEmailBody(html);
+      if (activePage) {
+        const updated = pages.map((p) =>
+          p.id === activePage.id
+            ? {
+                ...p,
+                deliveryEmail: {
+                  subject: emailSubject,
+                  previewText: emailPreviewText,
+                  body: html,
+                  linkText: "Access document",
+                  linkUrl: "",
+                },
+              }
+            : p
+        );
+        triggerDebouncedSave(updated);
+      }
     },
   });
 
@@ -223,8 +289,7 @@ export default function LockedPdfPage() {
       const updated = pages.map((p) =>
         p.id === activePage.id ? { ...p, sequenceEnabled: enabled } : p
       );
-      setPages(updated);
-      savePages(updated);
+      triggerDebouncedSave(updated);
     }
   };
 
@@ -235,8 +300,7 @@ export default function LockedPdfPage() {
         const updated = pages.map((p) =>
           p.id === activePage.id ? { ...p, sequenceEmails: next } : p
         );
-        setPages(updated);
-        savePages(updated);
+        triggerDebouncedSave(updated);
       }
       return next;
     });
@@ -262,8 +326,7 @@ export default function LockedPdfPage() {
       const nextPages = pages.map((p) =>
         p.id === activePage.id ? { ...p, sequenceEnabled: true, sequenceEmails: updated } : p
       );
-      setPages(nextPages);
-      savePages(nextPages);
+      triggerImmediateSave(nextPages);
     }
   };
 
@@ -282,8 +345,7 @@ export default function LockedPdfPage() {
       const nextPages = pages.map((p) =>
         p.id === activePage.id ? { ...p, sequenceEnabled: nextEnabled, sequenceEmails: updated } : p
       );
-      setPages(nextPages);
-      savePages(nextPages);
+      triggerImmediateSave(nextPages);
     }
   };
 
@@ -393,6 +455,21 @@ export default function LockedPdfPage() {
             <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
               Upload your document, set free preview pages, configure delivery emails and lead nurture sequences.
             </p>
+          </div>
+
+          {/* Production-grade Keystroke Auto-Save Status Badge */}
+          <div className="flex items-center gap-2 shrink-0">
+            {saveStatus === "saving" ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-2xs">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Saving changes...</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-2xs">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>All changes saved</span>
+              </span>
+            )}
           </div>
         </div>
 
