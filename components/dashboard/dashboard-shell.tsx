@@ -341,8 +341,8 @@ export default function DashboardShell({
           >
             {mobileNav.map((item, idx) => {
               const active = item.href === "/dashboard"
-                ? pathname === "/dashboard" || pathname === "/dashboard/leadmagnets" || pathname.startsWith("/dashboard/leadmagnets/")
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                ? (pathname === "/dashboard" || pathname === "/dashboard/leadmagnets")
+                : (pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`)));
               const isHovered = hoveredNavHref === item.href;
               const isDividerAfter = item.href === "/dashboard/locked-pdf"; // Divider after Locked PDF
 
@@ -384,9 +384,10 @@ export default function DashboardShell({
                         ? "text-white font-bold dark:text-white"
                         : "text-zinc-600 dark:text-[#9B9085] dark:hover:text-white"
                         }`}
-                      onClick={() => {
+                      onClick={(e) => {
                         if (pathname !== item.href) {
-                          setNavigatingTarget(item.href);
+                          e.preventDefault();
+                          router.push(item.href);
                         }
                       }}
                     >
@@ -612,7 +613,9 @@ export default function DashboardShell({
               </div>
               <nav className="space-y-1.5" aria-label="Dashboard">
                 {mobileNav.map((item) => {
-                  const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  const active = item.href === "/dashboard"
+                    ? (pathname === "/dashboard" || pathname === "/dashboard/leadmagnets")
+                    : (pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`)));
                   if (item.isModal) {
                     return (
                       <button
@@ -632,7 +635,13 @@ export default function DashboardShell({
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={() => setMenuOpen(false)}
+                      onClick={(e) => {
+                        setMenuOpen(false);
+                        if (pathname !== item.href) {
+                          e.preventDefault();
+                          router.push(item.href);
+                        }
+                      }}
                       className={`flex items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition ${active
                         ? "bg-[#0066B2]/20 text-[#38BDF8] font-semibold"
                         : "text-[#9B9085] hover:bg-[#0066B2]/15 hover:text-white"

@@ -39,12 +39,12 @@ export async function GET(req: NextRequest) {
     // 3. Pre-fetch all unique magnet pages in ONE query instead of one-per-lead.
     //    This eliminates the N+1 query problem: 1,000 leads across 50 pages used
     //    to fire 1,000 DB round-trips. Now it fires exactly 1.
-    const uniquePageIds = [
-      ...new Set(activeLeads.map((l) => l.pageId).filter((id): id is string => Boolean(id))),
-    ];
-    const uniquePageNames = [
-      ...new Set(activeLeads.map((l) => l.page).filter((n): n is string => Boolean(n))),
-    ];
+    const uniquePageIds = Array.from(
+      new Set(activeLeads.map((l) => l.pageId).filter((id): id is string => Boolean(id)))
+    );
+    const uniquePageNames = Array.from(
+      new Set(activeLeads.map((l) => l.page).filter((n): n is string => Boolean(n)))
+    );
 
     const pageDocs = await MagnetPageModel.find({
       $or: [

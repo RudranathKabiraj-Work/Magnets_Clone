@@ -31,7 +31,9 @@ import {
   Lock,
   Tag,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  FileText,
+  Layers
 } from "lucide-react";
 import { syncWithDatabase, loadLeads, loadAccount, loadPages, loadSequences, saveLeads, deleteLead } from "@/lib/store";
 import type { Account, Lead, MagnetPage, Sequence } from "@/lib/data";
@@ -412,22 +414,89 @@ export default function LeadsPage() {
     addToast("success", `Copied ${emailStr} to clipboard!`);
   }, [addToast]);
 
-  // Magnet Options for Filters
-  const uniqueMagnets = useMemo(() => Array.from(new Set(leads.map((l) => l.page).filter(Boolean))), [leads]);
+  // Check if lead or magnet page is a Locked PDF
+  const checkIsLockedPdfLead = useCallback(
+    (l: Lead): boolean => {
+      const page = magnetPages.find((p) => p.id === l.pageId || p.name === l.page);
+      return (
+        l.source === "locked-pdf-otp" ||
+        Boolean(l.tags?.includes("locked-pdf")) ||
+        page?.template === "locked-pdf" ||
+        Boolean(l.page && l.page.toLowerCase().includes("locked"))
+      );
+    },
+    [magnetPages]
+  );
+
+  const checkIsLockedPdfMagnet = useCallback(
+    (magnetName: string): boolean => {
+      const page = magnetPages.find((p) => p.name === magnetName);
+      if (page) {
+        return (
+          page.template === "locked-pdf" ||
+          page.pdfFreePages !== undefined ||
+          Boolean(page.pdfPages && page.pdfPages.length > 0)
+        );
+      }
+      const sampleLead = leads.find((l) => l.page === magnetName);
+      if (sampleLead) {
+        return checkIsLockedPdfLead(sampleLead);
+      }
+      return magnetName.toLowerCase().includes("locked");
+    },
+    [magnetPages, leads, checkIsLockedPdfLead]
+  );
+
+  // Magnet Options Grouped by Type (Locked PDF vs Form)
+  const { lockedPdfMagnets, formMagnets, otherSources } = useMemo(() => {
+    const rawMagnets = Array.from(new Set(leads.map((l) => l.page).filter(Boolean)));
+    const locked: string[] = [];
+    const forms: string[] = [];
+    const others: string[] = [];
+
+    rawMagnets.forEach((name) => {
+      if (name === "Direct Manual Add" || name === "Imported Contact") {
+        others.push(name);
+      } else if (checkIsLockedPdfMagnet(name)) {
+        locked.push(name);
+      } else {
+        forms.push(name);
+      }
+    });
+
+    return {
+      lockedPdfMagnets: locked,
+      formMagnets: forms,
+      otherSources: others,
+    };
+  }, [leads, checkIsLockedPdfMagnet]);
 
   // Filtered leads
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return leads.filter((l) => {
-      const matchMagnet = filterMagnet === "All lead magnets" || l.page === filterMagnet;
+      let matchMagnet = false;
+      const isLocked = checkIsLockedPdfLead(l);
+
+      if (filterMagnet === "All lead magnets") {
+        matchMagnet = true;
+      } else if (filterMagnet === "All Locked PDFs") {
+        matchMagnet = isLocked;
+      } else if (filterMagnet === "All Form Magnets") {
+        matchMagnet = !isLocked;
+      } else {
+        matchMagnet = l.page === filterMagnet;
+      }
+
       const matchSearch =
         !q ||
         l.email.toLowerCase().includes(q) ||
         (l.name && l.name.toLowerCase().includes(q)) ||
         (l.page && l.page.toLowerCase().includes(q));
+
       return matchMagnet && matchSearch;
     });
-  }, [leads, filterMagnet, search]);
+  }, [leads, filterMagnet, search, checkIsLockedPdfLead]);
 
   // 5. Pagination Logic
   const totalPages = useMemo(() => Math.ceil(filtered.length / pageSize) || 1, [filtered.length, pageSize]);
@@ -567,8 +636,14 @@ export default function LeadsPage() {
                       }}
                       className="flex items-center gap-2 rounded-xl border border-zinc-200/80 bg-white/70 px-3.5 py-2 text-xs font-semibold text-zinc-700 shadow-xs backdrop-blur-md transition-all hover:bg-white/90 focus:outline-none dark:border-white/10 dark:bg-[#18181B]/80 dark:text-zinc-200 dark:hover:bg-[#222226] cursor-pointer select-none"
                     >
-                      <Filter className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
-                      <span className="truncate max-w-[140px]">{filterMagnet}</span>
+                      {filterMagnet === "All Locked PDFs" || (checkIsLockedPdfMagnet(filterMagnet) && filterMagnet !== "All lead magnets" && filterMagnet !== "All Form Magnets") ? (
+                        <Lock className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
+                      ) : filterMagnet === "All Form Magnets" || (formMagnets.includes(filterMagnet)) ? (
+                        <FileText className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8] shrink-0" />
+                      ) : (
+                        <Filter className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8] shrink-0" />
+                      )}
+                      <span className="truncate max-w-[150px]">{filterMagnet}</span>
                       <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-300 ${filterOpen ? "rotate-180" : ""}`} />
                     </button>
 
@@ -579,27 +654,184 @@ export default function LeadsPage() {
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.96, y: -4 }}
                           transition={{ type: "spring", damping: 28, stiffness: 400 }}
-                          className="absolute right-0 sm:left-0 top-full z-30 mt-1.5 w-56 rounded-xl border border-zinc-200/60 bg-white/85 p-1 shadow-md backdrop-blur-xl dark:border-white/10 dark:bg-[#18181F]/95 dark:text-white dark:shadow-[0_4px_16px_rgba(0,0,0,0.35)]"
+                          className="absolute right-0 sm:left-0 top-full z-30 mt-1.5 w-64 max-h-[380px] overflow-y-auto rounded-xl border border-zinc-200/80 bg-white/95 p-1.5 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-[#18181F]/95 dark:text-white dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)] scrollbar-thin"
                         >
-                          {["All lead magnets", ...uniqueMagnets].map((opt) => (
-                            <button
-                              key={opt}
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setFilterMagnet(opt);
-                                setFilterOpen(false);
-                                setCurrentPage(1);
-                              }}
-                              className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150 cursor-pointer ${filterMagnet === opt
-                                ? "bg-zinc-100 text-zinc-900 font-bold dark:bg-white/10 dark:text-[#38BDF8] dark:border dark:border-white/10"
-                                : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5"
-                                }`}
-                            >
-                              <span className="truncate">{opt}</span>
-                              {filterMagnet === opt && <Check className="h-3.5 w-3.5 text-current shrink-0" />}
-                            </button>
-                          ))}
+                          {/* Quick Filters */}
+                          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                            Quick Filters
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFilterMagnet("All lead magnets");
+                              setFilterOpen(false);
+                              setCurrentPage(1);
+                            }}
+                            className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                              filterMagnet === "All lead magnets"
+                                ? "bg-[#0066B2]/10 text-[#0066B2] font-bold dark:bg-[#38BDF8]/20 dark:text-[#38BDF8]"
+                                : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-white/5"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2 truncate">
+                              <Layers className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                              All lead magnets
+                            </span>
+                            {filterMagnet === "All lead magnets" && <Check className="h-3.5 w-3.5 text-current shrink-0" />}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFilterMagnet("All Locked PDFs");
+                              setFilterOpen(false);
+                              setCurrentPage(1);
+                            }}
+                            className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                              filterMagnet === "All Locked PDFs"
+                                ? "bg-amber-500/10 text-amber-600 font-bold dark:bg-amber-500/20 dark:text-amber-400"
+                                : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-white/5"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2 truncate">
+                              <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                              All Locked PDFs
+                            </span>
+                            {filterMagnet === "All Locked PDFs" && <Check className="h-3.5 w-3.5 text-current shrink-0" />}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFilterMagnet("All Form Magnets");
+                              setFilterOpen(false);
+                              setCurrentPage(1);
+                            }}
+                            className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                              filterMagnet === "All Form Magnets"
+                                ? "bg-[#0066B2]/10 text-[#0066B2] font-bold dark:bg-[#38BDF8]/20 dark:text-[#38BDF8]"
+                                : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-white/5"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2 truncate">
+                              <FileText className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8] shrink-0" />
+                              All Form Magnets
+                            </span>
+                            {filterMagnet === "All Form Magnets" && <Check className="h-3.5 w-3.5 text-current shrink-0" />}
+                          </button>
+
+                          {/* Locked PDF Magnets Group */}
+                          {lockedPdfMagnets.length > 0 && (
+                            <>
+                              <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+                              <div className="flex items-center justify-between px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                                <span className="flex items-center gap-1">
+                                  <Lock className="h-3 w-3 shrink-0" /> Locked PDF Magnets
+                                </span>
+                                <span className="px-1.5 py-0.2 rounded bg-amber-500/10 text-[9px] font-semibold">
+                                  {lockedPdfMagnets.length}
+                                </span>
+                              </div>
+
+                              {lockedPdfMagnets.map((opt) => (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setFilterMagnet(opt);
+                                    setFilterOpen(false);
+                                    setCurrentPage(1);
+                                  }}
+                                  className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                                    filterMagnet === opt
+                                      ? "bg-amber-500/10 text-amber-700 font-bold dark:bg-amber-500/20 dark:text-amber-300"
+                                      : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5"
+                                  }`}
+                                >
+                                  <span className="flex items-center gap-2 truncate">
+                                    <Lock className="h-3 w-3 text-amber-500 shrink-0" />
+                                    <span className="truncate">{opt}</span>
+                                  </span>
+                                  {filterMagnet === opt && <Check className="h-3.5 w-3.5 text-current shrink-0" />}
+                                </button>
+                              ))}
+                            </>
+                          )}
+
+                          {/* Form Lead Magnets Group */}
+                          {formMagnets.length > 0 && (
+                            <>
+                              <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+                              <div className="flex items-center justify-between px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">
+                                <span className="flex items-center gap-1">
+                                  <FileText className="h-3 w-3 shrink-0" /> Form Lead Magnets
+                                </span>
+                                <span className="px-1.5 py-0.2 rounded bg-[#0066B2]/10 text-[9px] font-semibold dark:bg-[#38BDF8]/20">
+                                  {formMagnets.length}
+                                </span>
+                              </div>
+
+                              {formMagnets.map((opt) => (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setFilterMagnet(opt);
+                                    setFilterOpen(false);
+                                    setCurrentPage(1);
+                                  }}
+                                  className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                                    filterMagnet === opt
+                                      ? "bg-[#0066B2]/10 text-[#0066B2] font-bold dark:bg-[#38BDF8]/20 dark:text-[#38BDF8]"
+                                      : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5"
+                                  }`}
+                                >
+                                  <span className="flex items-center gap-2 truncate">
+                                    <FileText className="h-3 w-3 text-[#0066B2] dark:text-[#38BDF8] shrink-0" />
+                                    <span className="truncate">{opt}</span>
+                                  </span>
+                                  {filterMagnet === opt && <Check className="h-3.5 w-3.5 text-current shrink-0" />}
+                                </button>
+                              ))}
+                            </>
+                          )}
+
+                          {/* Other Sources */}
+                          {otherSources.length > 0 && (
+                            <>
+                              <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+                              <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                                Other Sources
+                              </div>
+
+                              {otherSources.map((opt) => (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setFilterMagnet(opt);
+                                    setFilterOpen(false);
+                                    setCurrentPage(1);
+                                  }}
+                                  className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                                    filterMagnet === opt
+                                      ? "bg-zinc-100 text-zinc-900 font-bold dark:bg-white/10 dark:text-zinc-100"
+                                      : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-white/5"
+                                  }`}
+                                >
+                                  <span className="truncate">{opt}</span>
+                                  {filterMagnet === opt && <Check className="h-3.5 w-3.5 text-current shrink-0" />}
+                                </button>
+                              ))}
+                            </>
+                          )}
                         </motion.div>
                       )}
                     </AnimatePresence>
