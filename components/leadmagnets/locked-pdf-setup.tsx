@@ -151,27 +151,35 @@ export default function LockedPdfSetup({
     try {
       const pdfjs = await loadPdfJs();
 
-      // Resolve direct fileUrl if target URL is a tracking redirect (/r/[id])
+      // Resolve the best direct fileUrl first.
+      // Prefer fileUrl (Cloudinary direct) over tracking redirect url (/r/[id]).
       let targetUrl = url;
-      let matchedResource = hostedResources?.find(
-        (r: any) => r.url === url || r.fileUrl === url || r.id === url || (url.includes("/r/") && r.url?.includes(url.split("/r/")[1]))
+      const matchedResource = hostedResources?.find(
+        (r: any) =>
+          r.url === url ||
+          r.fileUrl === url ||
+          r.id === url ||
+          (url.includes("/r/") && r.url?.includes(url.split("/r/")[1]))
       );
       if (matchedResource?.fileUrl) {
         targetUrl = matchedResource.fileUrl;
       }
 
-      let res = await fetch(targetUrl);
-      const contentType = res.headers.get("content-type") || "";
+      // Always fetch through the server-side proxy so that:
+      //  • Auth cookies are attached by the server (fixes 401 on /r/ tracking routes)
+      //  • CORS restrictions on Cloudinary raw/ resources are bypassed
+      //  • The browser never needs direct network access to the storage origin
+      const proxyUrl = `/api/pdf-proxy?url=${encodeURIComponent(targetUrl)}`;
+      const res = await fetch(proxyUrl);
 
-      // Fallback: If tracking URL returned HTML, try matchedResource.fileUrl if available
-      if ((!res.ok || contentType.includes("text/html")) && matchedResource?.fileUrl && targetUrl !== matchedResource.fileUrl) {
-        targetUrl = matchedResource.fileUrl;
-        res = await fetch(targetUrl);
+      if (!res.ok) {
+        let detail = "";
+        try { detail = (await res.json()).error || ""; } catch {}
+        throw new Error(`Failed to fetch PDF asset (${res.status})${detail ? ": " + detail : ""}`);
       }
 
-      if (!res.ok) throw new Error(`Failed to fetch PDF asset (${res.status})`);
-      const finalContentType = res.headers.get("content-type") || "";
-      if (finalContentType.includes("text/html")) {
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("text/html")) {
         throw new Error("Target resource returned an HTML page instead of a valid PDF document.");
       }
 
