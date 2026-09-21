@@ -652,7 +652,7 @@ function OnboardingContent() {
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Give your resource a title and choose its custom URL slug.</p>
               </div>
               <button
-                onClick={() => { setShowCreateModal(false); router.push("/dashboard"); }}
+                onClick={() => { setShowCreateModal(false); router.push("/dashboard/landing-page"); }}
                 className="rounded-xl p-1.5 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
               >
                 <X className="h-5 w-5" />

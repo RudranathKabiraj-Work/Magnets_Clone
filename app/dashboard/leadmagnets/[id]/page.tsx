@@ -1081,11 +1081,11 @@ export default function EditLeadMagnetPage() {
           <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Lead magnet page not found</p>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">It may have been deleted or the link is wrong.</p>
           <Link
-            href="/dashboard"
+            href="/dashboard/landing-page"
             className="inline-flex h-10 items-center gap-2 rounded-md bg-zinc-900 px-4 text-sm font-semibold text-white transition hover:bg-[#FE6F34] hover:text-black dark:bg-[#FE6F34] dark:text-black"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Back to Dashboard
+            Back to Landing Page
           </Link>
         </div>
       </DashboardShell>
@@ -1147,7 +1147,7 @@ export default function EditLeadMagnetPage() {
     setShowDeleteModal(false);
     if (!page) return;
     deletePage(page.id);
-    router.push("/dashboard");
+    router.push("/dashboard/landing-page");
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1296,7 +1296,7 @@ export default function EditLeadMagnetPage() {
               {/* Left Back link & Page Name/Slug */}
               <div className="flex items-center gap-3">
                 <Link
-                  href="/dashboard"
+                  href="/dashboard/landing-page"
                   prefetch={true}
                   onClick={handleGoBack}
                   className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold active:scale-95 transition-all shadow-xs cursor-pointer ${(account?.themeMode || "light") === "dark"
@@ -1305,7 +1305,7 @@ export default function EditLeadMagnetPage() {
                     }`}
                 >
                   <ArrowLeft className="h-3.5 w-3.5 stroke-[2.5px]" />
-                  <span>Dashboard</span>
+                  <span>Landing Page</span>
                 </Link>
                 <div className="flex flex-col justify-center">
                   <span className={`text-xs font-black uppercase tracking-wide leading-tight ${(account?.themeMode || "light") === "dark" ? "text-white" : "text-zinc-900"}`}>{page.name}</span>

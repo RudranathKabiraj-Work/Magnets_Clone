@@ -51,7 +51,7 @@ export default function LoginPage() {
           }
         }
         setStatus("opening_dashboard");
-        window.location.href = "/dashboard";
+        window.location.href = "/dashboard/landing-page";
 
       } else {
         setError(data?.error || (res.ok ? "Failed to login. Please check database connection." : "Incorrect password or account not found."));
@@ -85,7 +85,7 @@ export default function LoginPage() {
         </div>
       )}
       {/* Continue with Google Button */}
-      <GoogleAuthButton callbackUrl="/dashboard" disabled={loading} />
+      <GoogleAuthButton callbackUrl="/dashboard/landing-page" disabled={loading} />
 
       <div className="relative my-3 flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
