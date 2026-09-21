@@ -127,7 +127,12 @@ function useCountUp(target: number, duration = 900) {
 
 function getGreeting(name?: string) {
   const h = new Date().getHours();
-  const salutation = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  const salutation =
+    h >= 4 && h < 12
+      ? "Good morning"
+      : h >= 12 && h < 17
+      ? "Good afternoon"
+      : "Good evening";
   const firstName = name ? name.split(" ")[0] : "";
   return firstName ? `${salutation}, ${firstName} 👋` : `${salutation} 👋`;
 }
