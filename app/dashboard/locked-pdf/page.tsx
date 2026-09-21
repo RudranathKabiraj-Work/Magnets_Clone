@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
@@ -1127,71 +1128,132 @@ export default function LockedPdfPage() {
                   <div
                     key={pdf.id}
                     onClick={() => setSelectedPageId(pdf.id)}
-                    className={`group relative rounded-2xl border p-3.5 transition-all duration-200 cursor-pointer flex flex-col justify-between ${
+                    className={`group relative rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between ${
                       isSelected
-                        ? "border-amber-500/80 dark:border-amber-500/80 bg-amber-50/40 dark:bg-amber-950/20 ring-2 ring-amber-500/30 shadow-md"
-                        : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-[#141417] hover:border-amber-500/40 dark:hover:border-amber-500/30 shadow-xs"
+                        ? "border-amber-500 bg-amber-500/5 ring-2 ring-amber-500/30 shadow-lg shadow-amber-500/5"
+                        : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-[#141417] hover:border-amber-500/50 dark:hover:border-amber-500/40 shadow-xs hover:shadow-md"
                     }`}
                   >
-                    <div>
-                      {/* Top Row: Icon + Status Badge */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
-                          <Lock className="h-3.5 w-3.5" />
-                        </div>
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border ${
-                            pdf.status === "live"
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-[#9B9085] border-zinc-200 dark:border-zinc-700"
-                          }`}
-                        >
-                          {pdf.status || "Draft"}
-                        </span>
-                      </div>
+                    {/* PDF Document Page Visual Canvas */}
+                    <div className="relative pt-4 px-4 pb-2 bg-gradient-to-b from-zinc-100 to-zinc-200/50 dark:from-[#18181C] dark:to-[#0F0F12] border-b border-zinc-200/60 dark:border-zinc-800/60 overflow-hidden flex flex-col items-center justify-center min-h-[170px]">
+                      {/* Stacked Paper Pages Background (depth effect) */}
+                      <div className="absolute inset-x-8 top-3 h-[140px] bg-zinc-200/70 dark:bg-zinc-800/60 rounded-t-lg transform scale-95 border border-zinc-300/50 dark:border-zinc-700/50 shadow-xs" />
+                      <div className="absolute inset-x-6 top-3.5 h-[142px] bg-zinc-100/90 dark:bg-zinc-800/90 rounded-t-lg transform scale-[0.98] border border-zinc-300/60 dark:border-zinc-700/60 shadow-xs" />
 
-                      {/* PDF Name & Slug */}
-                      <div className="mt-2.5 min-w-0">
-                        <h3 className="text-xs font-bold text-zinc-900 dark:text-white truncate group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                          {pdf.name}
-                        </h3>
-                        <p className="text-[10px] text-zinc-400 dark:text-[#9B9085] font-mono truncate mt-0.5">
-                          /{pdf.slug}
-                        </p>
+                      {/* Main PDF Paper Document Sheet (Portrait Ratio) */}
+                      <div className="relative w-full max-w-[160px] aspect-[1/1.25] bg-white dark:bg-[#1C1C22] rounded-t-lg rounded-b-sm border border-zinc-300/80 dark:border-zinc-700/80 shadow-md group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
+                        {/* Dog-ear fold top right corner */}
+                        <div className="absolute top-0 right-0 w-3.5 h-3.5 bg-zinc-200 dark:bg-zinc-800 border-l border-b border-zinc-300 dark:border-zinc-700 rounded-bl-xs shadow-xs z-20 pointer-events-none" />
+
+                        {/* PDF Page Image Preview OR Document Skeleton */}
+                        {pdf.pdfPages && pdf.pdfPages.length > 0 ? (
+                          <div className="relative flex-1 w-full h-full bg-white dark:bg-[#1C1C22]">
+                            <Image
+                              src={pdf.pdfPages[0]}
+                              alt={pdf.name}
+                              fill
+                              sizes="160px"
+                              unoptimized
+                              className="object-cover object-top"
+                            />
+                          </div>
+                        ) : (
+                          <div className="p-2.5 flex-1 flex flex-col justify-between bg-zinc-50/90 dark:bg-[#16161A]/90">
+                            {/* Document Header Icon */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <div className="w-3.5 h-3.5 rounded bg-red-500/10 text-red-500 flex items-center justify-center">
+                                  <FileText className="h-2.5 w-2.5" />
+                                </div>
+                                <span className="text-[7.5px] font-black uppercase tracking-wider text-red-500 font-mono">
+                                  PDF
+                                </span>
+                              </div>
+                              <Lock className="h-2.5 w-2.5 text-amber-500" />
+                            </div>
+
+                            {/* Simulated text lines */}
+                            <div className="space-y-1.5 my-auto">
+                              <div className="h-1.5 w-3/4 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
+                              <div className="h-1 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full" />
+                              <div className="h-1 w-5/6 bg-zinc-200 dark:bg-zinc-800 rounded-full" />
+                              <div className="h-1 w-2/3 bg-zinc-200 dark:bg-zinc-800 rounded-full" />
+                            </div>
+
+                            {/* Page count label */}
+                            <div className="text-[8px] font-mono font-bold text-zinc-400 dark:text-zinc-500 text-center pt-1 border-t border-zinc-200/50 dark:border-zinc-800/50">
+                              {pdf.pdfPageCount || 1} {pdf.pdfPageCount === 1 ? "Page" : "Pages"}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Red PDF Tag Overlay */}
+                        <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1 bg-red-600 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-sm">
+                          <FileText className="h-2 w-2" />
+                          <span>PDF</span>
+                        </div>
+
+                        {/* Status Badge */}
+                        <div className="absolute bottom-1.5 right-1.5 z-10">
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[7.5px] font-bold uppercase tracking-wider border backdrop-blur-md ${
+                              pdf.status === "live"
+                                ? "bg-emerald-500/90 text-white border-emerald-400/30"
+                                : "bg-zinc-900/80 text-zinc-300 border-zinc-700/50"
+                            }`}
+                          >
+                            {pdf.status || "Draft"}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Bottom Action Buttons: Share & Delete */}
-                    <div className="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800/50 flex items-center justify-between gap-1.5">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigator.clipboard.writeText(shareUrl);
-                          addToast(`Copied share link for "${pdf.name}"!`);
-                        }}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-bold transition-all cursor-pointer"
-                      >
-                        <Copy className="h-3 w-3" />
-                        <span>Share Link</span>
-                      </button>
+                    {/* PDF Info & Actions Footer */}
+                    <div className="p-3 flex-1 flex flex-col justify-between space-y-2.5">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <Lock className="h-3 w-3 text-amber-500 shrink-0" />
+                          <h3 className="text-xs font-bold text-zinc-900 dark:text-white truncate group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors leading-snug">
+                            {pdf.name}
+                          </h3>
+                        </div>
+                        <p className="text-[10px] font-mono text-zinc-400 dark:text-[#9B9085] truncate mt-0.5 pl-4">
+                          /{pdf.slug}
+                        </p>
+                      </div>
 
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm(`Delete "${pdf.name}"?`)) {
-                            const updated = pages.filter((p) => p.id !== pdf.id);
-                            triggerImmediateSave(updated);
-                            deletePage(pdf.id);
-                            addToast(`Deleted "${pdf.name}"`, "info");
-                          }
-                        }}
-                        className="inline-flex items-center gap-1 p-1.5 rounded-lg text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer"
-                        title="Delete Locked PDF"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      {/* Bottom Action Row */}
+                      <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between gap-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(shareUrl);
+                            addToast(`Copied share link for "${pdf.name}"!`);
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-bold transition-all cursor-pointer border border-amber-500/20"
+                        >
+                          <Copy className="h-3 w-3" />
+                          <span>Share Link</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm(`Delete "${pdf.name}"?`)) {
+                              const updated = pages.filter((p) => p.id !== pdf.id);
+                              triggerImmediateSave(updated);
+                              deletePage(pdf.id);
+                              addToast(`Deleted "${pdf.name}"`, "info");
+                            }
+                          }}
+                          className="p-1.5 rounded-lg text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer"
+                          title="Delete Locked PDF"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
