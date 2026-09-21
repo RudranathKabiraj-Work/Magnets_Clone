@@ -1295,7 +1295,11 @@ export default function LockedPdfPage() {
                 </div>
               ) : (
                 filteredHostedAssets.map((asset: any) => {
-                  const isPdf = asset.name?.toLowerCase().endsWith(".pdf") || asset.url?.toLowerCase().includes(".pdf");
+                  const isPdf =
+                    asset.name?.toLowerCase().endsWith(".pdf") ||
+                    asset.url?.toLowerCase().includes(".pdf") ||
+                    asset.fileUrl?.toLowerCase().includes(".pdf") ||
+                    asset.fileExt?.toLowerCase() === ".pdf";
                   return (
                     <div
                       key={asset.id}
@@ -1307,7 +1311,7 @@ export default function LockedPdfPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-xs font-bold text-zinc-900 dark:text-white truncate">{asset.name}</p>
-                          <p className="text-[10px] text-zinc-400 font-mono truncate">{asset.url}</p>
+                          <p className="text-[10px] text-zinc-400 font-mono truncate">{asset.fileUrl || asset.url}</p>
                         </div>
                       </div>
 
@@ -1315,7 +1319,8 @@ export default function LockedPdfPage() {
                         <button
                           type="button"
                           onClick={() => {
-                            setSelectedHostedPdf({ url: asset.url, name: asset.name, timestamp: Date.now() });
+                            const pdfUrl = asset.fileUrl || asset.url;
+                            setSelectedHostedPdf({ url: pdfUrl, name: asset.name, timestamp: Date.now() });
                             setShowAssetPickerModal(false);
                             setActiveTab("locked");
                             addToast(`Selected "${asset.name}" from Assets! Loading into setup card...`);

@@ -150,8 +150,31 @@ export default function LockedPdfSetup({
 
     try {
       const pdfjs = await loadPdfJs();
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch PDF asset");
+
+      // Resolve direct fileUrl if target URL is a tracking redirect (/r/[id])
+      let targetUrl = url;
+      let matchedResource = hostedResources?.find(
+        (r: any) => r.url === url || r.fileUrl === url || r.id === url || (url.includes("/r/") && r.url?.includes(url.split("/r/")[1]))
+      );
+      if (matchedResource?.fileUrl) {
+        targetUrl = matchedResource.fileUrl;
+      }
+
+      let res = await fetch(targetUrl);
+      const contentType = res.headers.get("content-type") || "";
+
+      // Fallback: If tracking URL returned HTML, try matchedResource.fileUrl if available
+      if ((!res.ok || contentType.includes("text/html")) && matchedResource?.fileUrl && targetUrl !== matchedResource.fileUrl) {
+        targetUrl = matchedResource.fileUrl;
+        res = await fetch(targetUrl);
+      }
+
+      if (!res.ok) throw new Error(`Failed to fetch PDF asset (${res.status})`);
+      const finalContentType = res.headers.get("content-type") || "";
+      if (finalContentType.includes("text/html")) {
+        throw new Error("Target resource returned an HTML page instead of a valid PDF document.");
+      }
+
       const arrayBuffer = await res.arrayBuffer();
       const pdfDoc = await pdfjs.getDocument({ data: arrayBuffer }).promise;
       const totalPages = pdfDoc.numPages;
