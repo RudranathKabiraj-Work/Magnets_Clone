@@ -80,6 +80,30 @@ export default function PdfViewerClient({
   const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const visibleLocked = useRef<Set<number>>(new Set());
 
+  // ── Track view analytics beacon ───────────────────────────────────────────
+  const hasTrackedView = useRef(false);
+  useEffect(() => {
+    if (magnetId && typeof window !== "undefined" && !hasTrackedView.current) {
+      hasTrackedView.current = true;
+      const payload = JSON.stringify({ pageId: magnetId, isOwner: false });
+      let sent = false;
+      if (typeof navigator !== "undefined" && "sendBeacon" in navigator) {
+        try {
+          const blob = new Blob([payload], { type: "application/json" });
+          sent = navigator.sendBeacon("/api/track-view", blob);
+        } catch (_) {}
+      }
+      if (!sent) {
+        fetch("/api/track-view", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+        }).catch(console.error);
+      }
+    }
+  }, [magnetId]);
+
   // ── Disable Lenis smooth scroll while PDF viewer is open ───────────────────
   useEffect(() => {
     const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;

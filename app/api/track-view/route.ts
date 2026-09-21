@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     // Atomic increment in MongoDB
     const updatedPage = await MagnetPageModel.findOneAndUpdate(
-      { id: pageId },
+      { $or: [{ id: pageId }, { slug: pageId }] },
       { $inc: incFields },
       { returnDocument: 'after' }
     ).lean();
