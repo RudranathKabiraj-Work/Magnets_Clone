@@ -11,6 +11,7 @@
     },
     "dependencies": {
         "@google/generative-ai": "^0.24.1",
+        "@tiptap/core": "^3.31.3",
         "@tiptap/extension-color": "^3.31.3",
         "@tiptap/extension-image": "^3.31.3",
         "@tiptap/extension-link": "^3.31.3",

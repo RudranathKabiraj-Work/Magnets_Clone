@@ -26,11 +26,11 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import LinkExtension from "@tiptap/extension-link";
+import { StarterKit } from "@tiptap/starter-kit";
+import { Link as LinkExtension } from "@tiptap/extension-link";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
-import ImageExtension from "@tiptap/extension-image";
+import { Image as ImageExtension } from "@tiptap/extension-image";
 import { Table as TableExtension } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableCell } from "@tiptap/extension-table-cell";
