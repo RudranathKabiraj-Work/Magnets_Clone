@@ -13,6 +13,7 @@ import { isSessionValid, loadAccount, setSessionExpiry } from "@/lib/store";
 import { signOut } from "next-auth/react";
 
 const mobileNav: { href: string; label: string; icon: any; isModal?: boolean }[] = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/leads", label: "Leads", icon: Users },
   { href: "/dashboard/landing-page", label: "Landing Page", icon: FileText },
   { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: Lock },
@@ -339,9 +340,11 @@ export default function DashboardShell({
             onMouseLeave={() => setHoveredNavHref(null)}
           >
             {mobileNav.map((item, idx) => {
-              const active = item.href === "/dashboard/landing-page"
-                ? (pathname === "/dashboard" || pathname === "/dashboard/landing-page" || pathname === "/dashboard/leadmagnets" || pathname.startsWith("/dashboard/leadmagnets/"))
-                : (pathname === item.href || (item.href !== "/dashboard/landing-page" && pathname.startsWith(`${item.href}/`)));
+              const active = item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : item.href === "/dashboard/landing-page"
+                  ? (pathname === "/dashboard/landing-page" || pathname === "/dashboard/leadmagnets" || pathname.startsWith("/dashboard/leadmagnets/"))
+                  : (pathname === item.href || (item.href !== "/dashboard" && item.href !== "/dashboard/landing-page" && pathname.startsWith(`${item.href}/`)));
               const isHovered = hoveredNavHref === item.href;
               const isDividerAfter = item.href === "/dashboard/locked-pdf"; // Divider after Locked PDF
 
@@ -612,9 +615,11 @@ export default function DashboardShell({
               </div>
               <nav className="space-y-1.5" aria-label="Dashboard">
                 {mobileNav.map((item) => {
-                  const active = item.href === "/dashboard/landing-page"
-                    ? (pathname === "/dashboard" || pathname === "/dashboard/landing-page" || pathname === "/dashboard/leadmagnets" || pathname.startsWith("/dashboard/leadmagnets/"))
-                    : (pathname === item.href || (item.href !== "/dashboard/landing-page" && pathname.startsWith(`${item.href}/`)));
+                  const active = item.href === "/dashboard"
+                    ? pathname === "/dashboard"
+                    : item.href === "/dashboard/landing-page"
+                      ? (pathname === "/dashboard/landing-page" || pathname === "/dashboard/leadmagnets" || pathname.startsWith("/dashboard/leadmagnets/"))
+                      : (pathname === item.href || (item.href !== "/dashboard" && item.href !== "/dashboard/landing-page" && pathname.startsWith(`${item.href}/`)));
                   if (item.isModal) {
                     return (
                       <button
