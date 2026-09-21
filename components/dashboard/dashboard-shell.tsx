@@ -13,8 +13,8 @@ import { isSessionValid, loadAccount, setSessionExpiry } from "@/lib/store";
 import { signOut } from "next-auth/react";
 
 const mobileNav: { href: string; label: string; icon: any; isModal?: boolean }[] = [
-  { href: "/dashboard/landing-page", label: "Landing Page", icon: FileText },
   { href: "/dashboard/leads", label: "Leads", icon: Users },
+  { href: "/dashboard/landing-page", label: "Landing Page", icon: FileText },
   { href: "/dashboard/locked-pdf", label: "Locked PDF", icon: Lock },
   { href: "/dashboard/sequences", label: "Email Sequences", icon: Mail },
   { href: "/dashboard/assets", label: "Assets", icon: FolderOpen },
