@@ -1112,18 +1112,6 @@ export default function LockedPdfPage() {
                 </p>
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setCreateMagnetName("");
-                setShowCreateModal(true);
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0066B2] text-white text-xs font-bold shadow-sm hover:bg-[#005291] active:scale-95 transition-all cursor-pointer shrink-0"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              New Locked PDF
-            </button>
           </div>
 
           {savedLockedPdfPages.length > 0 ? (
