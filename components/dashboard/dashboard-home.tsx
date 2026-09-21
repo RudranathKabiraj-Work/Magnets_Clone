@@ -640,11 +640,7 @@ export default function DashboardHome({
             </div>
 
             <div className="flex items-center gap-2 shrink-0 flex-wrap">
-              {/* Plan badge */}
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#18181B] text-[11px] font-bold text-zinc-500 dark:text-[#9B9085]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0066B2] dark:bg-[#38BDF8]" />
-                {account?.plan || "Free"} Plan
-              </span>
+
 
               {/* Primary CTA */}
               <button
@@ -1346,54 +1342,7 @@ export default function DashboardHome({
             </div>
           </motion.div>
 
-          {/* ══════════════════════════════════════════════
-              SECTION 6 — Plan Usage
-          ══════════════════════════════════════════════ */}
-          <motion.div variants={fadeUp}>
-            <div className="rounded-2xl border border-zinc-200/80 bg-white/90 dark:border-[#2e2e38] dark:bg-[#18181B]/90 shadow-sm backdrop-blur-sm px-5 py-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                    <HardDrive className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-zinc-900 dark:text-white">
-                      Plan Usage
-                    </h2>
-                    <p className="text-[10px] text-zinc-400 dark:text-[#9B9085]">
-                      {account?.plan || "Free"} tier limits
-                    </p>
-                  </div>
-                </div>
-                <Link
-                  href="/dashboard/settings"
-                  className="text-xs font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline underline-offset-2"
-                >
-                  Upgrade plan →
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <UsageBar
-                  used={leads.length}
-                  limit={planLimits.leadLimit}
-                  label="Leads collected"
-                  color="#0066B2"
-                />
-                <UsageBar
-                  used={Math.round(storageUsedMb)}
-                  limit={planLimits.storageLimitMb}
-                  label="Storage used (MB)"
-                  color="#7C3AED"
-                />
-                <UsageBar
-                  used={liveSeqCount}
-                  limit={planLimits.sequencesLimit}
-                  label="Live sequences"
-                  color="#10B981"
-                />
-              </div>
-            </div>
-          </motion.div>
+
 
           {/* ══════════════════════════════════════════════
               SECTION 7 — Onboarding Checklist (dismissible)
