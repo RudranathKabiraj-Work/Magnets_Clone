@@ -309,6 +309,10 @@ export default function LockedPdfPage() {
       setEmailSubject(activePage.deliveryEmail.subject || "Your PDF resource is inside!");
       setEmailPreviewText(activePage.deliveryEmail.previewText || "Here is your link to view the document.");
       if (activePage.deliveryEmail.body) setEmailBody(activePage.deliveryEmail.body);
+    } else {
+      if (activePage.emailSubject) setEmailSubject(activePage.emailSubject);
+      if (activePage.emailPreviewText) setEmailPreviewText(activePage.emailPreviewText);
+      if (activePage.emailBody) setEmailBody(activePage.emailBody);
     }
     if (activePage.sequenceEnabled !== undefined) {
       setSequenceEnabled(activePage.sequenceEnabled);
@@ -316,7 +320,197 @@ export default function LockedPdfPage() {
     if (activePage.sequenceEmails && Array.isArray(activePage.sequenceEmails)) {
       setSequenceEmails(activePage.sequenceEmails);
     }
+    if (activePage.afterSignupOption) setAfterSignupOption(activePage.afterSignupOption);
+    if (activePage.destinationUrl) setDestinationUrl(activePage.destinationUrl);
+    if (activePage.customHeading) setCustomHeading(activePage.customHeading);
+    if (activePage.customMessage) setCustomMessage(activePage.customMessage);
+    if (activePage.videoUrl) setVideoUrl(activePage.videoUrl);
+    if (activePage.buttonLabel) setButtonLabel(activePage.buttonLabel);
+    if (activePage.buttonUrl) setButtonUrl(activePage.buttonUrl);
+    if (activePage.quizFunnelEnabled !== undefined) setQuizFunnelEnabled(activePage.quizFunnelEnabled);
+    if (activePage.enableAiPersonalizedDeliverable !== undefined) setEnableAiPersonalizedDeliverable(activePage.enableAiPersonalizedDeliverable);
+    if (activePage.customPromptQuestion) setCustomPromptQuestion(activePage.customPromptQuestion);
+    if (activePage.customPromptPlaceholder) setCustomPromptPlaceholder(activePage.customPromptPlaceholder);
   }, [activePage?.id]);
+
+  const handleUpdateEmailSubject = (val: string) => {
+    setEmailSubject(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id
+          ? {
+              ...p,
+              deliveryEmail: {
+                subject: val,
+                previewText: emailPreviewText,
+                body: emailBody,
+                linkText: p.deliveryEmail?.linkText || "Access document",
+                linkUrl: p.deliveryEmail?.linkUrl || "",
+              },
+              emailSubject: val,
+            }
+          : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateEmailPreviewText = (val: string) => {
+    setEmailPreviewText(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id
+          ? {
+              ...p,
+              deliveryEmail: {
+                subject: emailSubject,
+                previewText: val,
+                body: emailBody,
+                linkText: p.deliveryEmail?.linkText || "Access document",
+                linkUrl: p.deliveryEmail?.linkUrl || "",
+              },
+              emailPreviewText: val,
+            }
+          : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateEmailBody: React.Dispatch<React.SetStateAction<string>> = (value) => {
+    setEmailBody((prev) => {
+      const next = typeof value === "function" ? value(prev) : value;
+      if (activePage) {
+        const updated = pages.map((p) =>
+          p.id === activePage.id
+            ? {
+                ...p,
+                deliveryEmail: {
+                  subject: emailSubject,
+                  previewText: emailPreviewText,
+                  body: next,
+                  linkText: p.deliveryEmail?.linkText || "Access document",
+                  linkUrl: p.deliveryEmail?.linkUrl || "",
+                },
+                emailBody: next,
+              }
+            : p
+        );
+        triggerDebouncedSave(updated);
+      }
+      return next;
+    });
+  };
+
+  const handleUpdateEnableAi = (val: boolean) => {
+    setEnableAiPersonalizedDeliverable(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, enableAiPersonalizedDeliverable: val } : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateCustomPromptQuestion = (val: string) => {
+    setCustomPromptQuestion(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, customPromptQuestion: val } : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateCustomPromptPlaceholder = (val: string) => {
+    setCustomPromptPlaceholder(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, customPromptPlaceholder: val } : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateAfterSignupOption = (val: "standard" | "elsewhere" | "custom") => {
+    setAfterSignupOption(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, afterSignupOption: val } : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateDestinationUrl = (val: string) => {
+    setDestinationUrl(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, destinationUrl: val } : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateCustomHeading = (val: string) => {
+    setCustomHeading(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, customHeading: val } : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateCustomMessage = (val: string) => {
+    setCustomMessage(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, customMessage: val } : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateVideoUrl = (val: string) => {
+    setVideoUrl(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, videoUrl: val } : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateButtonLabel = (val: string) => {
+    setButtonLabel(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, buttonLabel: val } : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateButtonUrl = (val: string) => {
+    setButtonUrl(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, buttonUrl: val } : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
+
+  const handleUpdateQuizFunnelEnabled = (val: boolean) => {
+    setQuizFunnelEnabled(val);
+    if (activePage) {
+      const updated = pages.map((p) =>
+        p.id === activePage.id ? { ...p, quizFunnelEnabled: val } : p
+      );
+      triggerDebouncedSave(updated);
+    }
+  };
 
   const handleToggleSequenceEnabled = (enabled: boolean) => {
     setSequenceEnabled(enabled);
@@ -755,60 +949,20 @@ export default function LockedPdfPage() {
                 account={account}
                 setShowEmailPreviewModal={setShowEmailPreviewModal}
                 emailSubject={emailSubject}
-                setEmailSubject={(val) => {
-                  setEmailSubject(val);
-                  if (activePage) {
-                    const updated = pages.map((p) =>
-                      p.id === activePage.id
-                        ? {
-                            ...p,
-                            deliveryEmail: {
-                              subject: val,
-                              previewText: emailPreviewText,
-                              body: emailBody,
-                              linkText: "Access document",
-                              linkUrl: "",
-                            },
-                          }
-                        : p
-                    );
-                    setPages(updated);
-                    savePages(updated);
-                  }
-                }}
+                setEmailSubject={handleUpdateEmailSubject}
                 emailPreviewText={emailPreviewText}
-                setEmailPreviewText={(val) => {
-                  setEmailPreviewText(val);
-                  if (activePage) {
-                    const updated = pages.map((p) =>
-                      p.id === activePage.id
-                        ? {
-                            ...p,
-                            deliveryEmail: {
-                              subject: emailSubject,
-                              previewText: val,
-                              body: emailBody,
-                              linkText: "Access document",
-                              linkUrl: "",
-                            },
-                          }
-                        : p
-                    );
-                    setPages(updated);
-                    savePages(updated);
-                  }
-                }}
+                setEmailPreviewText={handleUpdateEmailPreviewText}
                 showInsertResourceMenu={showInsertResourceMenu}
                 setShowInsertResourceMenu={setShowInsertResourceMenu}
                 hostedResources={hostedResources}
                 emailBody={emailBody}
-                setEmailBody={setEmailBody}
+                setEmailBody={handleUpdateEmailBody}
                 enableAiPersonalizedDeliverable={enableAiPersonalizedDeliverable}
-                setEnableAiPersonalizedDeliverable={setEnableAiPersonalizedDeliverable}
+                setEnableAiPersonalizedDeliverable={handleUpdateEnableAi}
                 customPromptQuestion={customPromptQuestion}
-                setCustomPromptQuestion={setCustomPromptQuestion}
+                setCustomPromptQuestion={handleUpdateCustomPromptQuestion}
                 customPromptPlaceholder={customPromptPlaceholder}
-                setCustomPromptPlaceholder={setCustomPromptPlaceholder}
+                setCustomPromptPlaceholder={handleUpdateCustomPromptPlaceholder}
               />
             )}
 
@@ -836,21 +990,21 @@ export default function LockedPdfPage() {
               <AfterSignupTab
                 account={account}
                 afterSignupOption={afterSignupOption}
-                setAfterSignupOption={setAfterSignupOption}
+                setAfterSignupOption={handleUpdateAfterSignupOption}
                 destinationUrl={destinationUrl}
-                setDestinationUrl={setDestinationUrl}
+                setDestinationUrl={handleUpdateDestinationUrl}
                 customHeading={customHeading}
-                setCustomHeading={setCustomHeading}
+                setCustomHeading={handleUpdateCustomHeading}
                 customMessage={customMessage}
-                setCustomMessage={setCustomMessage}
+                setCustomMessage={handleUpdateCustomMessage}
                 videoUrl={videoUrl}
-                setVideoUrl={setVideoUrl}
+                setVideoUrl={handleUpdateVideoUrl}
                 buttonLabel={buttonLabel}
-                setButtonLabel={setButtonLabel}
+                setButtonLabel={handleUpdateButtonLabel}
                 buttonUrl={buttonUrl}
-                setButtonUrl={setButtonUrl}
+                setButtonUrl={handleUpdateButtonUrl}
                 quizFunnelEnabled={quizFunnelEnabled}
-                setQuizFunnelEnabled={setQuizFunnelEnabled}
+                setQuizFunnelEnabled={handleUpdateQuizFunnelEnabled}
               />
             )}
           </div>
