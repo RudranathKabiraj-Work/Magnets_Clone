@@ -79,7 +79,7 @@ export default function LockedPdfPage() {
   const [hostedResources, setHostedResources] = useState<any[]>([]);
   const [showAssetPickerModal, setShowAssetPickerModal] = useState(false);
   const [assetSearchQuery, setAssetSearchQuery] = useState("");
-  const [selectedHostedPdf, setSelectedHostedPdf] = useState<{ url: string; name: string } | null>(null);
+  const [selectedHostedPdf, setSelectedHostedPdf] = useState<{ url: string; name: string; timestamp?: number } | null>(null);
   const [enableAiPersonalizedDeliverable, setEnableAiPersonalizedDeliverable] = useState(false);
   const [customPromptQuestion, setCustomPromptQuestion] = useState("");
   const [customPromptPlaceholder, setCustomPromptPlaceholder] = useState("");
@@ -1315,10 +1315,10 @@ export default function LockedPdfPage() {
                         <button
                           type="button"
                           onClick={() => {
-                            setSelectedHostedPdf({ url: asset.url, name: asset.name });
+                            setSelectedHostedPdf({ url: asset.url, name: asset.name, timestamp: Date.now() });
                             setShowAssetPickerModal(false);
                             setActiveTab("locked");
-                            addToast(`Selected "${asset.name}" from Assets!`);
+                            addToast(`Selected "${asset.name}" from Assets! Loading into setup card...`);
                           }}
                           className="flex items-center gap-1 rounded-lg bg-[#0066B2] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#005291] transition shrink-0 cursor-pointer"
                         >

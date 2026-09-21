@@ -36,7 +36,7 @@ interface Props {
   appUrl: string;
   hostedResources?: any[];
   onOpenAssetPicker?: () => void;
-  selectedHostedPdf?: { url: string; name: string } | null;
+  selectedHostedPdf?: { url: string; name: string; timestamp?: number } | null;
 }
 
 // ─── PDF.js helpers (npm, worker served from /public/pdf.worker.min.mjs) ────
@@ -139,18 +139,19 @@ export default function LockedPdfSetup({
     if (selectedHostedPdf?.url) {
       processPdfFromUrl(selectedHostedPdf.url, selectedHostedPdf.name);
     }
-  }, [selectedHostedPdf?.url]);
+  }, [selectedHostedPdf?.url, selectedHostedPdf?.timestamp]);
 
   async function processPdfFromUrl(url: string, title?: string) {
     setError(null);
     setProcessing(true);
     setProgress({ done: 0, total: 0 });
-    if (title) setPdfTitle(title);
+    const finalTitle = title || pdfTitle || "Locked PDF Document";
+    setPdfTitle(finalTitle);
 
     try {
       const pdfjs = await loadPdfJs();
       const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to download PDF from URL");
+      if (!res.ok) throw new Error("Failed to fetch PDF asset");
       const arrayBuffer = await res.arrayBuffer();
       const pdfDoc = await pdfjs.getDocument({ data: arrayBuffer }).promise;
       const totalPages = pdfDoc.numPages;
@@ -175,9 +176,18 @@ export default function LockedPdfSetup({
         uploadedUrls.push(...batchResults);
       }
 
+      const computedFree = Math.min(initialFreePages ?? 2, Math.max(0, uploadedUrls.length - 1));
       setPages(uploadedUrls);
-      setFreePages((prev) => Math.min(prev, Math.max(0, uploadedUrls.length - 1)));
-      setSaved(false);
+      setFreePages(computedFree);
+
+      // Auto-save immediately to populate parent page state & card controls
+      await onSave({
+        pdfPages: uploadedUrls,
+        pdfFreePages: computedFree,
+        pdfTitle: finalTitle,
+        pdfPageCount: uploadedUrls.length,
+      });
+      setSaved(true);
     } catch (err: any) {
       console.error("[LockedPdfSetup] Processing hosted PDF error:", err);
       setError(err.message || "Failed to process hosted PDF asset. Please try again.");
@@ -234,10 +244,18 @@ export default function LockedPdfSetup({
         uploadedUrls.push(...batchResults);
       }
 
+      const computedFree = Math.min(freePages, Math.max(0, uploadedUrls.length - 1));
       setPages(uploadedUrls);
-      // Clamp freePages to valid range for the new PDF
-      setFreePages((prev) => Math.min(prev, Math.max(0, uploadedUrls.length - 1)));
-      setSaved(false);
+      setFreePages(computedFree);
+
+      // Auto-save immediately to populate parent page state & card controls
+      await onSave({
+        pdfPages: uploadedUrls,
+        pdfFreePages: computedFree,
+        pdfTitle: pdfTitle || "Locked PDF Document",
+        pdfPageCount: uploadedUrls.length,
+      });
+      setSaved(true);
     } catch (err: any) {
       console.error("[LockedPdfSetup] Processing error:", err);
       setError(err.message || "Failed to process PDF. Please try again.");
