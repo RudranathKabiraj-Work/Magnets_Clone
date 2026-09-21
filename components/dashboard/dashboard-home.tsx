@@ -505,7 +505,7 @@ export default function DashboardHome({
           (a, b) =>
             new Date(b.signedUpAt || 0).getTime() - new Date(a.signedUpAt || 0).getTime()
         )
-        .slice(0, 5),
+        .slice(0, 4),
     [leads]
   );
 
@@ -866,12 +866,7 @@ export default function DashboardHome({
                     </div>
                   </div>
 
-                  {/* Sparkline */}
-                  {card.sparkData && (
-                    <div className="mt-2 pt-1 border-t border-zinc-100/60 dark:border-zinc-800/40">
-                      <Sparkline data={card.sparkData} color={card.sparkColor} />
-                    </div>
-                  )}
+
 
                   {/* Hover gradient overlay */}
                   <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#0066B2]/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
