@@ -1402,7 +1402,7 @@ export default function LockedPdfPage() {
               {/* Modal Header */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-zinc-900 dark:text-white">Create a magnet</h3>
+                  <h3 className="text-base font-bold text-zinc-900 dark:text-white">Create Locked PDF</h3>
                   <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Name the page and choose its URL.</p>
                 </div>
                 <button
@@ -1476,16 +1476,7 @@ export default function LockedPdfPage() {
                     className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005799] transition-all cursor-pointer shadow-sm"
                   >
                     <Lock className="h-3.5 w-3.5" />
-                    <span>Locked PDF</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleCreateLandingPage}
-                    className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition-all cursor-pointer shadow-sm"
-                  >
-                    <FileText className="h-3.5 w-3.5" />
-                    <span>Landing Page</span>
+                    <span>Create Locked PDF</span>
                   </button>
                 </div>
               </div>

@@ -292,6 +292,7 @@ export default function DashboardHome({
   const [loading, setLoading] = useState(true);
   const [checklistDismissed, setChecklistDismissed] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createModalType, setCreateModalType] = useState<"classic" | "locked-pdf" | null>(null);
   const [createMagnetName, setCreateMagnetName] = useState("");
 
   const handleGenerateAiTitle = () => {
@@ -356,7 +357,7 @@ export default function DashboardHome({
     if (templateType === "locked-pdf") {
       router.push(`/dashboard/locked-pdf?id=${newId}`);
     } else {
-      router.push(`/dashboard/landing-page?id=${newId}`);
+      router.push(`/dashboard/leadmagnets/${newId}`);
     }
   };
 
@@ -647,6 +648,7 @@ export default function DashboardHome({
                 type="button"
                 onClick={() => {
                   setCreateMagnetName("");
+                  setCreateModalType(null);
                   setShowCreateModal(true);
                 }}
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0066B2] text-white text-xs font-bold shadow-md hover:bg-[#005291] active:scale-95 transition-all duration-150 hover:shadow-[0_4px_16px_rgba(0,102,178,0.35)] hover:-translate-y-0.5 cursor-pointer"
@@ -732,6 +734,7 @@ export default function DashboardHome({
                   type="button"
                   onClick={() => {
                     setCreateMagnetName("");
+                    setCreateModalType("classic");
                     setShowCreateModal(true);
                   }}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0066B2] text-white text-xs font-bold shadow-sm hover:bg-[#005291] active:scale-95 transition-all cursor-pointer"
@@ -810,6 +813,7 @@ export default function DashboardHome({
                   type="button"
                   onClick={() => {
                     setCreateMagnetName("");
+                    setCreateModalType("locked-pdf");
                     setShowCreateModal(true);
                   }}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-bold shadow-sm hover:bg-amber-700 active:scale-95 transition-all cursor-pointer"
@@ -1474,7 +1478,11 @@ export default function DashboardHome({
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-base font-bold text-zinc-900 dark:text-white">
-                    Create a magnet
+                    {createModalType === "classic"
+                      ? "Create Landing Page"
+                      : createModalType === "locked-pdf"
+                      ? "Create Locked PDF"
+                      : "Create a magnet"}
                   </h3>
                   <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
                     Name the page and choose its URL.
@@ -1545,22 +1553,45 @@ export default function DashboardHome({
                   >
                     Cancel
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCreateMagnet("locked-pdf")}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#0066B2] hover:bg-[#005291] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all cursor-pointer"
-                  >
-                    <Lock className="h-3.5 w-3.5" />
-                    Locked PDF
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCreateMagnet("classic")}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#059669] hover:bg-[#047857] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all cursor-pointer"
-                  >
-                    <FileText className="h-3.5 w-3.5" />
-                    Landing Page
-                  </button>
+
+                  {createModalType === "classic" ? (
+                    <button
+                      type="button"
+                      onClick={() => handleCreateMagnet("classic")}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#059669] hover:bg-[#047857] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all cursor-pointer"
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      Create Landing Page
+                    </button>
+                  ) : createModalType === "locked-pdf" ? (
+                    <button
+                      type="button"
+                      onClick={() => handleCreateMagnet("locked-pdf")}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#0066B2] hover:bg-[#005291] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all cursor-pointer"
+                    >
+                      <Lock className="h-3.5 w-3.5" />
+                      Create Locked PDF
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => handleCreateMagnet("locked-pdf")}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#0066B2] hover:bg-[#005291] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all cursor-pointer"
+                      >
+                        <Lock className="h-3.5 w-3.5" />
+                        Locked PDF
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleCreateMagnet("classic")}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#059669] hover:bg-[#047857] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all cursor-pointer"
+                      >
+                        <FileText className="h-3.5 w-3.5" />
+                        Landing Page
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>

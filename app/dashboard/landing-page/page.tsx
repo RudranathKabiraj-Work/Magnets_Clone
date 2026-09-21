@@ -847,7 +847,7 @@ export default function PagesPage() {
           >
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">Create a magnet</h3>
+                <h3 className="text-base font-bold text-zinc-900 dark:text-white">Create Landing Page</h3>
                 <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Name the page and choose its URL.</p>
               </div>
               <button
@@ -961,51 +961,6 @@ export default function PagesPage() {
                   onClick={() => {
                     if (isCreating) return;
                     setIsCreating(true);
-                    const cleanSlug = newSlug || "locked-pdf";
-                    const newId = `page-${Date.now()}`;
-                    const name = newName.trim() || "Locked PDF Document";
-                    const newMagnetPage: MagnetPage = {
-                      id: newId,
-                      userEmail: account?.email,
-                      name,
-                      slug: cleanSlug,
-                      status: "draft",
-                      headline: name,
-                      subheadline: "Enter your email to verify and unlock full PDF access instantly.",
-                      cta: "Verify & Unlock PDF",
-                      deliverable: "Locked PDF Document",
-                      accent: account?.brandColor || "#0066B2",
-                      views: 0,
-                      signups: 0,
-                      conversionRate: 0,
-                      updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-                      publishedAt: null,
-                      template: "locked-pdf",
-                      pdfPages: [],
-                      pdfFreePages: 2,
-                      pdfTitle: name,
-                      pdfPageCount: 0,
-                    };
-
-                    const nextPages = [newMagnetPage, ...pages];
-                    setPages(nextPages);
-                    savePages(nextPages);
-                    setShowCreateModal(false);
-                    setNewName("");
-                    setIsCreating(false);
-                    router.push("/dashboard/locked-pdf");
-                  }}
-                  className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005799] dark:bg-[#0066B2] dark:text-white dark:hover:bg-[#005799] transition-all cursor-pointer shadow-sm disabled:opacity-50"
-                >
-                  <Lock className="h-3.5 w-3.5" />
-                  <span>Locked PDF</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={isCreating}
-                  onClick={() => {
-                    if (isCreating) return;
-                    setIsCreating(true);
                     const cleanSlug = newSlug;
                     const newId = `page-${Date.now()}`;
                     const name = newName.trim() || "Untitled Landing Page";
@@ -1039,7 +994,7 @@ export default function PagesPage() {
                   className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition-all cursor-pointer shadow-sm disabled:opacity-50"
                 >
                   <FileText className="h-3.5 w-3.5" />
-                  <span>Landing Page</span>
+                  <span>Create Landing Page</span>
                 </button>
               </div>
             </form>
