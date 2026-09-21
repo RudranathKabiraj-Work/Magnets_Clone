@@ -19,7 +19,7 @@
  */
 
 import { useRef, useState, useEffect } from "react";
-import { Upload, Lock, Eye, Loader2, CheckCircle2, Trash2, HardDrive, FileText } from "lucide-react";
+import { Upload, Lock, Eye, Loader2, CheckCircle2, Trash2, HardDrive, FileText, Copy, ExternalLink } from "lucide-react";
 
 interface Props {
   magnetId: string;
@@ -544,21 +544,40 @@ export default function LockedPdfSetup({
           </div>
 
           {/* Viewer URL */}
-          <div className="rounded-lg border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-3">
-            <p className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-1">
-              Viewer URL
-            </p>
-            <div className="flex items-center gap-2">
-              <code className="text-xs text-[#0066B2] dark:text-[#38BDF8] truncate flex-1 select-all">
-                {viewerUrl}
-              </code>
+          <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/70 p-3.5 shadow-2xs space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5 text-amber-500" />
+                <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                  Public Viewer URL
+                </span>
+              </div>
+              <span className="text-[9px] font-mono font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                OTP Protected
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <div className="flex-1 flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 font-mono text-xs text-amber-600 dark:text-amber-400 overflow-hidden shadow-xs">
+                <span className="truncate select-all flex-1">{viewerUrl}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(viewerUrl);
+                  }}
+                  className="p-1 rounded text-zinc-400 hover:text-amber-500 transition-colors shrink-0 cursor-pointer"
+                  title="Copy Viewer URL"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </button>
+              </div>
               <a
                 href={`${viewerUrl}?reset=1`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] text-zinc-500 hover:text-zinc-800 dark:hover:text-white transition whitespace-nowrap"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-950 text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer"
               >
-                Open →
+                <span>Open Viewer</span>
+                <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
           </div>
