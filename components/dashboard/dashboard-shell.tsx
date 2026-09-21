@@ -330,7 +330,7 @@ export default function DashboardShell({
 
         <aside className="shadow-sm hidden h-screen w-[14.5rem] shrink-0 flex-col border-r border-[#E0EDFB] bg-[#F0F7FF] text-zinc-900 sticky top-0 md:flex z-50 dark:border-white/10 dark:bg-[#18181B] dark:text-[#9B9085]">
           <div className="flex shrink-0 items-center border-b border-[#E0EDFB] px-3.5 py-2.5 dark:border-white/10">
-            <Link href="/dashboard/integration" aria-label="Integration" className="flex items-center">
+            <Link href="/dashboard" aria-label="Dashboard" className="flex items-center">
               <BrandLogo height="h-9" />
             </Link>
           </div>
@@ -602,7 +602,7 @@ export default function DashboardShell({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
-                <Link href="/dashboard/integration" aria-label="Integration" onClick={() => setMenuOpen(false)}>
+                <Link href="/dashboard" aria-label="Dashboard" onClick={() => setMenuOpen(false)}>
                   <BrandLogo height="h-9" />
                 </Link>
                 <button

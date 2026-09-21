@@ -493,7 +493,7 @@ export default function DashboardHome({
 
   // Top magnets
   const topMagnets = useMemo(
-    () => [...pages].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5),
+    () => [...pages].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4),
     [pages]
   );
 
