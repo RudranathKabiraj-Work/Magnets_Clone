@@ -280,9 +280,9 @@ export default function LockedPdfPage() {
     return pages.filter((p) => p.template === "locked-pdf");
   }, [pages]);
 
-  // Saved Locked PDFs for bottom cards grid (only documents with uploaded pages or saved settings)
+  // Saved Locked PDFs for bottom cards grid
   const savedLockedPdfPages = useMemo(() => {
-    return lockedPdfPages.filter((p) => (p.pdfPages && p.pdfPages.length > 0) || (p.pdfTitle && p.pdfTitle !== "Untitled Locked PDF"));
+    return lockedPdfPages.filter((p) => (p.pdfPages && p.pdfPages.length > 0) || (p.pdfTitle && p.pdfTitle !== "Untitled Locked PDF") || p.status === "live");
   }, [lockedPdfPages]);
 
   // Active selected locked PDF page object

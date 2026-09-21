@@ -445,7 +445,7 @@ export default function DashboardHome({
     : "0.0";
 
   const lockedPdfPages = useMemo(
-    () => pages.filter((p) => p.template === "locked-pdf" || p.name?.toLowerCase().includes("locked")),
+    () => pages.filter((p) => p.template === "locked-pdf" && ((p.pdfPages && p.pdfPages.length > 0) || (p.pdfTitle && p.pdfTitle !== "Untitled Locked PDF") || p.status === "live")),
     [pages]
   );
   const lockedPdfCount = lockedPdfPages.length;
@@ -838,35 +838,31 @@ export default function DashboardHome({
                 href={card.href}
                 className="group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066B2] rounded-2xl h-full flex flex-col"
               >
-                <div className="relative h-full rounded-2xl border border-zinc-200/80 bg-white/90 dark:border-[#2e2e38] dark:bg-[#18181B]/90 p-3.5 shadow-sm backdrop-blur-sm hover:border-[#0066B2]/40 dark:hover:border-[#38BDF8]/25 hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between">
-                  <div>
-                    {/* Header row */}
-                    <div className="flex items-center justify-between">
-                      <div
-                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${card.iconBg} ${card.iconColor}`}
-                      >
-                        <card.icon className="h-3.5 w-3.5" />
-                      </div>
-                      <ChevronRight className="h-3.5 w-3.5 text-zinc-300 dark:text-zinc-600 group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8] transition-all opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5" />
-                    </div>
-
-                    {/* Label & Value */}
-                    <div className="mt-2.5">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#9B9085] leading-none">
-                        {card.label}
-                      </p>
-                      <div className="flex items-baseline justify-between gap-1 mt-1">
-                        <p className="text-xl font-extrabold tabular-nums text-zinc-900 dark:text-white leading-none tracking-tight">
-                          {card.value}
-                        </p>
-                      </div>
-                      <p className="mt-1 text-[10px] text-zinc-400 dark:text-[#9B9085] truncate">
-                        {card.sub}
-                      </p>
-                    </div>
+                <div className="relative h-full rounded-2xl border border-zinc-200/80 bg-white/90 dark:border-[#2e2e38] dark:bg-[#18181B]/90 p-4 shadow-sm backdrop-blur-sm hover:border-[#0066B2]/40 dark:hover:border-[#38BDF8]/25 hover:shadow-md transition-all duration-200 overflow-hidden flex items-center gap-3.5">
+                  {/* Left: Icon Badge */}
+                  <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${card.iconBg} ${card.iconColor}`}
+                  >
+                    <card.icon className="h-5 w-5" />
                   </div>
 
+                  {/* Right: Label, Value & Subtext */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#9B9085] leading-none truncate">
+                        {card.label}
+                      </p>
+                      <ChevronRight className="h-3.5 w-3.5 text-zinc-300 dark:text-zinc-600 group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8] transition-all opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 shrink-0" />
+                    </div>
 
+                    <p className="text-xl font-extrabold tabular-nums text-zinc-900 dark:text-white mt-1 leading-none tracking-tight">
+                      {card.value}
+                    </p>
+
+                    <p className="mt-1 text-[10px] text-zinc-400 dark:text-[#9B9085] truncate">
+                      {card.sub}
+                    </p>
+                  </div>
 
                   {/* Hover gradient overlay */}
                   <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#0066B2]/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -1076,84 +1072,149 @@ export default function DashboardHome({
               )}
             </div>
 
-            {/* ── Active Sequences ── */}
-            <div className="rounded-2xl border border-zinc-200/80 bg-white/90 dark:border-[#2e2e38] dark:bg-[#18181B]/90 shadow-sm backdrop-blur-sm overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-[#1e1e26]">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-500/20">
-                    <Mail className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+            {/* ── Right Column (50% Width): Stacked 50% Active Sequences (Top) + 50% Integrations Status (Bottom) ── */}
+            <div className="flex flex-col gap-3.5 h-full">
+              {/* Top 50%: Active Sequences */}
+              <div className="rounded-2xl border border-zinc-200/80 bg-white/90 dark:border-[#2e2e38] dark:bg-[#18181B]/90 shadow-sm backdrop-blur-sm overflow-hidden flex-1 flex flex-col justify-between">
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 dark:border-[#1e1e26]">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-500/20">
+                      <Mail className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <h2 className="text-sm font-bold text-zinc-900 dark:text-white">
+                      Active Sequences
+                    </h2>
                   </div>
-                  <h2 className="text-sm font-bold text-zinc-900 dark:text-white">
-                    Active Sequences
-                  </h2>
-                </div>
-                <Link
-                  href="/dashboard/sequences"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#0066B2] dark:text-[#38BDF8] hover:underline underline-offset-2"
-                >
-                  View all
-                  <ArrowUpRight className="h-3 w-3" />
-                </Link>
-              </div>
-
-              {activeSeqs.length > 0 ? (
-                <div className="divide-y divide-zinc-50 dark:divide-[#18181e]">
-                  {activeSeqs.map((seq) => {
-                    const openRate =
-                      seq.stats.delivered > 0
-                        ? Math.round((seq.stats.opened / seq.stats.delivered) * 100)
-                        : 0;
-                    return (
-                      <Link
-                        key={seq.id}
-                        href={`/dashboard/sequences/${seq.id}`}
-                        className="group flex items-center gap-3 px-5 py-3.5 hover:bg-zinc-50/80 dark:hover:bg-white/[0.025] transition-colors"
-                      >
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#EFF6FF] dark:bg-[#0066B2]/20">
-                          <Rocket className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-zinc-800 dark:text-white truncate group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8] transition-colors">
-                            {seq.name}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <div className="flex-1 h-1 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-                              <div
-                                className="h-full rounded-full bg-emerald-500 transition-all"
-                                style={{ width: `${openRate}%` }}
-                              />
-                            </div>
-                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0 tabular-nums">
-                              {openRate}% open
-                            </span>
-                          </div>
-                        </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tabular-nums">
-                            {seq.stats.signedUp.toLocaleString()}
-                          </p>
-                          <p className="text-[9px] text-zinc-400 dark:text-[#9B9085]">
-                            enrolled
-                          </p>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center py-10 text-center">
-                  <Mail className="h-8 w-8 text-zinc-200 dark:text-zinc-800 mb-2" />
-                  <p className="text-xs text-zinc-400 dark:text-[#9B9085]">
-                    No active sequences yet.
-                  </p>
                   <Link
-                    href="/dashboard/sequences/new"
-                    className="mt-3 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline underline-offset-2"
+                    href="/dashboard/sequences"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#0066B2] dark:text-[#38BDF8] hover:underline underline-offset-2"
                   >
-                    Create a sequence →
+                    View all
+                    <ArrowUpRight className="h-3 w-3" />
                   </Link>
                 </div>
-              )}
+
+                {activeSeqs.length > 0 ? (
+                  <div className="divide-y divide-zinc-50 dark:divide-[#18181e]">
+                    {activeSeqs.map((seq) => {
+                      const openRate =
+                        seq.stats.delivered > 0
+                          ? Math.round((seq.stats.opened / seq.stats.delivered) * 100)
+                          : 0;
+                      return (
+                        <Link
+                          key={seq.id}
+                          href={`/dashboard/sequences/${seq.id}`}
+                          className="group flex items-center gap-3 px-5 py-3 hover:bg-zinc-50/80 dark:hover:bg-white/[0.025] transition-colors"
+                        >
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#EFF6FF] dark:bg-[#0066B2]/20">
+                            <Rocket className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-zinc-800 dark:text-white truncate group-hover:text-[#0066B2] dark:group-hover:text-[#38BDF8] transition-colors">
+                              {seq.name}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className="flex-1 h-1 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-emerald-500 transition-all"
+                                  style={{ width: `${openRate}%` }}
+                                />
+                              </div>
+                              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0 tabular-nums">
+                                {openRate}% open
+                              </span>
+                            </div>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 tabular-nums">
+                              {seq.stats.signedUp.toLocaleString()}
+                            </p>
+                            <p className="text-[9px] text-zinc-400 dark:text-[#9B9085]">
+                              enrolled
+                            </p>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center py-6 text-center">
+                    <Mail className="h-7 w-7 text-zinc-300 dark:text-zinc-700 mb-1.5" />
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085]">
+                      No active sequences yet.
+                    </p>
+                    <Link
+                      href="/dashboard/sequences/new"
+                      className="mt-2 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline underline-offset-2"
+                    >
+                      Create a sequence →
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom 50%: Integrations & System Health */}
+              <div className="rounded-2xl border border-zinc-200/80 bg-white/90 dark:border-[#2e2e38] dark:bg-[#18181B]/90 shadow-sm backdrop-blur-sm p-4 flex flex-col justify-between">
+                <div className="flex items-center justify-between pb-2.5 border-b border-zinc-100 dark:border-[#1e1e26]">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-500/20">
+                      <Zap className="h-3 w-3 text-rose-600 dark:text-rose-400" />
+                    </div>
+                    <h2 className="text-xs font-bold text-zinc-900 dark:text-white">
+                      Integrations & System Health
+                    </h2>
+                  </div>
+                  <Link
+                    href="/dashboard/integration"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#0066B2] dark:text-[#38BDF8] hover:underline underline-offset-2"
+                  >
+                    Manage
+                    <ArrowUpRight className="h-3 w-3" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 mt-3">
+                  {/* ConvertKit */}
+                  <div className="p-2.5 rounded-xl bg-zinc-50/80 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/[0.05]">
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#9B9085]">
+                      ConvertKit / Kit
+                    </span>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className={`h-1.5 w-1.5 rounded-full ${account?.kitConnected ? "bg-emerald-500" : "bg-zinc-400"}`} />
+                      <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 truncate">
+                        {account?.kitConnected ? "Connected" : "Inactive"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Webhooks */}
+                  <div className="p-2.5 rounded-xl bg-zinc-50/80 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/[0.05]">
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#9B9085]">
+                      Webhooks
+                    </span>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className={`h-1.5 w-1.5 rounded-full ${(account?.zapierWebhookUrl || account?.slackWebhookUrl) ? "bg-emerald-500" : "bg-zinc-400"}`} />
+                      <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 truncate">
+                        {(account?.zapierWebhookUrl || account?.slackWebhookUrl) ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* GA4 / Pixel */}
+                  <div className="p-2.5 rounded-xl bg-zinc-50/80 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/[0.05]">
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#9B9085]">
+                      GA4 / Pixel
+                    </span>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className={`h-1.5 w-1.5 rounded-full ${(account?.ga4MeasurementId || account?.metaPixelId) ? "bg-emerald-500" : "bg-zinc-400"}`} />
+                      <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 truncate">
+                        {(account?.ga4MeasurementId || account?.metaPixelId) ? "Active" : "Not set"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
 
