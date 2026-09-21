@@ -492,10 +492,10 @@ export default function DashboardHome({
     [sequences]
   );
 
-  // Top magnets
-  const topMagnets = useMemo(
-    () => [...pages].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4),
-    [pages]
+  // Top landing pages (excluding locked PDFs)
+  const topLandingPages = useMemo(
+    () => [...landingPages].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4),
+    [landingPages]
   );
 
   // Recent leads
@@ -884,10 +884,10 @@ export default function DashboardHome({
               <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-[#1e1e26]">
                 <div>
                   <h2 className="text-sm font-bold text-zinc-900 dark:text-white">
-                    Your Lead Magnets
+                    Your Landing Pages
                   </h2>
                   <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5">
-                    {pages.length} total · {activeMagnets} live
+                    {landingPageCount} total · {landingPageLiveCount} live
                   </p>
                 </div>
                 <Link
@@ -900,9 +900,9 @@ export default function DashboardHome({
               </div>
 
               {/* Rows */}
-              {topMagnets.length > 0 ? (
+              {topLandingPages.length > 0 ? (
                 <div className="divide-y divide-zinc-50 dark:divide-[#18181e]">
-                  {topMagnets.map((page, idx) => (
+                  {topLandingPages.map((page, idx) => (
                     <div
                       key={page.id}
                       className="group flex items-center gap-3 px-5 py-3.5 hover:bg-zinc-50/80 dark:hover:bg-white/[0.025] transition-colors"
@@ -1000,17 +1000,17 @@ export default function DashboardHome({
                     <Sparkles className="h-7 w-7 text-[#0066B2] dark:text-[#38BDF8]" />
                   </div>
                   <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                    No lead magnets yet
+                    No landing pages yet
                   </h3>
                   <p className="mt-1.5 text-xs text-zinc-500 dark:text-[#9B9085] max-w-xs leading-relaxed">
-                    Create your first lead magnet to start collecting subscribers.
+                    Create your first landing page to start collecting subscribers.
                   </p>
                   <Link
                     href="/dashboard/landing-page"
                     className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0066B2] text-white text-xs font-bold shadow-md hover:bg-[#005291] transition-all hover:-translate-y-0.5"
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    Create First Magnet
+                    Create Landing Page
                   </Link>
                 </div>
               )}
