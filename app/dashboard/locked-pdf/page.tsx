@@ -87,9 +87,17 @@ export default function LockedPdfPage() {
   const filteredHostedAssets = useMemo(() => {
     const q = assetSearchQuery.trim().toLowerCase();
     return hostedResources.filter((r: any) => {
+      // Exclude internal page assets
       if (r.isPageAsset === true || r.type === "page_asset" || (r.name && r.name.startsWith("page_asset_"))) {
         return false;
       }
+      // On the Locked PDF page, only show PDF files
+      const isPdf =
+        r.name?.toLowerCase().endsWith(".pdf") ||
+        r.fileUrl?.toLowerCase().includes(".pdf") ||
+        r.url?.toLowerCase().includes(".pdf") ||
+        r.fileExt?.toLowerCase() === ".pdf";
+      if (!isPdf) return false;
       return !q || (r.name && r.name.toLowerCase().includes(q));
     });
   }, [hostedResources, assetSearchQuery]);
@@ -189,17 +197,24 @@ export default function LockedPdfPage() {
     setSaveStatus("saved");
   };
 
-  // Enterprise DOM Hygiene: Scroll Locking & Clean Unmount Cleanup for Modals
   useEffect(() => {
-    if (showEmailPreviewModal || showSequencePreviewModal || showDeleteModal || showCreateModal) {
+    const anyOpen = showEmailPreviewModal || showSequencePreviewModal || showDeleteModal || showCreateModal || showAssetPickerModal;
+    const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
+    if (anyOpen) {
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      if (lenis && typeof lenis.stop === "function") lenis.stop();
     } else {
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      if (lenis && typeof lenis.start === "function") lenis.start();
     }
     return () => {
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      if (lenis && typeof lenis.start === "function") lenis.start();
     };
-  }, [showEmailPreviewModal, showSequencePreviewModal, showDeleteModal, showCreateModal]);
+  }, [showEmailPreviewModal, showSequencePreviewModal, showDeleteModal, showCreateModal, showAssetPickerModal]);
 
   // Ensure unmount cleanup flushes any pending unsaved state
   useEffect(() => {
@@ -1235,7 +1250,7 @@ export default function LockedPdfPage() {
       {/* Asset Picker Modal */}
       {showAssetPickerModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200 overscroll-contain touch-none"
           onClick={() => setShowAssetPickerModal(false)}
         >
           <div
