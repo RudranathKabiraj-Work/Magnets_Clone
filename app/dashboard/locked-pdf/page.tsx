@@ -23,6 +23,7 @@ import {
   Sparkles,
   FileText,
   TrendingUp,
+  HardDrive,
 } from "lucide-react";
 import {
   loadPages,
@@ -76,9 +77,22 @@ export default function LockedPdfPage() {
   const [showEmailPreviewModal, setShowEmailPreviewModal] = useState(false);
   const [showInsertResourceMenu, setShowInsertResourceMenu] = useState(false);
   const [hostedResources, setHostedResources] = useState<any[]>([]);
+  const [showAssetPickerModal, setShowAssetPickerModal] = useState(false);
+  const [assetSearchQuery, setAssetSearchQuery] = useState("");
+  const [selectedHostedPdf, setSelectedHostedPdf] = useState<{ url: string; name: string } | null>(null);
   const [enableAiPersonalizedDeliverable, setEnableAiPersonalizedDeliverable] = useState(false);
   const [customPromptQuestion, setCustomPromptQuestion] = useState("");
   const [customPromptPlaceholder, setCustomPromptPlaceholder] = useState("");
+
+  const filteredHostedAssets = useMemo(() => {
+    const q = assetSearchQuery.trim().toLowerCase();
+    return hostedResources.filter((r: any) => {
+      if (r.isPageAsset === true || r.type === "page_asset" || (r.name && r.name.startsWith("page_asset_"))) {
+        return false;
+      }
+      return !q || (r.name && r.name.toLowerCase().includes(q));
+    });
+  }, [hostedResources, assetSearchQuery]);
 
   // Sequence tab state
   const [sequenceEnabled, setSequenceEnabled] = useState(false);
@@ -749,6 +763,19 @@ export default function LockedPdfPage() {
             )}
 
             <button
+              type="button"
+              onClick={() => {
+                const fresh = loadResources().filter((r: any) => !r.isPageAsset && r.type !== "page_asset");
+                setHostedResources(fresh);
+                setShowAssetPickerModal(true);
+              }}
+              className="flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-[#27272A] bg-white dark:bg-[#1E1E24] px-4 py-2.5 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-[#27272A] transition shadow-xs cursor-pointer active:scale-95"
+            >
+              <HardDrive className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" />
+              <span>Choose Assets</span>
+            </button>
+
+            <button
               onClick={() => setShowCreateModal(true)}
               className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#005799] transition shadow-md shadow-[#0066B2]/20 cursor-pointer active:scale-95"
             >
@@ -906,6 +933,13 @@ export default function LockedPdfPage() {
                 pdfFreePages={activePage.pdfFreePages !== undefined ? activePage.pdfFreePages : 2}
                 pdfTitle={activePage.pdfTitle || activePage.name}
                 appUrl={appUrl}
+                hostedResources={hostedResources}
+                onOpenAssetPicker={() => {
+                  const fresh = loadResources().filter((r: any) => !r.isPageAsset && r.type !== "page_asset");
+                  setHostedResources(fresh);
+                  setShowAssetPickerModal(true);
+                }}
+                selectedHostedPdf={selectedHostedPdf}
                 onSave={async (updates) => {
                   const updatedPages = pages.map((p) => {
                     if (p.id === activePage.id) {
@@ -1197,6 +1231,137 @@ export default function LockedPdfPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Asset Picker Modal */}
+      {showAssetPickerModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={() => setShowAssetPickerModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl rounded-2xl bg-white dark:bg-[#18181B] p-6 shadow-2xl border border-zinc-200 dark:border-[#27272A] space-y-5 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b pb-3.5 border-zinc-100 dark:border-[#27272A]">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+                  <HardDrive className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                    Choose from Hosted Assets
+                  </h3>
+                  <p className="text-xs text-zinc-400">
+                    Select any file uploaded on your Assets page to attach or load into your Locked PDF.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAssetPickerModal(false)}
+                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-[#27272A] transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search hosted assets by name..."
+                value={assetSearchQuery}
+                onChange={(e) => setAssetSearchQuery(e.target.value)}
+                className="w-full rounded-xl border border-zinc-200 dark:border-[#27272A] bg-zinc-50 dark:bg-[#121216] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2]"
+              />
+            </div>
+
+            {/* Asset List */}
+            <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+              {hostedResources.length === 0 ? (
+                <div className="py-8 text-center space-y-3">
+                  <p className="text-xs text-zinc-400 italic">No hosted assets found in your Assets page.</p>
+                  <Link
+                    href="/dashboard/assets"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-4 py-2 text-xs font-bold text-white hover:bg-[#005291] transition"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Upload to Assets Page</span>
+                  </Link>
+                </div>
+              ) : filteredHostedAssets.length === 0 ? (
+                <div className="py-8 text-center text-xs text-zinc-400 italic">
+                  No assets match &quot;{assetSearchQuery}&quot;
+                </div>
+              ) : (
+                filteredHostedAssets.map((asset: any) => {
+                  const isPdf = asset.name?.toLowerCase().endsWith(".pdf") || asset.url?.toLowerCase().includes(".pdf");
+                  return (
+                    <div
+                      key={asset.id}
+                      className="flex items-center justify-between gap-3 p-3 rounded-xl border border-zinc-200 dark:border-[#27272A] bg-zinc-50/50 dark:bg-[#121216] hover:bg-zinc-100 dark:hover:bg-[#1C1C22] transition"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${isPdf ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-[#0066B2]/10 text-[#0066B2] border-[#0066B2]/20"}`}>
+                          <FileText className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-zinc-900 dark:text-white truncate">{asset.name}</p>
+                          <p className="text-[10px] text-zinc-400 font-mono truncate">{asset.url}</p>
+                        </div>
+                      </div>
+
+                      {isPdf ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedHostedPdf({ url: asset.url, name: asset.name });
+                            setShowAssetPickerModal(false);
+                            setActiveTab("locked");
+                            addToast(`Selected "${asset.name}" from Assets!`);
+                          }}
+                          className="flex items-center gap-1 rounded-lg bg-[#0066B2] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#005291] transition shrink-0 cursor-pointer"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          <span>Use as Locked PDF</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(asset.url);
+                            setShowAssetPickerModal(false);
+                            addToast(`Link copied for "${asset.name}"!`);
+                          }}
+                          className="flex items-center gap-1 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition shrink-0 cursor-pointer"
+                        >
+                          <span>Copy Link</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="flex items-center justify-between border-t pt-3 border-zinc-100 dark:border-[#27272A]">
+              <Link
+                href="/dashboard/assets"
+                className="text-xs text-[#0066B2] dark:text-[#38BDF8] font-bold hover:underline"
+              >
+                Go to Assets Page →
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowAssetPickerModal(false)}
+                className="rounded-xl border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardShell>
   );
 }

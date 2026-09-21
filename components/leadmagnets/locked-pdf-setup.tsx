@@ -18,8 +18,8 @@
  * and works on Vercel's free tier with zero additional configuration.
  */
 
-import { useRef, useState } from "react";
-import { Upload, Lock, Eye, Loader2, CheckCircle2, Trash2 } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Upload, Lock, Eye, Loader2, CheckCircle2, Trash2, HardDrive, FileText } from "lucide-react";
 
 interface Props {
   magnetId: string;
@@ -34,6 +34,9 @@ interface Props {
     pdfPageCount: number;
   }) => Promise<void>;
   appUrl: string;
+  hostedResources?: any[];
+  onOpenAssetPicker?: () => void;
+  selectedHostedPdf?: { url: string; name: string } | null;
 }
 
 // ─── PDF.js helpers (npm, worker served from /public/pdf.worker.min.mjs) ────
@@ -113,6 +116,9 @@ export default function LockedPdfSetup({
   pdfTitle: initialTitle,
   onSave,
   appUrl,
+  hostedResources = [],
+  onOpenAssetPicker,
+  selectedHostedPdf,
 }: Props) {
   const [pages, setPages] = useState<string[]>(initialPages || []);
   const [freePages, setFreePages] = useState<number>(
@@ -127,6 +133,59 @@ export default function LockedPdfSetup({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const viewerUrl = `${appUrl}/pdf-viewer/${magnetId}`;
+
+  // Automatically process selected hosted PDF asset from modal
+  useEffect(() => {
+    if (selectedHostedPdf?.url) {
+      processPdfFromUrl(selectedHostedPdf.url, selectedHostedPdf.name);
+    }
+  }, [selectedHostedPdf?.url]);
+
+  async function processPdfFromUrl(url: string, title?: string) {
+    setError(null);
+    setProcessing(true);
+    setProgress({ done: 0, total: 0 });
+    if (title) setPdfTitle(title);
+
+    try {
+      const pdfjs = await loadPdfJs();
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to download PDF from URL");
+      const arrayBuffer = await res.arrayBuffer();
+      const pdfDoc = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+      const totalPages = pdfDoc.numPages;
+      setProgress({ done: 0, total: totalPages });
+
+      const uploadedUrls: string[] = [];
+      const BATCH = 4;
+
+      for (let start = 1; start <= totalPages; start += BATCH) {
+        const end = Math.min(start + BATCH - 1, totalPages);
+        const batch = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+
+        const batchResults = await Promise.all(
+          batch.map(async (pageNum) => {
+            const blob = await pdfPageToJpegBlob(pdfjs, pdfDoc, pageNum);
+            const filename = `pdf-${magnetId}-page${String(pageNum).padStart(3, "0")}.jpg`;
+            const pageUrl = await uploadBlob(blob, filename, userEmail);
+            setProgress((p) => (p ? { done: p.done + 1, total: p.total } : p));
+            return pageUrl;
+          })
+        );
+        uploadedUrls.push(...batchResults);
+      }
+
+      setPages(uploadedUrls);
+      setFreePages((prev) => Math.min(prev, Math.max(0, uploadedUrls.length - 1)));
+      setSaved(false);
+    } catch (err: any) {
+      console.error("[LockedPdfSetup] Processing hosted PDF error:", err);
+      setError(err.message || "Failed to process hosted PDF asset. Please try again.");
+    } finally {
+      setProcessing(false);
+      setProgress(null);
+    }
+  }
 
   // ── Handle PDF file selection ───────────────────────────────────────────
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -324,11 +383,24 @@ export default function LockedPdfSetup({
             <div className="flex flex-col items-center gap-2">
               <Upload className="h-8 w-8 text-zinc-400" />
               <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                Click to upload your PDF
+                Click to upload PDF from device
               </p>
               <p className="text-xs text-zinc-400 dark:text-zinc-500">
                 Max 30 MB · Each page is converted to an image automatically
               </p>
+              {onOpenAssetPicker && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenAssetPicker();
+                  }}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-[#0066B2]/40 bg-[#EFF6FF] dark:bg-[#0066B2]/20 px-3 py-1.5 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8] hover:bg-[#0066B2]/10 transition"
+                >
+                  <HardDrive className="h-3.5 w-3.5" />
+                  <span>Or choose from Assets Page</span>
+                </button>
+              )}
             </div>
           )}
         </button>
