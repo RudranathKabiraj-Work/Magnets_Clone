@@ -278,6 +278,11 @@ export default function LockedPdfPage() {
     return pages.filter((p) => p.template === "locked-pdf");
   }, [pages]);
 
+  // Saved Locked PDFs for bottom cards grid (only documents with uploaded pages or saved settings)
+  const savedLockedPdfPages = useMemo(() => {
+    return lockedPdfPages.filter((p) => (p.pdfPages && p.pdfPages.length > 0) || (p.pdfTitle && p.pdfTitle !== "Untitled Locked PDF"));
+  }, [lockedPdfPages]);
+
   // Active selected locked PDF page object
   const activePage = useMemo(() => {
     if (selectedPageId) {
@@ -968,9 +973,37 @@ export default function LockedPdfPage() {
                     }
                     return p;
                   });
-                  setPages(updatedPages);
-                  savePages(updatedPages);
-                  addToast("Locked PDF settings saved successfully!");
+
+                  // Create a fresh blank draft so the top editor clears for new upload
+                  const newDraftId = `page-${Date.now()}`;
+                  const newDraftPage: MagnetPage = {
+                    id: newDraftId,
+                    name: "Untitled Locked PDF",
+                    slug: `locked-pdf-${Date.now().toString().slice(-4)}`,
+                    status: "draft",
+                    views: 0,
+                    signups: 0,
+                    conversionRate: 0,
+                    headline: "Locked PDF Document",
+                    subheadline: "Enter your email to verify and unlock full PDF access instantly.",
+                    cta: "Verify & Unlock PDF",
+                    deliverable: "Locked PDF Document",
+                    updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                    publishedAt: null,
+                    template: "locked-pdf",
+                    accent: "#0066B2",
+                    pdfPages: [],
+                    pdfFreePages: 2,
+                    pdfTitle: "Untitled Locked PDF",
+                    pdfPageCount: 0,
+                  };
+
+                  const finalPages = [newDraftPage, ...updatedPages];
+                  setPages(finalPages);
+                  savePages(finalPages);
+                  setSelectedPageId(newDraftId);
+                  setSelectedHostedPdf(null);
+                  addToast("Locked PDF saved! Editor cleared for new upload.");
                 }}
               />
             )}
@@ -1072,7 +1105,7 @@ export default function LockedPdfPage() {
               </div>
               <div>
                 <h2 className="text-sm font-bold text-zinc-900 dark:text-white">
-                  Saved Locked PDFs ({lockedPdfPages.length})
+                  Saved Locked PDFs ({savedLockedPdfPages.length})
                 </h2>
                 <p className="text-[11px] text-zinc-500 dark:text-[#9B9085]">
                   Click any card to load its settings into the editor above. Use Share Link to copy its public OTP URL.
@@ -1093,9 +1126,9 @@ export default function LockedPdfPage() {
             </button>
           </div>
 
-          {lockedPdfPages.length > 0 ? (
+          {savedLockedPdfPages.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
-              {lockedPdfPages.map((pdf) => {
+              {savedLockedPdfPages.map((pdf) => {
                 const isSelected = activePage?.id === pdf.id;
                 const accountSlug = (account as any)?.username || account?.name?.toLowerCase().replace(/[^a-z0-9]/g, "") || "user";
                 const shareUrl = typeof window !== "undefined"
