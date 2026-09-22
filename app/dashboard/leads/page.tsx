@@ -33,13 +33,15 @@ import {
 } from "@/lib/store";
 import type { Account, Lead, MagnetPage, Sequence } from "@/lib/data";
 
+import dynamic from "next/dynamic";
 import { LeadTableRow } from "@/components/leads/LeadTableRow";
-import { AddLeadModal } from "@/components/leads/AddLeadModal";
-import { ImportCsvModal } from "@/components/leads/ImportCsvModal";
-import { DeleteLeadModal } from "@/components/leads/DeleteLeadModal";
-import { BulkDeleteModal } from "@/components/leads/BulkDeleteModal";
-import { LeadDetailsModal } from "@/components/leads/LeadDetailsModal";
 import { LeadToastContainer, type Toast } from "@/components/leads/LeadToastContainer";
+
+const AddLeadModal = dynamic(() => import("@/components/leads/AddLeadModal").then((mod) => mod.AddLeadModal), { ssr: false });
+const ImportCsvModal = dynamic(() => import("@/components/leads/ImportCsvModal").then((mod) => mod.ImportCsvModal), { ssr: false });
+const DeleteLeadModal = dynamic(() => import("@/components/leads/DeleteLeadModal").then((mod) => mod.DeleteLeadModal), { ssr: false });
+const BulkDeleteModal = dynamic(() => import("@/components/leads/BulkDeleteModal").then((mod) => mod.BulkDeleteModal), { ssr: false });
+const LeadDetailsModal = dynamic(() => import("@/components/leads/LeadDetailsModal").then((mod) => mod.LeadDetailsModal), { ssr: false });
 
 function generateSafeId() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
