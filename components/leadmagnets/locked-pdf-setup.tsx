@@ -73,6 +73,9 @@ async function pdfPageToJpegBlob(
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
+        // Immediate GPU bitmap buffer deallocation to prevent memory accumulation on multi-page PDFs
+        canvas.width = 0;
+        canvas.height = 0;
         if (blob) resolve(blob);
         else reject(new Error("Canvas toBlob failed for page " + pageNum));
       },
@@ -577,6 +580,7 @@ export default function LockedPdfSetup({
                         e.currentTarget.parentElement?.classList.remove("animate-pulse");
                       }}
                       loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute bottom-0.5 inset-x-0 flex items-center justify-center">
                       {isLocked ? (

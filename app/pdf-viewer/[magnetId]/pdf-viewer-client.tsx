@@ -501,7 +501,13 @@ export default function PdfViewerClient({
                         onClick={() => scrollToPage(idx)}
                       >
                         <div className="adobe-thumb-frame">
-                          <img src={displayUrl} alt={`Thumbnail page ${idx + 1}`} className="adobe-thumb-img" />
+                          <img
+                            src={displayUrl}
+                            alt={`Thumbnail page ${idx + 1}`}
+                            className="adobe-thumb-img"
+                            loading="lazy"
+                            decoding="async"
+                          />
                         </div>
                         <span className="adobe-thumb-num">{idx + 1}</span>
                       </button>
@@ -540,6 +546,7 @@ export default function PdfViewerClient({
                   alt={`Document Page ${idx + 1}`}
                   className="adobe-page-img"
                   loading={idx < 3 ? "eager" : "lazy"}
+                  decoding="async"
                 />
               </div>
             );
