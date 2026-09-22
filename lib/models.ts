@@ -111,7 +111,7 @@ const LeadSchema = new Schema({
   email: { type: String, required: true },
   page: { type: String, required: true, index: true },
   pageId: { type: String, required: true, index: true },
-  status: { type: String, enum: ["new", "delivered", "opened", "replied", "stopped"], default: "new" },
+  status: { type: String, enum: ["new", "delivered", "opened", "replied", "completed", "stopped"], default: "new" },
   source: { type: String, enum: ["leadmagnets", "magnets", "custom-domain", "integration", "locked-pdf-otp", "linkedin-comment"], default: "leadmagnets" },
   signedUpAt: { type: String, required: true },
   sequence: { type: String },

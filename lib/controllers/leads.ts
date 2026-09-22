@@ -34,7 +34,7 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
       const seqList = (foundPageDoc.sequenceEmails && foundPageDoc.sequenceEmails.length > 0) ? foundPageDoc.sequenceEmails : [];
       if (foundPageDoc.sequenceEnabled || seqList.length > 0) {
         data.sequence = `${pageTitle} Follow-up`;
-        data.sequenceStep = `Step 1 of ${Math.max(1, seqList.length)}`;
+        data.sequenceStep = `Step 1 of ${Math.max(1, seqList.length)} (In Progress)`;
       }
     }
   }
@@ -83,14 +83,18 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
         const targetInbox = (ownerAccount && ownerAccount.notifyEmail) ? ownerAccount.notifyEmail : ownerEmail;
 
         if (alertsEnabled) {
-          sendInstantLeadAlert({
-            ownerEmail: targetInbox,
-            leadEmail: data.email,
-            leadName: data.name,
-            pageTitle: pageTitle,
-            signedUpAt: data.signedUpAt || new Date().toLocaleString(),
-            customAnswer: data.customAnswer,
-          }).catch((err) => console.error("Lead Alert Background Error:", err));
+          try {
+            await sendInstantLeadAlert({
+              ownerEmail: targetInbox,
+              leadEmail: data.email,
+              leadName: data.name,
+              pageTitle: pageTitle,
+              signedUpAt: data.signedUpAt || new Date().toLocaleString(),
+              customAnswer: data.customAnswer,
+            });
+          } catch (err) {
+            console.error("Lead Alert Background Error:", err);
+          }
         }
 
         if (data.email) {
@@ -145,17 +149,20 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
             </div>
           `;
 
-          sendMail({
-            to: data.email.trim(),
-            subject: subject,
-            html: subscriberHtml,
-          }).then((res) => {
+          try {
+            const res = await sendMail({
+              to: data.email.trim(),
+              subject: subject,
+              html: subscriberHtml,
+            });
             if (res.success) {
               console.log(`✅ Deliverable email successfully sent to subscriber: ${data.email}`);
             } else {
               console.error(`❌ Deliverable email sending failed for subscriber ${data.email}:`, res.error);
             }
-          }).catch((err) => console.error("Subscriber Email Dispatch Error:", err));
+          } catch (err) {
+            console.error("Subscriber Email Dispatch Error:", err);
+          }
         }
 
         if (ownerAccount?.slackWebhookUrl) {
