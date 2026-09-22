@@ -41,6 +41,9 @@ const AccountSchema = new Schema({
   ogImageUrl: { type: String, default: "" },
   spfVerified: { type: Boolean, default: false },
   dkimVerified: { type: Boolean, default: false },
+  // LinkedIn Comment Automation — each user gets their own unique webhook secret.
+  // Generated with crypto.randomBytes(32) at account creation or on-demand via the dashboard.
+  linkedinWebhookSecret: { type: String, default: "" },
 });
 
 AccountSchema.index({ resetPasswordToken: 1 });
@@ -109,7 +112,7 @@ const LeadSchema = new Schema({
   page: { type: String, required: true, index: true },
   pageId: { type: String, required: true, index: true },
   status: { type: String, enum: ["new", "delivered", "opened", "replied", "stopped"], default: "new" },
-  source: { type: String, enum: ["leadmagnets", "magnets", "custom-domain", "integration", "locked-pdf-otp"], default: "leadmagnets" },
+  source: { type: String, enum: ["leadmagnets", "magnets", "custom-domain", "integration", "locked-pdf-otp", "linkedin-comment"], default: "leadmagnets" },
   signedUpAt: { type: String, required: true },
   sequence: { type: String },
   sequenceStep: { type: String },
