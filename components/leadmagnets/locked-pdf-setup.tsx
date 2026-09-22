@@ -19,7 +19,7 @@
  */
 
 import { useRef, useState, useEffect } from "react";
-import { Upload, Lock, Eye, Loader2, CheckCircle2, Trash2, HardDrive, FileText, Copy, ExternalLink } from "lucide-react";
+import { Upload, Lock, Eye, Loader2, CheckCircle2, Trash2, HardDrive, FileText, Copy, ExternalLink, Plus } from "lucide-react";
 
 interface Props {
   magnetId: string;
@@ -27,16 +27,21 @@ interface Props {
   pdfPages: string[];
   pdfFreePages: number;
   pdfTitle: string;
+  pageName?: string;
+  pageSlug?: string;
   onSave: (updates: {
     pdfPages: string[];
     pdfFreePages: number;
     pdfTitle: string;
     pdfPageCount: number;
+    name?: string;
+    slug?: string;
   }) => Promise<void>;
   appUrl: string;
   hostedResources?: any[];
   onOpenAssetPicker?: () => void;
   selectedHostedPdf?: { url: string; name: string; timestamp?: number } | null;
+  onOpenCreateModal?: () => void;
 }
 
 // ─── PDF.js helpers (npm, worker served from /public/pdf.worker.min.mjs) ────
@@ -114,17 +119,22 @@ export default function LockedPdfSetup({
   pdfPages: initialPages,
   pdfFreePages: initialFreePages,
   pdfTitle: initialTitle,
+  pageName = "",
+  pageSlug = "",
   onSave,
   appUrl,
   hostedResources = [],
   onOpenAssetPicker,
   selectedHostedPdf,
+  onOpenCreateModal,
 }: Props) {
   const [pages, setPages] = useState<string[]>(initialPages || []);
   const [freePages, setFreePages] = useState<number>(
     Math.min(initialFreePages ?? 2, Math.max(0, (initialPages || []).length - 1))
   );
-  const [pdfTitle, setPdfTitle] = useState(initialTitle || "");
+  const [pdfTitle, setPdfTitle] = useState(initialTitle || pageName || "");
+  const [name, setName] = useState(pageName || initialTitle || "");
+  const [slug, setSlug] = useState(pageSlug || "");
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -133,6 +143,18 @@ export default function LockedPdfSetup({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const viewerUrl = `${appUrl}/pdf-viewer/${magnetId}`;
+
+  useEffect(() => {
+    if (pageName) setName(pageName);
+  }, [pageName]);
+
+  useEffect(() => {
+    if (pageSlug) setSlug(pageSlug);
+  }, [pageSlug]);
+
+  useEffect(() => {
+    if (initialTitle) setPdfTitle(initialTitle);
+  }, [initialTitle]);
 
   // Automatically process selected hosted PDF asset from modal
   useEffect(() => {
@@ -321,7 +343,9 @@ export default function LockedPdfSetup({
       await onSave({
         pdfPages: pages,
         pdfFreePages: safeFreePages,
-        pdfTitle: pdfTitle.trim(),
+        pdfTitle: pdfTitle.trim() || name.trim(),
+        name: name.trim() || pdfTitle.trim(),
+        slug: slug.trim(),
         pdfPageCount: pages.length,
       });
       setSaved(true);
@@ -346,6 +370,8 @@ export default function LockedPdfSetup({
         pdfPages: [],
         pdfFreePages: 0,
         pdfTitle: "",
+        name: name.trim(),
+        slug: slug.trim(),
         pdfPageCount: 0,
       });
       setSaved(true);
@@ -363,19 +389,38 @@ export default function LockedPdfSetup({
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#141417] p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-900">
-          <Lock className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
-        </span>
-        <div>
-          <h3 className="font-semibold text-zinc-900 dark:text-white text-sm">
-            Locked PDF Setup
-          </h3>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-            First {freePages} page{freePages !== 1 ? "s" : ""} are free,
-            rest unlock after email verification.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8] border border-[#0066B2]/20">
+            <Lock className="h-5 w-5" />
+          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-zinc-900 dark:text-white text-sm">
+                Locked PDF Setup
+              </h3>
+              {slug && (
+                <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200/60 dark:border-zinc-700/60">
+                  /{slug}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+              First {freePages} page{freePages !== 1 ? "s" : ""} are free, rest unlock after email verification.
+            </p>
+          </div>
         </div>
+
+        {onOpenCreateModal && (
+          <button
+            type="button"
+            onClick={onOpenCreateModal}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-zinc-200 dark:border-[#27272A] bg-zinc-50 dark:bg-[#1E1E24] text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#27272A] transition shadow-2xs self-start sm:self-auto cursor-pointer"
+          >
+            <Plus className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
+            <span>New Locked PDF</span>
+          </button>
+        )}
       </div>
 
       {/* Upload zone */}
@@ -465,19 +510,42 @@ export default function LockedPdfSetup({
       {/* Settings — only shown once PDF is uploaded */}
       {pages.length > 0 && (
         <div className="space-y-4 border-t border-zinc-100 dark:border-zinc-800 pt-4">
-          {/* Title */}
-          <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-              Viewer title
-            </label>
-            <input
-              type="text"
-              value={pdfTitle}
-              onChange={(e) => setPdfTitle(e.target.value)}
-              placeholder="e.g. The Ultimate Growth Playbook"
-              maxLength={100}
-              className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 outline-none focus:border-[#0066B2] dark:focus:border-[#38BDF8] transition"
-            />
+          {/* Document Name and URL Slug */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                Document name
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setPdfTitle(e.target.value);
+                }}
+                placeholder="e.g. 2026 Growth Playbook"
+                maxLength={100}
+                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 outline-none focus:border-[#0066B2] dark:focus:border-[#38BDF8] transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                URL slug
+              </label>
+              <div className="flex items-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-white focus-within:border-[#0066B2] dark:focus-within:border-[#38BDF8] transition">
+                <span className="text-zinc-400 dark:text-zinc-500 mr-1 font-mono text-xs">/</span>
+                <input
+                  type="text"
+                  value={slug}
+                  onChange={(e) => {
+                    setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
+                  }}
+                  placeholder="growth-playbook"
+                  className="w-full bg-transparent font-mono text-xs text-zinc-900 dark:text-white outline-none"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Free pages slider */}

@@ -71,6 +71,8 @@ export default function LockedPdfPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createMagnetName, setCreateMagnetName] = useState("");
+  const [customSlug, setCustomSlug] = useState("");
+  const [isCustomSlugEdited, setIsCustomSlugEdited] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
 
   // Delivery Email tab state
@@ -603,7 +605,7 @@ export default function LockedPdfPage() {
         .toLowerCase()
         .trim()
         .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-") || "untitled-page"
+        .replace(/\s+/g, "-") || "locked-pdf"
     );
   }, [createMagnetName]);
 
@@ -619,6 +621,15 @@ export default function LockedPdfPage() {
       if (data.suggestions?.length) {
         const randomTitle = data.suggestions[Math.floor(Math.random() * data.suggestions.length)];
         setCreateMagnetName(randomTitle);
+        if (!isCustomSlugEdited) {
+          setCustomSlug(
+            randomTitle
+              .toLowerCase()
+              .trim()
+              .replace(/[^a-z0-9\s-]/g, "")
+              .replace(/\s+/g, "-")
+          );
+        }
       }
     } catch (e) {
       console.error("AI Title Generator Error:", e);
@@ -629,11 +640,16 @@ export default function LockedPdfPage() {
 
   const handleCreateLockedPdf = () => {
     const name = createMagnetName.trim() || "Locked PDF Document";
-    const cleanSlug = derivedSlug || "locked-pdf";
+    const rawSlug = (isCustomSlugEdited ? customSlug : (customSlug || derivedSlug)).trim();
+    const cleanSlug = rawSlug
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-") || "locked-pdf";
     const newId = `page-${Date.now()}`;
 
     const newMagnet: MagnetPage = {
       id: newId,
+      userEmail: account?.email,
       name,
       slug: cleanSlug,
       status: "draft",
@@ -647,7 +663,7 @@ export default function LockedPdfPage() {
       updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       publishedAt: null,
       template: "locked-pdf",
-      accent: "#0066B2",
+      accent: account?.brandColor || "#0066B2",
       pdfPages: [],
       pdfFreePages: 2,
       pdfTitle: name,
@@ -660,6 +676,8 @@ export default function LockedPdfPage() {
     setSelectedPageId(newId);
     setShowCreateModal(false);
     setCreateMagnetName("");
+    setCustomSlug("");
+    setIsCustomSlugEdited(false);
     addToast(`Created "${name}". Ready for PDF upload!`);
   };
 
@@ -794,11 +812,16 @@ export default function LockedPdfPage() {
             </button>
 
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => {
+                setCreateMagnetName("");
+                setCustomSlug("");
+                setIsCustomSlugEdited(false);
+                setShowCreateModal(true);
+              }}
               className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#005799] transition shadow-md shadow-[#0066B2]/20 cursor-pointer active:scale-95"
             >
               <Plus className="h-4 w-4 stroke-[2.5px]" />
-              <span>Create Lead Magnet</span>
+              <span>Create Locked PDF</span>
             </button>
           </div>
         </div>
@@ -949,6 +972,8 @@ export default function LockedPdfPage() {
                   pdfPages={activePage.pdfPages || []}
                   pdfFreePages={activePage.pdfFreePages !== undefined ? activePage.pdfFreePages : 2}
                   pdfTitle={activePage.pdfTitle || activePage.name}
+                  pageName={activePage.name}
+                  pageSlug={activePage.slug}
                   appUrl={appUrl}
                   hostedResources={hostedResources}
                   onOpenAssetPicker={() => {
@@ -957,15 +982,22 @@ export default function LockedPdfPage() {
                     setShowAssetPickerModal(true);
                   }}
                   selectedHostedPdf={selectedHostedPdf}
+                  onOpenCreateModal={() => {
+                    setCreateMagnetName("");
+                    setCustomSlug("");
+                    setIsCustomSlugEdited(false);
+                    setShowCreateModal(true);
+                  }}
                   onSave={async (updates) => {
                     const updatedPages = pages.map((p) => {
                       if (p.id === activePage.id) {
                         return {
                           ...p,
-                          name: updates.pdfTitle.trim() || p.name,
+                          name: updates.name?.trim() || updates.pdfTitle.trim() || p.name,
+                          slug: updates.slug?.trim() || p.slug,
                           pdfPages: updates.pdfPages,
                           pdfFreePages: updates.pdfFreePages,
-                          pdfTitle: updates.pdfTitle.trim() || p.name,
+                          pdfTitle: updates.pdfTitle.trim() || updates.name?.trim() || p.name,
                           pdfPageCount: updates.pdfPageCount,
                           template: "locked-pdf" as const,
                           updatedAt: new Date().toISOString().split("T")[0],
@@ -974,36 +1006,9 @@ export default function LockedPdfPage() {
                       return p;
                     });
 
-                    // Create a fresh blank draft so the top editor clears for new upload
-                    const newDraftId = `page-${Date.now()}`;
-                    const newDraftPage: MagnetPage = {
-                      id: newDraftId,
-                      name: "Untitled Locked PDF",
-                      slug: `locked-pdf-${Date.now().toString().slice(-4)}`,
-                      status: "draft",
-                      views: 0,
-                      signups: 0,
-                      conversionRate: 0,
-                      headline: "Locked PDF Document",
-                      subheadline: "Enter your email to verify and unlock full PDF access instantly.",
-                      cta: "Verify & Unlock PDF",
-                      deliverable: "Locked PDF Document",
-                      updatedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-                      publishedAt: null,
-                      template: "locked-pdf",
-                      accent: "#0066B2",
-                      pdfPages: [],
-                      pdfFreePages: 2,
-                      pdfTitle: "Untitled Locked PDF",
-                      pdfPageCount: 0,
-                    };
-
-                    const finalPages = [newDraftPage, ...updatedPages];
-                    setPages(finalPages);
-                    savePages(finalPages);
-                    setSelectedPageId(newDraftId);
-                    setSelectedHostedPdf(null);
-                    addToast("Locked PDF saved! Editor cleared for new upload.");
+                    setPages(updatedPages);
+                    savePages(updatedPages);
+                    addToast("Locked PDF settings saved!");
                   }}
                 />
 
@@ -1030,6 +1035,19 @@ export default function LockedPdfPage() {
                         </p>
                       </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCreateMagnetName("");
+                        setCustomSlug("");
+                        setIsCustomSlugEdited(false);
+                        setShowCreateModal(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#0066B2] text-white text-xs font-bold shadow-sm hover:bg-[#005799] transition active:scale-95 cursor-pointer self-start sm:self-auto"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>New Locked PDF</span>
+                    </button>
                   </div>
 
                   {savedLockedPdfPages.length > 0 ? (
@@ -1441,8 +1459,19 @@ export default function LockedPdfPage() {
                     type="text"
                     autoFocus
                     value={createMagnetName}
-                    onChange={(e) => setCreateMagnetName(e.target.value)}
-                    placeholder="AI Pipeline Playbook"
+                    onChange={(e) => {
+                      setCreateMagnetName(e.target.value);
+                      if (!isCustomSlugEdited) {
+                        setCustomSlug(
+                          e.target.value
+                            .toLowerCase()
+                            .trim()
+                            .replace(/[^a-z0-9\s-]/g, "")
+                            .replace(/\s+/g, "-")
+                        );
+                      }
+                    }}
+                    placeholder="e.g. 2026 SaaS Growth Playbook"
                     className="w-full rounded-xl border border-[#0066B2]/40 bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#52525b] outline-none focus:border-[#0066B2] focus:ring-1 focus:ring-[#0066B2] dark:border-[#0066B2]/60 dark:focus:border-[#0066B2] dark:focus:ring-[#0066B2] transition-all"
                   />
                 </div>
@@ -1450,9 +1479,22 @@ export default function LockedPdfPage() {
                 {/* URL Slug Field */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-zinc-700 dark:text-[#d4c8bc]">URL slug</label>
-                  <div className="flex items-center rounded-xl border border-zinc-200 dark:border-[#2e2e38] bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs text-zinc-500 dark:text-[#9B9085]">
-                    <span className="text-zinc-400 dark:text-[#666675] shrink-0 mr-1.5">/</span>
-                    <span className="font-mono text-zinc-800 dark:text-[#d4c8bc] truncate">{derivedSlug}</span>
+                  <div className="flex items-center rounded-xl border border-zinc-200 dark:border-[#2e2e38] bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs text-zinc-500 dark:text-[#9B9085] focus-within:border-[#0066B2] focus-within:ring-1 focus-within:ring-[#0066B2] transition-all">
+                    <span className="text-zinc-400 dark:text-[#666675] shrink-0 mr-1.5 font-mono">/</span>
+                    <input
+                      type="text"
+                      value={isCustomSlugEdited ? customSlug : (customSlug || derivedSlug)}
+                      onChange={(e) => {
+                        setIsCustomSlugEdited(true);
+                        setCustomSlug(
+                          e.target.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9-]/g, "")
+                        );
+                      }}
+                      placeholder="locked-pdf"
+                      className="w-full bg-transparent font-mono text-xs text-zinc-900 dark:text-white outline-none"
+                    />
                   </div>
                   <p className="text-[11px] text-zinc-500 dark:text-[#666675]">The path of the page. Lowercase, digits, and hyphens only.</p>
                 </div>
@@ -1464,6 +1506,8 @@ export default function LockedPdfPage() {
                     onClick={() => {
                       setShowCreateModal(false);
                       setCreateMagnetName("");
+                      setCustomSlug("");
+                      setIsCustomSlugEdited(false);
                     }}
                     className="rounded-xl border border-zinc-200 dark:border-[#2e2e38] bg-white dark:bg-[#222228] px-4 py-2 text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#2c2c34] transition-all cursor-pointer"
                   >
