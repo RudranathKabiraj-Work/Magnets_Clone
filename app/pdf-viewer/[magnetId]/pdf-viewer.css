@@ -241,7 +241,6 @@
 .adobe-thumb-frame {
   position: relative;
   width: 100%;
-  aspect-ratio: 612/792;
   background: #ffffff;
   border: 2px solid transparent;
   border-radius: 2px;
@@ -259,13 +258,13 @@
 
 .adobe-thumb-img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
   display: block;
 }
 .adobe-thumb-card.is-locked .adobe-thumb-img {
   filter: blur(5px);
-  transform: scale(1.08);
+  transform: scale(1.02);
 }
 
 .adobe-thumb-num {
@@ -295,22 +294,22 @@
   position: relative;
   flex: none;
   width: min(860px, 92%);
-  aspect-ratio: 612/792;
   background: #ffffff;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s ease, max-width 0.2s ease;
+  overflow: hidden;
 }
 
 .adobe-page-img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
 }
 
 .adobe-page-wrapper.is-locked .adobe-page-img {
   filter: blur(14px);
-  transform: scale(1.06);
+  transform: scale(1.02);
 }
 
 /* Gate overlay modal */

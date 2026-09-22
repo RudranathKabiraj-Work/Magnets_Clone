@@ -108,14 +108,18 @@ export default async function PdfViewerPage({ params, searchParams }: Props) {
   }
 
   return (
-    <PdfViewerClient
-      magnetId={magnetId}
-      pdfTitle={pdfTitle}
-      pdfPages={effectivePdfPages}
-      pdfFreePages={pdfFreePages}
-      businessName={businessName}
-      brandColor={brandColor}
-      customFormFields={customFormFields}
-    />
+    <>
+      <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+      <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+      <PdfViewerClient
+        magnetId={magnetId}
+        pdfTitle={pdfTitle}
+        pdfPages={effectivePdfPages}
+        pdfFreePages={pdfFreePages}
+        businessName={businessName}
+        brandColor={brandColor}
+        customFormFields={customFormFields}
+      />
+    </>
   );
 }
