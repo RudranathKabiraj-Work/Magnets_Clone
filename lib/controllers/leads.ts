@@ -117,14 +117,19 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
           const resourceAccessUrl = `${appUrl}/${encodeURIComponent(targetUser)}/${encodeURIComponent(targetSlug)}/thank-you?email=${encodeURIComponent(data.email)}&name=${encodeURIComponent(data.name || "")}${resParam}`;
 
           const subject = (foundPageDoc?.emailSubject && foundPageDoc.emailSubject.trim())
-            ? foundPageDoc.emailSubject.replace(/{name}/g, data.name || "there")
+            ? foundPageDoc.emailSubject.replace(/\{name\}/gi, data.name || "there")
             : `Here is your resource: ${pageTitle}`;
+
+          const previewText = foundPageDoc?.emailPreviewText ? foundPageDoc.emailPreviewText.trim() : "";
 
           let rawBody = (foundPageDoc?.emailBody && foundPageDoc.emailBody.trim())
             ? foundPageDoc.emailBody
             : `Hey {name},\n\nThank you for requesting ${pageTitle}! Click the button below to access your resource instantly.\n\nEnjoy!`;
 
-          rawBody = rawBody.replace(/{name}/g, data.name || "there");
+          rawBody = rawBody
+            .replace(/\{name\}/gi, data.name || "there")
+            .replace(/\{email\}/gi, data.email || "");
+
           const hasHtmlTags = /<[a-z][\s\S]*>/i.test(rawBody);
           let formattedBodyHtml = hasHtmlTags ? rawBody : rawBody.replace(/\n/g, "<br/>");
 
@@ -136,7 +141,12 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
             }
           );
 
+          const preheaderHtml = previewText
+            ? `<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${previewText}</div>`
+            : "";
+
           const subscriberHtml = `
+            ${preheaderHtml}
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 32px 20px; background-color: #f8fafc;">
               <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
                 <h1 style="color: #0f172a; font-size: 22px; font-weight: 800; margin: 0 0 16px 0;">
@@ -158,9 +168,13 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
             </div>
           `;
 
+          const senderName = ownerAccount?.senderDisplayName || ownerAccount?.name || "LeadMagnets";
+          const defaultFrom = process.env.SMTP_FROM || "non-reply@bdatech.in";
+
           try {
             const res = await sendMail({
               to: data.email.trim(),
+              from: `${senderName} <${defaultFrom}>`,
               subject: subject,
               html: subscriberHtml,
             });
