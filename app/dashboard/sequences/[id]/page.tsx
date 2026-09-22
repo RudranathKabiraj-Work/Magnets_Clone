@@ -325,7 +325,7 @@ export default function SequenceEditor() {
                     <>
                       <span>Linked Lead Magnet:</span>
                       <Link
-                        href={`/dashboard/leadmagnets/${attachedPage.id}`}
+                        href={`/dashboard/leadmagnets/${attachedPage.id}?tab=sequence`}
                         className="font-semibold text-[#0066B2] dark:text-[#38BDF8] hover:underline inline-flex items-center gap-1"
                       >
                         🎯 {attachedPage.name}

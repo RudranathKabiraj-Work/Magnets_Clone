@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Check,
@@ -112,6 +112,7 @@ function compressImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 
 export default function EditLeadMagnetPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [account, setAccount] = useState<Account | null>(() => {
     if (typeof window !== "undefined") return loadAccount();
     return null;
@@ -311,9 +312,25 @@ export default function EditLeadMagnetPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showMenu]);
 
-  // Tab Navigation State
-  const [activeTab, setActiveTab] = useState<"landing" | "email" | "sequence" | "after">("landing");
+  // Tab Navigation State (supports direct tab query like ?tab=sequence)
+  const [activeTab, setActiveTab] = useState<"landing" | "email" | "sequence" | "after">(() => {
+    if (typeof window !== "undefined") {
+      const q = new URLSearchParams(window.location.search).get("tab");
+      if (q === "landing" || q === "email" || q === "sequence" || q === "after") {
+        return q;
+      }
+    }
+    return "landing";
+  });
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
+
+  // Sync activeTab whenever the URL query parameter ?tab= changes
+  useEffect(() => {
+    const q = searchParams.get("tab");
+    if (q === "landing" || q === "email" || q === "sequence" || q === "after") {
+      setActiveTab(q);
+    }
+  }, [searchParams]);
 
   // Page Content Initial Values
   const initialHeadline = page ? (page.headline && page.headline !== "hi" ? page.headline : (page.name || "")) : "";

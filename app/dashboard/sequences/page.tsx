@@ -123,7 +123,7 @@ export default function SequencesPage() {
             <div className="mt-6 grid gap-5 lg:grid-cols-2">
               {sequences.map((seq) => {
                 const { signedUp, delivered, opened, replied } = seq.stats;
-                const linkHref = seq.pageId ? `/dashboard/leadmagnets/${seq.pageId}` : `/dashboard/sequences/${seq.id}`;
+                const linkHref = seq.pageId ? `/dashboard/leadmagnets/${seq.pageId}?tab=sequence` : `/dashboard/sequences/${seq.id}`;
 
                 return (
                   <Link
