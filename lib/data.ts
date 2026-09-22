@@ -84,7 +84,7 @@ export interface Lead {
   page: string;
   pageId: string;
   status: "new" | "delivered" | "opened" | "replied" | "stopped" | "completed";
-  source: "leadmagnets" | "magnets" | "custom-domain" | "integration" | "locked-pdf-otp";
+  source: "leadmagnets" | "magnets" | "custom-domain" | "integration" | "locked-pdf-otp" | "linkedin-comment";
   signedUpAt: string;
   sequence?: string;
   sequenceStep?: string;
@@ -157,6 +157,8 @@ export interface Account {
   spfVerified?: boolean;
   dkimVerified?: boolean;
   substackPublication?: string;
+  // LinkedIn Comment Automation — unique per-user webhook secret
+  linkedinWebhookSecret?: string;
 }
 
 export interface Integration {

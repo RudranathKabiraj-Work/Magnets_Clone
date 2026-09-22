@@ -5,6 +5,12 @@ import { clearAuthCookie, setAuthCookie } from "@/lib/auth";
 import { hashPassword, comparePassword } from "@/lib/auth-helpers";
 import { deleteCloudinaryAssets } from "@/lib/cloudinary";
 import { sendMail } from "@/lib/email";
+import { randomBytes } from "crypto";
+
+/** Generates a cryptographically random 64-char hex webhook secret. */
+function generateWebhookSecret(): string {
+  return randomBytes(32).toString("hex");
+}
 
 function serverValidatePassword(pass: string): string | null {
   if (!pass || pass.length < 8) return "Password must be at least 8 characters long.";
@@ -70,7 +76,7 @@ export async function handleSaveAccount(data: any, authEmail: string | null) {
     existing.ogImageUrl = data.ogImageUrl !== undefined ? data.ogImageUrl : existing.ogImageUrl;
     existing.spfVerified = data.spfVerified !== undefined ? data.spfVerified : existing.spfVerified;
     existing.dkimVerified = data.dkimVerified !== undefined ? data.dkimVerified : existing.dkimVerified;
-    
+
     if (data.password && !/^\$2[aby]\$\d+\$/.test(data.password) && data.password !== existing.password) {
       existing.password = await hashPassword(data.password);
     }
@@ -86,6 +92,12 @@ export async function handleSaveAccount(data: any, authEmail: string | null) {
     data.username = uniqueUsername;
     if (data.password && !/^\$2[aby]\$\d+\$/.test(data.password)) {
       data.password = await hashPassword(data.password);
+    }
+    // Auto-provision a unique LinkedIn webhook secret for every new account.
+    // This mirrors how Stripe, Twilio, and other SaaS platforms automatically
+    // generate API keys at signup — no extra step needed from the user.
+    if (!data.linkedinWebhookSecret) {
+      data.linkedinWebhookSecret = generateWebhookSecret();
     }
     account = await AccountModel.create(data);
   }
@@ -311,4 +323,67 @@ export async function handleSendVerificationEmail(data: any, reqHostOrigin: stri
   }
 
   return NextResponse.json({ success: true });
+}
+
+// ---------------------------------------------------------------------------
+// LinkedIn Automation Handlers
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the user's personal LinkedIn webhook URL and their secret.
+ * If the account was created before this feature existed and has no secret,
+ * we auto-generate one now (lazy provisioning — same as GitHub's PAT system).
+ */
+export async function handleGetLinkedInConfig(authEmail: string | null) {
+  if (!authEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const account = await AccountModel.findOne({ email: authEmail.trim().toLowerCase() });
+  if (!account) {
+    return NextResponse.json({ error: "Account not found." }, { status: 404 });
+  }
+
+  // Lazy provisioning: generate secret for existing accounts that predate this feature
+  if (!account.linkedinWebhookSecret) {
+    account.linkedinWebhookSecret = generateWebhookSecret();
+    await account.save();
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in";
+
+  return NextResponse.json({
+    success: true,
+    webhookUrl: `${appUrl}/api/webhooks/linkedin`,
+    secret: account.linkedinWebhookSecret,
+  });
+}
+
+/**
+ * Generates a brand-new webhook secret for the user and saves it.
+ * Invalidates the old secret immediately — any Make.com scenarios using
+ * the old secret must be updated. Same "Regenerate" pattern as Stripe API keys.
+ */
+export async function handleRegenerateLinkedInSecret(authEmail: string | null) {
+  if (!authEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const account = await AccountModel.findOne({ email: authEmail.trim().toLowerCase() });
+  if (!account) {
+    return NextResponse.json({ error: "Account not found." }, { status: 404 });
+  }
+
+  const newSecret = generateWebhookSecret();
+  account.linkedinWebhookSecret = newSecret;
+  await account.save();
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in";
+
+  return NextResponse.json({
+    success: true,
+    webhookUrl: `${appUrl}/api/webhooks/linkedin`,
+    secret: newSecret,
+    message: "New secret generated. Update your Make.com scenario with this new secret.",
+  });
 }

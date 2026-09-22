@@ -12,6 +12,8 @@ import {
   handleSendResetEmail,
   handleResetPassword,
   handleSendVerificationEmail,
+  handleGetLinkedInConfig,
+  handleRegenerateLinkedInSecret,
 } from "@/lib/controllers/account";
 import {
   handleSavePages,
@@ -156,6 +158,12 @@ export async function POST(req: Request) {
         return handleUpdatePassword(data, authEmail);
       case "getAccountByEmail":
         return handleGetAccountByEmail(authEmail);
+
+      // LinkedIn Automation
+      case "getLinkedInConfig":
+        return handleGetLinkedInConfig(authEmail);
+      case "regenerateLinkedInSecret":
+        return handleRegenerateLinkedInSecret(authEmail);
       case "sendResetEmail":
       case "sendForgotPasswordEmail":
         return handleSendResetEmail(data);
