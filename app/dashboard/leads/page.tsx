@@ -358,57 +358,6 @@ export default function LeadsPage() {
     }
   };
 
-  // 4. Export CSV
-  const handleExportCSV = () => {
-    if (leads.length === 0) {
-      addToast("info", "No leads available to export.");
-      return;
-    }
-
-    const activeSequences = loadSequences();
-
-    const header = ["Email", "Name", "Lead Magnet", "Signup Date", "Leads Count", "Sequence Status"];
-    const rows = leads.map((l) => {
-      const page = magnetPages.find((p) => p.id === l.pageId || p.name === l.page);
-      const foundSeq = activeSequences.find((s) => s.id === page?.id || s.pageId === page?.id || (page && s.name.includes(page.name)));
-      const isEnabled = page ? (page.sequenceEnabled || (page.sequenceEmails && page.sequenceEmails.length > 0)) : false;
-      const isSeqLive = foundSeq ? foundSeq.status === "live" : isEnabled;
-      const totalSteps = foundSeq?.emails?.length || page?.sequenceEmails?.length || 1;
-
-      let computedStatus = `Step 1 of ${totalSteps} (In Progress)`;
-      if (!isSeqLive) {
-        computedStatus = "Sequence Ended";
-      } else if (l.status === "stopped") {
-        computedStatus = "Stopped";
-      } else if (l.status === "completed" || l.status === "delivered") {
-        computedStatus = `Completed (${totalSteps}/${totalSteps} steps)`;
-      }
-
-      // Format page name with leading tab/apostrophe if it looks like a date so Excel displays it literally
-      const cleanPageName = (l.page || "").replace(/"/g, '""');
-      const excelSafePage = /^\d{1,2}\/\d{1,2}/.test(cleanPageName) ? `="${cleanPageName}"` : `"${cleanPageName}"`;
-
-      return [
-        `"${(l.email || "").replace(/"/g, '""')}"`,
-        `"${(l.name || "").replace(/"/g, '""')}"`,
-        excelSafePage,
-        `"${(l.signedUpAt || "").replace(/"/g, '""')}"`,
-        "1",
-        `"${computedStatus}"`,
-      ];
-    });
-
-    const csv = [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `leads_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    addToast("success", "Exported CSV file successfully.");
-  };
-
   const copyEmailToClipboard = useCallback((emailStr: string) => {
     navigator.clipboard.writeText(emailStr);
     addToast("success", `Copied ${emailStr} to clipboard!`);
@@ -497,6 +446,63 @@ export default function LeadsPage() {
       return matchMagnet && matchSearch;
     });
   }, [leads, filterMagnet, search, checkIsLockedPdfLead]);
+
+  // 4. Export CSV (Filter & Selection Aware)
+  const handleExportCSV = () => {
+    // If checkboxes are selected, export selected leads; otherwise export filtered leads
+    const exportTarget = selectedLeadIds.length > 0
+      ? filtered.filter((l) => selectedLeadIds.includes(l.id))
+      : filtered;
+
+    if (exportTarget.length === 0) {
+      addToast("info", "No matching leads available to export.");
+      return;
+    }
+
+    const activeSequences = loadSequences();
+
+    const header = ["Email", "Name", "Lead Magnet", "Signup Date", "Leads Count", "Sequence Status"];
+    const rows = exportTarget.map((l) => {
+      const page = magnetPages.find((p) => p.id === l.pageId || p.name === l.page);
+      const foundSeq = activeSequences.find((s) => s.id === page?.id || s.pageId === page?.id || (page && s.name.includes(page.name)));
+      const isEnabled = page ? (page.sequenceEnabled || (page.sequenceEmails && page.sequenceEmails.length > 0)) : false;
+      const isSeqLive = foundSeq ? foundSeq.status === "live" : isEnabled;
+      const totalSteps = foundSeq?.emails?.length || page?.sequenceEmails?.length || 1;
+
+      let computedStatus = `Step 1 of ${totalSteps} (In Progress)`;
+      if (!isSeqLive) {
+        computedStatus = "Sequence Ended";
+      } else if (l.status === "stopped") {
+        computedStatus = "Stopped";
+      } else if (l.status === "completed" || l.status === "delivered") {
+        computedStatus = `Completed (${totalSteps}/${totalSteps} steps)`;
+      }
+
+      // Format page name with leading tab/apostrophe if it looks like a date so Excel displays it literally
+      const cleanPageName = (l.page || "").replace(/"/g, '""');
+      const excelSafePage = /^\d{1,2}\/\d{1,2}/.test(cleanPageName) ? `="${cleanPageName}"` : `"${cleanPageName}"`;
+
+      return [
+        `"${(l.email || "").replace(/"/g, '""')}"`,
+        `"${(l.name || "").replace(/"/g, '""')}"`,
+        excelSafePage,
+        `"${(l.signedUpAt || "").replace(/"/g, '""')}"`,
+        "1",
+        `"${computedStatus}"`,
+      ];
+    });
+
+    const csv = [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const filterSuffix = filterMagnet !== "All lead magnets" ? `_${filterMagnet.replace(/[^a-zA-Z0-9]/g, "_")}` : "";
+    a.download = `leads${filterSuffix}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    addToast("success", `Exported ${exportTarget.length} lead${exportTarget.length === 1 ? "" : "s"} successfully.`);
+  };
 
   // 5. Pagination Logic
   const totalPages = useMemo(() => Math.ceil(filtered.length / pageSize) || 1, [filtered.length, pageSize]);
