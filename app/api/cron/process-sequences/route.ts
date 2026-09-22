@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongodb";
-import { LeadModel, MagnetPageModel, SequenceModel } from "@/lib/models";
+import { LeadModel, MagnetPageModel, SequenceModel, AccountModel } from "@/lib/models";
 import { sendMail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +53,19 @@ export async function GET(req: NextRequest) {
       ],
     }).lean();
 
+    const uniqueOwnerEmails = Array.from(
+      new Set([
+        ...pageDocs.map((p) => p.userEmail).filter(Boolean),
+        ...activeLeads.map((l) => l.userEmail).filter(Boolean),
+      ])
+    );
+
+    const accountDocs = await AccountModel.find({
+      email: { $in: uniqueOwnerEmails.map((e) => e.toLowerCase().trim()) },
+    }).lean();
+
+    const accountByEmail = new Map(accountDocs.map((a) => [a.email.toLowerCase().trim(), a]));
+
     // Build O(1) lookup maps so the loop never touches the database for pages
     const pageById = new Map(pageDocs.filter((p) => p.id).map((p) => [p.id, p]));
     const pageByName = new Map(pageDocs.filter((p) => p.name).map((p) => [p.name, p]));
@@ -72,6 +85,9 @@ export async function GET(req: NextRequest) {
         debugLogs.push({ email: lead.email, page: lead.page, pageId: lead.pageId, reason: "Page doc not found in DB" });
         continue;
       }
+
+      const ownerEmail = (pageDoc.userEmail || lead.userEmail || "").toLowerCase().trim();
+      const ownerAccount = accountByEmail.get(ownerEmail) || null;
 
       if (!pageDoc.sequenceEmails || pageDoc.sequenceEmails.length === 0) {
         debugLogs.push({ email: lead.email, pageName: pageDoc.name, reason: "No sequenceEmails on page doc", sequenceEmailsCount: pageDoc.sequenceEmails?.length || 0 });
@@ -122,22 +138,56 @@ export async function GET(req: NextRequest) {
 
       processedCount++;
 
+      const formattedSubject = (nextEmail.subject || `Follow-up on ${pageDoc.name}`)
+        .replace(/\{name\}/gi, lead.name || "there");
+
+      let rawBody = (nextEmail.body || `Hi {name},\n\nJust checking in to see if you had a chance to look at ${pageDoc.name}! Let me know if you have any questions.\n\nBest regards`)
+        .replace(/\{name\}/gi, lead.name || "there")
+        .replace(/\{email\}/gi, lead.email || "");
+
+      const hasHtmlTags = /<[a-z][\s\S]*>/i.test(rawBody);
+      let formattedBodyHtml = hasHtmlTags ? rawBody : rawBody.replace(/\n/g, "<br/>");
+
+      // Auto-convert standalone YouTube links into clickable video cards
+      formattedBodyHtml = formattedBodyHtml.replace(
+        /(?<!href=["'])(https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11}))/g,
+        (_match: string, url: string, ytId: string) => {
+          const thumb = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+          return `<div style="text-align: center; margin: 16px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer"><img src="${thumb}" alt="Watch Video on YouTube" style="max-width: 100%; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" /></a><br/><a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0066B2; font-weight: 600; text-decoration: underline;">▶ Watch Video on YouTube</a></div>`;
+        }
+      );
+
+      const brandColor = ownerAccount?.brandColor || "#0066B2";
+      const senderName = ownerAccount?.senderDisplayName || ownerAccount?.name || "LeadMagnets";
+      const defaultFrom = process.env.SMTP_FROM || "non-reply@bdatech.in";
+      const accessUrl = `${req.nextUrl.origin}/r/${pageDoc.id}`;
+
       const htmlBody = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1e293b;">
-          <h2 style="color: #0066B2;">${nextEmail.subject}</h2>
-          <div style="font-size: 15px; line-height: 1.6; margin-top: 16px;">
-            ${nextEmail.body || `Hi ${lead.name || "there"},\n\nHere is your follow-up resource for ${pageDoc.name}.`}
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 32px 20px; background-color: #f8fafc;">
+          <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+            <h2 style="color: #0f172a; font-size: 20px; font-weight: 800; margin: 0 0 16px 0;">
+              ${formattedSubject}
+            </h2>
+            <div style="color: #334155; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
+              ${formattedBodyHtml}
+            </div>
+            <div style="text-align: center; margin: 24px 0;">
+              <a href="${accessUrl}" style="background-color: ${brandColor}; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(0, 102, 178, 0.25);">
+                📥 Access Resource →
+              </a>
+            </div>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0 16px 0;" />
+            <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
+              Sent by ${senderName} · <a href="${accessUrl}" style="color: #64748b; text-decoration: underline;">Access Deliverable</a>
+            </p>
           </div>
-          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0 16px 0;" />
-          <p style="font-size: 11px; color: #94a3b8; text-align: center;">
-            Sent via LeadMagnets Sequence Engine · <a href="${req.nextUrl.origin}/r/${pageDoc.id}" style="color: #64748b;">Access Deliverable</a>
-          </p>
         </div>
       `;
 
       const sendResult = await sendMail({
         to: lead.email.trim(),
-        subject: nextEmail.subject,
+        from: `${senderName} <${defaultFrom}>`,
+        subject: formattedSubject,
         html: htmlBody,
       });
 
