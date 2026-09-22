@@ -160,28 +160,85 @@ export async function GET(req: NextRequest) {
       const brandColor = ownerAccount?.brandColor || "#0066B2";
       const senderName = ownerAccount?.senderDisplayName || ownerAccount?.name || "LeadMagnets";
       const defaultFrom = process.env.SMTP_FROM || "non-reply@bdatech.in";
-      const accessUrl = `${req.nextUrl.origin}/r/${pageDoc.id}`;
+      const appUrl = (process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin || "https://magnets.bdatech.in").replace(/\/$/, "");
+      const logoUrl = `${appUrl}/brand/custom-logo-light.png`;
+      const accessUrl = `${appUrl}/r/${pageDoc.id}`;
+
+      // Clean up localhost occurrences in body text
+      formattedBodyHtml = formattedBodyHtml.replace(/http:\/\/localhost:3000/g, appUrl);
+
+      // Convert bare URLs into clean styled links if not already wrapped
+      formattedBodyHtml = formattedBodyHtml.replace(
+        /(?<!href=["']|src=["'])(https?:\/\/[^\s<]+)/g,
+        '<a href="$1" target="_blank" style="color: #0066B2; text-decoration: underline; font-weight: 500; word-break: break-all;">$1</a>'
+      );
 
       const htmlBody = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 32px 20px; background-color: #f8fafc;">
-          <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-            <h2 style="color: #0f172a; font-size: 20px; font-weight: 800; margin: 0 0 16px 0;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${formattedSubject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
+  <div style="background-color: #f1f5f9; padding: 36px 16px;">
+    <table cellpadding="0" cellspacing="0" border="0" style="max-width: 580px; width: 100%; margin: 0 auto;">
+      
+      <!-- Top Brand Header with Official Logo -->
+      <tr>
+        <td style="padding-bottom: 22px; text-align: center;">
+          <a href="${appUrl}" target="_blank" style="text-decoration: none; display: inline-block;">
+            <img 
+              src="${logoUrl}" 
+              alt="LeadMagnets" 
+              height="34" 
+              style="height: 34px; width: auto; max-height: 38px; display: inline-block; border: 0; outline: none; vertical-align: middle;" 
+            />
+          </a>
+        </td>
+      </tr>
+
+      <!-- Main Card Container -->
+      <tr>
+        <td>
+          <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 36px 32px; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.02);">
+            
+            <h2 style="color: #0f172a; font-size: 21px; font-weight: 800; margin: 0 0 16px 0; line-height: 1.3;">
               ${formattedSubject}
             </h2>
-            <div style="color: #334155; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
+
+            <div style="color: #334155; font-size: 15px; line-height: 1.65; margin-bottom: 24px;">
               ${formattedBodyHtml}
             </div>
-            <div style="text-align: center; margin: 24px 0;">
-              <a href="${accessUrl}" style="background-color: ${brandColor}; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(0, 102, 178, 0.25);">
+
+            <!-- Resource CTA Button -->
+            <div style="text-align: center; margin: 26px 0 18px 0;">
+              <a href="${accessUrl}" style="background: linear-gradient(135deg, ${brandColor} 0%, #004d88 100%); color: #ffffff; padding: 13px 32px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 14px rgba(0, 102, 178, 0.28); letter-spacing: 0.01em;">
                 📥 Access Resource →
               </a>
             </div>
+
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0 16px 0;" />
-            <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
-              Sent by ${senderName} · <a href="${accessUrl}" style="color: #64748b; text-decoration: underline;">Access Deliverable</a>
-            </p>
+            <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; text-align: center;">
+              <tr>
+                <td>
+                  <div style="font-size: 11px; color: #94a3b8; line-height: 1.5;">
+                    Sent by <strong>${senderName}</strong> · Powered by LeadMagnets<br />
+                    <a href="${accessUrl}" style="color: #0066B2; text-decoration: underline;">Direct Resource Access</a>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
           </div>
-        </div>
+        </td>
+      </tr>
+
+    </table>
+  </div>
+</body>
+</html>
       `;
 
       const sendResult = await sendMail({

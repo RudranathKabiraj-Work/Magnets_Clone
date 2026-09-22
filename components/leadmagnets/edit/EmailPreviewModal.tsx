@@ -1,41 +1,46 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Mail, X } from "lucide-react";
-import { type Account, type MagnetPage } from "@/lib/data";
+import React, { useEffect, useState } from "react";
+import { X, Mail } from "lucide-react";
+import { type Account } from "@/lib/data";
 
-interface EmailPreviewModalProps {
+export interface EmailPreviewModalProps {
+  isOpen?: boolean;
+  onClose: () => void;
+  page: any;
+  account: Account | null;
   emailSubject: string;
   emailPreviewText: string;
   emailBody: string;
-  page: MagnetPage;
-  account: Account | null;
-  pageId: string;
-  onClose: () => void;
+  pageId?: string;
 }
 
 export default function EmailPreviewModal({
+  isOpen = true,
+  onClose,
+  page,
+  account,
   emailSubject,
   emailPreviewText,
   emailBody,
-  page,
-  account,
   pageId,
-  onClose,
 }: EmailPreviewModalProps) {
   const [testEmailSending, setTestEmailSending] = useState(false);
   const [testEmailSentMsg, setTestEmailSentMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
-    document.body.style.overflow = "hidden";
+    if (!isOpen) return;
+    const lenis = (window as any).lenis;
     if (lenis && typeof lenis.stop === "function") lenis.stop();
+    document.body.style.overflow = "hidden";
 
     return () => {
       document.body.style.overflow = "";
       if (lenis && typeof lenis.start === "function") lenis.start();
     };
-  }, []);
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const handleSendTestEmail = async () => {
     setTestEmailSending(true);
@@ -90,13 +95,17 @@ export default function EmailPreviewModal({
               <Mail className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold">Subscriber Email Preview</h3>
-              <p className="text-[11px] text-zinc-400">Live preview of what subscribers receive in their inbox</p>
+              <h2 className={`text-sm font-bold ${isDark ? "text-white" : "text-zinc-900"}`}>
+                Deliverable Email Preview
+              </h2>
+              <p className="text-[11px] text-zinc-400">
+                This is the exact email your subscribers receive to download their resource
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className={`rounded-lg p-1.5 transition cursor-pointer ${isDark ? "text-zinc-400 hover:bg-zinc-800 hover:text-white" : "text-zinc-400 hover:bg-zinc-200 hover:text-zinc-800"}`}
+            className={`rounded-lg p-1.5 transition ${isDark ? "hover:bg-zinc-800 text-zinc-400 hover:text-white" : "hover:bg-zinc-200 text-zinc-500 hover:text-zinc-900"}`}
           >
             <X className="h-4 w-4" />
           </button>
@@ -125,47 +134,90 @@ export default function EmailPreviewModal({
           onTouchMove={(e) => e.stopPropagation()}
           className={`flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 overscroll-contain ${isDark ? "bg-[#0B0F17]" : "bg-[#F8FAFC]"}`}
         >
-          <div className={`max-w-xl mx-auto rounded-2xl border p-6 sm:p-8 shadow-sm space-y-6 ${isDark ? "border-zinc-800 bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
-            <h1 className={`text-xl font-extrabold ${isDark ? "text-white" : "text-zinc-900"}`}>
-              {page?.name || "Lead Magnet Resource"}
-            </h1>
-            <div
-              className={`text-sm leading-relaxed ${isDark ? "text-zinc-300" : "text-zinc-700"} [&_p]:mb-2 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5`}
-              dangerouslySetInnerHTML={{
-                __html: (() => {
-                  const raw = (emailBody || "Hey {name},\n\nThank you for requesting this resource! Click the button below to get instant access.\n\nEnjoy!")
-                    .replace(/\{name\}/g, "Subscriber");
-                  const hasHtml = /<[a-z][\s\S]*>/i.test(raw);
-                  let formatted = hasHtml ? raw : raw.replace(/\n/g, "<br/>");
-
-                  // Auto-convert standalone YouTube links into clickable video cards if not inside href
-                  formatted = formatted.replace(
-                    /(?<!href=["'])(https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11}))/g,
-                    (_match: string, url: string, ytId: string) => {
-                      const thumb = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
-                      return `<div style="text-align: center; margin: 16px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer"><img src="${thumb}" alt="Watch Video on YouTube" style="max-width: 100%; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" /></a><br/><a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0066B2; font-weight: 600; text-decoration: underline;">▶ Watch Video on YouTube</a></div>`;
-                    }
-                  );
-                  return formatted;
-                })(),
-              }}
-            />
-
-            <div className="text-center py-2">
-              <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
-                style={{ backgroundColor: account?.brandColor || "#0066B2" }}
-                className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white shadow-md hover:opacity-90 transition cursor-pointer"
-              >
-                <span>📥 Access Your Lead Magnet →</span>
-              </a>
+          <div className="max-w-xl mx-auto space-y-4">
+            {/* Top Brand Logo */}
+            <div className="text-center py-1">
+              <img
+                src="/brand/custom-logo-light.png"
+                alt="LeadMagnets"
+                className="h-7 w-auto mx-auto object-contain opacity-90"
+              />
             </div>
 
-            <hr className={isDark ? "border-zinc-800" : "border-zinc-200"} />
-            <p className="text-[11px] text-zinc-400 text-center">
-              Sent by {account?.name || "LeadMagnets"} · Instant Delivery
-            </p>
+            <div className={`rounded-2xl border p-6 sm:p-8 shadow-sm space-y-5 ${isDark ? "border-zinc-800 bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
+              {/* Badge */}
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200/60 px-3 py-1 text-[11px] font-bold text-blue-700 uppercase tracking-wider dark:bg-blue-950/40 dark:border-blue-800/60 dark:text-blue-400">
+                <span>🎁 Your Download Is Ready</span>
+              </div>
+
+              {/* Email Body Text */}
+              <div
+                className={`text-sm leading-relaxed ${isDark ? "text-zinc-300" : "text-zinc-700"} [&_p]:mb-2 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5`}
+                dangerouslySetInnerHTML={{
+                  __html: (() => {
+                    const raw = (emailBody || "Hey {name},\n\nThank you for requesting this resource! Click the button below to get instant access.\n\nEnjoy!")
+                      .replace(/\{name\}/g, "Subscriber")
+                      .replace(/http:\/\/localhost:3000/g, "https://magnets.bdatech.in");
+                    const hasHtml = /<[a-z][\s\S]*>/i.test(raw);
+                    let formatted = hasHtml ? raw : raw.replace(/\n/g, "<br/>");
+
+                    // Auto-convert standalone YouTube links into clickable video cards if not inside href
+                    formatted = formatted.replace(
+                      /(?<!href=["'])(https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11}))/g,
+                      (_match: string, url: string, ytId: string) => {
+                        const thumb = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                        return `<div style="text-align: center; margin: 16px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer"><img src="${thumb}" alt="Watch Video on YouTube" style="max-width: 100%; border-radius: 12px; display: block; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" /></a><br/><a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #0066B2; font-weight: 600; text-decoration: underline;">▶ Watch Video on YouTube</a></div>`;
+                      }
+                    );
+                    return formatted;
+                  })(),
+                }}
+              />
+
+              {/* Dedicated Resource Download Card */}
+              <div className={`rounded-xl border p-4 sm:p-5 text-center transition-colors ${isDark ? "border-zinc-800 bg-zinc-900/60" : "border-zinc-200 bg-gradient-to-b from-slate-50 to-slate-100/70"}`}>
+                <div className="flex items-center gap-3 text-left mb-3.5">
+                  <div
+                    style={{ backgroundColor: account?.brandColor || "#0066B2" }}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg text-white shadow-sm"
+                  >
+                    📄
+                  </div>
+                  <div>
+                    <div className={`text-base font-bold leading-tight ${isDark ? "text-white" : "text-zinc-900"}`}>
+                      {page?.name || "Lead Magnet Resource"}
+                    </div>
+                    <div className="text-xs text-zinc-500 font-medium mt-0.5">
+                      Instant Access · Free Resource Download
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <a
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                    style={{ backgroundColor: account?.brandColor || "#0066B2" }}
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-7 py-3 text-sm font-bold text-white shadow-md hover:opacity-90 transition cursor-pointer"
+                  >
+                    <span>📥 Download & Access Resource →</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Direct Link Fallback */}
+              <p className="text-xs text-zinc-400 text-center">
+                Button not working?{" "}
+                <span className="text-[#0066B2] dark:text-[#38BDF8] underline font-medium cursor-pointer">
+                  Click here to access directly
+                </span>
+              </p>
+
+              <hr className={isDark ? "border-zinc-800" : "border-zinc-200"} />
+              <p className="text-[11px] text-zinc-400 text-center">
+                Delivered by <strong>{account?.senderDisplayName || account?.name || "LeadMagnets"}</strong> · Instant Resource Delivery
+              </p>
+            </div>
           </div>
         </div>
 

@@ -126,9 +126,20 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
             ? foundPageDoc.emailBody
             : `Hey {name},\n\nThank you for requesting ${pageTitle}! Click the button below to access your resource instantly.\n\nEnjoy!`;
 
+          const brandColor = ownerAccount?.brandColor || "#0066B2";
+          const senderName = ownerAccount?.senderDisplayName || ownerAccount?.name || "LeadMagnets";
+          const logoUrl = `${appUrl}/brand/custom-logo-light.png`;
+
+          // Replace dynamic tags ({name}, {email})
+          const recipientDisplayName = (data.name && data.name.trim()) ? data.name.trim() : "there";
           rawBody = rawBody
-            .replace(/\{name\}/gi, data.name || "there")
+            .replace(/\{name\}/gi, recipientDisplayName)
             .replace(/\{email\}/gi, data.email || "");
+
+          // Clean up localhost occurrences and replace any raw /r/ links with the official thank-you page URL
+          rawBody = rawBody
+            .replace(/http:\/\/localhost:3000/g, appUrl)
+            .replace(/https?:\/\/[^\s<]+\/r\/[a-zA-Z0-9_-]+/g, resourceAccessUrl);
 
           const hasHtmlTags = /<[a-z][\s\S]*>/i.test(rawBody);
           let formattedBodyHtml = hasHtmlTags ? rawBody : rawBody.replace(/\n/g, "<br/>");
@@ -141,34 +152,116 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
             }
           );
 
+          // Convert bare URLs into clean styled links if not already wrapped
+          formattedBodyHtml = formattedBodyHtml.replace(
+            /(?<!href=["']|src=["'])(https?:\/\/[^\s<]+)/g,
+            '<a href="$1" target="_blank" style="color: #0066B2; text-decoration: underline; font-weight: 500; word-break: break-all;">$1</a>'
+          );
+
           const preheaderHtml = previewText
             ? `<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${previewText}</div>`
             : "";
 
           const subscriberHtml = `
-            ${preheaderHtml}
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 32px 20px; background-color: #f8fafc;">
-              <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-                <h1 style="color: #0f172a; font-size: 22px; font-weight: 800; margin: 0 0 16px 0;">
-                  ${pageTitle}
-                </h1>
-                <div style="color: #334155; font-size: 15px; line-height: 1.6; margin-bottom: 28px;">
-                  ${formattedBodyHtml}
-                </div>
-                <div style="text-align: center; margin: 28px 0;">
-                  <a href="${resourceAccessUrl}" style="background-color: ${ownerAccount?.brandColor || "#0066B2"}; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(0, 102, 178, 0.25);">
-                    📥 Access Your Lead Magnet →
-                  </a>
-                </div>
-                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0 20px 0;" />
-                <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
-                  Sent by ${ownerAccount?.name || "LeadMagnets"} · Instant Lead Magnet Delivery
-                </p>
-              </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
+  ${preheaderHtml}
+  <div style="background-color: #f1f5f9; padding: 36px 16px;">
+    <table cellpadding="0" cellspacing="0" border="0" style="max-width: 580px; width: 100%; margin: 0 auto;">
+      
+      <!-- Top Brand Header with Official Logo -->
+      <tr>
+        <td style="padding-bottom: 22px; text-align: center;">
+          <a href="${appUrl}" target="_blank" style="text-decoration: none; display: inline-block;">
+            <img 
+              src="${logoUrl}" 
+              alt="LeadMagnets" 
+              height="34" 
+              style="height: 34px; width: auto; max-height: 38px; display: inline-block; border: 0; outline: none; vertical-align: middle;" 
+            />
+          </a>
+        </td>
+      </tr>
+
+      <!-- Main Card Container -->
+      <tr>
+        <td>
+          <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 36px 32px; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.02);">
+            
+            <!-- Badge -->
+            <div style="display: inline-block; background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 18px;">
+              🎁 Your Download Is Ready
             </div>
+
+            <!-- Main Lead Body / Message -->
+            <div style="color: #334155; font-size: 15px; line-height: 1.65; margin-bottom: 24px;">
+              ${formattedBodyHtml}
+            </div>
+
+            <!-- Dedicated Resource Access Card -->
+            <div style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px 20px; margin: 26px 0; text-align: center;">
+              
+              <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin-bottom: 16px; text-align: left;">
+                <tr>
+                  <td style="width: 44px; vertical-align: middle;">
+                    <div style="width: 42px; height: 42px; background: linear-gradient(135deg, ${brandColor} 0%, #004d88 100%); border-radius: 10px; text-align: center; line-height: 42px; font-size: 20px; color: #ffffff; box-shadow: 0 2px 8px rgba(0, 102, 178, 0.25);">
+                      📄
+                    </div>
+                  </td>
+                  <td style="padding-left: 12px; vertical-align: middle;">
+                    <div style="font-size: 16px; font-weight: 800; color: #0f172a; line-height: 1.3;">
+                      ${pageTitle}
+                    </div>
+                    <div style="font-size: 12px; color: #64748b; font-weight: 500; margin-top: 2px;">
+                      Instant Access · Free Resource Download
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Download CTA Button -->
+              <div style="margin-top: 14px;">
+                <a href="${resourceAccessUrl}" style="background: linear-gradient(135deg, ${brandColor} 0%, #004d88 100%); color: #ffffff; padding: 13px 32px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 14px rgba(0, 102, 178, 0.28); letter-spacing: 0.01em;">
+                  📥 Download & Access Resource →
+                </a>
+              </div>
+
+            </div>
+
+            <!-- Fallback Direct Link -->
+            <div style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 16px; line-height: 1.5;">
+              Button not working? <a href="${resourceAccessUrl}" style="color: ${brandColor}; text-decoration: underline; word-break: break-all;">Click here to access directly</a>
+            </div>
+
+            <!-- Footer Details -->
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 28px 0 16px 0;" />
+            <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; text-align: center;">
+              <tr>
+                <td>
+                  <div style="font-size: 11px; color: #94a3b8; line-height: 1.5;">
+                    Delivered by <strong>${senderName}</strong> · Instant Resource Delivery<br />
+                    You received this email because you requested access to this resource.
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+          </div>
+        </td>
+      </tr>
+
+    </table>
+  </div>
+</body>
+</html>
           `;
 
-          const senderName = ownerAccount?.senderDisplayName || ownerAccount?.name || "LeadMagnets";
           const defaultFrom = process.env.SMTP_FROM || "non-reply@bdatech.in";
 
           try {
