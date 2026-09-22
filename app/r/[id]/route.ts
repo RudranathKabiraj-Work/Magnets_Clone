@@ -2,7 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import { dbConnect } from "@/lib/mongodb";
-import { ResourceModel } from "@/lib/models";
+import { ResourceModel, MagnetPageModel } from "@/lib/models";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
+});
+
+function parseCloudinaryUrl(url: string): {
+  publicId: string;
+  format: string;
+  resourceType: "image" | "raw" | "video";
+} | null {
+  const match = url.match(
+    /res\.cloudinary\.com\/[^/]+\/(image|raw|video)\/upload\/(?:v\d+\/)?(.+)$/
+  );
+  if (!match) return null;
+
+  const resourceType = match[1] as "image" | "raw" | "video";
+  const pathWithExt = match[2];
+
+  const lastDot = pathWithExt.lastIndexOf(".");
+  const publicId = lastDot !== -1 ? pathWithExt.substring(0, lastDot) : pathWithExt;
+  const format = lastDot !== -1 ? pathWithExt.substring(lastDot + 1) : "pdf";
+
+  return { publicId, format, resourceType };
+}
 
 export async function GET(
   req: NextRequest,
@@ -14,35 +42,113 @@ export async function GET(
     await dbConnect();
     let resource = await ResourceModel.findOne({ id: resourceId }).lean();
 
-    // 1. If stored in Vercel Blob Cloud, fetch and stream directly with instant attachment download headers
-    if (resource && resource.fileUrl && resource.fileUrl.startsWith("http") && !resource.fileUrl.includes("/uploads/")) {
-      const blobResponse = await fetch(resource.fileUrl);
-      if (blobResponse.ok) {
-        const downloadFilename = resource.name || resource.fileUrl.split("/").pop() || "resource-file";
-        const contentType = blobResponse.headers.get("content-type") || "application/octet-stream";
+    // If not found by direct resource id, check if resourceId is a MagnetPage slug/id
+    if (!resource) {
+      const page = await MagnetPageModel.findOne({
+        $or: [{ id: resourceId }, { slug: resourceId }],
+      }).lean();
 
-        return new NextResponse(blobResponse.body, {
-          headers: {
-            "Content-Type": contentType,
-            "Content-Disposition": `attachment; filename="${encodeURIComponent(downloadFilename)}"`,
-            "Cache-Control": "public, max-age=31536000, immutable",
-          },
-        });
+      if (page) {
+        let boundResId = (page.resourceId || "").trim();
+        if (!boundResId && page.emailBody) {
+          const m = page.emailBody.match(/\/r\/([a-zA-Z0-9_-]+)/);
+          if (m && m[1]) boundResId = m[1];
+        }
+
+        if (boundResId) {
+          resource = await ResourceModel.findOne({ id: boundResId }).lean();
+        }
+
+        if (!resource && page.assetUrl && page.assetUrl.startsWith("http")) {
+          return NextResponse.redirect(page.assetUrl, 307);
+        }
+
+        if (!resource && page.userEmail) {
+          resource = await ResourceModel.findOne({ userEmail: page.userEmail.toLowerCase().trim() })
+            .sort({ uploadedAt: -1 })
+            .lean();
+        }
       }
-      return NextResponse.redirect(resource.fileUrl);
+    }
+
+    // 1. If stored in Cloudinary / Vercel Blob / S3 CDN, stream directly with attachment headers
+    if (resource && resource.fileUrl && resource.fileUrl.startsWith("http") && !resource.fileUrl.includes("/uploads/")) {
+      const downloadFilename = resource.name || resource.fileUrl.split("/").pop() || "download.pdf";
+      const isPdf = downloadFilename.toLowerCase().endsWith(".pdf") || resource.fileUrl.toLowerCase().endsWith(".pdf");
+
+      if (resource.fileUrl.includes("res.cloudinary.com")) {
+        const parsed = parseCloudinaryUrl(resource.fileUrl);
+        if (parsed && process.env.CLOUDINARY_API_SECRET) {
+          try {
+            const signedUrl = cloudinary.utils.private_download_url(
+              parsed.publicId,
+              parsed.format,
+              {
+                resource_type: parsed.resourceType,
+                type: "upload",
+                expires_at: Math.floor(Date.now() / 1000) + 3600,
+                attachment: true,
+              }
+            );
+            const upstream = await fetch(signedUrl);
+            if (upstream.ok && upstream.body) {
+              return new NextResponse(upstream.body, {
+                headers: {
+                  "Content-Type": isPdf ? "application/pdf" : (upstream.headers.get("content-type") || "application/octet-stream"),
+                  "Content-Disposition": `attachment; filename="${encodeURIComponent(downloadFilename)}"`,
+                  "Cache-Control": "public, max-age=31536000, immutable",
+                },
+              });
+            }
+          } catch (signErr) {
+            console.warn("Cloudinary signed stream warning:", signErr);
+          }
+        }
+
+        // Try raw fallback URL variant (swapping /image/upload/ to /raw/upload/)
+        const rawFallbackUrl = resource.fileUrl.replace("/image/upload/", "/raw/upload/");
+        try {
+          const rawUpstream = await fetch(rawFallbackUrl);
+          if (rawUpstream.ok && rawUpstream.body) {
+            return new NextResponse(rawUpstream.body, {
+              headers: {
+                "Content-Type": isPdf ? "application/pdf" : (rawUpstream.headers.get("content-type") || "application/octet-stream"),
+                "Content-Disposition": `attachment; filename="${encodeURIComponent(downloadFilename)}"`,
+                "Cache-Control": "public, max-age=31536000, immutable",
+              },
+            });
+          }
+        } catch (_) {}
+      }
+
+      try {
+        const blobResponse = await fetch(resource.fileUrl);
+        if (blobResponse.ok && blobResponse.body) {
+          return new NextResponse(blobResponse.body, {
+            headers: {
+              "Content-Type": isPdf ? "application/pdf" : (blobResponse.headers.get("content-type") || "application/octet-stream"),
+              "Content-Disposition": `attachment; filename="${encodeURIComponent(downloadFilename)}"`,
+              "Cache-Control": "public, max-age=31536000, immutable",
+            },
+          });
+        }
+      } catch (fetchErr) {
+        console.warn("Direct blob stream error, redirecting:", fetchErr);
+      }
+      return NextResponse.redirect(resource.fileUrl, 307);
     }
 
     const isVercel = Boolean(process.env.VERCEL);
     const uploadsDir = isVercel ? "/tmp" : path.join(process.cwd(), "public", "uploads");
     const filesOnDisk = await fs.readdir(uploadsDir).catch(() => []);
-    let matchingFile = filesOnDisk.find((f) => f.startsWith(resourceId));
+    let matchingFile = filesOnDisk.find((f) => f.startsWith(resourceId) || (resource && f.startsWith(resource.id)));
     let targetDir = uploadsDir;
 
     if (!matchingFile && isVercel) {
       // Check fallback public/uploads directory
       const localPublic = path.join(process.cwd(), "public", "uploads");
       const altFiles = await fs.readdir(localPublic).catch(() => []);
-      matchingFile = altFiles.find((f) => f.startsWith(resourceId));
+      matchingFile = altFiles.find((f) => f.startsWith(resourceId) || (resource && f.startsWith(resource.id)));
       if (matchingFile) targetDir = localPublic;
     }
 

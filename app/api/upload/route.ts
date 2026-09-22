@@ -59,12 +59,13 @@ export async function POST(req: NextRequest) {
         const buffer = Buffer.from(bytes);
 
         const isImage = file.type.startsWith("image/");
+        const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 
         const uploadResult = await new Promise<any>((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
             {
-              resource_type: "auto",
-              public_id: safeFilename.replace(/\.[^/.]+$/, ""),
+              resource_type: isImage ? "image" : "raw",
+              public_id: isImage ? safeFilename.replace(/\.[^/.]+$/, "") : safeFilename,
               folder: "leadmagnets",
               transformation: isImage ? [{ quality: "auto", fetch_format: "auto" }] : undefined,
             },

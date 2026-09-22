@@ -103,9 +103,18 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
           const dynamicOrigin = reqHost ? `${reqProto}://${reqHost}` : "http://localhost:3000";
           const appUrl = process.env.NEXT_PUBLIC_APP_URL || dynamicOrigin;
 
+          let targetResourceId = foundPageDoc?.resourceId || "";
+          if (!targetResourceId && foundPageDoc?.emailBody) {
+            const match = foundPageDoc.emailBody.match(/\/r\/([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) {
+              targetResourceId = match[1];
+            }
+          }
+
           const targetUser = ownerAccount?.username || "u";
           const targetSlug = data.pageSlug || data.pageId || "resource";
-          const resourceAccessUrl = `${appUrl}/${encodeURIComponent(targetUser)}/${encodeURIComponent(targetSlug)}/thank-you?email=${encodeURIComponent(data.email)}&name=${encodeURIComponent(data.name || "")}`;
+          const resParam = targetResourceId ? `&res=${encodeURIComponent(targetResourceId)}` : "";
+          const resourceAccessUrl = `${appUrl}/${encodeURIComponent(targetUser)}/${encodeURIComponent(targetSlug)}/thank-you?email=${encodeURIComponent(data.email)}&name=${encodeURIComponent(data.name || "")}${resParam}`;
 
           const subject = (foundPageDoc?.emailSubject && foundPageDoc.emailSubject.trim())
             ? foundPageDoc.emailSubject.replace(/{name}/g, data.name || "there")

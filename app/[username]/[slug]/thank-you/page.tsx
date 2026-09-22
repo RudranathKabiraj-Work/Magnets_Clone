@@ -10,7 +10,7 @@ export default async function ThankYouPage({
   searchParams,
 }: {
   params: { username: string; slug: string };
-  searchParams: { email?: string; name?: string; answer?: string; aiOutput?: string };
+  searchParams: { email?: string; name?: string; answer?: string; aiOutput?: string; res?: string };
 }) {
   const decodedUsername = decodeURIComponent(params.username || "");
   let accountDoc: any = null;
@@ -36,18 +36,40 @@ export default async function ThankYouPage({
 
     const cleanUserEmail = pageDoc?.userEmail ? pageDoc.userEmail.trim().toLowerCase() : null;
 
-    // Parallel fetch fallback account and resource doc if cleanUserEmail exists
-    const [fallbackAccount, resourceDoc] = await Promise.all([
-      !accountDoc && cleanUserEmail ? AccountModel.findOne({ email: cleanUserEmail }).lean() : null,
-      cleanUserEmail ? ResourceModel.findOne({ userEmail: cleanUserEmail }).sort({ uploadedAt: -1 }).lean() : null,
-    ]);
-
+    if (!accountDoc && cleanUserEmail) {
+      accountDoc = await AccountModel.findOne({ email: cleanUserEmail }).lean();
+    }
     if (!accountDoc) {
-      accountDoc = fallbackAccount || (await AccountModel.findOne({}).lean());
+      accountDoc = await AccountModel.findOne({}).lean();
     }
 
-    if (resourceDoc && resourceDoc.url) {
-      downloadUrl = resourceDoc.url;
+    // 1. Check direct assetUrl on page doc
+    if (pageDoc?.assetUrl && pageDoc.assetUrl.trim()) {
+      downloadUrl = pageDoc.assetUrl.trim();
+    }
+
+    // 2. Check candidate resource ID from query param, pageDoc, or emailBody
+    let candidateResId = (searchParams.res || pageDoc?.resourceId || "").trim();
+    if (!candidateResId && pageDoc?.emailBody) {
+      const match = pageDoc.emailBody.match(/\/r\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        candidateResId = match[1];
+      }
+    }
+
+    if (candidateResId) {
+      const specificRes = await ResourceModel.findOne({ id: candidateResId }).lean();
+      if (specificRes) {
+        downloadUrl = specificRes.url || (specificRes.fileUrl ? specificRes.fileUrl : `/r/${specificRes.id}`);
+      }
+    }
+
+    // 3. Fallback to latest account resource if no specific asset was bound
+    if (!downloadUrl && cleanUserEmail) {
+      const resourceDoc = await ResourceModel.findOne({ userEmail: cleanUserEmail }).sort({ uploadedAt: -1 }).lean();
+      if (resourceDoc && resourceDoc.url) {
+        downloadUrl = resourceDoc.url;
+      }
     }
   } catch (err) {
     console.warn("MongoDB connection fallback in ThankYouPage:", err);

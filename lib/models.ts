@@ -98,6 +98,9 @@ const MagnetPageSchema = new Schema({
   pdfFreePages: { type: Number, default: 2 },
   pdfTitle: { type: String, default: "" },
   pdfPageCount: { type: Number, default: 0 },
+  // Explicit Asset / Deliverable fields for Landing Pages
+  resourceId: { type: String, default: "" },
+  assetUrl: { type: String, default: "" },
 });
 
 MagnetPageSchema.index({ userEmail: 1, slug: 1 });

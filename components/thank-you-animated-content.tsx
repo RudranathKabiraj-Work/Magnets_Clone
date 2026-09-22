@@ -157,24 +157,18 @@ export default function ThankYouAnimatedContent({
     e.preventDefault();
     setDownloading(true);
     const targetUrl = downloadUrl || `/r/${magnetSlug}`;
+    const cleanFilename = deliverableName ? `${deliverableName.replace(/[^a-z0-9.-]/gi, "_")}` : "resource-file";
 
     try {
       setDownloadCompleted(true);
-      if (targetUrl.startsWith("http")) {
-        const res = await fetch(targetUrl);
-        const blob = await res.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        const filename = deliverableName ? `${deliverableName.replace(/[^a-z0-9]/gi, "_")}` : "resource-file";
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
-      } else {
-        window.location.href = targetUrl;
-      }
+      const link = document.createElement("a");
+      link.href = targetUrl;
+      link.setAttribute("download", cleanFilename);
+      link.setAttribute("target", "_blank");
+      link.setAttribute("rel", "noopener noreferrer");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (_) {
       window.open(targetUrl, "_blank");
     } finally {

@@ -75,6 +75,9 @@ export interface MagnetPage {
   pdfFreePages?: number;     // How many pages to show freely before the gate (default: 2)
   pdfTitle?: string;         // Title shown in the PDF viewer top bar
   pdfPageCount?: number;     // Total number of pages (stored at upload time)
+  // Explicit Asset / Deliverable fields for Landing Pages
+  resourceId?: string;
+  assetUrl?: string;
 }
 
 export interface Lead {
