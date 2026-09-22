@@ -285,7 +285,6 @@
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
@@ -298,6 +297,7 @@
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s ease, max-width 0.2s ease;
   overflow: hidden;
+  user-select: none;
 }
 
 .adobe-page-img {
@@ -305,6 +305,9 @@
   width: 100%;
   height: auto;
   object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .adobe-page-wrapper.is-locked .adobe-page-img {

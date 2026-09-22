@@ -200,10 +200,6 @@ export default function PdfViewerClient({
           thumbRefs.current.forEach((t, i) => {
             if (t) t.dataset.active = String(i === idx);
           });
-          const activeThumb = thumbRefs.current[idx];
-          if (activeThumb && sideRef.current && sidebarOpen) {
-            activeThumb.scrollIntoView({ block: "nearest" });
-          }
         });
       },
       { root: docRef.current, rootMargin: "-45% 0px -45% 0px" }
@@ -507,6 +503,7 @@ export default function PdfViewerClient({
                             className="adobe-thumb-img"
                             loading="lazy"
                             decoding="async"
+                            draggable={false}
                           />
                         </div>
                         <span className="adobe-thumb-num">{idx + 1}</span>
@@ -547,6 +544,7 @@ export default function PdfViewerClient({
                   className="adobe-page-img"
                   loading={idx < 3 ? "eager" : "lazy"}
                   decoding="async"
+                  draggable={false}
                 />
               </div>
             );
