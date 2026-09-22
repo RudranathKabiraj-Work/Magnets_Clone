@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { dbConnect } from "@/lib/mongodb";
 import { MagnetPageModel, AccountModel, ResourceModel } from "@/lib/models";
 import ThankYouAnimatedContent from "@/components/thank-you-animated-content";
@@ -82,6 +82,13 @@ export default async function ThankYouPage({
       slug: params.slug,
       deliverable: "Instant Access File",
     };
+  }
+
+  // If page is configured to "Send them elsewhere", redirect directly to destination URL
+  if (pageDoc?.afterSignupOption === "elsewhere" && pageDoc?.destinationUrl && pageDoc.destinationUrl.trim()) {
+    const raw = pageDoc.destinationUrl.trim();
+    const dest = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    redirect(dest);
   }
 
   const themeMode = (accountDoc?.themeMode as "light" | "dark") || "light";

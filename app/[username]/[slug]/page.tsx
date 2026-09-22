@@ -161,19 +161,19 @@ export default async function MagnetPageRoute({
 
     accountDoc = await AccountModel.findOne(
       escapedUsername ? { username: { $regex: new RegExp(`^${escapedUsername}$`, "i") } } : {}
-    );
+    ).lean();
 
     if (accountDoc && accountDoc.email) {
       pageDoc = await MagnetPageModel.findOne({
         userEmail: accountDoc.email.trim().toLowerCase(),
         $or: [{ id: params.slug }, { slug: params.slug }]
-      });
+      }).lean();
     }
 
     if (!pageDoc) {
       pageDoc = await MagnetPageModel.findOne({
         $or: [{ id: params.slug }, { slug: params.slug }]
-      });
+      }).lean();
     }
   } catch (err) {
     console.warn("MongoDB connection fallback in MagnetPageRoute:", err);
@@ -230,13 +230,13 @@ export default async function MagnetPageRoute({
 
   if (!accountDoc && cleanUserEmail) {
     try {
-      accountDoc = await AccountModel.findOne({ email: cleanUserEmail });
+      accountDoc = await AccountModel.findOne({ email: cleanUserEmail }).lean();
     } catch (_) { }
   }
 
   if (!accountDoc) {
     try {
-      accountDoc = await AccountModel.findOne({});
+      accountDoc = await AccountModel.findOne({}).lean();
     } catch (_) { }
   }
 

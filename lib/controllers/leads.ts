@@ -9,25 +9,14 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
   let pageTitle = data.page || "Lead Magnet";
   let foundPageDoc: any = null;
 
-  if (data.email && (data.pageId || data.page)) {
-    const leadQuery: any = {
-      email: data.email.trim().toLowerCase(),
-    };
-    if (data.pageId) leadQuery.pageId = data.pageId;
-    else if (data.page) leadQuery.page = data.page;
-
-    const existingLead = await LeadModel.findOne(leadQuery);
-    if (existingLead) {
-      return NextResponse.json({ success: true, lead: existingLead, alreadySubscribed: true });
-    }
-  }
-
   if (data.pageId || data.page || data.pageSlug) {
     const query: any[] = [];
     if (data.pageId) query.push({ id: data.pageId });
     if (data.page) query.push({ name: data.page });
     if (data.pageSlug) query.push({ slug: data.pageSlug });
-    foundPageDoc = await MagnetPageModel.findOne({ $or: query });
+    try {
+      foundPageDoc = await MagnetPageModel.findOne({ $or: query }).lean();
+    } catch (_) {}
     if (foundPageDoc) {
       if (foundPageDoc.userEmail) ownerEmail = foundPageDoc.userEmail;
       if (foundPageDoc.name) pageTitle = foundPageDoc.name;
@@ -36,6 +25,25 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
         data.sequence = `${pageTitle} Follow-up`;
         data.sequenceStep = `Step 1 of ${Math.max(1, seqList.length)} (In Progress)`;
       }
+    }
+  }
+
+  if (data.email && (data.pageId || data.page)) {
+    const leadQuery: any = {
+      email: data.email.trim().toLowerCase(),
+    };
+    if (data.pageId) leadQuery.pageId = data.pageId;
+    else if (data.page) leadQuery.page = data.page;
+
+    const existingLead = await LeadModel.findOne(leadQuery).lean();
+    if (existingLead) {
+      return NextResponse.json({
+        success: true,
+        lead: existingLead,
+        alreadySubscribed: true,
+        afterSignupOption: foundPageDoc?.afterSignupOption || data.afterSignupOption || "standard",
+        destinationUrl: foundPageDoc?.destinationUrl || data.destinationUrl || "",
+      });
     }
   }
 
@@ -367,7 +375,12 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
     })());
   }
 
-  return NextResponse.json({ success: true, lead: createdLead });
+  return NextResponse.json({
+    success: true,
+    lead: createdLead,
+    afterSignupOption: foundPageDoc?.afterSignupOption || data.afterSignupOption || "standard",
+    destinationUrl: foundPageDoc?.destinationUrl || data.destinationUrl || "",
+  });
 }
 
 export async function handleDeleteLead(data: any, normEmail: string | null) {

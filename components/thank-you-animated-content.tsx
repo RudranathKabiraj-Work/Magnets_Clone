@@ -152,6 +152,24 @@ export default function ThankYouAnimatedContent({
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [selectedTime, setSelectedTime] = useState("10:00 AM");
   const [selectedDate, setSelectedDate] = useState("Tomorrow");
+  const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    let resolvedName = subscriberName || "";
+    let resolvedEmail = subscriberEmail || "";
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const qName = params.get("name");
+      const qEmail = params.get("email");
+      if (qName) resolvedName = decodeURIComponent(qName.replace(/\+/g, " "));
+      if (qEmail) resolvedEmail = decodeURIComponent(qEmail.replace(/\+/g, " "));
+    }
+    setClientName(resolvedName);
+    setClientEmail(resolvedEmail);
+  }, [subscriberName, subscriberEmail]);
 
   const isDark = themeMode === "dark";
   const shareUrl =
@@ -317,6 +335,7 @@ export default function ThankYouAnimatedContent({
         </div>
 
         <motion.div
+          suppressHydrationWarning
           initial={{ y: 15, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.15 }}
@@ -333,16 +352,20 @@ export default function ThankYouAnimatedContent({
             Access Confirmed & Delivered
           </div>
 
-          <h1 suppressHydrationWarning className={`text-2xl sm:text-3xl font-black tracking-tight leading-tight ${isDark ? "text-white" : "text-zinc-950"}`}>
-            {afterSignupOption === "custom" && customHeading ? customHeading : `You're All Set${subscriberName ? `, ${subscriberName}` : ""}! 🎉`}
+          <h1 className={`text-2xl sm:text-3xl font-black tracking-tight leading-tight ${isDark ? "text-white" : "text-zinc-950"}`}>
+            {afterSignupOption === "custom" && customHeading ? (
+              customHeading
+            ) : (
+              <span>You&apos;re All Set{mounted && clientName ? `, ${clientName}` : ""}! 🎉</span>
+            )}
           </h1>
 
-          <p suppressHydrationWarning className={`text-xs sm:text-sm leading-relaxed font-medium ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
-            We've dispatched your copy of{" "}
-            <span suppressHydrationWarning className={`font-extrabold underline ${isDark ? "text-white" : "text-zinc-950"}`} style={{ textDecorationColor: brandColor }}>
-              "{pageName}"
+          <p className={`text-xs sm:text-sm leading-relaxed font-medium ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
+            We&apos;ve dispatched your copy of{" "}
+            <span className={`font-extrabold underline ${isDark ? "text-white" : "text-zinc-950"}`} style={{ textDecorationColor: brandColor }}>
+              {`"${pageName}"`}
             </span>{" "}
-            to <span suppressHydrationWarning className={`font-bold underline ${isDark ? "text-white" : "text-zinc-950"}`} style={{ textDecorationColor: brandColor }}>{subscriberEmail || "your inbox"}</span>.
+            to <span className={`font-bold underline ${isDark ? "text-white" : "text-zinc-950"}`} style={{ textDecorationColor: brandColor }}>{mounted && clientEmail ? clientEmail : "your inbox"}</span>.
           </p>
         </motion.div>
 

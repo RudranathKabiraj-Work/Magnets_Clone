@@ -112,6 +112,8 @@ export default function MagnetSignupForm({
         customAnswer: customAnswer.trim(),
         customFields: customFieldValues,
         isVariantB: Boolean(isVariantB),
+        afterSignupOption: afterSignupOption || "standard",
+        destinationUrl: destinationUrl || "",
       };
 
       const res = await fetch("/api/data", {
@@ -122,6 +124,17 @@ export default function MagnetSignupForm({
 
       if (res.ok) {
         const json = await res.json();
+        // Determine effective redirect option & destination URL (prioritize active prop or server response)
+        const effectiveOption = (afterSignupOption === "elsewhere" || json?.afterSignupOption === "elsewhere")
+          ? "elsewhere"
+          : (afterSignupOption === "custom" || json?.afterSignupOption === "custom")
+            ? "custom"
+            : (afterSignupOption || json?.afterSignupOption || "standard");
+
+        const effectiveDest = (destinationUrl && destinationUrl.trim())
+          || (json?.destinationUrl && json.destinationUrl.trim())
+          || "";
+
         if (json.downloadUrl) {
           setDownloadUrl(json.downloadUrl);
         }
@@ -167,9 +180,9 @@ export default function MagnetSignupForm({
           }
         } catch (_) {}
 
-        // If "Send them elsewhere" option is active with a valid destination URL
-        if (afterSignupOption === "elsewhere" && destinationUrl && destinationUrl.trim()) {
-          const rawUrl = destinationUrl.trim();
+        // If "Send them elsewhere" option is active with a valid destination URL -> Instant external redirect
+        if (effectiveOption === "elsewhere" && effectiveDest) {
+          const rawUrl = effectiveDest.trim();
           const targetExternalUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
           window.location.href = targetExternalUrl;
           return;
