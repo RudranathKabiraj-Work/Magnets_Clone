@@ -554,7 +554,7 @@ export default function LeadsPage() {
               </button>
 
               <label className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#18181B] dark:text-zinc-300 dark:hover:bg-[#25252A] transition cursor-pointer shadow-xs">
-                <Upload className="h-4 w-4 text-[#0066B2]" /> Import CSV
+                <Download className="h-4 w-4 text-[#0066B2]" /> Import CSV
                 <input type="file" accept=".csv" onChange={handleCSVFileSelect} className="hidden" />
               </label>
 
@@ -562,7 +562,7 @@ export default function LeadsPage() {
                 onClick={handleExportCSV}
                 className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#18181B] dark:text-zinc-300 dark:hover:bg-[#25252A] transition cursor-pointer shadow-xs"
               >
-                <Download className="h-4 w-4 text-[#0066B2]" /> Export CSV
+                <Upload className="h-4 w-4 text-[#0066B2]" /> Export CSV
               </button>
             </div>
           </div>
