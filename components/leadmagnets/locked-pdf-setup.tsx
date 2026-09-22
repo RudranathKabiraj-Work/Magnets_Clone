@@ -19,7 +19,7 @@
  */
 
 import { useRef, useState, useEffect } from "react";
-import { Upload, Lock, Eye, Loader2, CheckCircle2, Trash2, HardDrive, FileText, Copy, ExternalLink, Plus } from "lucide-react";
+import { Upload, Lock, Eye, Loader2, CheckCircle2, Trash2, HardDrive, FileText, Copy, ExternalLink } from "lucide-react";
 
 interface Props {
   magnetId: string;
@@ -41,7 +41,6 @@ interface Props {
   hostedResources?: any[];
   onOpenAssetPicker?: () => void;
   selectedHostedPdf?: { url: string; name: string; timestamp?: number } | null;
-  onOpenCreateModal?: () => void;
 }
 
 // ─── PDF.js helpers (npm, worker served from /public/pdf.worker.min.mjs) ────
@@ -126,7 +125,6 @@ export default function LockedPdfSetup({
   hostedResources = [],
   onOpenAssetPicker,
   selectedHostedPdf,
-  onOpenCreateModal,
 }: Props) {
   const [pages, setPages] = useState<string[]>(initialPages || []);
   const [freePages, setFreePages] = useState<number>(
@@ -389,38 +387,25 @@ export default function LockedPdfSetup({
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#141417] p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8] border border-[#0066B2]/20">
-            <Lock className="h-5 w-5" />
-          </span>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-zinc-900 dark:text-white text-sm">
-                Locked PDF Setup
-              </h3>
-              {slug && (
-                <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200/60 dark:border-zinc-700/60">
-                  /{slug}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-              First {freePages} page{freePages !== 1 ? "s" : ""} are free, rest unlock after email verification.
-            </p>
+      <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8] border border-[#0066B2]/20">
+          <Lock className="h-5 w-5" />
+        </span>
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-zinc-900 dark:text-white text-sm">
+              Locked PDF Setup
+            </h3>
+            {slug && (
+              <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200/60 dark:border-zinc-700/60">
+                /{slug}
+              </span>
+            )}
           </div>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+            First {freePages} page{freePages !== 1 ? "s" : ""} are free, rest unlock after email verification.
+          </p>
         </div>
-
-        {onOpenCreateModal && (
-          <button
-            type="button"
-            onClick={onOpenCreateModal}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-zinc-200 dark:border-[#27272A] bg-zinc-50 dark:bg-[#1E1E24] text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#27272A] transition shadow-2xs self-start sm:self-auto cursor-pointer"
-          >
-            <Plus className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8]" />
-            <span>New Locked PDF</span>
-          </button>
-        )}
       </div>
 
       {/* Upload zone */}
@@ -653,7 +638,7 @@ export default function LockedPdfSetup({
       )}
 
       {/* Save + Remove */}
-      <div className="flex items-center gap-3 pt-1 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="flex items-center gap-3 pt-1">
         <button
           type="button"
           onClick={handleSave}

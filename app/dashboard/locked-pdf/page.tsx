@@ -982,12 +982,6 @@ export default function LockedPdfPage() {
                     setShowAssetPickerModal(true);
                   }}
                   selectedHostedPdf={selectedHostedPdf}
-                  onOpenCreateModal={() => {
-                    setCreateMagnetName("");
-                    setCustomSlug("");
-                    setIsCustomSlugEdited(false);
-                    setShowCreateModal(true);
-                  }}
                   onSave={async (updates) => {
                     const updatedPages = pages.map((p) => {
                       if (p.id === activePage.id) {
@@ -1015,7 +1009,7 @@ export default function LockedPdfPage() {
                 {/* ══════════════════════════════════════════════
                     SAVED LOCKED PDF CARDS LIBRARY (LOCKED TAB ONLY)
                 ══════════════════════════════════════════════ */}
-                <div className="mt-8 pt-6 border-t border-zinc-200/80 dark:border-zinc-800/80 space-y-4">
+                <div className="mt-8 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8] border border-[#0066B2]/20 shadow-xs">
@@ -1035,19 +1029,6 @@ export default function LockedPdfPage() {
                         </p>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCreateMagnetName("");
-                        setCustomSlug("");
-                        setIsCustomSlugEdited(false);
-                        setShowCreateModal(true);
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#0066B2] text-white text-xs font-bold shadow-sm hover:bg-[#005799] transition active:scale-95 cursor-pointer self-start sm:self-auto"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      <span>New Locked PDF</span>
-                    </button>
                   </div>
 
                   {savedLockedPdfPages.length > 0 ? (
@@ -1122,20 +1103,6 @@ export default function LockedPdfPage() {
                                     </div>
                                   </div>
                                 )}
-                              </div>
-
-                              {/* Status Badge */}
-                              <div className="absolute bottom-2 left-2.5 z-20">
-                                <span
-                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wide border backdrop-blur-md shadow-xs ${
-                                    pdf.status === "live"
-                                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                                      : "bg-zinc-900/80 text-zinc-400 border-zinc-700/60"
-                                  }`}
-                                >
-                                  <span className={`h-1.5 w-1.5 rounded-full ${pdf.status === "live" ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"}`} />
-                                  {pdf.status === "live" ? "LIVE" : "DRAFT"}
-                                </span>
                               </div>
 
                               {/* Page Count Tag */}
