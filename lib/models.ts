@@ -101,6 +101,15 @@ const MagnetPageSchema = new Schema({
   // Explicit Asset / Deliverable fields for Landing Pages
   resourceId: { type: String, default: "" },
   assetUrl: { type: String, default: "" },
+  // After Signup Flow Settings
+  afterSignupOption: { type: String, enum: ["standard", "elsewhere", "custom"], default: "standard" },
+  destinationUrl: { type: String, default: "" },
+  customHeading: { type: String, default: "" },
+  customMessage: { type: String, default: "" },
+  videoUrl: { type: String, default: "" },
+  buttonLabel: { type: String, default: "" },
+  buttonUrl: { type: String, default: "" },
+  quizFunnelEnabled: { type: Boolean, default: false },
 });
 
 MagnetPageSchema.index({ userEmail: 1, slug: 1 });

@@ -137,6 +137,12 @@ export default async function ThankYouPage({
           magnetSlug={pageDoc.slug || pageDoc.id}
           username={decodedUsername || "u"}
           calendarUrl={accountDoc?.calendarToken || null}
+          afterSignupOption={pageDoc.afterSignupOption || "standard"}
+          customHeading={pageDoc.customHeading || null}
+          customMessage={pageDoc.customMessage || null}
+          videoUrl={pageDoc.videoUrl || null}
+          buttonLabel={pageDoc.buttonLabel || null}
+          buttonUrl={pageDoc.buttonUrl || null}
         />
       </div>
 

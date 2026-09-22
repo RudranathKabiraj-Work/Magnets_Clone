@@ -37,6 +37,37 @@ interface ThankYouAnimatedContentProps {
   magnetSlug: string;
   username: string;
   calendarUrl?: string | null;
+  afterSignupOption?: "standard" | "elsewhere" | "custom";
+  customHeading?: string | null;
+  customMessage?: string | null;
+  videoUrl?: string | null;
+  buttonLabel?: string | null;
+  buttonUrl?: string | null;
+}
+
+function getEmbedUrl(url?: string | null): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  // YouTube watch / short URLs
+  const ytMatch = trimmed.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+  if (ytMatch && ytMatch[1]) {
+    return `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?autoplay=0&rel=0`;
+  }
+  // Loom share URLs
+  const loomMatch = trimmed.match(/loom\.com\/share\/([a-zA-Z0-9]+)/i);
+  if (loomMatch && loomMatch[1]) {
+    return `https://www.loom.com/embed/${loomMatch[1]}`;
+  }
+  // Vimeo URLs
+  const vimeoMatch = trimmed.match(/vimeo\.com\/(\d+)/i);
+  if (vimeoMatch && vimeoMatch[1]) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
 }
 
 // Confetti Particle Generator Component
@@ -106,6 +137,12 @@ export default function ThankYouAnimatedContent({
   magnetSlug,
   username,
   calendarUrl,
+  afterSignupOption = "standard",
+  customHeading,
+  customMessage,
+  videoUrl,
+  buttonLabel,
+  buttonUrl,
 }: ThankYouAnimatedContentProps) {
   const [copiedAi, setCopiedAi] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -296,16 +333,16 @@ export default function ThankYouAnimatedContent({
             Access Confirmed & Delivered
           </div>
 
-          <h1 className={`text-2xl sm:text-3xl font-black tracking-tight leading-tight ${isDark ? "text-white" : "text-zinc-950"}`}>
-            You're All Set{subscriberName ? `, ${subscriberName}` : ""}! 🎉
+          <h1 suppressHydrationWarning className={`text-2xl sm:text-3xl font-black tracking-tight leading-tight ${isDark ? "text-white" : "text-zinc-950"}`}>
+            {afterSignupOption === "custom" && customHeading ? customHeading : `You're All Set${subscriberName ? `, ${subscriberName}` : ""}! 🎉`}
           </h1>
 
-          <p className={`text-xs sm:text-sm leading-relaxed font-medium ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
+          <p suppressHydrationWarning className={`text-xs sm:text-sm leading-relaxed font-medium ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>
             We've dispatched your copy of{" "}
-            <span className={`font-extrabold underline ${isDark ? "text-white" : "text-zinc-950"}`} style={{ textDecorationColor: brandColor }}>
+            <span suppressHydrationWarning className={`font-extrabold underline ${isDark ? "text-white" : "text-zinc-950"}`} style={{ textDecorationColor: brandColor }}>
               "{pageName}"
             </span>{" "}
-            to <span className={`font-bold underline ${isDark ? "text-white" : "text-zinc-950"}`} style={{ textDecorationColor: brandColor }}>{subscriberEmail || "your inbox"}</span>.
+            to <span suppressHydrationWarning className={`font-bold underline ${isDark ? "text-white" : "text-zinc-950"}`} style={{ textDecorationColor: brandColor }}>{subscriberEmail || "your inbox"}</span>.
           </p>
         </motion.div>
 
@@ -355,6 +392,91 @@ export default function ThankYouAnimatedContent({
 
       {/* Main Content Cards Container */}
       <div className="max-w-2xl mx-auto space-y-3.5 relative z-10">
+        {/* Custom Next Step Card (When Creator Configures Custom Offer / Message / Video / CTA) */}
+        {afterSignupOption === "custom" && (customMessage || videoUrl || buttonLabel || buttonUrl) && (
+          <motion.div
+            initial={{ y: 25, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className={`rounded-2xl border p-5 sm:p-7 space-y-4 backdrop-blur-xl relative overflow-hidden transition-all ${isDark
+                ? "bg-[#111218]/90 border-white/15 text-white shadow-2xl"
+                : "bg-white/95 border-zinc-200 text-zinc-900 shadow-xl"
+              }`}
+            style={{
+              boxShadow: isDark
+                ? `0 20px 45px -10px ${brandColor}35`
+                : `0 20px 40px -10px ${brandColor}20`,
+            }}
+          >
+            {/* Top Accent Line */}
+            <div
+              className="absolute top-0 left-0 right-0 h-1.5"
+              style={{
+                background: `linear-gradient(90deg, ${brandColor}, #38BDF8, #8B5CF6, ${brandColor})`,
+              }}
+            />
+
+            {/* Custom Next Step Header Badge */}
+            <div className="flex items-center gap-2">
+              <div
+                className="h-7 w-7 rounded-lg flex items-center justify-center text-white text-xs font-black shadow-md"
+                style={{ backgroundColor: brandColor }}
+              >
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div>
+                <span className="text-xs font-black uppercase tracking-wider" style={{ color: brandColor }}>
+                  Next Step Recommendation
+                </span>
+              </div>
+            </div>
+
+            {/* Custom Message */}
+            {customMessage && (
+              <p className={`text-sm sm:text-base font-medium leading-relaxed whitespace-pre-wrap ${isDark ? "text-zinc-200" : "text-zinc-700"}`}>
+                {customMessage}
+              </p>
+            )}
+
+            {/* Video Embed Player */}
+            {videoUrl && getEmbedUrl(videoUrl) && (
+              <div className="w-full rounded-xl overflow-hidden border border-white/10 shadow-lg aspect-video bg-black relative">
+                <iframe
+                  src={getEmbedUrl(videoUrl)!}
+                  title="Next Step Video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full border-0"
+                />
+              </div>
+            )}
+
+            {/* Action CTA Button */}
+            {(buttonUrl || buttonLabel) && (
+              <div className="pt-2">
+                <a
+                  href={buttonUrl ? (buttonUrl.startsWith("http://") || buttonUrl.startsWith("https://") ? buttonUrl : `https://${buttonUrl}`) : "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full relative overflow-hidden rounded-xl py-3.5 px-6 font-black text-sm text-white shadow-xl transition-all duration-200 hover:scale-[1.015] active:scale-[0.985] cursor-pointer flex items-center justify-center gap-2.5 border border-white/20 select-none group"
+                  style={{
+                    backgroundColor: brandColor,
+                    boxShadow: `0 8px 25px -4px ${brandColor}70`,
+                  }}
+                >
+                  <motion.div
+                    animate={{ x: ["-100%", "200%"] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 pointer-events-none"
+                  />
+                  <span className="tracking-wide">{buttonLabel || "Continue to Next Step"}</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </a>
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {/* Compact Premium Download Box */}
         <motion.div
           initial={{ y: 25, opacity: 0 }}

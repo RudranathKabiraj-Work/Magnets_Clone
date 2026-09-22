@@ -25,6 +25,8 @@ export default function MagnetSignupForm({
   username,
   isVariantB = false,
   layout = "standard",
+  afterSignupOption = "standard",
+  destinationUrl,
 }: {
   cta: string;
   formTitle?: string;
@@ -46,6 +48,8 @@ export default function MagnetSignupForm({
   username?: string;
   isVariantB?: boolean;
   layout?: "standard" | "horizontal-glass";
+  afterSignupOption?: "standard" | "elsewhere" | "custom";
+  destinationUrl?: string;
 }) {
   const [done, setDone] = useState(false);
   const [name, setName] = useState("");
@@ -162,6 +166,14 @@ export default function MagnetSignupForm({
             bc.close();
           }
         } catch (_) {}
+
+        // If "Send them elsewhere" option is active with a valid destination URL
+        if (afterSignupOption === "elsewhere" && destinationUrl && destinationUrl.trim()) {
+          const rawUrl = destinationUrl.trim();
+          const targetExternalUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+          window.location.href = targetExternalUrl;
+          return;
+        }
 
         // Construct redirect URL to thank-you page
         const targetUser = username || "u";

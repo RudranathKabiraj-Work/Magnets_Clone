@@ -52,8 +52,14 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
     }
   }
 
+  let normalizedSignedUpAt = data.signedUpAt;
+  if (!normalizedSignedUpAt || isNaN(new Date(normalizedSignedUpAt).getTime())) {
+    normalizedSignedUpAt = new Date().toISOString();
+  }
+
   const createdLead = await LeadModel.create({
     ...data,
+    signedUpAt: normalizedSignedUpAt,
     deviceType: data.deviceType || (isMobile ? "mobile" : "desktop"),
     referrer: data.referrer || cleanReferrer,
     userEmail: ownerEmail || "",

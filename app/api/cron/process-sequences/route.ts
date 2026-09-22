@@ -99,13 +99,22 @@ export async function GET(req: NextRequest) {
         ? lead.signedUpAt.replace(/\s+at\s+/i, " ")
         : lead.signedUpAt;
       let signupTime = new Date(cleanDateStr).getTime();
+
+      // If timestamp is time-only (e.g. "8:59:01 PM"), combine with today's date
+      if (isNaN(signupTime) && typeof cleanDateStr === "string") {
+        const todayDateStr = new Date().toISOString().split("T")[0];
+        const combined = new Date(`${todayDateStr} ${cleanDateStr}`).getTime();
+        if (!isNaN(combined)) {
+          signupTime = combined;
+        }
+      }
+
       if (isNaN(signupTime) && (lead as any).createdAt) {
         signupTime = new Date((lead as any).createdAt).getTime();
       }
 
       if (isNaN(signupTime)) {
-        debugLogs.push({ email: lead.email, signedUpAt: lead.signedUpAt, reason: "Invalid signedUpAt date string" });
-        continue;
+        signupTime = now;
       }
 
       const elapsedMinutes = Math.floor((now - signupTime) / (1000 * 60));
@@ -129,7 +138,18 @@ export async function GET(req: NextRequest) {
       const nextEmail = sequenceEmails[nextEmailIndex];
       const targetCumulativeMinutes = sequenceEmails
         .slice(0, nextEmailIndex + 1)
-        .reduce((sum: number, item: any) => sum + (Number(item.delayMinutes) || 0), 0);
+        .reduce((sum: number, item: any) => {
+          let mins = 0;
+          if (typeof item.delayMinutes === "number" && !isNaN(item.delayMinutes)) {
+            mins = item.delayMinutes;
+          } else {
+            const num = Number(item.delayDays) || 0;
+            if (item.delayUnit === "minutes") mins = num;
+            else if (item.delayUnit === "hours") mins = num * 60;
+            else mins = num * 1440; // days default
+          }
+          return sum + mins;
+        }, 0);
 
       if (elapsedMinutes < targetCumulativeMinutes) {
         debugLogs.push({ email: lead.email, elapsedMinutes, targetCumulativeMinutes, reason: "Cumulative delay time not yet reached" });

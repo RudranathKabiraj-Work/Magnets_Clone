@@ -396,6 +396,8 @@ export default async function MagnetPageRoute({
                   customFormFields={page.customFormFields}
                   username={params.username}
                   isVariantB={isVariantB}
+                  afterSignupOption={page.afterSignupOption}
+                  destinationUrl={page.destinationUrl}
                 />
               </div>
             </div>
@@ -517,6 +519,8 @@ export default async function MagnetPageRoute({
                     customFormFields={page.customFormFields}
                     username={params.username}
                     isVariantB={isVariantB}
+                    afterSignupOption={page.afterSignupOption}
+                    destinationUrl={page.destinationUrl}
                   />
                 </div>
               </div>
@@ -599,6 +603,8 @@ export default async function MagnetPageRoute({
                   customFormFields={page.customFormFields}
                   username={params.username}
                   isVariantB={isVariantB}
+                  afterSignupOption={page.afterSignupOption}
+                  destinationUrl={page.destinationUrl}
                 />
               </div>
 
@@ -726,6 +732,8 @@ export default async function MagnetPageRoute({
                   customFormFields={page.customFormFields}
                   username={params.username}
                   isVariantB={isVariantB}
+                  afterSignupOption={page.afterSignupOption}
+                  destinationUrl={page.destinationUrl}
                 />
               </div>
             </div>
@@ -819,6 +827,8 @@ export default async function MagnetPageRoute({
                   username={params.username}
                   isVariantB={isVariantB}
                   layout="horizontal-glass"
+                  afterSignupOption={page.afterSignupOption}
+                  destinationUrl={page.destinationUrl}
                 />
               </div>
             </div>
@@ -941,6 +951,8 @@ export default async function MagnetPageRoute({
                     customFormFields={page.customFormFields}
                     username={params.username}
                     isVariantB={isVariantB}
+                    afterSignupOption={page.afterSignupOption}
+                    destinationUrl={page.destinationUrl}
                   />
 
                   {/* Social proof */}
@@ -1065,6 +1077,8 @@ export default async function MagnetPageRoute({
                     customFormFields={page.customFormFields}
                     username={params.username}
                     isVariantB={isVariantB}
+                    afterSignupOption={page.afterSignupOption}
+                    destinationUrl={page.destinationUrl}
                   />
                   <p className={`mt-3 flex items-center justify-center gap-1.5 text-xs ${themeMode === "dark" ? "text-zinc-500" : "text-ink-500"
                     }`}>
