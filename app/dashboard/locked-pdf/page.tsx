@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -41,12 +41,42 @@ import type { Account, MagnetPage } from "@/lib/data";
 import type { SequenceEmailItem } from "@/components/leadmagnets/edit/SequenceTab";
 
 import LockedPdfSetup from "@/components/leadmagnets/locked-pdf-setup";
-import AfterSignupTab from "@/components/leadmagnets/edit/AfterSignupTab";
 
-import DeliveryEmailTab from "@/components/leadmagnets/edit/DeliveryEmailTab";
-import SequenceTab from "@/components/leadmagnets/edit/SequenceTab";
-import EmailPreviewModal from "@/components/leadmagnets/edit/EmailPreviewModal";
-import SequencePreviewModal from "@/components/leadmagnets/edit/SequencePreviewModal";
+// Code-split heavy secondary workflow tabs & modals so TipTap editor and preview bundles load on demand
+const DeliveryEmailTab = dynamic(() => import("@/components/leadmagnets/edit/DeliveryEmailTab"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-64 items-center justify-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+      <Loader2 className="h-6 w-6 animate-spin text-[#0066B2]" />
+    </div>
+  ),
+});
+
+const SequenceTab = dynamic(() => import("@/components/leadmagnets/edit/SequenceTab"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-64 items-center justify-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+      <Loader2 className="h-6 w-6 animate-spin text-[#0066B2]" />
+    </div>
+  ),
+});
+
+const AfterSignupTab = dynamic(() => import("@/components/leadmagnets/edit/AfterSignupTab"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-64 items-center justify-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+      <Loader2 className="h-6 w-6 animate-spin text-[#0066B2]" />
+    </div>
+  ),
+});
+
+const EmailPreviewModal = dynamic(() => import("@/components/leadmagnets/edit/EmailPreviewModal"), {
+  ssr: false,
+});
+
+const SequencePreviewModal = dynamic(() => import("@/components/leadmagnets/edit/SequencePreviewModal"), {
+  ssr: false,
+});
 
 interface Toast {
   id: string;
@@ -172,7 +202,7 @@ export default function LockedPdfPage() {
   const pendingPagesRef = useRef<MagnetPage[] | null>(null);
 
   // Production-grade debounced save handler (500ms delay)
-  const triggerDebouncedSave = (updatedPages: MagnetPage[]) => {
+  const triggerDebouncedSave = useCallback((updatedPages: MagnetPage[]) => {
     setPages(updatedPages);
     pendingPagesRef.current = updatedPages;
     setSaveStatus("saving");
@@ -188,10 +218,10 @@ export default function LockedPdfPage() {
       }
       setSaveStatus("saved");
     }, 500);
-  };
+  }, []);
 
   // Immediate save for explicit actions (like delete or manual create)
-  const triggerImmediateSave = (updatedPages: MagnetPage[]) => {
+  const triggerImmediateSave = useCallback((updatedPages: MagnetPage[]) => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = null;
@@ -200,7 +230,7 @@ export default function LockedPdfPage() {
     setPages(updatedPages);
     savePages(updatedPages);
     setSaveStatus("saved");
-  };
+  }, []);
 
   useEffect(() => {
     const anyOpen = showEmailPreviewModal || showSequencePreviewModal || showDeleteModal || showCreateModal || showAssetPickerModal;
@@ -354,7 +384,7 @@ export default function LockedPdfPage() {
     if (activePage.customPromptPlaceholder) setCustomPromptPlaceholder(activePage.customPromptPlaceholder);
   }, [activePage?.id]);
 
-  const handleUpdateEmailSubject = (val: string) => {
+  const handleUpdateEmailSubject = useCallback((val: string) => {
     setEmailSubject(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -374,9 +404,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, emailPreviewText, emailBody, triggerDebouncedSave]);
 
-  const handleUpdateEmailPreviewText = (val: string) => {
+  const handleUpdateEmailPreviewText = useCallback((val: string) => {
     setEmailPreviewText(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -396,9 +426,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, emailSubject, emailBody, triggerDebouncedSave]);
 
-  const handleUpdateEmailBody: React.Dispatch<React.SetStateAction<string>> = (value) => {
+  const handleUpdateEmailBody: React.Dispatch<React.SetStateAction<string>> = useCallback((value) => {
     setEmailBody((prev) => {
       const next = typeof value === "function" ? value(prev) : value;
       if (activePage) {
@@ -421,9 +451,9 @@ export default function LockedPdfPage() {
       }
       return next;
     });
-  };
+  }, [activePage, pages, emailSubject, emailPreviewText, triggerDebouncedSave]);
 
-  const handleUpdateEnableAi = (val: boolean) => {
+  const handleUpdateEnableAi = useCallback((val: boolean) => {
     setEnableAiPersonalizedDeliverable(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -431,9 +461,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleUpdateCustomPromptQuestion = (val: string) => {
+  const handleUpdateCustomPromptQuestion = useCallback((val: string) => {
     setCustomPromptQuestion(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -441,9 +471,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleUpdateCustomPromptPlaceholder = (val: string) => {
+  const handleUpdateCustomPromptPlaceholder = useCallback((val: string) => {
     setCustomPromptPlaceholder(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -451,9 +481,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleUpdateAfterSignupOption = (val: "standard" | "elsewhere" | "custom") => {
+  const handleUpdateAfterSignupOption = useCallback((val: "standard" | "elsewhere" | "custom") => {
     setAfterSignupOption(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -461,9 +491,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleUpdateDestinationUrl = (val: string) => {
+  const handleUpdateDestinationUrl = useCallback((val: string) => {
     setDestinationUrl(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -471,9 +501,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleUpdateCustomHeading = (val: string) => {
+  const handleUpdateCustomHeading = useCallback((val: string) => {
     setCustomHeading(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -481,9 +511,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleUpdateCustomMessage = (val: string) => {
+  const handleUpdateCustomMessage = useCallback((val: string) => {
     setCustomMessage(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -491,9 +521,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleUpdateVideoUrl = (val: string) => {
+  const handleUpdateVideoUrl = useCallback((val: string) => {
     setVideoUrl(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -501,9 +531,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleUpdateButtonLabel = (val: string) => {
+  const handleUpdateButtonLabel = useCallback((val: string) => {
     setButtonLabel(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -511,9 +541,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleUpdateButtonUrl = (val: string) => {
+  const handleUpdateButtonUrl = useCallback((val: string) => {
     setButtonUrl(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -521,9 +551,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleUpdateQuizFunnelEnabled = (val: boolean) => {
+  const handleUpdateQuizFunnelEnabled = useCallback((val: boolean) => {
     setQuizFunnelEnabled(val);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -531,9 +561,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleToggleSequenceEnabled = (enabled: boolean) => {
+  const handleToggleSequenceEnabled = useCallback((enabled: boolean) => {
     setSequenceEnabled(enabled);
     if (activePage) {
       const updated = pages.map((p) =>
@@ -541,9 +571,9 @@ export default function LockedPdfPage() {
       );
       triggerDebouncedSave(updated);
     }
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const handleUpdateSequenceEmails: React.Dispatch<React.SetStateAction<SequenceEmailItem[]>> = (value) => {
+  const handleUpdateSequenceEmails: React.Dispatch<React.SetStateAction<SequenceEmailItem[]>> = useCallback((value) => {
     setSequenceEmails((prev) => {
       const next = typeof value === "function" ? value(prev) : value;
       if (activePage) {
@@ -554,9 +584,9 @@ export default function LockedPdfPage() {
       }
       return next;
     });
-  };
+  }, [activePage, pages, triggerDebouncedSave]);
 
-  const addSequenceEmail = () => {
+  const addSequenceEmail = useCallback(() => {
     const nextNum = sequenceEmails.length + 1;
     const newId = Date.now().toString();
     const newItem: SequenceEmailItem = {
@@ -578,9 +608,9 @@ export default function LockedPdfPage() {
       );
       triggerImmediateSave(nextPages);
     }
-  };
+  }, [sequenceEmails, account?.name, activePage, pages, triggerImmediateSave]);
 
-  const removeSequenceEmail = (id: string) => {
+  const removeSequenceEmail = useCallback((id: string) => {
     const updated = sequenceEmails.filter((item) => item.id !== id);
     setSequenceEmails(updated);
     const nextEnabled = updated.length > 0 ? sequenceEnabled : false;
@@ -597,7 +627,7 @@ export default function LockedPdfPage() {
       );
       triggerImmediateSave(nextPages);
     }
-  };
+  }, [sequenceEmails, sequenceEnabled, selectedSequenceIndex, activePage, pages, triggerImmediateSave]);
 
   const derivedSlug = useMemo(() => {
     return (
