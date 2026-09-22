@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { waitUntil } from "@vercel/functions";
-import { LeadModel, MagnetPageModel, AccountModel } from "@/lib/models";
+import { LeadModel, MagnetPageModel, AccountModel, ResourceModel } from "@/lib/models";
 import { sendInstantLeadAlert } from "@/lib/email-alerts";
 import { sendMail } from "@/lib/email";
 
@@ -125,10 +125,42 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
             }
           }
 
+          // Resolve the direct download URL so the email button skips the thank-you page
+          let directDownloadUrl: string | null = null;
+
+          // 1. Direct assetUrl on the page doc
+          if (foundPageDoc?.assetUrl && foundPageDoc.assetUrl.trim()) {
+            directDownloadUrl = foundPageDoc.assetUrl.trim();
+          }
+
+          // 2. Look up the specific resource record
+          if (!directDownloadUrl && targetResourceId) {
+            try {
+              const specificRes = await ResourceModel.findOne({ id: targetResourceId }).lean() as any;
+              if (specificRes) {
+                directDownloadUrl = specificRes.url || specificRes.fileUrl || `${appUrl}/r/${specificRes.id}`;
+              }
+            } catch (_) {}
+          }
+
+          // 3. Fallback: latest resource for this account
+          if (!directDownloadUrl && ownerEmail) {
+            try {
+              const latestRes = await ResourceModel.findOne({ userEmail: ownerEmail.trim().toLowerCase() }).sort({ uploadedAt: -1 }).lean() as any;
+              if (latestRes && latestRes.url) {
+                directDownloadUrl = latestRes.url;
+              } else if (latestRes) {
+                directDownloadUrl = `${appUrl}/r/${latestRes.id}`;
+              }
+            } catch (_) {}
+          }
+
           const targetUser = ownerAccount?.username || "u";
           const targetSlug = data.pageSlug || data.pageId || "resource";
           const resParam = targetResourceId ? `&res=${encodeURIComponent(targetResourceId)}` : "";
-          const resourceAccessUrl = `${appUrl}/${encodeURIComponent(targetUser)}/${encodeURIComponent(targetSlug)}/thank-you?email=${encodeURIComponent(data.email)}&name=${encodeURIComponent(data.name || "")}${resParam}`;
+          // Use the direct file URL if we could resolve one; otherwise fall back to the thank-you page
+          const thankYouUrl = `${appUrl}/${encodeURIComponent(targetUser)}/${encodeURIComponent(targetSlug)}/thank-you?email=${encodeURIComponent(data.email)}&name=${encodeURIComponent(data.name || "")}${resParam}`;
+          const resourceAccessUrl = directDownloadUrl || thankYouUrl;
 
           const subject = (foundPageDoc?.emailSubject && foundPageDoc.emailSubject.trim())
             ? foundPageDoc.emailSubject.replace(/\{name\}/gi, data.name || "there")
