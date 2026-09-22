@@ -936,28 +936,28 @@ export default function DashboardHome({
                       <MagnetStatusBadge status={page.status} />
 
                       {/* Stats grid */}
-                      <div className="hidden sm:flex items-center gap-4 shrink-0 text-center">
-                        <div>
-                          <p className="text-xs font-bold text-zinc-800 dark:text-white tabular-nums">
+                      <div className="hidden sm:flex items-center gap-0 shrink-0">
+                        <div className="w-16 text-center">
+                          <p className="text-xs font-bold text-zinc-800 dark:text-white tabular-nums leading-tight">
                             {(page.views || 0).toLocaleString()}
                           </p>
-                          <p className="text-[9px] font-medium uppercase tracking-wide text-zinc-400 dark:text-[#9B9085]">
+                          <p className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-600 mt-0.5">
                             Views
                           </p>
                         </div>
-                        <div>
-                          <p className="text-xs font-bold text-zinc-800 dark:text-white tabular-nums">
+                        <div className="w-16 text-center">
+                          <p className="text-xs font-bold text-zinc-800 dark:text-white tabular-nums leading-tight">
                             {(page.signups || 0).toLocaleString()}
                           </p>
-                          <p className="text-[9px] font-medium uppercase tracking-wide text-zinc-400 dark:text-[#9B9085]">
+                          <p className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-600 mt-0.5">
                             Leads
                           </p>
                         </div>
-                        <div>
-                          <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                        <div className="w-16 text-center">
+                          <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 tabular-nums leading-tight">
                             {(page.conversionRate || 0).toFixed(1)}%
                           </p>
-                          <p className="text-[9px] font-medium uppercase tracking-wide text-zinc-400 dark:text-[#9B9085]">
+                          <p className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-600 mt-0.5">
                             Conv.
                           </p>
                         </div>
