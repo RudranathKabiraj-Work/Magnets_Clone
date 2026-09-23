@@ -115,8 +115,8 @@ export default function ResourcesPage() {
   };
 
   const uploadFile = async (file: File) => {
-    if (file.size > 50 * 1024 * 1024) {
-      addToast("error", "File size exceeds maximum limit of 50 MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      addToast("error", "File size exceeds maximum limit of 15 MB.");
       return;
     }
 
@@ -367,7 +367,7 @@ export default function ResourcesPage() {
               <UploadCloud className="h-10 w-10 text-white" />
             </div>
             <h3 className="mt-4 text-2xl font-bold">Drop your file to upload instantly</h3>
-            <p className="mt-1 text-sm text-blue-100">Supports PDF, DOCX, ZIP, MP4, Images up to 50 MB</p>
+            <p className="mt-1 text-sm text-blue-100">Supports PDF, DOCX, ZIP, MP4, Images up to 15 MB</p>
           </div>
         )}
 
@@ -472,7 +472,7 @@ export default function ResourcesPage() {
                 {uploading ? "Uploading document..." : "Drag & Drop your first lead magnet file here"}
               </h3>
               <p className="mt-1 text-xs text-zinc-500 dark:text-[#9B9085]">
-                PDF, DOCX, ZIP, Images, MP4, MP3 & any file type · Up to 50 MB per file
+                PDF, DOCX, ZIP, Images, MP4, MP3 & any file type · Up to 15 MB per file
               </p>
               <button className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#005291] transition cursor-pointer">
                 <UploadCloud className="h-4 w-4" /> Browse File from Device
