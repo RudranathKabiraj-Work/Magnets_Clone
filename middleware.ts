@@ -92,10 +92,6 @@ export async function middleware(request: NextRequest) {
     host.endsWith("leadmagnets.so") ||
     host.endsWith("magnets.bdatech.in");
 
-  // Redirect root URL (/) directly to /dashboard
-  if (isPrimaryDomain && pathname === "/") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
 
   // Protect /dashboard routes — require cryptographically signed session
   if (pathname.startsWith("/dashboard")) {

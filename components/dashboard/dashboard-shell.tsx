@@ -284,6 +284,7 @@ export default function DashboardShell({
                   : (pathname === item.href || (item.href !== "/dashboard" && item.href !== "/dashboard/landing-page" && pathname.startsWith(`${item.href}/`)));
               const isHovered = hoveredNavHref === item.href;
               const isDividerAfter = item.href === "/dashboard/locked-pdf"; // Divider after Locked PDF
+              const isDividerBefore = item.href === "/dashboard/linkedin"; // Divider before LinkedIn (Growth section)
 
               if (item.isModal) {
                 return (
@@ -313,6 +314,7 @@ export default function DashboardShell({
 
               return (
                 <div key={item.href} onMouseEnter={() => setHoveredNavHref(item.href)}>
+                  {isDividerBefore && <div className="my-2.5 border-t border-[#E0EDFB] dark:border-white/10" />}
                   <motion.div
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 600, damping: 28 }}
@@ -557,6 +559,7 @@ export default function DashboardShell({
                     : item.href === "/dashboard/landing-page"
                       ? (pathname === "/dashboard/landing-page" || pathname === "/dashboard/leadmagnets" || pathname.startsWith("/dashboard/leadmagnets/"))
                       : (pathname === item.href || (item.href !== "/dashboard" && item.href !== "/dashboard/landing-page" && pathname.startsWith(`${item.href}/`)));
+                  const isDividerBeforeMobile = item.href === "/dashboard/linkedin";
                   if (item.isModal) {
                     return (
                       <button
@@ -573,24 +576,26 @@ export default function DashboardShell({
                     );
                   }
                   return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={(e) => {
-                        setMenuOpen(false);
-                        if (pathname !== item.href) {
-                          e.preventDefault();
-                          router.push(item.href);
-                        }
-                      }}
-                      className={`flex items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition ${active
-                        ? "bg-[#0066B2]/20 text-[#38BDF8] font-semibold"
-                        : "text-[#9B9085] hover:bg-[#0066B2]/15 hover:text-white"
-                        }`}
-                    >
-                      <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-[#9B9085]"}`} aria-hidden="true" />
-                      {item.label}
-                    </Link>
+                    <div key={item.href}>
+                      {isDividerBeforeMobile && <div className="my-1.5 border-t border-white/10" />}
+                      <Link
+                        href={item.href}
+                        onClick={(e) => {
+                          setMenuOpen(false);
+                          if (pathname !== item.href) {
+                            e.preventDefault();
+                            router.push(item.href);
+                          }
+                        }}
+                        className={`flex items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition ${active
+                          ? "bg-[#0066B2]/20 text-[#38BDF8] font-semibold"
+                          : "text-[#9B9085] hover:bg-[#0066B2]/15 hover:text-white"
+                          }`}
+                      >
+                        <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-[#9B9085]"}`} aria-hidden="true" />
+                        {item.label}
+                      </Link>
+                    </div>
                   );
                 })}
               </nav>
