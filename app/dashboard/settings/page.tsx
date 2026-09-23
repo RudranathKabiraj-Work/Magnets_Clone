@@ -1,16 +1,110 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { User, KeyRound, AlertTriangle, Check, Trash2, BarChart3, Database, MailOpen, Zap, HardDrive, Bell, Send, Sparkles, Camera, Upload, Loader2 } from "lucide-react";
+import {
+  User,
+  KeyRound,
+  AlertTriangle,
+  Check,
+  Trash2,
+  BarChart3,
+  Bell,
+  Send,
+  Camera,
+  Upload,
+  Loader2,
+  X,
+  AlertCircle,
+  Info,
+  ShieldCheck,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { saveAccount, syncWithDatabase, loadAccount, loadPages, loadLeads, loadSequences, loadResources, safeSetItem } from "@/lib/store";
+import {
+  saveAccount,
+  syncWithDatabase,
+  loadAccount,
+  loadPages,
+  loadLeads,
+  loadSequences,
+  loadResources,
+  safeSetItem,
+} from "@/lib/store";
 import { useRouter } from "next/navigation";
 import type { Account } from "@/lib/data";
 import { motion, AnimatePresence } from "framer-motion";
 
-import PasswordInputWithStrength, { validatePasswordStrength } from "@/components/ui/password-input-with-strength";
+import PasswordInputWithStrength, {
+  validatePasswordStrength,
+} from "@/components/ui/password-input-with-strength";
 import { getPlanLimits } from "@/lib/plan-limits";
 
+// --- Toast Notification Types & Component ---
+interface ToastItem {
+  id: string;
+  type: "success" | "error" | "info";
+  message: string;
+}
+
+function AccountToastContainer({
+  toasts,
+  onRemoveToast,
+}: {
+  toasts: ToastItem[];
+  onRemoveToast: (id: string) => void;
+}) {
+  return (
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 pointer-events-none max-w-sm w-full">
+      <AnimatePresence>
+        {toasts.map((toast) => (
+          <motion.div
+            key={toast.id}
+            initial={{ opacity: 0, y: 16, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.2 } }}
+            transition={{ type: "spring", stiffness: 450, damping: 30 }}
+            className={`pointer-events-auto flex items-center gap-3 rounded-2xl p-4 text-xs font-medium shadow-2xl backdrop-blur-md border transition-all ${
+              toast.type === "success"
+                ? "bg-[#062817]/95 border-emerald-500/40 text-emerald-100 shadow-emerald-950/30"
+                : toast.type === "error"
+                ? "bg-[#330c0c]/95 border-rose-500/40 text-rose-100 shadow-rose-950/30"
+                : "bg-[#18181C]/95 border-zinc-700/50 text-zinc-100 shadow-black/40"
+            }`}
+          >
+            {toast.type === "success" && (
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <Check className="h-3.5 w-3.5" />
+              </div>
+            )}
+            {toast.type === "error" && (
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                <AlertCircle className="h-3.5 w-3.5" />
+              </div>
+            )}
+            {toast.type === "info" && (
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                <Info className="h-3.5 w-3.5" />
+              </div>
+            )}
+
+            <div className="flex-1 text-[13px] leading-snug">{toast.message}</div>
+
+            <button
+              type="button"
+              onClick={() => onRemoveToast(toast.id)}
+              className="text-zinc-400 hover:text-white transition-colors cursor-pointer p-0.5"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// --- Image WebP Compression Helper ---
 function compressAvatarImage(file: File, maxDimension = 400, quality = 0.85): Promise<File> {
   return new Promise((resolve) => {
     if (typeof window === "undefined" || !window.FileReader || !window.HTMLCanvasElement) {
@@ -100,6 +194,20 @@ export default function AccountSettingsPage() {
   const [sendingTestAlert, setSendingTestAlert] = useState(false);
   const [alertStatusMsg, setAlertStatusMsg] = useState("");
 
+  // Toast Notification System
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const addToast = useCallback((message: string, type: "success" | "error" | "info" = "success") => {
+    const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    setToasts((prev) => [...prev, { id, type, message }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  }, []);
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
   // Data Source State for Memoized Calculations
   const [pagesData, setPagesData] = useState<any[]>([]);
   const [leadsData, setLeadsData] = useState<any[]>([]);
@@ -133,7 +241,7 @@ export default function AccountSettingsPage() {
   const storageMb = useMemo(() => {
     const resourceCount = (resourcesData || []).length;
     return isDemo
-      ? parseFloat((Math.max(18.5, resourceCount * 2.8)).toFixed(1))
+      ? parseFloat(Math.max(18.5, resourceCount * 2.8).toFixed(1))
       : parseFloat((resourceCount * 2.8).toFixed(1));
   }, [resourcesData, isDemo]);
 
@@ -183,103 +291,100 @@ export default function AccountSettingsPage() {
 
   const handleUpdateName = useCallback(async () => {
     if (!account) return;
+    if (!name.trim()) {
+      addToast("Please enter a valid name.", "error");
+      return;
+    }
     setUpdatingName(true);
     const updatedAccount = { ...account, name: name.trim() };
     try {
       const res = await saveAccount(updatedAccount);
       if (res.success && res.account) {
         setAccount(res.account);
-        safeSetItem("currentUserAccount", JSON.stringify(res.account));
       } else {
         setAccount(updatedAccount);
-        safeSetItem("currentUserAccount", JSON.stringify(updatedAccount));
       }
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("accountUpdated"));
       }
-      alert("Name updated successfully!");
+      addToast("Name updated successfully!", "success");
     } catch (err) {
       console.error(err);
-      alert("Failed to update name.");
+      addToast("Failed to update name.", "error");
     } finally {
       setUpdatingName(false);
     }
-  }, [account, name]);
+  }, [account, name, addToast]);
 
-  const handleAvatarUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleAvatarUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    // Standard 5 MB file size limit check
-    const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5 MB in bytes
-    if (file.size > MAX_AVATAR_SIZE) {
-      alert("Profile photo size must be less than 5 MB. Please choose a smaller image.");
-      return;
-    }
-
-    setUploadingAvatar(true);
-    try {
-      const uploadFile = await compressAvatarImage(file);
-      const formData = new FormData();
-      formData.append("file", uploadFile);
-      formData.append("isPageAsset", "true");
-      formData.append("userEmail", email || account?.email || "");
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (res.ok && (data.data?.fileUrl || data.data?.url)) {
-        const avatarUrl = data.data.fileUrl || data.data.url;
-        setAvatar(avatarUrl);
-        const updated = { ...account, avatar: avatarUrl };
-        saveAccount(updated as any);
-        setAccount(updated as any);
-
-        await fetch("/api/data", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "saveAccount", data: updated, email: email || account?.email }),
-        });
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new Event("accountUpdated"));
-        }
-      } else {
-        alert(data.error || "Failed to upload avatar photo.");
+      // 5 MB file size limit check
+      const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+      if (file.size > MAX_AVATAR_SIZE) {
+        addToast("Profile photo size must be less than 5 MB.", "error");
+        return;
       }
-    } catch (err: any) {
-      console.error("Avatar upload error:", err);
-      alert("Failed to upload photo.");
-    } finally {
-      setUploadingAvatar(false);
-    }
-  }, [account, email]);
+
+      setUploadingAvatar(true);
+      try {
+        const uploadFile = await compressAvatarImage(file);
+        const formData = new FormData();
+        formData.append("file", uploadFile);
+        formData.append("isPageAsset", "true");
+        formData.append("userEmail", email || account?.email || "");
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (res.ok && (data.data?.fileUrl || data.data?.url)) {
+          const avatarUrl = data.data.fileUrl || data.data.url;
+          setAvatar(avatarUrl);
+          const updated = { ...account, avatar: avatarUrl };
+          await saveAccount(updated as any);
+          setAccount(updated as any);
+
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new Event("accountUpdated"));
+          }
+          addToast("Profile photo updated successfully!", "success");
+        } else {
+          addToast(data.error || "Failed to upload avatar photo.", "error");
+        }
+      } catch (err: any) {
+        console.error("Avatar upload error:", err);
+        addToast("Failed to upload photo.", "error");
+      } finally {
+        setUploadingAvatar(false);
+      }
+    },
+    [account, email, addToast]
+  );
 
   const handleRemoveAvatar = useCallback(async () => {
     setAvatar(null);
     const updated = { ...account, avatar: null };
-    saveAccount(updated as any);
+    await saveAccount(updated as any);
     setAccount(updated as any);
 
-    await fetch("/api/data", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "saveAccount", data: updated, email: email || account?.email }),
-    });
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("accountUpdated"));
     }
-  }, [account, email]);
+    addToast("Profile photo removed.", "info");
+  }, [account, addToast]);
 
   const handleUpdatePassword = useCallback(async () => {
     const passwordError = validatePasswordStrength(newPassword);
     if (passwordError) {
-      alert(passwordError);
+      addToast(passwordError, "error");
       return;
     }
     if (newPassword !== confirmPassword) {
-      alert("New passwords do not match!");
+      addToast("New passwords do not match!", "error");
       return;
     }
     setUpdatingPassword(true);
@@ -293,21 +398,21 @@ export default function AccountSettingsPage() {
         }),
       });
       if (res.ok) {
-        alert("Password updated successfully!");
+        addToast("Password updated successfully!", "success");
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
       } else {
         const errData = await res.json();
-        alert(errData.error || "Failed to update password.");
+        addToast(errData.error || "Failed to update password.", "error");
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to update password.");
+      addToast("Failed to update password.", "error");
     } finally {
       setUpdatingPassword(false);
     }
-  }, [account, newPassword, confirmPassword, currentPassword]);
+  }, [account, newPassword, confirmPassword, currentPassword, addToast]);
 
   const handleSaveLeadAlerts = useCallback(async () => {
     setSavingAlerts(true);
@@ -318,124 +423,145 @@ export default function AccountSettingsPage() {
         leadAlertsEnabled,
         notifyEmail: notifyEmail.trim(),
       };
-      saveAccount(updated as any);
+      await saveAccount(updated as any);
       setAccount(updated as any);
 
-      await fetch("/api/data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "saveAccount", data: updated, email: email || account?.email }),
-      });
-
-      setAlertStatusMsg("✓ Notification preferences saved successfully!");
+      setAlertStatusMsg("Notification preferences saved successfully!");
+      addToast("Notification preferences saved successfully!", "success");
       setTimeout(() => setAlertStatusMsg(""), 4000);
     } catch (err: any) {
       console.error(err);
-      alert("Failed to save notification settings.");
+      addToast("Failed to save notification settings.", "error");
     } finally {
       setSavingAlerts(false);
     }
-  }, [account, leadAlertsEnabled, notifyEmail, email]);
+  }, [account, leadAlertsEnabled, notifyEmail, addToast]);
 
   const handleSendTestAlert = useCallback(async () => {
     setSendingTestAlert(true);
     setAlertStatusMsg("");
+    const targetEmail = notifyEmail.trim() || email || account?.email || "";
     try {
       const res = await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "sendTestLeadAlert",
-          data: { email: notifyEmail.trim() || email || account?.email },
+          data: { email: targetEmail },
         }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setAlertStatusMsg("🎉 Test lead alert dispatched successfully!");
+        setAlertStatusMsg(`Test lead alert dispatched to ${targetEmail}!`);
+        addToast(`Test lead alert dispatched to ${targetEmail}!`, "success");
       } else {
-        alert(data.error || "Failed to send test alert.");
+        addToast(data.error || "Failed to send test alert.", "error");
       }
     } catch (err: any) {
       console.error(err);
-      alert("Failed to send test alert email.");
+      addToast("Failed to send test alert email.", "error");
     } finally {
       setSendingTestAlert(false);
     }
-  }, [notifyEmail, email, account?.email]);
+  }, [notifyEmail, email, account?.email, addToast]);
 
-  const handleDeleteAccount = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (deleteConfirmText !== "DELETE") {
-      setDeleteError("Please type DELETE to confirm.");
-      return;
-    }
-
-    setDeleting(true);
-    setDeleteError("");
-    try {
-      const res = await fetch("/api/data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "deleteAccount",
-          data: { email: account!.email, password: deletePassword },
-        }),
-      });
-      if (res.ok) {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("currentUserAccount");
-          localStorage.removeItem("currentUserEmail");
-          localStorage.removeItem("currentUserPages");
-          localStorage.removeItem("currentUserLeads");
-          localStorage.removeItem("currentUserSequences");
-          localStorage.removeItem("currentUserIntegrations");
-          localStorage.removeItem("currentUserResources");
-          localStorage.removeItem("sessionExpiry");
-        }
-        alert("Account successfully deleted.");
-        router.push("/");
-      } else {
-        const errData = await res.json();
-        setDeleteError(errData.error || "Failed to delete account.");
+  const handleDeleteAccount = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (deleteConfirmText !== "DELETE") {
+        setDeleteError("Please type DELETE to confirm.");
+        return;
       }
-    } catch (err: any) {
-      console.error(err);
-      setDeleteError(err.message || "Failed to delete account.");
-    } finally {
-      setDeleting(false);
-    }
-  }, [deleteConfirmText, account, deletePassword, router]);
 
-
+      setDeleting(true);
+      setDeleteError("");
+      try {
+        const res = await fetch("/api/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "deleteAccount",
+            data: { email: account!.email, password: deletePassword },
+          }),
+        });
+        if (res.ok) {
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("currentUserAccount");
+            localStorage.removeItem("currentUserEmail");
+            localStorage.removeItem("currentUserPages");
+            localStorage.removeItem("currentUserLeads");
+            localStorage.removeItem("currentUserSequences");
+            localStorage.removeItem("currentUserIntegrations");
+            localStorage.removeItem("currentUserResources");
+            localStorage.removeItem("sessionExpiry");
+          }
+          addToast("Account successfully deleted.", "info");
+          setTimeout(() => {
+            router.push("/");
+          }, 600);
+        } else {
+          const errData = await res.json();
+          setDeleteError(errData.error || "Failed to delete account.");
+          addToast(errData.error || "Failed to delete account.", "error");
+        }
+      } catch (err: any) {
+        console.error(err);
+        setDeleteError(err.message || "Failed to delete account.");
+        addToast(err.message || "Failed to delete account.", "error");
+      } finally {
+        setDeleting(false);
+      }
+    },
+    [deleteConfirmText, account, deletePassword, router, addToast]
+  );
 
   const inputClass =
-    "w-full max-w-lg rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#9B9085] focus:border-[#0066B2] transition";
+    "w-full max-w-lg rounded-xl border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#9B9085] focus:border-[#0066B2] transition";
 
   const labelClass = "block text-[12.2px] font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5";
+
+  // Quota bar color resolver
+  const getUsageBarColor = (used: number, limit: number) => {
+    const ratio = used / Math.max(1, limit);
+    if (ratio >= 0.9) return "bg-rose-500";
+    if (ratio >= 0.75) return "bg-amber-500";
+    return "bg-[#0066B2]";
+  };
 
   return (
     <DashboardShell account={account} title="Account">
       <div className="flex flex-col min-h-full bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">
         <div className="flex-1 px-6 py-6 lg:px-8 w-full">
-
           {/* Page heading */}
-          <div className="mb-6">
-            <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-900 dark:text-white">
-              Account Settings
-              <button
-                type="button"
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    window.dispatchEvent(new CustomEvent("openHelpTopic", { detail: { topic: "Account settings" } }));
-                  }
-                }}
-                className="cursor-pointer flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-100 dark:hover:bg-[#18181B] transition-colors"
-                title="View Account Settings Help"
-              >
-                ?
-              </button>
-            </h2>
-            <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">Manage your identity, security, notifications, and account limits.</p>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-900 dark:text-white">
+                Account Settings
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      window.dispatchEvent(
+                        new CustomEvent("openHelpTopic", { detail: { topic: "Account settings" } })
+                      );
+                    }
+                  }}
+                  className="cursor-pointer flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 dark:border-[#2e2e38] text-xs font-normal text-zinc-500 dark:text-[#9B9085] hover:bg-zinc-100 dark:hover:bg-[#18181B] transition-colors"
+                  title="View Account Settings Help"
+                >
+                  ?
+                </button>
+              </h2>
+              <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
+                Manage your identity, security, notifications, and account limits.
+              </p>
+            </div>
+
+            {/* Active Plan Badge */}
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-[#0066B2]/20 bg-[#EFF6FF] dark:border-[#0066B2]/30 dark:bg-[#1a2638] text-[#0066B2] text-xs font-bold shadow-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>{planConfig.badge}</span>
+            </div>
           </div>
 
           {/* Segmented Tab Navigation Bar */}
@@ -462,19 +588,22 @@ export default function AccountSettingsPage() {
                   transition={{ type: "spring", stiffness: 600, damping: 28 }}
                   onMouseEnter={() => setHoveredTab(t.id)}
                   onClick={() => setActiveTab(t.id as any)}
-                  className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${isActive
-                    ? "text-white"
-                    : t.danger
+                  className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                    isActive
+                      ? "text-white"
+                      : t.danger
                       ? "text-red-600 dark:text-red-400"
                       : "text-zinc-600 dark:text-zinc-400 dark:hover:text-white"
-                    }`}
+                  }`}
                 >
                   {/* Active Tab Solid Pill */}
                   {isActive && (
                     <motion.div
                       layoutId="activeTabPill"
                       transition={{ type: "spring", stiffness: 500, damping: 32 }}
-                      className={`absolute inset-0 rounded-xl shadow-sm ${t.danger ? "bg-red-500" : "bg-[#0066B2]"}`}
+                      className={`absolute inset-0 rounded-xl shadow-sm ${
+                        t.danger ? "bg-red-500" : "bg-[#0066B2]"
+                      }`}
                     />
                   )}
                   {/* Hover Morphing Pill */}
@@ -482,7 +611,11 @@ export default function AccountSettingsPage() {
                     <motion.div
                       layoutId="settingsHoverTabPill"
                       transition={{ type: "spring", stiffness: 500, damping: 32 }}
-                      className={`absolute inset-0 rounded-xl ${t.danger ? "bg-red-50 dark:bg-red-950/40" : "bg-zinc-200/60 dark:bg-zinc-800/60"}`}
+                      className={`absolute inset-0 rounded-xl ${
+                        t.danger
+                          ? "bg-red-50 dark:bg-red-950/40"
+                          : "bg-zinc-200/60 dark:bg-zinc-800/60"
+                      }`}
                     />
                   )}
                   <Icon className="h-4 w-4 relative z-10" />
@@ -501,7 +634,7 @@ export default function AccountSettingsPage() {
                   initial={{ opacity: 0, y: 8, scale: 0.99 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.99 }}
-                  transition={{ duration: 0.10, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
                   className="rounded-2xl border border-zinc-200/80 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] p-6 shadow-sm"
                 >
                   <div className="flex items-start gap-3">
@@ -528,7 +661,14 @@ export default function AccountSettingsPage() {
                           />
                         ) : (
                           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[#0066B2] to-[#004B82] text-white font-extrabold text-2xl shadow-md border-2 border-[#0066B2]/40">
-                            {name ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "U"}
+                            {name
+                              ? name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .toUpperCase()
+                                  .slice(0, 2)
+                              : "U"}
                           </div>
                         )}
                         <button
@@ -538,13 +678,19 @@ export default function AccountSettingsPage() {
                           className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 shadow-md hover:bg-zinc-100 dark:hover:bg-zinc-700 transition cursor-pointer"
                           title="Upload profile photo"
                         >
-                          {uploadingAvatar ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2]" /> : <Camera className="h-3.5 w-3.5 text-[#0066B2]" />}
+                          {uploadingAvatar ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2]" />
+                          ) : (
+                            <Camera className="h-3.5 w-3.5 text-[#0066B2]" />
+                          )}
                         </button>
                       </div>
 
                       <div className="space-y-1.5">
                         <h5 className="text-xs font-bold text-zinc-900 dark:text-white">Profile Photo</h5>
-                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400">JPG, PNG or WEBP. Appears on your profile and workspace dashboard.</p>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                          JPG, PNG or WEBP (Max 5 MB). Compressed automatically to high-speed WebP.
+                        </p>
                         <div className="flex items-center gap-2.5 pt-1">
                           <input
                             type="file"
@@ -557,7 +703,7 @@ export default function AccountSettingsPage() {
                             type="button"
                             onClick={() => avatarInputRef.current?.click()}
                             disabled={uploadingAvatar}
-                            className="flex items-center gap-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#121214] px-3.5 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+                            className="flex items-center gap-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#121214] px-3.5 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition cursor-pointer"
                           >
                             <Upload className="h-3.5 w-3.5 text-[#0066B2]" />
                             {uploadingAvatar ? "Uploading..." : "Upload Photo"}
@@ -567,7 +713,7 @@ export default function AccountSettingsPage() {
                             <button
                               type="button"
                               onClick={handleRemoveAvatar}
-                              className="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 hover:underline transition"
+                              className="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 hover:underline transition cursor-pointer"
                             >
                               Remove
                             </button>
@@ -577,32 +723,43 @@ export default function AccountSettingsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">Name</label>
+                      <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">
+                        Full Name
+                      </label>
                       <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Your Name"
-                        className="w-full max-w-lg rounded-xl border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-900 dark:text-white outline-none placeholder:text-[#9B9085] focus:border-[#0066B2] transition"
+                        className={inputClass}
                       />
                     </div>
                     <div>
-                      <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">Email</label>
+                      <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">
+                        Email Address
+                      </label>
                       <input
                         type="email"
                         value={email}
                         disabled
                         className="w-full max-w-lg rounded-xl border border-[#E2E8F0] bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#18181B] px-3.5 py-2.5 text-[14.2px] text-zinc-500 dark:text-white outline-none opacity-60 cursor-not-allowed transition"
                       />
+                      <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1">
+                        Primary account identifier. Contact support to change your account email.
+                      </p>
                     </div>
 
                     <div className="pt-2 flex justify-end max-w-lg">
                       <button
                         onClick={handleUpdateName}
                         disabled={updatingName}
-                        className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] px-5 py-2.5 text-[12.2px] font-bold text-white hover:bg-[#005799] disabled:opacity-60 transition shadow-sm"
+                        className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] px-5 py-2.5 text-[12.2px] font-bold text-white hover:bg-[#005799] disabled:opacity-60 transition shadow-sm cursor-pointer"
                       >
-                        <Check className="h-3.5 w-3.5 text-white stroke-[2.5px]" />
+                        {updatingName ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                        ) : (
+                          <Check className="h-3.5 w-3.5 text-white stroke-[2.5px]" />
+                        )}
                         {updatingName ? "Updating..." : "Update name"}
                       </button>
                     </div>
@@ -617,7 +774,7 @@ export default function AccountSettingsPage() {
                   initial={{ opacity: 0, y: 8, scale: 0.99 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.99 }}
-                  transition={{ duration: 0.10, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
                   className="rounded-2xl border border-zinc-200/80 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] p-6 shadow-sm"
                 >
                   <div className="flex items-start gap-3">
@@ -626,13 +783,17 @@ export default function AccountSettingsPage() {
                     </div>
                     <div>
                       <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Change password</h4>
-                      <p className="text-[12.2px] text-[#71717a] dark:text-[#9B9085] mt-0.5">Use at least 8 characters. Pick something you don't reuse elsewhere.</p>
+                      <p className="text-[12.2px] text-[#71717a] dark:text-[#9B9085] mt-0.5">
+                        Use at least 8 characters with numbers and symbols.
+                      </p>
                     </div>
                   </div>
 
                   <div className="mt-5 pl-12 space-y-4 max-w-lg">
                     <div>
-                      <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">Current password</label>
+                      <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">
+                        Current password
+                      </label>
                       <PasswordInputWithStrength
                         value={currentPassword}
                         onChange={setCurrentPassword}
@@ -642,7 +803,9 @@ export default function AccountSettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">New password</label>
+                      <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">
+                        New password
+                      </label>
                       <PasswordInputWithStrength
                         value={newPassword}
                         onChange={setNewPassword}
@@ -652,7 +815,9 @@ export default function AccountSettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">Confirm new password</label>
+                      <label className="block text-[12.2px] font-semibold text-[#71717a] dark:text-[#9B9085] mb-1.5">
+                        Confirm new password
+                      </label>
                       <PasswordInputWithStrength
                         value={confirmPassword}
                         onChange={setConfirmPassword}
@@ -666,9 +831,13 @@ export default function AccountSettingsPage() {
                       <button
                         onClick={handleUpdatePassword}
                         disabled={updatingPassword}
-                        className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] px-5 py-2.5 text-[12.2px] font-bold text-white hover:bg-[#005799] disabled:opacity-60 transition shadow-sm"
+                        className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] px-5 py-2.5 text-[12.2px] font-bold text-white hover:bg-[#005799] disabled:opacity-60 transition shadow-sm cursor-pointer"
                       >
-                        <KeyRound className="h-3.5 w-3.5 text-white stroke-[2.5px]" />
+                        {updatingPassword ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                        ) : (
+                          <KeyRound className="h-3.5 w-3.5 text-white stroke-[2.5px]" />
+                        )}
                         {updatingPassword ? "Updating..." : "Update password"}
                       </button>
                     </div>
@@ -683,7 +852,7 @@ export default function AccountSettingsPage() {
                   initial={{ opacity: 0, y: 8, scale: 0.99 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.99 }}
-                  transition={{ duration: 0.10, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
                   className="rounded-2xl border border-zinc-200/80 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] p-6 shadow-sm"
                 >
                   <div className="flex items-start gap-3">
@@ -708,12 +877,14 @@ export default function AccountSettingsPage() {
                         <button
                           type="button"
                           onClick={() => setLeadAlertsEnabled(!leadAlertsEnabled)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${leadAlertsEnabled ? "bg-[#0066B2]" : "bg-zinc-300 dark:bg-zinc-700"
-                            }`}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            leadAlertsEnabled ? "bg-[#0066B2]" : "bg-zinc-300 dark:bg-zinc-700"
+                          }`}
                         >
                           <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${leadAlertsEnabled ? "translate-x-5" : "translate-x-0"
-                              }`}
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                              leadAlertsEnabled ? "translate-x-5" : "translate-x-0"
+                            }`}
                           />
                         </button>
                       </div>
@@ -751,9 +922,13 @@ export default function AccountSettingsPage() {
                           type="button"
                           onClick={handleSendTestAlert}
                           disabled={sendingTestAlert}
-                          className="flex items-center gap-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#121214] px-4 py-2 text-[12px] font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+                          className="flex items-center gap-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-[#121214] px-4 py-2 text-[12px] font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition cursor-pointer"
                         >
-                          <Send className="h-3.5 w-3.5" />
+                          {sendingTestAlert ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2]" />
+                          ) : (
+                            <Send className="h-3.5 w-3.5" />
+                          )}
                           {sendingTestAlert ? "Sending..." : "Send Test Alert Email"}
                         </button>
 
@@ -761,9 +936,13 @@ export default function AccountSettingsPage() {
                           type="button"
                           onClick={handleSaveLeadAlerts}
                           disabled={savingAlerts}
-                          className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] px-5 py-2 text-[12.2px] font-bold text-white hover:bg-[#005799] disabled:opacity-60 transition shadow-sm"
+                          className="flex items-center gap-1.5 rounded-lg bg-[#0066B2] px-5 py-2 text-[12.2px] font-bold text-white hover:bg-[#005799] disabled:opacity-60 transition shadow-sm cursor-pointer"
                         >
-                          <Check className="h-3.5 w-3.5 text-white stroke-[2.5px]" />
+                          {savingAlerts ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                          ) : (
+                            <Check className="h-3.5 w-3.5 text-white stroke-[2.5px]" />
+                          )}
                           {savingAlerts ? "Saving..." : "Save alert preferences"}
                         </button>
                       </div>
@@ -779,7 +958,7 @@ export default function AccountSettingsPage() {
                   initial={{ opacity: 0, y: 8, scale: 0.99 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.99 }}
-                  transition={{ duration: 0.10, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
                   className="rounded-2xl border border-zinc-200/80 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] p-6 shadow-sm"
                 >
                   <div className="flex items-start gap-3">
@@ -787,8 +966,12 @@ export default function AccountSettingsPage() {
                       <BarChart3 className="h-4.5 w-4.5" />
                     </div>
                     <div>
-                      <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Account Usage & Plan Limits</h4>
-                      <p className="text-[12.2px] text-[#71717a] dark:text-[#9B9085] mt-0.5">Your usage metrics for the current billing cycle.</p>
+                      <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">
+                        Account Usage & Plan Limits
+                      </h4>
+                      <p className="text-[12.2px] text-[#71717a] dark:text-[#9B9085] mt-0.5">
+                        Your usage metrics for the active {planConfig.name} billing cycle.
+                      </p>
                     </div>
                   </div>
 
@@ -796,12 +979,20 @@ export default function AccountSettingsPage() {
                     {/* Lead Capacity */}
                     <div>
                       <div className="flex justify-between items-center text-xs mb-1.5">
-                        <span className="font-semibold text-zinc-700 dark:text-zinc-300">Total Leads Captured</span>
-                        <span className="font-bold text-[#0066B2] dark:text-[#0066B2]">{leadCount} / {leadLimit}</span>
+                        <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                          Total Leads Captured
+                        </span>
+                        <span className="font-bold text-[#0066B2]">
+                          {leadCount} / {leadLimit} (
+                          {Math.round((leadCount / Math.max(1, leadLimit)) * 100)}%)
+                        </span>
                       </div>
                       <div className="w-full h-2 rounded-full bg-zinc-100 dark:bg-[#121214] overflow-hidden">
                         <div
-                          className="h-full bg-[#0066B2] transition-all duration-500"
+                          className={`h-full ${getUsageBarColor(
+                            leadCount,
+                            leadLimit
+                          )} transition-all duration-500`}
                           style={{ width: `${Math.min(100, (leadCount / leadLimit) * 100)}%` }}
                         />
                       </div>
@@ -811,11 +1002,17 @@ export default function AccountSettingsPage() {
                     <div>
                       <div className="flex justify-between items-center text-xs mb-1.5">
                         <span className="font-semibold text-zinc-700 dark:text-zinc-300">File Storage</span>
-                        <span className="font-bold text-[#0066B2] dark:text-[#0066B2]">{storageMb} MB / {storageLimitMb} MB</span>
+                        <span className="font-bold text-[#0066B2]">
+                          {storageMb} MB / {storageLimitMb} MB (
+                          {Math.round((storageMb / Math.max(1, storageLimitMb)) * 100)}%)
+                        </span>
                       </div>
                       <div className="w-full h-2 rounded-full bg-zinc-100 dark:bg-[#121214] overflow-hidden">
                         <div
-                          className="h-full bg-emerald-500 transition-all duration-500"
+                          className={`h-full ${getUsageBarColor(
+                            storageMb,
+                            storageLimitMb
+                          )} transition-all duration-500`}
                           style={{ width: `${Math.min(100, (storageMb / storageLimitMb) * 100)}%` }}
                         />
                       </div>
@@ -824,13 +1021,29 @@ export default function AccountSettingsPage() {
                     {/* Active Sequences */}
                     <div>
                       <div className="flex justify-between items-center text-xs mb-1.5">
-                        <span className="font-semibold text-zinc-700 dark:text-zinc-300">Live Email Sequences</span>
-                        <span className="font-bold text-[#0066B2] dark:text-[#0066B2]">{activeSequencesCount} / {sequencesLimit}</span>
+                        <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                          Live Email Sequences
+                        </span>
+                        <span className="font-bold text-[#0066B2]">
+                          {activeSequencesCount} / {sequencesLimit} (
+                          {Math.round(
+                            (activeSequencesCount / Math.max(1, sequencesLimit)) * 100
+                          )}
+                          %)
+                        </span>
                       </div>
                       <div className="w-full h-2 rounded-full bg-zinc-100 dark:bg-[#121214] overflow-hidden">
                         <div
-                          className="h-full bg-purple-500 transition-all duration-500"
-                          style={{ width: `${Math.min(100, (activeSequencesCount / sequencesLimit) * 100)}%` }}
+                          className={`h-full ${getUsageBarColor(
+                            activeSequencesCount,
+                            sequencesLimit
+                          )} transition-all duration-500`}
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              (activeSequencesCount / sequencesLimit) * 100
+                            )}%`,
+                          }}
                         />
                       </div>
                     </div>
@@ -845,7 +1058,7 @@ export default function AccountSettingsPage() {
                   initial={{ opacity: 0, y: 8, scale: 0.99 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.99 }}
-                  transition={{ duration: 0.10, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
                   className="rounded-2xl border border-red-200 dark:border-red-900/60 bg-white dark:bg-[#18181B] p-6 transition-colors shadow-sm"
                 >
                   <div className="flex items-start gap-3">
@@ -868,7 +1081,7 @@ export default function AccountSettingsPage() {
                         <div className="mt-5 flex justify-start">
                           <button
                             onClick={() => setShowDeleteConfirm(true)}
-                            className="flex items-center gap-1.5 rounded-md border border-red-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-[14px] py-[8px] text-sm font-extrabold text-red-600 dark:text-[#FF8585] hover:border-red-400 dark:hover:border-red-800 transition"
+                            className="flex items-center gap-1.5 rounded-md border border-red-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-[14px] py-[8px] text-sm font-extrabold text-red-600 dark:text-[#FF8585] hover:border-red-400 dark:hover:border-red-800 transition cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4 stroke-[3px]" />
                             Delete account
@@ -877,9 +1090,7 @@ export default function AccountSettingsPage() {
                       ) : (
                         <form onSubmit={handleDeleteAccount} className="mt-5 space-y-4 max-w-2xl">
                           <div>
-                            <label className={labelClass}>
-                              Confirm with your password
-                            </label>
+                            <label className={labelClass}>Confirm with your password</label>
                             <input
                               type="password"
                               required
@@ -890,9 +1101,7 @@ export default function AccountSettingsPage() {
                           </div>
 
                           <div>
-                            <label className={labelClass}>
-                              Type DELETE to confirm
-                            </label>
+                            <label className={labelClass}>Type DELETE to confirm</label>
                             <input
                               type="text"
                               required
@@ -901,7 +1110,9 @@ export default function AccountSettingsPage() {
                               onChange={(e) => setDeleteConfirmText(e.target.value)}
                               className={inputClass}
                             />
-                            <span className="block text-[10px] text-[#5c5650] mt-1">Case-sensitive.</span>
+                            <span className="block text-[10px] text-[#5c5650] mt-1">
+                              Case-sensitive.
+                            </span>
                           </div>
 
                           <div className="pt-2 flex items-center gap-3">
@@ -913,16 +1124,20 @@ export default function AccountSettingsPage() {
                                 setDeleteConfirmText("");
                                 setDeleteError("");
                               }}
-                              className="rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-[14px] py-[8px] text-sm font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#2e2e38] transition"
+                              className="rounded-md border border-[#E2E8F0] bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-[14px] py-[8px] text-sm font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#2e2e38] transition cursor-pointer"
                             >
                               Cancel
                             </button>
                             <button
                               type="submit"
                               disabled={deleting}
-                              className="flex items-center gap-1.5 rounded-md border border-red-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-[14px] py-[8px] text-sm font-extrabold text-red-600 dark:text-[#FF8585] hover:border-red-400 dark:hover:border-red-800 disabled:opacity-60 transition"
+                              className="flex items-center gap-1.5 rounded-md border border-red-200 bg-white dark:border-[#2e2e38] dark:bg-[#18181B] px-[14px] py-[8px] text-sm font-extrabold text-red-600 dark:text-[#FF8585] hover:border-red-400 dark:hover:border-red-800 disabled:opacity-60 transition cursor-pointer"
                             >
-                              <Trash2 className="h-4 w-4 stroke-[3px]" />
+                              {deleting ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-red-600" />
+                              ) : (
+                                <Trash2 className="h-4 w-4 stroke-[3px]" />
+                              )}
                               {deleting ? "Deleting..." : "Delete permanently"}
                             </button>
                           </div>
@@ -936,6 +1151,9 @@ export default function AccountSettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Modern Non-Blocking Toast Notification Container */}
+      <AccountToastContainer toasts={toasts} onRemoveToast={removeToast} />
     </DashboardShell>
   );
 }
