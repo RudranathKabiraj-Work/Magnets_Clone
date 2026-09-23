@@ -39,6 +39,19 @@ html.lenis body {
   background: #0066B2;
 }
 
+/* Hide scrollbar utility */
+.scrollbar-none,
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+}
+
 /* Performance: skip rendering off-screen sections entirely.
    IMPORTANT: Only apply to sections below the fold. Never apply to the hero.
    contain-intrinsic-size: auto <fallback> — uses real size after first render. */

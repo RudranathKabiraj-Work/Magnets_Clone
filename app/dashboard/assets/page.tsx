@@ -69,6 +69,7 @@ export default function ResourcesPage() {
   // UI State
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<"all" | "docs" | "images" | "media" | "archives">("all");
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "size" | "name">("newest");
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -736,8 +737,11 @@ export default function ResourcesPage() {
           {/* Search & Filter Toolbar (Only when files exist or searching) */}
           {resources.length > 0 && (
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              {/* Category Tabs */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+              {/* Category Tabs with Framer Motion Spring Pill */}
+              <div
+                onMouseLeave={() => setHoveredCategory(null)}
+                className="relative flex flex-wrap sm:flex-nowrap items-center gap-1.5 scrollbar-none"
+              >
                 {(
                   [
                     { id: "all", label: "All Files" },
@@ -746,18 +750,43 @@ export default function ResourcesPage() {
                     { id: "media", label: "Audio & Video" },
                     { id: "archives", label: "Archives" },
                   ] as const
-                ).map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveCategory(tab.id)}
-                    className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all shrink-0 cursor-pointer ${activeCategory === tab.id
-                      ? "bg-[#0066B2] text-white shadow-sm"
-                      : "bg-white text-zinc-600 hover:bg-zinc-100 dark:bg-[#18181B] dark:text-zinc-400 dark:hover:bg-[#25252A]"
+                ).map((tab) => {
+                  const isActive = activeCategory === tab.id;
+                  const isHovered = hoveredCategory === tab.id;
+
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveCategory(tab.id)}
+                      onMouseEnter={() => setHoveredCategory(tab.id)}
+                      className={`relative rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-colors shrink-0 cursor-pointer ${
+                        isActive
+                          ? "text-white"
+                          : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
                       }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+                    >
+                      {/* Active Tab Solid Sliding Pill */}
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeAssetCategoryTab"
+                          transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                          className="absolute inset-0 rounded-xl bg-[#0066B2] shadow-sm"
+                        />
+                      )}
+
+                      {/* Hover Morphing Pill */}
+                      {!isActive && isHovered && (
+                        <motion.div
+                          layoutId="hoverAssetCategoryTab"
+                          transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                          className="absolute inset-0 rounded-xl bg-zinc-200/60 dark:bg-white/10"
+                        />
+                      )}
+
+                      <span className="relative z-10">{tab.label}</span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Search, Bulk Action & Sort */}
