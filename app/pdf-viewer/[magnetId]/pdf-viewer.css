@@ -289,6 +289,12 @@
   overscroll-behavior: contain;
 }
 
+html:has(.adobe-viewer-root),
+body:has(.adobe-viewer-root) {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
 .adobe-page-wrapper {
   position: relative;
   flex: none;
@@ -298,6 +304,7 @@
   transition: transform 0.2s ease, max-width 0.2s ease;
   overflow: hidden;
   user-select: none;
+  pointer-events: none;
 }
 
 .adobe-page-img {

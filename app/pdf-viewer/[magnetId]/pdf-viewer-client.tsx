@@ -106,11 +106,24 @@ export default function PdfViewerClient({
 
   // ── Disable Lenis smooth scroll while PDF viewer is open ───────────────────
   useEffect(() => {
-    const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
-    if (lenis && typeof lenis.stop === "function") {
-      lenis.stop();
-    }
+    const stopLenis = () => {
+      const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
+      if (lenis && typeof lenis.stop === "function") {
+        lenis.stop();
+      }
+    };
+    stopLenis();
+    const timer1 = setTimeout(stopLenis, 100);
+    const timer2 = setTimeout(stopLenis, 400);
+    const timer3 = setTimeout(stopLenis, 1000);
+    const timer4 = setTimeout(stopLenis, 2200);
+
     return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      clearTimeout(timer4);
+      const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
       if (lenis && typeof lenis.start === "function") {
         lenis.start();
       }
