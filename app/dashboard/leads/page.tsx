@@ -980,10 +980,10 @@ export default function LeadsPage() {
 
             {/* Table */}
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-zinc-200/80 dark:divide-[#2e2e38]">
+              <table className="w-full text-left divide-y divide-zinc-200/80 dark:divide-[#2e2e38]">
                 <thead className="bg-[#F8FBFF] dark:bg-[#151518]">
                   <tr>
-                    <th className="px-4 py-3.5 text-center w-10">
+                    <th className="px-3 py-3.5 text-center w-10">
                       <input
                         type="checkbox"
                         checked={paginatedLeads.length > 0 && selectedLeadIds.length === paginatedLeads.length}
@@ -992,12 +992,12 @@ export default function LeadsPage() {
                         title="Select All On Page"
                       />
                     </th>
-                    <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Subscriber</th>
-                    <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Source / Gate</th>
-                    <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Lead Magnet</th>
-                    <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Signup Date</th>
-                    <th className="px-6 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Sequence</th>
-                    <th className="px-6 py-3.5 text-right text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Actions</th>
+                    <th className="px-3 lg:px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Subscriber</th>
+                    <th className="px-3 lg:px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Source / Gate</th>
+                    <th className="px-3 lg:px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Lead Magnet</th>
+                    <th className="px-3 lg:px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Signup Date</th>
+                    <th className="px-3 lg:px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Sequence</th>
+                    <th className="px-3 lg:px-4 py-3.5 text-right text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 bg-white dark:divide-[#222228] dark:bg-[#18181B]">
@@ -1049,7 +1049,7 @@ export default function LeadsPage() {
 
             {/* Pagination & Records Count Bar */}
             {filtered.length > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-zinc-200/80 dark:border-[#2e2e38] bg-[#F8FBFF]/50 dark:bg-[#151518]/50 text-xs text-zinc-600 dark:text-[#9B9085]">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-2.5 border-t border-zinc-200/80 dark:border-[#2e2e38] bg-[#F8FBFF]/50 dark:bg-[#151518]/50 text-xs text-zinc-600 dark:text-[#9B9085]">
                 <div>
                   Showing <strong className="text-zinc-900 dark:text-white">{(currentPage - 1) * pageSize + 1}</strong> to{" "}
                   <strong className="text-zinc-900 dark:text-white">{Math.min(currentPage * pageSize, filtered.length)}</strong> of{" "}
@@ -1065,7 +1065,7 @@ export default function LeadsPage() {
                         setPageSize(Number(e.target.value));
                         setCurrentPage(1);
                       }}
-                      className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs font-semibold text-zinc-700 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 focus:outline-none cursor-pointer"
+                      className="rounded-lg border border-zinc-200 bg-white px-2 py-0.5 text-xs font-semibold text-zinc-700 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 focus:outline-none cursor-pointer"
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
@@ -1078,20 +1078,20 @@ export default function LeadsPage() {
                       type="button"
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 disabled:opacity-40 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 transition cursor-pointer"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 disabled:opacity-40 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 transition cursor-pointer"
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-3.5 w-3.5" />
                     </button>
-                    <span className="px-2 font-semibold text-zinc-900 dark:text-white">
+                    <span className="px-2 font-semibold text-zinc-900 dark:text-white text-xs">
                       {currentPage} / {totalPages}
                     </span>
                     <button
                       type="button"
                       disabled={currentPage >= totalPages}
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 disabled:opacity-40 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 transition cursor-pointer"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 disabled:opacity-40 dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-300 transition cursor-pointer"
                     >
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
