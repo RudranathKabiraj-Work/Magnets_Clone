@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { Globe, FileText, ChevronDown, Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { type Account } from "@/lib/data";
 
@@ -21,7 +21,7 @@ interface BrandingSectionProps {
   addToast: (message: string, type?: "success" | "error" | "info") => void;
 }
 
-export function BrandingSection({
+export const BrandingSection = memo(function BrandingSection({
   rootDomain,
   privacyPolicy,
   setPrivacyPolicy,
@@ -414,4 +414,5 @@ export function BrandingSection({
       </div>
     </div>
   );
-}
+});
+

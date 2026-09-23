@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, X, ArrowLeft } from "lucide-react";
 
@@ -9,7 +9,7 @@ interface HelpModalProps {
   onClose: () => void;
 }
 
-export function HelpModal({ isOpen, onClose }: HelpModalProps) {
+export const HelpModal = memo(function HelpModal({ isOpen, onClose }: HelpModalProps) {
   // Lock background scroll & pause Lenis when Help Modal is open
   useEffect(() => {
     const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
@@ -155,4 +155,5 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
       )}
     </AnimatePresence>
   );
-}
+});
+

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, memo } from "react";
 import { Globe, Check, Copy, RefreshCw, Loader2, ChevronDown } from "lucide-react";
 import { type Account } from "@/lib/data";
 import {
@@ -40,7 +40,7 @@ interface DomainSectionProps {
   addToast: (message: string, type?: "success" | "error" | "info") => void;
 }
 
-export function DomainSection({
+export const DomainSection = memo(function DomainSection({
   appBaseUrl,
   username,
   setUsername,
@@ -69,6 +69,14 @@ export function DomainSection({
   addToast,
 }: DomainSectionProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  // Memoize derived computations so they don't re-run CPU hashes on every single keystroke
+  const cleanDom = useMemo(() => sanitizeDomain(rootDomain), [rootDomain]);
+  const cleanSub = useMemo(() => formatSubdomain(pageSubdomain), [pageSubdomain]);
+  const tokenValue = useMemo(() => getDomainVerificationToken(cleanDom), [cleanDom]);
+  const liveCustomUrl = useMemo(() => formatCustomDomainUrl(rootDomain, pageSubdomain), [rootDomain, pageSubdomain]);
+  const fullCustomHost = useMemo(() => formatFullHost(rootDomain, pageSubdomain), [rootDomain, pageSubdomain]);
+  const defaultShareUrl = useMemo(() => `${appBaseUrl}/${username}`, [appBaseUrl, username]);
 
   const copyToClipboard = (text: string, fieldKey: string, toastMessage?: string) => {
     navigator.clipboard.writeText(text);
@@ -114,7 +122,7 @@ export function DomainSection({
           )}
           {cnameVerified && rootDomain && (
             <a
-              href={formatCustomDomainUrl(rootDomain, pageSubdomain)}
+              href={liveCustomUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 transition cursor-pointer"
@@ -155,14 +163,14 @@ export function DomainSection({
               <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">SHARE THIS LINK</p>
               <button
                 type="button"
-                onClick={() => copyToClipboard(`${appBaseUrl}/${username}`, "shareUrl", "Share link copied to clipboard!")}
+                onClick={() => copyToClipboard(defaultShareUrl, "shareUrl", "Share link copied to clipboard!")}
                 className="inline-flex items-center gap-1 text-[10px] font-medium text-[#0066B2] hover:underline dark:text-[#38BDF8] cursor-pointer"
               >
                 {copiedField === "shareUrl" ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                 {copiedField === "shareUrl" ? "Copied" : "Copy"}
               </button>
             </div>
-            <p className="text-xs font-mono font-semibold text-zinc-900 dark:text-white select-all break-all">{appBaseUrl}/{username}</p>
+            <p className="text-xs font-mono font-semibold text-zinc-900 dark:text-white select-all break-all">{defaultShareUrl}</p>
           </div>
         </div>
       </div>
@@ -254,61 +262,55 @@ export function DomainSection({
                       </p>
 
                       {/* TXT Record Box with Copy Buttons */}
-                      {(() => {
-                        const cleanDom = sanitizeDomain(rootDomain);
-                        const tokenValue = getDomainVerificationToken(cleanDom);
-                        return (
-                          <div className="mt-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
-                            <div className="flex-1">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
-                                TYPE
-                              </span>
-                              <span className="font-mono text-xs font-bold text-zinc-900 dark:text-white">
-                                TXT
-                              </span>
-                            </div>
+                      <div className="mt-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+                        <div className="flex-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                            TYPE
+                          </span>
+                          <span className="font-mono text-xs font-bold text-zinc-900 dark:text-white">
+                            TXT
+                          </span>
+                        </div>
 
-                            <div className="flex-[2] relative">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
-                                HOST
-                              </span>
-                              <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
-                                <span>leadmagnets-verify</span>
-                                <button
-                                  type="button"
-                                  onClick={() => copyToClipboard("leadmagnets-verify", "host", "TXT host copied!")}
-                                  className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer"
-                                  title="Copy Host"
-                                >
-                                  {copiedField === "host" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                                </button>
-                              </div>
-                              <span className="text-[10px] text-zinc-400 dark:text-[#666675] block mt-1">
-                                Full hostname: leadmagnets-verify.{cleanDom}
-                              </span>
-                            </div>
-
-                            <div className="flex-[3] relative">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
-                                VALUE
-                              </span>
-                              <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
-                                <span className="truncate max-w-[200px] sm:max-w-xs">
-                                  {tokenValue}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => copyToClipboard(tokenValue, "value", "TXT token value copied!")}
-                                  className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer shrink-0"
-                                  title="Copy Value"
-                                >
-                                  {copiedField === "value" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                                </button>
-                              </div>
-                            </div>
+                        <div className="flex-[2] relative">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                            HOST
+                          </span>
+                          <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
+                            <span>leadmagnets-verify</span>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard("leadmagnets-verify", "host", "TXT host copied!")}
+                              className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer"
+                              title="Copy Host"
+                            >
+                              {copiedField === "host" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                            </button>
                           </div>
-                        );
-                      })()}
+                          <span className="text-[10px] text-zinc-400 dark:text-[#666675] block mt-1">
+                            Full hostname: leadmagnets-verify.{cleanDom}
+                          </span>
+                        </div>
+
+                        <div className="flex-[3] relative">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                            VALUE
+                          </span>
+                          <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
+                            <span className="truncate max-w-[200px] sm:max-w-xs">
+                              {tokenValue}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(tokenValue, "value", "TXT token value copied!")}
+                              className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer shrink-0"
+                              title="Copy Value"
+                            >
+                              {copiedField === "value" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
 
                       {/* Interactive "Check ownership" button & status message */}
                       <div className="mt-4 space-y-2">
@@ -322,7 +324,7 @@ export function DomainSection({
                               const res = await fetch("/api/domain/verify", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ domain: sanitizeDomain(rootDomain), subdomain: formatSubdomain(pageSubdomain) }),
+                                body: JSON.stringify({ domain: cleanDom, subdomain: cleanSub }),
                               });
                               const data = await res.json();
                               if (data.isVerified) {
@@ -333,12 +335,12 @@ export function DomainSection({
                                 await handleSave({ domainVerified: true, cnameVerified: data.cnameVerified, sslStatus: data.sslStatus || "active" });
                                 addToast("🎉 Domain ownership verified successfully!", "success");
                               } else {
-                                const errMsg = data.message || `No TXT record found at leadmagnets-verify.${sanitizeDomain(rootDomain)}. Check your DNS settings.`;
+                                const errMsg = data.message || `No TXT record found at leadmagnets-verify.${cleanDom}. Check your DNS settings.`;
                                 setDomainError(errMsg);
                                 addToast(errMsg, "error");
                               }
                             } catch (e: any) {
-                              const errMsg = `No TXT record found at leadmagnets-verify.${sanitizeDomain(rootDomain)}. Check your DNS provider.`;
+                              const errMsg = `No TXT record found at leadmagnets-verify.${cleanDom}. Check your DNS provider.`;
                               setDomainError(errMsg);
                               addToast(errMsg, "error");
                             } finally {
@@ -387,60 +389,53 @@ export function DomainSection({
                       </p>
 
                       {/* CNAME Record Guidance Box with Copy Buttons */}
-                      {(() => {
-                        const cleanDom = sanitizeDomain(rootDomain);
-                        const sub = formatSubdomain(pageSubdomain);
-                        const cnameTarget = "cname.leadmagnets.so";
-                        return (
-                          <div className="mt-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
-                            <div className="flex-1">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
-                                TYPE
-                              </span>
-                              <span className="font-mono text-xs font-bold text-zinc-900 dark:text-white">
-                                CNAME
-                              </span>
-                            </div>
+                      <div className="mt-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+                        <div className="flex-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                            TYPE
+                          </span>
+                          <span className="font-mono text-xs font-bold text-zinc-900 dark:text-white">
+                            CNAME
+                          </span>
+                        </div>
 
-                            <div className="flex-[2] relative">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
-                                SUBDOMAIN / HOST
-                              </span>
-                              <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
-                                <span>{sub}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => copyToClipboard(sub, "cnameHost", "CNAME host copied!")}
-                                  className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer"
-                                  title="Copy Subdomain Host"
-                                >
-                                  {copiedField === "cnameHost" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                                </button>
-                              </div>
-                              <span className="text-[10px] text-zinc-400 dark:text-[#666675] block mt-1">
-                                Full Host: {sub}.{cleanDom}
-                              </span>
-                            </div>
-
-                            <div className="flex-[3] relative">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
-                                TARGET VALUE
-                              </span>
-                              <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
-                                <span>{cnameTarget}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => copyToClipboard(cnameTarget, "cnameValue", "CNAME target copied!")}
-                                  className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer shrink-0"
-                                  title="Copy CNAME Target Value"
-                                >
-                                  {copiedField === "cnameValue" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                                </button>
-                              </div>
-                            </div>
+                        <div className="flex-[2] relative">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                            SUBDOMAIN / HOST
+                          </span>
+                          <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
+                            <span>{cleanSub}</span>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(cleanSub, "cnameHost", "CNAME host copied!")}
+                              className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer"
+                              title="Copy Subdomain Host"
+                            >
+                              {copiedField === "cnameHost" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                            </button>
                           </div>
-                        );
-                      })()}
+                          <span className="text-[10px] text-zinc-400 dark:text-[#666675] block mt-1">
+                            Full Host: {cleanSub}.{cleanDom}
+                          </span>
+                        </div>
+
+                        <div className="flex-[3] relative">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#7B7B86] block mb-1">
+                            TARGET VALUE
+                          </span>
+                          <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3 py-2 text-xs font-mono text-zinc-900 dark:text-white">
+                            <span>cname.leadmagnets.so</span>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard("cname.leadmagnets.so", "cnameValue", "CNAME target copied!")}
+                              className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer shrink-0"
+                              title="Copy CNAME Target Value"
+                            >
+                              {copiedField === "cnameValue" ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
 
                       {/* Interactive "Check CNAME routing" button */}
                       <div className="mt-4 space-y-2">
@@ -454,7 +449,7 @@ export function DomainSection({
                               const res = await fetch("/api/domain/verify", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ domain: sanitizeDomain(rootDomain), subdomain: formatSubdomain(pageSubdomain) }),
+                                body: JSON.stringify({ domain: cleanDom, subdomain: cleanSub }),
                               });
                               const data = await res.json();
                               if (data.cnameVerified) {
@@ -465,12 +460,12 @@ export function DomainSection({
                                 await handleSave({ cnameVerified: true, sslStatus: "active" });
                                 addToast("🎉 CNAME routing verified and SSL is active!", "success");
                               } else {
-                                const errMsg = data.cnameMessage || `No CNAME record detected pointing ${formatSubdomain(pageSubdomain)}.${sanitizeDomain(rootDomain)} to cname.leadmagnets.so`;
+                                const errMsg = data.cnameMessage || `No CNAME record detected pointing ${cleanSub}.${cleanDom} to cname.leadmagnets.so`;
                                 setCnameError(errMsg);
                                 addToast(errMsg, "error");
                               }
                             } catch (e) {
-                              const errMsg = `Unable to verify CNAME routing for ${formatSubdomain(pageSubdomain)}.${sanitizeDomain(rootDomain)}`;
+                              const errMsg = `Unable to verify CNAME routing for ${cleanSub}.${cleanDom}`;
                               setCnameError(errMsg);
                               addToast(errMsg, "error");
                             } finally {
@@ -517,4 +512,4 @@ export function DomainSection({
       </div>
     </div>
   );
-}
+});

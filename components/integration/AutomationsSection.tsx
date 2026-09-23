@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { ChevronDown, Check, Eye, EyeOff, Slack, Zap, Mail, Sparkles } from "lucide-react";
 import { type Account } from "@/lib/data";
 
@@ -16,7 +16,7 @@ interface AutomationsSectionProps {
   addToast: (message: string, type?: "success" | "error" | "info") => void;
 }
 
-export function AutomationsSection({
+export const AutomationsSection = memo(function AutomationsSection({
   account,
   setAccount,
   openSections,
@@ -549,4 +549,5 @@ export function AutomationsSection({
       </div>
     </div>
   );
-}
+});
+

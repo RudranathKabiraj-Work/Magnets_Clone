@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { Mail, Calendar, ChevronDown, Check, Copy, Eye, EyeOff } from "lucide-react";
 import { type Account } from "@/lib/data";
 import { saveAccount } from "@/lib/store";
@@ -16,7 +16,7 @@ interface EmailSchedulingSectionProps {
   addToast: (message: string, type?: "success" | "error" | "info") => void;
 }
 
-export function EmailSchedulingSection({
+export const EmailSchedulingSection = memo(function EmailSchedulingSection({
   account,
   setAccount,
   appBaseUrl,
@@ -388,4 +388,5 @@ export function EmailSchedulingSection({
       </div>
     </div>
   );
-}
+});
+

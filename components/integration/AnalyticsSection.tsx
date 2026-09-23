@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { Sparkles, ChevronDown, AlertCircle } from "lucide-react";
 import { type Account } from "@/lib/data";
 
@@ -16,7 +16,7 @@ interface AnalyticsSectionProps {
   addToast: (message: string, type?: "success" | "error" | "info") => void;
 }
 
-export function AnalyticsSection({
+export const AnalyticsSection = memo(function AnalyticsSection({
   ga4MeasurementId,
   setGa4MeasurementId,
   metaPixelId,
@@ -164,4 +164,5 @@ export function AnalyticsSection({
       )}
     </div>
   );
-}
+});
+
