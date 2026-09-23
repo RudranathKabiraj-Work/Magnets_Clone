@@ -6,6 +6,13 @@ import { Sparkles, Globe, Plug, FileText, ChevronDown, ChevronUp, Check, Mail, C
 import { motion, AnimatePresence } from "framer-motion";
 import { syncWithDatabase, saveAccount, loadAccount } from "@/lib/store";
 import { type Account, getAppUrl, getAppDomain } from "@/lib/data";
+import {
+  cleanDomain as sanitizeDomain,
+  formatSubdomain,
+  getDomainVerificationToken,
+  formatCustomDomainUrl,
+  formatFullHost,
+} from "@/lib/domain-verify";
 
 export default function WorkspaceSetupPage() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -143,8 +150,8 @@ export default function WorkspaceSetupPage() {
       joinedAt: account?.joinedAt || "Just now",
       privacyPolicy: privacyPolicy.trim(),
       termsOfService: termsOfService.trim(),
-      customDomain: rootDomain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, ""),
-      customSubdomain: pageSubdomain.trim().toLowerCase(),
+      customDomain: sanitizeDomain(rootDomain),
+      customSubdomain: formatSubdomain(pageSubdomain),
       domainVerified,
       cnameVerified,
       sslStatus,
@@ -248,7 +255,7 @@ export default function WorkspaceSetupPage() {
                   </div>
                   <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5 font-mono">
                     {cnameVerified && rootDomain
-                      ? `${pageSubdomain}.${rootDomain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "")}`
+                      ? formatFullHost(rootDomain, pageSubdomain)
                       : `${appBaseUrl}/${username}`}
                   </p>
                 </div>
@@ -294,7 +301,7 @@ export default function WorkspaceSetupPage() {
                   )}
                   {cnameVerified && rootDomain && (
                     <a
-                      href={`https://${pageSubdomain}.${rootDomain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "")}`}
+                      href={formatCustomDomainUrl(rootDomain, pageSubdomain)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 transition cursor-pointer"
@@ -428,8 +435,8 @@ export default function WorkspaceSetupPage() {
 
                               {/* TXT Record Box with Copy Buttons */}
                               {(() => {
-                                const cleanDom = rootDomain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-                                const tokenValue = `leadmagnets-verify-${cleanDom.replace(/[^a-z0-9]/g, "")}_8a921c4ef`;
+                                const cleanDom = sanitizeDomain(rootDomain);
+                                const tokenValue = getDomainVerificationToken(cleanDom);
                                 return (
                                   <div className="mt-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
                                     <div className="flex-1">
@@ -503,7 +510,7 @@ export default function WorkspaceSetupPage() {
                                       const res = await fetch("/api/domain/verify", {
                                         method: "POST",
                                         headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ domain: rootDomain, subdomain: pageSubdomain }),
+                                        body: JSON.stringify({ domain: sanitizeDomain(rootDomain), subdomain: formatSubdomain(pageSubdomain) }),
                                       });
                                       const data = await res.json();
                                       if (data.isVerified) {
@@ -513,10 +520,10 @@ export default function WorkspaceSetupPage() {
                                         setDomainError("Domain ownership verified!");
                                         await handleSave({ domainVerified: true, cnameVerified: data.cnameVerified, sslStatus: data.sslStatus || "active" });
                                       } else {
-                                        setDomainError(data.message || `No TXT record found at leadmagnets-verify.${rootDomain.toLowerCase().replace(/^https?:\/\//, "")}. Check your DNS settings.`);
+                                        setDomainError(data.message || `No TXT record found at leadmagnets-verify.${sanitizeDomain(rootDomain)}. Check your DNS settings.`);
                                       }
                                     } catch (e) {
-                                      setDomainError(`No TXT record found at leadmagnets-verify.${rootDomain.toLowerCase().replace(/^https?:\/\//, "")}. Check your DNS provider.`);
+                                      setDomainError(`No TXT record found at leadmagnets-verify.${sanitizeDomain(rootDomain)}. Check your DNS provider.`);
                                     } finally {
                                       setCheckingDomain(false);
                                     }
@@ -564,8 +571,8 @@ export default function WorkspaceSetupPage() {
 
                               {/* CNAME Record Guidance Box with Copy Buttons */}
                               {(() => {
-                                const cleanDom = rootDomain.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-                                const sub = (pageSubdomain || "get").toLowerCase().trim();
+                                const cleanDom = sanitizeDomain(rootDomain);
+                                const sub = formatSubdomain(pageSubdomain);
                                 const cnameTarget = "cname.leadmagnets.so";
                                 return (
                                   <div className="mt-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
@@ -638,7 +645,7 @@ export default function WorkspaceSetupPage() {
                                       const res = await fetch("/api/domain/verify", {
                                         method: "POST",
                                         headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ domain: rootDomain, subdomain: pageSubdomain }),
+                                        body: JSON.stringify({ domain: sanitizeDomain(rootDomain), subdomain: formatSubdomain(pageSubdomain) }),
                                       });
                                       const data = await res.json();
                                       if (data.cnameVerified) {
@@ -647,10 +654,10 @@ export default function WorkspaceSetupPage() {
                                         setCnameError(`Traffic successfully routed! ${data.fullSubdomainHost} points to ${data.cnameTarget}`);
                                         await handleSave({ cnameVerified: true, sslStatus: "active" });
                                       } else {
-                                        setCnameError(data.cnameMessage || `No CNAME record detected pointing ${pageSubdomain}.${rootDomain} to cname.leadmagnets.so`);
+                                        setCnameError(data.cnameMessage || `No CNAME record detected pointing ${formatSubdomain(pageSubdomain)}.${sanitizeDomain(rootDomain)} to cname.leadmagnets.so`);
                                       }
                                     } catch (e) {
-                                      setCnameError(`Unable to verify CNAME routing for ${pageSubdomain}.${rootDomain}`);
+                                      setCnameError(`Unable to verify CNAME routing for ${formatSubdomain(pageSubdomain)}.${sanitizeDomain(rootDomain)}`);
                                     } finally {
                                       setCheckingCname(false);
                                     }

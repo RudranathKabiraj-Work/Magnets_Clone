@@ -1,4 +1,10 @@
 import { NextResponse } from "next/server";
+import {
+  cleanDomain as sanitizeDomain,
+  formatSubdomain,
+  getDomainVerificationToken,
+  formatFullHost,
+} from "@/lib/domain-verify";
 
 export const dynamic = "force-dynamic";
 
@@ -6,19 +12,15 @@ export async function POST(req: Request) {
   try {
     const { domain, subdomain } = await req.json();
 
-    if (!domain || !domain.trim()) {
-      return NextResponse.json({ error: "Domain is required" }, { status: 400 });
+    const cleanDomain = sanitizeDomain(domain);
+    if (!cleanDomain) {
+      return NextResponse.json({ error: "Valid domain is required" }, { status: 400 });
     }
 
-    const cleanDomain = domain.toLowerCase().trim().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-    const cleanSubdomain = (subdomain || "get").toLowerCase().trim();
-
-    // Generate deterministic hash for verification token
-    const crypto = await import("crypto");
-    const tokenHash = crypto.createHash("md5").update(`leadmagnets_${cleanDomain}`).digest("hex");
+    const cleanSubdomain = formatSubdomain(subdomain);
+    const expectedValue = getDomainVerificationToken(cleanDomain);
     const verificationHost = "leadmagnets-verify";
     const fullVerificationHost = `${verificationHost}.${cleanDomain}`;
-    const expectedValue = `leadmagnets-verify-${tokenHash}`;
 
     // Perform live DNS TXT lookup using Google Public DNS API
     const txtDnsUrl = `https://dns.google/resolve?name=${encodeURIComponent(fullVerificationHost)}&type=TXT`;
@@ -31,15 +33,15 @@ export async function POST(req: Request) {
       const dnsData = await dnsRes.json();
 
       if (dnsData.Answer && Array.isArray(dnsData.Answer)) {
-        const txtRecords = dnsData.Answer.map((ans: any) => (ans.data || "").replace(/^"|"$/g, ""));
-        if (txtRecords.some((txt: string) => txt.includes(expectedValue) || txt.includes("leadmagnets-verify"))) {
+        const txtRecords = dnsData.Answer.map((ans: any) => (ans.data || "").replace(/^"|"$/g, "").trim());
+        if (txtRecords.some((txt: string) => txt === expectedValue || txt.includes(expectedValue))) {
           isVerified = true;
           dnsMessage = "Domain ownership successfully verified!";
         }
       }
 
       if (!isVerified) {
-        dnsMessage = `No TXT record found at ${fullVerificationHost}. Check that the root domain above is spelled correctly and that your DNS provider did not append the domain twice. DNS can take 1 to 60 minutes to propagate.`;
+        dnsMessage = `No TXT record matching '${expectedValue}' found at ${fullVerificationHost}. DNS can take 1 to 60 minutes to propagate.`;
       }
     } catch (dnsErr) {
       console.warn("DNS TXT check failed:", dnsErr);
@@ -47,7 +49,7 @@ export async function POST(req: Request) {
     }
 
     // Perform live DNS CNAME lookup for the subdomain
-    const fullSubdomainHost = `${cleanSubdomain}.${cleanDomain}`;
+    const fullSubdomainHost = formatFullHost(cleanDomain, cleanSubdomain);
     const cnameDnsUrl = `https://dns.google/resolve?name=${encodeURIComponent(fullSubdomainHost)}&type=CNAME`;
     const targetCname = "cname.leadmagnets.so";
     let cnameVerified = false;
@@ -58,7 +60,7 @@ export async function POST(req: Request) {
       const cnameData = await cnameRes.json();
 
       if (cnameData.Answer && Array.isArray(cnameData.Answer)) {
-        const cnameRecords = cnameData.Answer.map((ans: any) => (ans.data || "").replace(/\.$/, "").toLowerCase());
+        const cnameRecords = cnameData.Answer.map((ans: any) => (ans.data || "").replace(/\.$/, "").toLowerCase().trim());
         if (cnameRecords.some((rec: string) => rec.includes("leadmagnets") || rec.includes(targetCname))) {
           cnameVerified = true;
           cnameMessage = `Traffic successfully routed! ${fullSubdomainHost} points to ${targetCname}.`;
