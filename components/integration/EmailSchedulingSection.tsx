@@ -13,6 +13,7 @@ interface EmailSchedulingSectionProps {
   toggle: (key: string) => void;
   markDirty: (field: string) => void;
   handleSave: (overrides?: Partial<Account>) => Promise<void>;
+  addToast: (message: string, type?: "success" | "error" | "info") => void;
 }
 
 export function EmailSchedulingSection({
@@ -23,13 +24,15 @@ export function EmailSchedulingSection({
   toggle,
   markDirty,
   handleSave,
+  addToast,
 }: EmailSchedulingSectionProps) {
   const [showCalendarToken, setShowCalendarToken] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const copyToClipboard = (text: string, fieldKey: string) => {
+  const copyToClipboard = (text: string, fieldKey: string, successMsg?: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(fieldKey);
+    if (successMsg) addToast(successMsg, "info");
     setTimeout(() => setCopiedField(null), 2000);
   };
 
@@ -205,6 +208,7 @@ export function EmailSchedulingSection({
                           const prov = e.target.value as "Calendly" | "Cal.com";
                           setAccount((prev) => prev ? { ...prev, calendarProvider: prov } : prev);
                           handleSave({ calendarProvider: prov });
+                          addToast(`Calendar provider set to ${prov}`, "info");
                         }}
                         className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#D97706] transition"
                       >
@@ -259,7 +263,7 @@ export function EmailSchedulingSection({
                       />
                       <button
                         type="button"
-                        onClick={() => copyToClipboard(`${appBaseUrl}/api/webhooks/booking`, "booking-webhook")}
+                        onClick={() => copyToClipboard(`${appBaseUrl}/api/webhooks/booking`, "booking-webhook", "Booking webhook URL copied to clipboard!")}
                         className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#18181B] hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-200 transition shrink-0 cursor-pointer"
                       >
                         {copiedField === "booking-webhook" ? (
@@ -292,7 +296,12 @@ export function EmailSchedulingSection({
                         const updated = { ...account, calendarConnected: nextConnected };
                         setAccount(updated);
                         await saveAccount(updated);
-                        alert(nextConnected ? `${account.calendarProvider || "Calendar"} connected successfully!` : "Calendar disconnected.");
+                        addToast(
+                          nextConnected
+                            ? `${account.calendarProvider || "Calendar"} connected successfully!`
+                            : "Calendar disconnected.",
+                          nextConnected ? "success" : "info"
+                        );
                       }}
                       className={`inline-flex items-center gap-1.5 self-start sm:self-auto px-4 py-2 rounded-xl text-xs font-semibold transition shrink-0 shadow-sm cursor-pointer ${
                         account?.calendarConnected
@@ -350,7 +359,7 @@ export function EmailSchedulingSection({
                 </div>
                 <button
                   type="button"
-                  onClick={() => copyToClipboard("v=spf1 include:mail.leadmagnets.so ~all", "spf")}
+                  onClick={() => copyToClipboard("v=spf1 include:mail.leadmagnets.so ~all", "spf", "SPF record copied to clipboard!")}
                   className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition cursor-pointer shrink-0"
                   title="Copy SPF Record"
                 >
@@ -366,7 +375,7 @@ export function EmailSchedulingSection({
                 </div>
                 <button
                   type="button"
-                  onClick={() => copyToClipboard("lm.mail.leadmagnets.so", "dkim")}
+                  onClick={() => copyToClipboard("lm.mail.leadmagnets.so", "dkim", "DKIM record copied to clipboard!")}
                   className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition cursor-pointer shrink-0"
                   title="Copy DKIM Record"
                 >

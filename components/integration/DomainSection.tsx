@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Globe, Sparkles, Check, Copy, RefreshCw, Loader2, ChevronDown } from "lucide-react";
+import { Globe, Check, Copy, RefreshCw, Loader2, ChevronDown } from "lucide-react";
 import { type Account } from "@/lib/data";
 import {
   cleanDomain as sanitizeDomain,
@@ -37,6 +37,7 @@ interface DomainSectionProps {
   onToggleCustomDomain: () => void;
   markDirty: (field: string) => void;
   handleSave: (overrides?: Partial<Account>) => Promise<void>;
+  addToast: (message: string, type?: "success" | "error" | "info") => void;
 }
 
 export function DomainSection({
@@ -65,12 +66,14 @@ export function DomainSection({
   onToggleCustomDomain,
   markDirty,
   handleSave,
+  addToast,
 }: DomainSectionProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const copyToClipboard = (text: string, fieldKey: string) => {
+  const copyToClipboard = (text: string, fieldKey: string, toastMessage?: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(fieldKey);
+    if (toastMessage) addToast(toastMessage, "info");
     setTimeout(() => setCopiedField(null), 2000);
   };
 
@@ -152,7 +155,7 @@ export function DomainSection({
               <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">SHARE THIS LINK</p>
               <button
                 type="button"
-                onClick={() => copyToClipboard(`${appBaseUrl}/${username}`, "shareUrl")}
+                onClick={() => copyToClipboard(`${appBaseUrl}/${username}`, "shareUrl", "Share link copied to clipboard!")}
                 className="inline-flex items-center gap-1 text-[10px] font-medium text-[#0066B2] hover:underline dark:text-[#38BDF8] cursor-pointer"
               >
                 {copiedField === "shareUrl" ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
@@ -273,7 +276,7 @@ export function DomainSection({
                                 <span>leadmagnets-verify</span>
                                 <button
                                   type="button"
-                                  onClick={() => copyToClipboard("leadmagnets-verify", "host")}
+                                  onClick={() => copyToClipboard("leadmagnets-verify", "host", "TXT host copied!")}
                                   className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer"
                                   title="Copy Host"
                                 >
@@ -295,7 +298,7 @@ export function DomainSection({
                                 </span>
                                 <button
                                   type="button"
-                                  onClick={() => copyToClipboard(tokenValue, "value")}
+                                  onClick={() => copyToClipboard(tokenValue, "value", "TXT token value copied!")}
                                   className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer shrink-0"
                                   title="Copy Value"
                                 >
@@ -328,11 +331,16 @@ export function DomainSection({
                                 if (data.sslStatus) setSslStatus(data.sslStatus);
                                 setDomainError("Domain ownership verified!");
                                 await handleSave({ domainVerified: true, cnameVerified: data.cnameVerified, sslStatus: data.sslStatus || "active" });
+                                addToast("🎉 Domain ownership verified successfully!", "success");
                               } else {
-                                setDomainError(data.message || `No TXT record found at leadmagnets-verify.${sanitizeDomain(rootDomain)}. Check your DNS settings.`);
+                                const errMsg = data.message || `No TXT record found at leadmagnets-verify.${sanitizeDomain(rootDomain)}. Check your DNS settings.`;
+                                setDomainError(errMsg);
+                                addToast(errMsg, "error");
                               }
-                            } catch (e) {
-                              setDomainError(`No TXT record found at leadmagnets-verify.${sanitizeDomain(rootDomain)}. Check your DNS provider.`);
+                            } catch (e: any) {
+                              const errMsg = `No TXT record found at leadmagnets-verify.${sanitizeDomain(rootDomain)}. Check your DNS provider.`;
+                              setDomainError(errMsg);
+                              addToast(errMsg, "error");
                             } finally {
                               setCheckingDomain(false);
                             }
@@ -402,7 +410,7 @@ export function DomainSection({
                                 <span>{sub}</span>
                                 <button
                                   type="button"
-                                  onClick={() => copyToClipboard(sub, "cnameHost")}
+                                  onClick={() => copyToClipboard(sub, "cnameHost", "CNAME host copied!")}
                                   className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer"
                                   title="Copy Subdomain Host"
                                 >
@@ -422,7 +430,7 @@ export function DomainSection({
                                 <span>{cnameTarget}</span>
                                 <button
                                   type="button"
-                                  onClick={() => copyToClipboard(cnameTarget, "cnameValue")}
+                                  onClick={() => copyToClipboard(cnameTarget, "cnameValue", "CNAME target copied!")}
                                   className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition ml-2 cursor-pointer shrink-0"
                                   title="Copy CNAME Target Value"
                                 >
@@ -452,13 +460,19 @@ export function DomainSection({
                               if (data.cnameVerified) {
                                 setCnameVerified(true);
                                 setSslStatus("active");
-                                setCnameError(`Traffic successfully routed! ${data.fullSubdomainHost} points to ${data.cnameTarget}`);
+                                const successMsg = `Traffic successfully routed! ${data.fullSubdomainHost} points to ${data.cnameTarget}`;
+                                setCnameError(successMsg);
                                 await handleSave({ cnameVerified: true, sslStatus: "active" });
+                                addToast("🎉 CNAME routing verified and SSL is active!", "success");
                               } else {
-                                setCnameError(data.cnameMessage || `No CNAME record detected pointing ${formatSubdomain(pageSubdomain)}.${sanitizeDomain(rootDomain)} to cname.leadmagnets.so`);
+                                const errMsg = data.cnameMessage || `No CNAME record detected pointing ${formatSubdomain(pageSubdomain)}.${sanitizeDomain(rootDomain)} to cname.leadmagnets.so`;
+                                setCnameError(errMsg);
+                                addToast(errMsg, "error");
                               }
                             } catch (e) {
-                              setCnameError(`Unable to verify CNAME routing for ${formatSubdomain(pageSubdomain)}.${sanitizeDomain(rootDomain)}`);
+                              const errMsg = `Unable to verify CNAME routing for ${formatSubdomain(pageSubdomain)}.${sanitizeDomain(rootDomain)}`;
+                              setCnameError(errMsg);
+                              addToast(errMsg, "error");
                             } finally {
                               setCheckingCname(false);
                             }

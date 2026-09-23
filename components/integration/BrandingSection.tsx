@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Globe, FileText, ChevronDown, Sparkles, Loader2 } from "lucide-react";
+import { Globe, FileText, ChevronDown, Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { type Account } from "@/lib/data";
 
 interface BrandingSectionProps {
@@ -18,6 +18,7 @@ interface BrandingSectionProps {
   toggle: (key: string) => void;
   markDirty: (field: string) => void;
   handleSave: (overrides?: Partial<Account>) => Promise<void>;
+  addToast: (message: string, type?: "success" | "error" | "info") => void;
 }
 
 export function BrandingSection({
@@ -34,9 +35,20 @@ export function BrandingSection({
   toggle,
   markDirty,
   handleSave,
+  addToast,
 }: BrandingSectionProps) {
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const [uploadingOgImage, setUploadingOgImage] = useState(false);
+  const [privacyError, setPrivacyError] = useState("");
+  const [termsError, setTermsError] = useState("");
+  const [faviconUrlError, setFaviconUrlError] = useState("");
+  const [ogUrlError, setOgUrlError] = useState("");
+
+  const validateUrl = (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return true;
+    return /^https?:\/\/.+/i.test(trimmed);
+  };
 
   return (
     <div className="space-y-4">
@@ -73,12 +85,33 @@ export function BrandingSection({
                   value={privacyPolicy}
                   onChange={(e) => {
                     markDirty("privacyPolicy");
-                    setPrivacyPolicy(e.target.value);
+                    const val = e.target.value;
+                    setPrivacyPolicy(val);
+                    if (validateUrl(val)) {
+                      setPrivacyError("");
+                    } else {
+                      setPrivacyError("Must start with http:// or https://");
+                    }
                   }}
-                  onBlur={() => handleSave()}
-                  className="w-full rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition"
+                  onBlur={() => {
+                    if (privacyPolicy && !validateUrl(privacyPolicy)) {
+                      addToast("Please enter a valid Privacy Policy URL (e.g. https://...)", "error");
+                      return;
+                    }
+                    handleSave();
+                  }}
+                  className={`w-full rounded-xl border bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition ${
+                    privacyError ? "border-rose-500 focus:border-rose-500" : "border-[#E2E8F0] dark:border-[#2e2e38] focus:border-[#0066B2]"
+                  }`}
                 />
-                <p className="mt-1 text-[11px] text-zinc-400 dark:text-[#666675]">Leave blank to hide this link.</p>
+                {privacyError ? (
+                  <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
+                    <AlertCircle className="h-3 w-3 shrink-0" />
+                    <span>{privacyError}</span>
+                  </p>
+                ) : (
+                  <p className="mt-1 text-[11px] text-zinc-400 dark:text-[#666675]">Leave blank to hide this link.</p>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5">Terms URL</label>
@@ -88,12 +121,33 @@ export function BrandingSection({
                   value={termsOfService}
                   onChange={(e) => {
                     markDirty("termsOfService");
-                    setTermsOfService(e.target.value);
+                    const val = e.target.value;
+                    setTermsOfService(val);
+                    if (validateUrl(val)) {
+                      setTermsError("");
+                    } else {
+                      setTermsError("Must start with http:// or https://");
+                    }
                   }}
-                  onBlur={() => handleSave()}
-                  className="w-full rounded-xl border border-[#E5E3DD] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition"
+                  onBlur={() => {
+                    if (termsOfService && !validateUrl(termsOfService)) {
+                      addToast("Please enter a valid Terms of Service URL (e.g. https://...)", "error");
+                      return;
+                    }
+                    handleSave();
+                  }}
+                  className={`w-full rounded-xl border bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition ${
+                    termsError ? "border-rose-500 focus:border-rose-500" : "border-[#E5E3DD] dark:border-[#2e2e38] focus:border-[#0066B2]"
+                  }`}
                 />
-                <p className="mt-1 text-[11px] text-zinc-400 dark:text-[#666675]">Leave blank to hide this link.</p>
+                {termsError ? (
+                  <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
+                    <AlertCircle className="h-3 w-3 shrink-0" />
+                    <span>{termsError}</span>
+                  </p>
+                ) : (
+                  <p className="mt-1 text-[11px] text-zinc-400 dark:text-[#666675]">Leave blank to hide this link.</p>
+                )}
               </div>
             </div>
           </div>
@@ -149,10 +203,24 @@ export function BrandingSection({
                     value={faviconUrl}
                     onChange={(e) => {
                       markDirty("faviconUrl");
-                      setFaviconUrl(e.target.value);
+                      const val = e.target.value;
+                      setFaviconUrl(val);
+                      if (validateUrl(val)) {
+                        setFaviconUrlError("");
+                      } else {
+                        setFaviconUrlError("Invalid favicon URL format");
+                      }
                     }}
-                    onBlur={() => handleSave()}
-                    className="flex-1 rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono"
+                    onBlur={() => {
+                      if (faviconUrl && !validateUrl(faviconUrl)) {
+                        addToast("Invalid favicon URL. Must start with http:// or https://", "error");
+                        return;
+                      }
+                      handleSave();
+                    }}
+                    className={`flex-1 rounded-xl border bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono ${
+                      faviconUrlError ? "border-rose-500 focus:border-rose-500" : "border-[#E2E8F0] dark:border-[#2e2e38] focus:border-[#0066B2]"
+                    }`}
                   />
                   {faviconUrl && (
                     <button
@@ -162,6 +230,7 @@ export function BrandingSection({
                         markDirty("faviconUrl");
                         setFaviconUrl("");
                         await handleSave({ faviconUrl: "" });
+                        addToast("Custom favicon removed", "info");
                       }}
                       className="rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition cursor-pointer shrink-0"
                     >
@@ -185,13 +254,20 @@ export function BrandingSection({
                         try {
                           const res = await fetch("/api/upload", { method: "POST", body: formData });
                           const data = await res.json();
+                          if (!res.ok) {
+                            throw new Error(data.error || "Upload request failed");
+                          }
                           const uploadedUrl = data.data?.fileUrl || data.data?.url || data.url || data.fileUrl;
                           if (uploadedUrl) {
                             setFaviconUrl(uploadedUrl);
                             await handleSave({ faviconUrl: uploadedUrl });
+                            addToast("🎉 Favicon uploaded successfully!", "success");
+                          } else {
+                            throw new Error("No URL returned from upload server");
                           }
-                        } catch (err) {
-                          console.error("Upload error:", err);
+                        } catch (err: any) {
+                          console.error("Favicon upload error:", err);
+                          addToast(err.message || "Failed to upload favicon image.", "error");
                         } finally {
                           setUploadingFavicon(false);
                         }
@@ -233,10 +309,24 @@ export function BrandingSection({
                     value={ogImageUrl}
                     onChange={(e) => {
                       markDirty("ogImageUrl");
-                      setOgImageUrl(e.target.value);
+                      const val = e.target.value;
+                      setOgImageUrl(val);
+                      if (validateUrl(val)) {
+                        setOgUrlError("");
+                      } else {
+                        setOgUrlError("Invalid thumbnail URL format");
+                      }
                     }}
-                    onBlur={() => handleSave()}
-                    className="flex-1 rounded-xl border border-[#E2E8F0] dark:border-[#2e2e38] bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none focus:border-[#0066B2] placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono"
+                    onBlur={() => {
+                      if (ogImageUrl && !validateUrl(ogImageUrl)) {
+                        addToast("Invalid thumbnail URL. Must start with http:// or https://", "error");
+                        return;
+                      }
+                      handleSave();
+                    }}
+                    className={`flex-1 rounded-xl border bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono ${
+                      ogUrlError ? "border-rose-500 focus:border-rose-500" : "border-[#E2E8F0] dark:border-[#2e2e38] focus:border-[#0066B2]"
+                    }`}
                   />
                   {ogImageUrl && (
                     <button
@@ -246,6 +336,7 @@ export function BrandingSection({
                         markDirty("ogImageUrl");
                         setOgImageUrl("");
                         await handleSave({ ogImageUrl: "" });
+                        addToast("Social share thumbnail removed", "info");
                       }}
                       className="rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition cursor-pointer shrink-0"
                     >
@@ -269,13 +360,20 @@ export function BrandingSection({
                         try {
                           const res = await fetch("/api/upload", { method: "POST", body: formData });
                           const data = await res.json();
+                          if (!res.ok) {
+                            throw new Error(data.error || "Upload request failed");
+                          }
                           const uploadedUrl = data.data?.fileUrl || data.data?.url || data.url || data.fileUrl;
                           if (uploadedUrl) {
                             setOgImageUrl(uploadedUrl);
                             await handleSave({ ogImageUrl: uploadedUrl });
+                            addToast("🎉 Social share thumbnail uploaded successfully!", "success");
+                          } else {
+                            throw new Error("No URL returned from upload server");
                           }
-                        } catch (err) {
-                          console.error("Upload error:", err);
+                        } catch (err: any) {
+                          console.error("OG image upload error:", err);
+                          addToast(err.message || "Failed to upload social thumbnail image.", "error");
                         } finally {
                           setUploadingOgImage(false);
                         }

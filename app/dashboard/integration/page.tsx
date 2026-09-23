@@ -17,6 +17,7 @@ import { AutomationsSection } from "@/components/integration/AutomationsSection"
 import { AnalyticsSection } from "@/components/integration/AnalyticsSection";
 import { BrandingSection } from "@/components/integration/BrandingSection";
 import { HelpModal } from "@/components/integration/HelpModal";
+import { useToast, IntegrationToastContainer } from "@/components/integration/IntegrationToast";
 
 export default function WorkspaceSetupPage() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -43,6 +44,9 @@ export default function WorkspaceSetupPage() {
   const [ogImageUrl, setOgImageUrl] = useState("");
   const [substackPublication, setSubstackPublication] = useState("");
   const [showHelpModal, setShowHelpModal] = useState(false);
+
+  // Toast System
+  const { toasts, addToast, removeToast } = useToast();
 
   // Track modified fields & mounted state to prevent background sync from overwriting active user edits
   const dirtyFieldsRef = useRef<Set<string>>(new Set());
@@ -301,6 +305,7 @@ export default function WorkspaceSetupPage() {
               onToggleCustomDomain={() => toggle("custom-domain")}
               markDirty={markDirty}
               handleSave={handleSave}
+              addToast={addToast}
             />
 
             {/* 2. Optional connections wrapper (Email & Scheduling + Automations) */}
@@ -341,6 +346,7 @@ export default function WorkspaceSetupPage() {
                     toggle={toggle}
                     markDirty={markDirty}
                     handleSave={handleSave}
+                    addToast={addToast}
                   />
 
                   {/* Automations (Slack, Zapier, Pipedrive, Kit, Substack) */}
@@ -353,6 +359,7 @@ export default function WorkspaceSetupPage() {
                     handleSave={handleSave}
                     substackPublication={substackPublication}
                     setSubstackPublication={setSubstackPublication}
+                    addToast={addToast}
                   />
                 </div>
               )}
@@ -373,6 +380,7 @@ export default function WorkspaceSetupPage() {
               toggle={toggle}
               markDirty={markDirty}
               handleSave={handleSave}
+              addToast={addToast}
             />
 
             {/* 4. Analytics & Ad Conversion Tracking Section */}
@@ -385,6 +393,7 @@ export default function WorkspaceSetupPage() {
               onToggle={() => toggle("analytics-tracking")}
               markDirty={markDirty}
               handleSave={handleSave}
+              addToast={addToast}
             />
 
           </div>
@@ -396,6 +405,12 @@ export default function WorkspaceSetupPage() {
       <HelpModal
         isOpen={showHelpModal}
         onClose={() => setShowHelpModal(false)}
+      />
+
+      {/* Toast Notification Container */}
+      <IntegrationToastContainer
+        toasts={toasts}
+        onRemoveToast={removeToast}
       />
     </DashboardShell>
   );

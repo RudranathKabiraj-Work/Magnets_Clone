@@ -13,6 +13,7 @@ interface AutomationsSectionProps {
   handleSave: (overrides?: Partial<Account>) => Promise<void>;
   substackPublication: string;
   setSubstackPublication: (val: string) => void;
+  addToast: (message: string, type?: "success" | "error" | "info") => void;
 }
 
 export function AutomationsSection({
@@ -24,11 +25,20 @@ export function AutomationsSection({
   handleSave,
   substackPublication,
   setSubstackPublication,
+  addToast,
 }: AutomationsSectionProps) {
   const [showSlackUrl, setShowSlackUrl] = useState(false);
   const [showZapierUrl, setShowZapierUrl] = useState(false);
   const [showPipedriveToken, setShowPipedriveToken] = useState(false);
   const [showKitKey, setShowKitKey] = useState(false);
+
+  const [slackUrlError, setSlackUrlError] = useState("");
+  const [zapierUrlError, setZapierUrlError] = useState("");
+
+  const validateUrl = (url: string) => {
+    if (!url.trim()) return true;
+    return /^https?:\/\/.+/i.test(url.trim());
+  };
 
   return (
     <div className="space-y-6">
@@ -76,10 +86,23 @@ export function AutomationsSection({
                         onChange={(e) => {
                           markDirty("slackWebhookUrl");
                           const url = e.target.value;
+                          if (validateUrl(url)) {
+                            setSlackUrlError("");
+                          } else {
+                            setSlackUrlError("Please enter a valid URL (starting with http:// or https://)");
+                          }
                           setAccount((prev) => prev ? { ...prev, slackWebhookUrl: url } : prev);
                         }}
-                        onBlur={() => handleSave()}
-                        className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] pl-3.5 pr-10 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none focus:border-[#0066B2] transition font-mono"
+                        onBlur={() => {
+                          if (account?.slackWebhookUrl && !validateUrl(account.slackWebhookUrl)) {
+                            addToast("Please enter a valid Slack webhook URL (https://...)", "error");
+                            return;
+                          }
+                          handleSave();
+                        }}
+                        className={`w-full rounded-xl border bg-white dark:bg-[#0E0E10] pl-3.5 pr-10 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none transition font-mono ${
+                          slackUrlError ? "border-rose-500 focus:border-rose-500" : "border-zinc-200 dark:border-white/10 focus:border-[#0066B2]"
+                        }`}
                       />
                       <button
                         type="button"
@@ -90,9 +113,13 @@ export function AutomationsSection({
                         {showSlackUrl ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    <p className="text-[11px] text-zinc-500 dark:text-[#666675] mt-1.5">
-                      In Slack, create an Incoming Webhook, choose its channel, then paste the generated hooks.slack.com URL here. Leave it blank to disconnect.
-                    </p>
+                    {slackUrlError ? (
+                      <p className="text-[11px] text-rose-500 mt-1.5">{slackUrlError}</p>
+                    ) : (
+                      <p className="text-[11px] text-zinc-500 dark:text-[#666675] mt-1.5">
+                        In Slack, create an Incoming Webhook, choose its channel, then paste the generated hooks.slack.com URL here. Leave it blank to disconnect.
+                      </p>
+                    )}
                   </div>
 
                   <div className="pt-2 border-t border-zinc-200/60 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -103,7 +130,11 @@ export function AutomationsSection({
                       type="button"
                       onClick={async () => {
                         if (!account?.slackWebhookUrl) {
-                          alert("Please enter your Slack incoming-webhook URL first.");
+                          addToast("Please enter your Slack incoming-webhook URL first.", "error");
+                          return;
+                        }
+                        if (!validateUrl(account.slackWebhookUrl)) {
+                          addToast("Invalid Slack webhook URL format.", "error");
                           return;
                         }
                         try {
@@ -118,12 +149,12 @@ export function AutomationsSection({
                           });
                           const data = await res.json();
                           if (res.ok && data.success) {
-                            alert("🎉 Test Slack message sent! Check your Slack channel or Slackbot DM.");
+                            addToast("🎉 Test Slack message sent! Check your Slack channel.", "success");
                           } else {
-                            alert(data.error || "Failed to send test message to Slack. Check the webhook URL.");
+                            addToast(data.error || "Failed to send test message to Slack. Check the webhook URL.", "error");
                           }
                         } catch (err: any) {
-                          alert(`Error sending test message: ${err.message}`);
+                          addToast(`Error sending test message: ${err.message}`, "error");
                         }
                       }}
                       className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-1.5 rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#1E1E22] text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#25252A] transition shrink-0 cursor-pointer"
@@ -178,10 +209,23 @@ export function AutomationsSection({
                         onChange={(e) => {
                           markDirty("zapierWebhookUrl");
                           const url = e.target.value;
+                          if (validateUrl(url)) {
+                            setZapierUrlError("");
+                          } else {
+                            setZapierUrlError("Please enter a valid URL (starting with http:// or https://)");
+                          }
                           setAccount((prev) => prev ? { ...prev, zapierWebhookUrl: url } : prev);
                         }}
-                        onBlur={() => handleSave()}
-                        className="w-full rounded-xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#0E0E10] pl-3.5 pr-10 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none focus:border-[#FF4F00] transition font-mono"
+                        onBlur={() => {
+                          if (account?.zapierWebhookUrl && !validateUrl(account.zapierWebhookUrl)) {
+                            addToast("Please enter a valid Zapier catch hook URL (https://...)", "error");
+                            return;
+                          }
+                          handleSave();
+                        }}
+                        className={`w-full rounded-xl border bg-white dark:border-white/10 dark:bg-[#0E0E10] pl-3.5 pr-10 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-[#555] outline-none transition font-mono ${
+                          zapierUrlError ? "border-rose-500 focus:border-rose-500" : "border-zinc-200 dark:border-white/10 focus:border-[#FF4F00]"
+                        }`}
                       />
                       <button
                         type="button"
@@ -192,9 +236,13 @@ export function AutomationsSection({
                         {showZapierUrl ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    <p className="text-[11px] text-zinc-500 dark:text-[#666675] mt-1.5">
-                      Paste the unique hooks.zapier.com URL from the Test tab. Leave it blank to disconnect.
-                    </p>
+                    {zapierUrlError ? (
+                      <p className="text-[11px] text-rose-500 mt-1.5">{zapierUrlError}</p>
+                    ) : (
+                      <p className="text-[11px] text-zinc-500 dark:text-[#666675] mt-1.5">
+                        Paste the unique hooks.zapier.com URL from the Test tab. Leave it blank to disconnect.
+                      </p>
+                    )}
                   </div>
 
                   <div className="pt-2 border-t border-zinc-200/60 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -205,7 +253,11 @@ export function AutomationsSection({
                       type="button"
                       onClick={async () => {
                         if (!account?.zapierWebhookUrl) {
-                          alert("Please enter your Zapier Catch Hook URL first.");
+                          addToast("Please enter your Zapier Catch Hook URL first.", "error");
+                          return;
+                        }
+                        if (!validateUrl(account.zapierWebhookUrl)) {
+                          addToast("Invalid Zapier Catch Hook URL format.", "error");
                           return;
                         }
                         try {
@@ -220,12 +272,12 @@ export function AutomationsSection({
                           });
                           const data = await res.json();
                           if (res.ok && data.success) {
-                            alert("⚡ Test Zapier event sent! Check your Zapier test trigger tab.");
+                            addToast("⚡ Test Zapier event sent! Check your Zapier test trigger tab.", "success");
                           } else {
-                            alert(data.error || "Failed to send test payload to Zapier. Check the webhook URL.");
+                            addToast(data.error || "Failed to send test payload to Zapier. Check the webhook URL.", "error");
                           }
                         } catch (err: any) {
-                          alert(`Error sending test payload: ${err.message}`);
+                          addToast(`Error sending test payload: ${err.message}`, "error");
                         }
                       }}
                       className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-1.5 rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#1E1E22] text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#25252A] transition shrink-0 cursor-pointer"
@@ -302,7 +354,7 @@ export function AutomationsSection({
                       type="button"
                       onClick={async () => {
                         if (!account?.pipedriveApiToken) {
-                          alert("Please enter your Pipedrive API token first.");
+                          addToast("Please enter your Pipedrive API token first.", "error");
                           return;
                         }
                         try {
@@ -317,12 +369,12 @@ export function AutomationsSection({
                           });
                           const data = await res.json();
                           if (res.ok && data.success) {
-                            alert(`🎉 Pipedrive connection successful! Connected as ${data.user}.`);
+                            addToast(`🎉 Pipedrive connection successful! Connected as ${data.user}.`, "success");
                           } else {
-                            alert(data.error || "Failed to connect to Pipedrive. Please check your API token.");
+                            addToast(data.error || "Failed to connect to Pipedrive. Please check your API token.", "error");
                           }
                         } catch (err: any) {
-                          alert(`Error connecting to Pipedrive: ${err.message}`);
+                          addToast(`Error connecting to Pipedrive: ${err.message}`, "error");
                         }
                       }}
                       className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-1.5 rounded-lg border border-zinc-200 bg-white dark:border-white/10 dark:bg-[#1E1E22] text-xs font-semibold text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#25252A] transition shrink-0 cursor-pointer"
@@ -399,7 +451,7 @@ export function AutomationsSection({
                       type="button"
                       onClick={async () => {
                         if (!account?.kitApiKey && !account?.kitConnected) {
-                          alert("Please enter your Kit V3 API Key first.");
+                          addToast("Please enter your Kit V3 API Key first.", "error");
                           return;
                         }
                         try {
@@ -416,12 +468,12 @@ export function AutomationsSection({
                           if (res.ok && data.success) {
                             setAccount((prev) => prev ? { ...prev, kitConnected: true } : prev);
                             await handleSave({ kitConnected: true });
-                            alert(`🎉 Kit connection successful! Account: ${data.user}`);
+                            addToast(`🎉 Kit connection successful! Account: ${data.user}`, "success");
                           } else {
-                            alert(data.error || "Failed to verify Kit API Key. Check Settings -> Advanced in Kit.");
+                            addToast(data.error || "Failed to verify Kit API Key. Check Settings -> Advanced in Kit.", "error");
                           }
                         } catch (err: any) {
-                          alert(`Error connecting to Kit: ${err.message}`);
+                          addToast(`Error connecting to Kit: ${err.message}`, "error");
                         }
                       }}
                       className={`inline-flex items-center gap-1.5 self-start sm:self-auto px-4 py-2 rounded-xl text-xs font-semibold transition shrink-0 shadow-sm cursor-pointer ${
