@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AuthShell from "@/components/auth-shell";
 import Button from "@/components/ui/button";
@@ -12,8 +12,12 @@ import { safeSetItem, setSessionExpiry } from "@/lib/store";
 
 import GoogleAuthButton from "@/components/ui/google-auth-button";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawFrom = searchParams.get("from") || searchParams.get("callbackUrl") || "/dashboard";
+  const redirectTarget = rawFrom.startsWith("/") && !rawFrom.startsWith("//") ? rawFrom : "/dashboard";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "authenticating" | "opening_dashboard">("idle");
@@ -51,7 +55,7 @@ export default function LoginPage() {
           }
         }
         setStatus("opening_dashboard");
-        window.location.href = "/dashboard/landing-page";
+        window.location.href = redirectTarget;
 
       } else {
         setError(data?.error || (res.ok ? "Failed to login. Please check database connection." : "Incorrect password or account not found."));
@@ -85,7 +89,7 @@ export default function LoginPage() {
         </div>
       )}
       {/* Continue with Google Button */}
-      <GoogleAuthButton callbackUrl="/dashboard/landing-page" disabled={loading} />
+      <GoogleAuthButton callbackUrl={redirectTarget} disabled={loading} />
 
       <div className="relative my-3 flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
@@ -153,5 +157,21 @@ export default function LoginPage() {
         )}
       </Button>
     </AuthShell>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthShell showSidecar={false} title="Loading..." subtitle="Please wait while we load the sign-in page.">
+          <div className="flex justify-center p-6">
+            <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
+          </div>
+        </AuthShell>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
