@@ -65,6 +65,34 @@ export async function handleAddResource(data: any) {
   return NextResponse.json({ success: true });
 }
 
+export async function handleUpdateResource(data: any, normEmail: string | null) {
+  const { id, name } = data || {};
+  if (!id || !name || !name.trim()) {
+    return NextResponse.json({ error: "Invalid resource id or name" }, { status: 400 });
+  }
+  const cleanName = name.trim();
+  const query: any = { id };
+  if (normEmail) {
+    query.userEmail = normEmail;
+  }
+  let updated = await ResourceModel.findOneAndUpdate(
+    query,
+    { $set: { name: cleanName } },
+    { new: true }
+  ).lean();
+
+  if (!updated) {
+    // If not found with userEmail filter, attempt direct by id
+    updated = await ResourceModel.findOneAndUpdate(
+      { id },
+      { $set: { name: cleanName } },
+      { new: true }
+    ).lean();
+  }
+
+  return NextResponse.json({ success: true, name: cleanName, data: updated });
+}
+
 export async function handleSendTestKitAlert(data: any, normEmail: string | null) {
   const apiKey = data?.apiKey || (await AccountModel.findOne({ email: normEmail }))?.kitApiKey;
   if (!apiKey || !apiKey.trim()) {

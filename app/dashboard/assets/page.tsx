@@ -24,7 +24,8 @@ import {
   Send,
   Loader2,
   Plus,
-  ChevronDown
+  ChevronDown,
+  Pencil
 } from "lucide-react";
 import { syncWithDatabase, loadResources, loadAccount } from "@/lib/store";
 import type { Account } from "@/lib/data";
@@ -79,6 +80,11 @@ export default function ResourcesPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [showGuaranteeBanner, setShowGuaranteeBanner] = useState(true);
 
+  // In-place rename state
+  const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [isSavingName, setIsSavingName] = useState(false);
+
 
 
   useEffect(() => {
@@ -129,6 +135,65 @@ export default function ResourcesPage() {
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const startRenaming = (resource: Resource) => {
+    setEditingResourceId(resource.id);
+    setEditingName(resource.name);
+  };
+
+  const handleSaveRename = async (resource: Resource) => {
+    if (!editingName.trim()) {
+      addToast("error", "Asset name cannot be empty.");
+      return;
+    }
+
+    const trimmed = editingName.trim();
+    if (trimmed === resource.name) {
+      setEditingResourceId(null);
+      return;
+    }
+
+    // Preserve original file extension if omitted
+    const originalExt = resource.name.includes(".") ? resource.name.split(".").pop() : "";
+    let finalName = trimmed;
+    if (originalExt && !finalName.toLowerCase().endsWith(`.${originalExt.toLowerCase()}`)) {
+      finalName = `${finalName}.${originalExt}`;
+    }
+
+    setIsSavingName(true);
+
+    try {
+      // Optimistic update
+      setResources((prev) => {
+        const updated = prev.map((r) => (r.id === resource.id ? { ...r, name: finalName } : r));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("currentUserResources", JSON.stringify(updated));
+        }
+        return updated;
+      });
+
+      const res = await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "updateResource",
+          data: { id: resource.id, name: finalName },
+        }),
+      });
+
+      if (res.ok) {
+        addToast("success", `Renamed to "${finalName}"`);
+      } else {
+        addToast("error", "Failed to save new name in database.");
+      }
+    } catch (err) {
+      console.error("Failed to rename resource", err);
+      addToast("error", "Error renaming resource.");
+    } finally {
+      setIsSavingName(false);
+      setEditingResourceId(null);
+    }
   };
 
   const cancelUpload = () => {
@@ -851,13 +916,59 @@ export default function ResourcesPage() {
                                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${badge.bg}`}>
                                     {badge.icon}
                                   </div>
-                                  <div>
-                                    <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate max-w-xs md:max-w-md">
-                                      {resource.name}
-                                    </p>
-                                    <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                                      {badge.ext}
-                                    </span>
+                                  <div className="flex-1 min-w-0">
+                                    {editingResourceId === resource.id ? (
+                                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                        <input
+                                          type="text"
+                                          value={editingName}
+                                          onChange={(e) => setEditingName(e.target.value)}
+                                          onKeyDown={(e) => {
+                                            if (e.key === "Enter") handleSaveRename(resource);
+                                            if (e.key === "Escape") setEditingResourceId(null);
+                                          }}
+                                          autoFocus
+                                          disabled={isSavingName}
+                                          className="w-full min-w-[200px] max-w-sm rounded-lg border border-[#0066B2] bg-white px-2.5 py-1 text-xs font-semibold text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#0066B2]/20 dark:border-[#38BDF8] dark:bg-[#202026] dark:text-white"
+                                        />
+                                        <button
+                                          onClick={() => handleSaveRename(resource)}
+                                          disabled={isSavingName}
+                                          className="rounded-lg bg-[#0066B2] p-1.5 text-white hover:bg-[#005291] transition cursor-pointer"
+                                          title="Save Name"
+                                        >
+                                          {isSavingName ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                                        </button>
+                                        <button
+                                          onClick={() => setEditingResourceId(null)}
+                                          disabled={isSavingName}
+                                          className="rounded-lg border border-zinc-200 bg-white p-1.5 text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-[#202026] dark:text-zinc-400 transition cursor-pointer"
+                                          title="Cancel"
+                                        >
+                                          <X className="h-3.5 w-3.5" />
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div className="group/title flex items-center gap-2">
+                                        <p
+                                          onDoubleClick={() => startRenaming(resource)}
+                                          className="text-sm font-semibold text-zinc-900 dark:text-white truncate max-w-xs md:max-w-md cursor-pointer hover:text-[#0066B2] dark:hover:text-[#38BDF8] transition-colors"
+                                          title="Double-click or click pencil to rename"
+                                        >
+                                          {resource.name}
+                                        </p>
+                                        <button
+                                          onClick={() => startRenaming(resource)}
+                                          className="opacity-0 group-hover/title:opacity-100 p-1 text-zinc-400 hover:text-[#0066B2] dark:hover:text-[#38BDF8] transition cursor-pointer rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 shrink-0"
+                                          title="Rename asset"
+                                        >
+                                          <Pencil className="h-3 w-3" />
+                                        </button>
+                                        <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider shrink-0">
+                                          {badge.ext}
+                                        </span>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </td>
