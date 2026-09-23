@@ -26,8 +26,9 @@ function parseCloudinaryUrl(url: string): {
   const pathWithExt = match[2];
 
   const lastDot = pathWithExt.lastIndexOf(".");
-  const publicId = lastDot !== -1 ? pathWithExt.substring(0, lastDot) : pathWithExt;
-  const format = lastDot !== -1 ? pathWithExt.substring(lastDot + 1) : "pdf";
+  // For 'raw' resource_type, Cloudinary requires the full filename (with extension) as publicId and empty format
+  const publicId = resourceType === "raw" ? pathWithExt : (lastDot !== -1 ? pathWithExt.substring(0, lastDot) : pathWithExt);
+  const format = resourceType === "raw" ? "" : (lastDot !== -1 ? pathWithExt.substring(lastDot + 1) : "pdf");
 
   return { publicId, format, resourceType };
 }
@@ -97,8 +98,10 @@ export async function GET(
               }
             );
             const upstream = await fetch(signedUrl);
-            if (upstream.ok && upstream.body) {
-              return new NextResponse(upstream.body, {
+            if (upstream.ok) {
+              const arrayBuffer = await upstream.arrayBuffer();
+              const buffer = Buffer.from(arrayBuffer);
+              return new NextResponse(buffer, {
                 headers: {
                   "Content-Type": isPdf ? "application/pdf" : (upstream.headers.get("content-type") || "application/octet-stream"),
                   "Content-Disposition": `attachment; filename="${encodeURIComponent(downloadFilename)}"`,

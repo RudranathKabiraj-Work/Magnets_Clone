@@ -39,7 +39,7 @@ export const dynamic = "force-dynamic";
  * Returns null if the URL doesn't match the expected Cloudinary pattern.
  */
 function parseCloudinaryUrl(url: string): {
-  publicId: string;   // full path including folder, without extension
+  publicId: string;   // full path including folder
   format: string;     // file extension, e.g. "pdf"
   resourceType: "image" | "raw" | "video";
 } | null {
@@ -52,10 +52,10 @@ function parseCloudinaryUrl(url: string): {
   const resourceType = match[1] as "image" | "raw" | "video";
   const pathWithExt = match[2]; // e.g. "leadmagnets/abc-file.pdf"
 
-  // Split extension from public_id
+  // Split extension from public_id for image/video, but keep full path for raw
   const lastDot = pathWithExt.lastIndexOf(".");
-  const publicId = lastDot !== -1 ? pathWithExt.substring(0, lastDot) : pathWithExt;
-  const format = lastDot !== -1 ? pathWithExt.substring(lastDot + 1) : "pdf";
+  const publicId = resourceType === "raw" ? pathWithExt : (lastDot !== -1 ? pathWithExt.substring(0, lastDot) : pathWithExt);
+  const format = resourceType === "raw" ? "" : (lastDot !== -1 ? pathWithExt.substring(lastDot + 1) : "pdf");
 
   return { publicId, format, resourceType };
 }
