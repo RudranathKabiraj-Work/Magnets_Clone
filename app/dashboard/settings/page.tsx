@@ -16,9 +16,10 @@ import {
   X,
   AlertCircle,
   Info,
-  ShieldCheck,
-  CheckCircle2,
-  Sparkles,
+  Layers,
+  Database,
+  Mail,
+  Zap,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import {
@@ -29,7 +30,6 @@ import {
   loadLeads,
   loadSequences,
   loadResources,
-  safeSetItem,
 } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import type { Account } from "@/lib/data";
@@ -38,7 +38,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import PasswordInputWithStrength, {
   validatePasswordStrength,
 } from "@/components/ui/password-input-with-strength";
-import { getPlanLimits } from "@/lib/plan-limits";
 
 // --- Toast Notification Types & Component ---
 interface ToastItem {
@@ -164,7 +163,6 @@ function compressAvatarImage(file: File, maxDimension = 400, quality = 0.85): Pr
 export default function AccountSettingsPage() {
   const router = useRouter();
   const [account, setAccount] = useState<Account | null>(null);
-  const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -208,7 +206,7 @@ export default function AccountSettingsPage() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Data Source State for Memoized Calculations
+  // Data Source State for Workspace Metrics
   const [pagesData, setPagesData] = useState<any[]>([]);
   const [leadsData, setLeadsData] = useState<any[]>([]);
   const [sequencesData, setSequencesData] = useState<any[]>([]);
@@ -218,15 +216,7 @@ export default function AccountSettingsPage() {
     return !account?.email || account.email === "alex@rivera.studio";
   }, [account?.email]);
 
-  const planConfig = useMemo(() => {
-    return getPlanLimits(account?.plan || "Pro");
-  }, [account?.plan]);
-
-  const leadLimit = planConfig.leadLimit;
-  const storageLimitMb = planConfig.storageLimitMb;
-  const sequencesLimit = planConfig.sequencesLimit;
-
-  // Account Usage & Limits Memoized Calculations
+  // Workspace Metrics Calculations
   const leadCount = useMemo(() => {
     const pageSignups = (pagesData || []).reduce((sum: number, p: any) => sum + (p.signups || 0), 0);
     const leadsLen = (leadsData || []).length;
@@ -237,6 +227,11 @@ export default function AccountSettingsPage() {
     const liveSeqCount = (sequencesData || []).filter((s) => s.status === "live").length;
     return isDemo ? Math.max(3, liveSeqCount) : liveSeqCount;
   }, [sequencesData, isDemo]);
+
+  const totalPagesCount = useMemo(() => {
+    const pagesLen = (pagesData || []).length;
+    return isDemo ? Math.max(4, pagesLen) : pagesLen;
+  }, [pagesData, isDemo]);
 
   const storageMb = useMemo(() => {
     const resourceCount = (resourcesData || []).length;
@@ -266,8 +261,6 @@ export default function AccountSettingsPage() {
     setLeadsData(localLeads);
     setSequencesData(localSeqs);
     setResourcesData(localRes);
-
-    setLoading(false);
 
     // Sync in background silently
     syncWithDatabase().then((data) => {
@@ -520,14 +513,6 @@ export default function AccountSettingsPage() {
 
   const labelClass = "block text-[12.2px] font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5";
 
-  // Quota bar color resolver
-  const getUsageBarColor = (used: number, limit: number) => {
-    const ratio = used / Math.max(1, limit);
-    if (ratio >= 0.9) return "bg-rose-500";
-    if (ratio >= 0.75) return "bg-amber-500";
-    return "bg-[#0066B2]";
-  };
-
   return (
     <DashboardShell account={account} title="Account">
       <div className="flex flex-col min-h-full bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">
@@ -553,14 +538,8 @@ export default function AccountSettingsPage() {
                 </button>
               </h2>
               <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
-                Manage your identity, security, notifications, and account limits.
+                Manage your identity, security, notifications, and workspace resources.
               </p>
-            </div>
-
-            {/* Active Plan Badge */}
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-[#0066B2]/20 bg-[#EFF6FF] dark:border-[#0066B2]/30 dark:bg-[#1a2638] text-[#0066B2] text-xs font-bold shadow-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>{planConfig.badge}</span>
             </div>
           </div>
 
@@ -573,7 +552,7 @@ export default function AccountSettingsPage() {
               { id: "profile", label: "Profile & Identity", icon: User },
               { id: "security", label: "Security & Password", icon: KeyRound },
               { id: "notifications", label: "Instant Lead Alerts", icon: Bell },
-              { id: "usage", label: "Usage & Limits", icon: BarChart3 },
+              { id: "usage", label: "Workspace Metrics", icon: BarChart3 },
               { id: "danger", label: "Danger Zone", icon: AlertTriangle, danger: true },
             ].map((t) => {
               const Icon = t.icon;
@@ -951,7 +930,7 @@ export default function AccountSettingsPage() {
                 </motion.section>
               )}
 
-              {/* TAB 4: Usage & Limits */}
+              {/* TAB 4: Workspace Metrics & Storage */}
               {activeTab === "usage" && (
                 <motion.section
                   key="usage"
@@ -967,85 +946,66 @@ export default function AccountSettingsPage() {
                     </div>
                     <div>
                       <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">
-                        Account Usage & Plan Limits
+                        Workspace Metrics & Resources
                       </h4>
                       <p className="text-[12.2px] text-[#71717a] dark:text-[#9B9085] mt-0.5">
-                        Your usage metrics for the active {planConfig.name} billing cycle.
+                        Real-time overview of your captured leads, cloud storage, and automation resources.
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-5 pl-12 space-y-6 max-w-2xl">
-                    {/* Lead Capacity */}
-                    <div>
-                      <div className="flex justify-between items-center text-xs mb-1.5">
-                        <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-                          Total Leads Captured
-                        </span>
-                        <span className="font-bold text-[#0066B2]">
-                          {leadCount} / {leadLimit} (
-                          {Math.round((leadCount / Math.max(1, leadLimit)) * 100)}%)
-                        </span>
+                  {/* High Level Stats Grid */}
+                  <div className="mt-6 pl-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl">
+                    <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/40">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Total Leads</span>
+                        <div className="p-1.5 rounded-lg bg-[#EFF6FF] dark:bg-[#1a2638] text-[#0066B2]">
+                          <User className="h-3.5 w-3.5" />
+                        </div>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-zinc-100 dark:bg-[#121214] overflow-hidden">
-                        <div
-                          className={`h-full ${getUsageBarColor(
-                            leadCount,
-                            leadLimit
-                          )} transition-all duration-500`}
-                          style={{ width: `${Math.min(100, (leadCount / leadLimit) * 100)}%` }}
-                        />
+                      <div className="text-2xl font-extrabold text-zinc-900 dark:text-white">
+                        {leadCount.toLocaleString()}
                       </div>
+                      <span className="text-[10px] text-zinc-500 dark:text-zinc-400">Captured across all magnets</span>
                     </div>
 
-                    {/* Storage Capacity */}
-                    <div>
-                      <div className="flex justify-between items-center text-xs mb-1.5">
-                        <span className="font-semibold text-zinc-700 dark:text-zinc-300">File Storage</span>
-                        <span className="font-bold text-[#0066B2]">
-                          {storageMb} MB / {storageLimitMb} MB (
-                          {Math.round((storageMb / Math.max(1, storageLimitMb)) * 100)}%)
-                        </span>
+                    <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/40">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Lead Magnets</span>
+                        <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                          <Layers className="h-3.5 w-3.5" />
+                        </div>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-zinc-100 dark:bg-[#121214] overflow-hidden">
-                        <div
-                          className={`h-full ${getUsageBarColor(
-                            storageMb,
-                            storageLimitMb
-                          )} transition-all duration-500`}
-                          style={{ width: `${Math.min(100, (storageMb / storageLimitMb) * 100)}%` }}
-                        />
+                      <div className="text-2xl font-extrabold text-zinc-900 dark:text-white">
+                        {totalPagesCount}
                       </div>
+                      <span className="text-[10px] text-zinc-500 dark:text-zinc-400">Published landing pages</span>
                     </div>
 
-                    {/* Active Sequences */}
-                    <div>
-                      <div className="flex justify-between items-center text-xs mb-1.5">
-                        <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-                          Live Email Sequences
-                        </span>
-                        <span className="font-bold text-[#0066B2]">
-                          {activeSequencesCount} / {sequencesLimit} (
-                          {Math.round(
-                            (activeSequencesCount / Math.max(1, sequencesLimit)) * 100
-                          )}
-                          %)
-                        </span>
+                    <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/40">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Live Sequences</span>
+                        <div className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400">
+                          <Zap className="h-3.5 w-3.5" />
+                        </div>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-zinc-100 dark:bg-[#121214] overflow-hidden">
-                        <div
-                          className={`h-full ${getUsageBarColor(
-                            activeSequencesCount,
-                            sequencesLimit
-                          )} transition-all duration-500`}
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              (activeSequencesCount / sequencesLimit) * 100
-                            )}%`,
-                          }}
-                        />
+                      <div className="text-2xl font-extrabold text-zinc-900 dark:text-white">
+                        {activeSequencesCount}
                       </div>
+                      <span className="text-[10px] text-zinc-500 dark:text-zinc-400">Active email automations</span>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/40">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Storage Used</span>
+                        <div className="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400">
+                          <Database className="h-3.5 w-3.5" />
+                        </div>
+                      </div>
+                      <div className="text-2xl font-extrabold text-zinc-900 dark:text-white">
+                        {storageMb} MB
+                      </div>
+                      <span className="text-[10px] text-zinc-500 dark:text-zinc-400">PDFs, images & assets</span>
                     </div>
                   </div>
                 </motion.section>
