@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import {
@@ -43,12 +43,27 @@ interface Toast {
   message: string;
 }
 
+interface UploadProgressState {
+  current: number;
+  total: number;
+  currentFileName: string;
+  loadedBytes: number;
+  totalBytes: number;
+  percent: number;
+  stage: "uploading" | "saving";
+}
+
 export default function ResourcesPage() {
   const [account, setAccount] = useState<Account | null>(null);
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgressState | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // Active XHR reference & cancellation tracking
+  const activeXhrRef = useRef<XMLHttpRequest | null>(null);
+  const isCancelledRef = useRef<boolean>(false);
 
   // UI State
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,6 +78,8 @@ export default function ResourcesPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [showGuaranteeBanner, setShowGuaranteeBanner] = useState(true);
+
+
 
   useEffect(() => {
     try {
@@ -114,53 +131,185 @@ export default function ResourcesPage() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const uploadFile = async (file: File) => {
-    if (file.size > 15 * 1024 * 1024) {
-      addToast("error", "File size exceeds maximum limit of 15 MB.");
+  const cancelUpload = () => {
+    isCancelledRef.current = true;
+    if (activeXhrRef.current) {
+      try {
+        activeXhrRef.current.abort();
+      } catch (e) {
+        // Ignore abort error
+      }
+      activeXhrRef.current = null;
+    }
+    setUploading(false);
+    setUploadProgress(null);
+    setIsDragOver(false);
+    addToast("info", "Upload was cancelled.");
+  };
+
+  const uploadFiles = async (fileList: FileList | File[]) => {
+    const rawFiles = Array.from(fileList);
+    if (rawFiles.length === 0) return;
+
+    const MAX_SIZE = 15 * 1024 * 1024;
+    const validFiles: File[] = [];
+    const oversizedFiles: File[] = [];
+
+    for (const f of rawFiles) {
+      if (f.size > MAX_SIZE) {
+        oversizedFiles.push(f);
+      } else {
+        validFiles.push(f);
+      }
+    }
+
+    if (oversizedFiles.length > 0) {
+      if (oversizedFiles.length === 1) {
+        addToast("error", `"${oversizedFiles[0].name}" exceeds 15 MB limit and was skipped.`);
+      } else {
+        addToast("error", `${oversizedFiles.length} files exceeded 15 MB limit and were skipped.`);
+      }
+    }
+
+    if (validFiles.length === 0) {
+      setIsDragOver(false);
       return;
     }
 
     setUploading(true);
+    isCancelledRef.current = false;
+    const newlyUploaded: Resource[] = [];
+    let failedCount = 0;
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const currentUserEmail = localStorage.getItem("currentUserEmail") || account?.email || "";
-      if (currentUserEmail) {
-        formData.append("userEmail", currentUserEmail);
-      }
+    for (let i = 0; i < validFiles.length; i++) {
+      if (isCancelledRef.current) break;
 
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+      const file = validFiles[i];
+      setUploadProgress({
+        current: i + 1,
+        total: validFiles.length,
+        currentFileName: file.name,
+        loadedBytes: 0,
+        totalBytes: file.size,
+        percent: 0,
+        stage: "uploading",
       });
 
-      const json = await res.json();
-      if (res.ok && json.data) {
-        setResources((prev) => {
-          const updated = [json.data, ...prev];
-          if (typeof window !== "undefined") {
-            localStorage.setItem("currentUserResources", JSON.stringify(updated));
-          }
-          return updated;
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const currentUserEmail = localStorage.getItem("currentUserEmail") || account?.email || "";
+        if (currentUserEmail) {
+          formData.append("userEmail", currentUserEmail);
+        }
+
+        const json = await new Promise<any>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          activeXhrRef.current = xhr;
+
+          xhr.open("POST", "/api/upload");
+
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable && !isCancelledRef.current) {
+              const percent = Math.min(99, Math.round((event.loaded / event.total) * 100));
+              setUploadProgress({
+                current: i + 1,
+                total: validFiles.length,
+                currentFileName: file.name,
+                loadedBytes: event.loaded,
+                totalBytes: event.total,
+                percent,
+                stage: percent >= 99 ? "saving" : "uploading",
+              });
+            }
+          };
+
+          xhr.onload = () => {
+            activeXhrRef.current = null;
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                setUploadProgress({
+                  current: i + 1,
+                  total: validFiles.length,
+                  currentFileName: file.name,
+                  loadedBytes: file.size,
+                  totalBytes: file.size,
+                  percent: 100,
+                  stage: "saving",
+                });
+                resolve(JSON.parse(xhr.responseText));
+              } catch (parseErr) {
+                reject(parseErr);
+              }
+            } else {
+              try {
+                const errJson = JSON.parse(xhr.responseText);
+                reject(new Error(errJson.error || `Upload failed (${xhr.status})`));
+              } catch {
+                reject(new Error(`Upload failed (${xhr.status})`));
+              }
+            }
+          };
+
+          xhr.onerror = () => {
+            activeXhrRef.current = null;
+            reject(new Error("Network connection error"));
+          };
+
+          xhr.onabort = () => {
+            activeXhrRef.current = null;
+            reject(new Error("Upload cancelled"));
+          };
+
+          xhr.send(formData);
         });
-        addToast("success", `"${file.name}" uploaded successfully and ready for delivery!`);
-      } else {
-        addToast("error", json.error || "Failed to upload file");
+
+        if (json && json.data) {
+          newlyUploaded.unshift(json.data);
+        } else {
+          failedCount++;
+        }
+      } catch (err: any) {
+        activeXhrRef.current = null;
+        if (err?.message === "Upload cancelled" || isCancelledRef.current) {
+          break;
+        }
+        failedCount++;
+        console.error(`Error uploading ${file.name}:`, err);
       }
-    } catch (err) {
-      console.error("Failed to upload resource", err);
-      addToast("error", "Error uploading file. Please try again.");
-    } finally {
-      setUploading(false);
-      setIsDragOver(false);
     }
+
+    if (newlyUploaded.length > 0) {
+      setResources((prev) => {
+        const updated = [...newlyUploaded, ...prev];
+        if (typeof window !== "undefined") {
+          localStorage.setItem("currentUserResources", JSON.stringify(updated));
+        }
+        return updated;
+      });
+
+      if (!isCancelledRef.current) {
+        if (newlyUploaded.length === 1 && failedCount === 0) {
+          addToast("success", `"${newlyUploaded[0].name}" uploaded successfully and ready for delivery!`);
+        } else if (failedCount === 0) {
+          addToast("success", `All ${newlyUploaded.length} resources uploaded successfully!`);
+        } else {
+          addToast("info", `${newlyUploaded.length} uploaded successfully (${failedCount} failed).`);
+        }
+      }
+    } else if (failedCount > 0 && !isCancelledRef.current) {
+      addToast("error", "Failed to upload selected file(s). Please check network and try again.");
+    }
+
+    setUploading(false);
+    setUploadProgress(null);
+    setIsDragOver(false);
+    activeXhrRef.current = null;
   };
 
   const handleSimulatedUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    await uploadFile(file);
+    if (!e.target.files || e.target.files.length === 0) return;
+    await uploadFiles(e.target.files);
     e.target.value = "";
   };
 
@@ -170,8 +319,7 @@ export default function ResourcesPage() {
     setIsDragOver(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      await uploadFile(file);
+      await uploadFiles(e.dataTransfer.files);
     }
   };
 
@@ -361,13 +509,13 @@ export default function ResourcesPage() {
       >
 
         {/* Global Drag Overlay when dragging files anywhere onto the page */}
-        {isDragOver && resources.length > 0 && (
-          <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0066B2]/80 backdrop-blur-md text-white p-6 animate-in fade-in duration-200">
+        {isDragOver && (
+          <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0066B2]/85 backdrop-blur-md text-white p-6 animate-in fade-in duration-200">
             <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 shadow-2xl animate-bounce">
               <UploadCloud className="h-10 w-10 text-white" />
             </div>
-            <h3 className="mt-4 text-2xl font-bold">Drop your file to upload instantly</h3>
-            <p className="mt-1 text-sm text-blue-100">Supports PDF, DOCX, ZIP, MP4, Images up to 15 MB</p>
+            <h3 className="mt-4 text-2xl font-bold">Drop your file(s) to upload instantly</h3>
+            <p className="mt-1 text-sm text-blue-100">Supports multi-file upload · PDF, DOCX, ZIP, MP4, Images up to 15 MB</p>
           </div>
         )}
 
@@ -393,6 +541,7 @@ export default function ResourcesPage() {
               <input
                 type="file"
                 id="resource-upload-header"
+                multiple
                 className="absolute inset-0 w-full h-full cursor-pointer opacity-0 z-20"
                 onChange={handleSimulatedUpload}
                 disabled={uploading}
@@ -404,12 +553,16 @@ export default function ResourcesPage() {
                 {uploading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin text-white" />
-                    <span>Uploading file...</span>
+                    <span>
+                      {uploadProgress
+                        ? `Uploading (${uploadProgress.current}/${uploadProgress.total})...`
+                        : "Uploading files..."}
+                    </span>
                   </>
                 ) : (
                   <>
                     <Plus className="h-4 w-4 stroke-[2.25] transition-transform duration-300 group-hover:rotate-90" />
-                    <span className="tracking-tight">Upload New Resource</span>
+                    <span className="tracking-tight">Upload Resources</span>
                   </>
                 )}
               </button>
@@ -461,6 +614,7 @@ export default function ResourcesPage() {
             <div className="relative mt-6 rounded-2xl border-2 border-dashed border-[#0066B2]/40 bg-white/90 p-12 text-center backdrop-blur-sm hover:border-[#0066B2] dark:border-[#0066B2]/40 dark:bg-[#18181B]/90 shadow-sm transition-all">
               <input
                 type="file"
+                multiple
                 className="absolute inset-0 cursor-pointer opacity-0 z-10"
                 onChange={handleSimulatedUpload}
                 disabled={uploading}
@@ -469,13 +623,17 @@ export default function ResourcesPage() {
                 {uploading ? <Loader2 className="h-7 w-7 animate-spin" /> : <UploadCloud className="h-7 w-7" />}
               </div>
               <h3 className="mt-4 text-base font-bold text-zinc-900 dark:text-white">
-                {uploading ? "Uploading document..." : "Drag & Drop your first lead magnet file here"}
+                {uploading
+                  ? uploadProgress
+                    ? `Uploading (${uploadProgress.current} of ${uploadProgress.total}): ${uploadProgress.currentFileName}`
+                    : "Uploading documents..."
+                  : "Drag & Drop lead magnet files here"}
               </h3>
               <p className="mt-1 text-xs text-zinc-500 dark:text-[#9B9085]">
-                PDF, DOCX, ZIP, Images, MP4, MP3 & any file type · Up to 15 MB per file
+                PDF, DOCX, ZIP, Images, MP4, MP3 & any file type · Up to 15 MB per file · Multi-file supported
               </p>
               <button className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#005291] transition cursor-pointer">
-                <UploadCloud className="h-4 w-4" /> Browse File from Device
+                <UploadCloud className="h-4 w-4" /> Browse Files from Device
               </button>
             </div>
           )}
@@ -862,6 +1020,67 @@ export default function ResourcesPage() {
                   </button>
                 </div>
               </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Active Upload Live Progress Card */}
+        <AnimatePresence>
+          {uploading && uploadProgress && (
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className="fixed bottom-24 right-5 z-50 w-full max-w-sm rounded-2xl border border-zinc-200/80 bg-white/95 p-4 shadow-2xl backdrop-blur-xl dark:border-zinc-800 dark:bg-[#18181B]/95 text-zinc-900 dark:text-white ring-1 ring-black/5 dark:ring-white/10"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+                    <UploadCloud className="h-4 w-4 animate-pulse" />
+                  </div>
+                  <div className="overflow-hidden">
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white truncate">
+                      Uploading {uploadProgress.current} of {uploadProgress.total}
+                    </h4>
+                    <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 truncate max-w-[170px]">
+                      {uploadProgress.currentFileName}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="rounded-full bg-[#0066B2]/10 px-2 py-0.5 text-[10px] font-bold text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+                    {uploadProgress.stage === "saving" ? "Finalizing" : `${uploadProgress.percent}%`}
+                  </span>
+                  <button
+                    onClick={cancelUpload}
+                    title="Cancel upload"
+                    className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition cursor-pointer"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Progress Track */}
+              <div className="mt-3">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#0066B2] via-[#38BDF8] to-emerald-400 transition-all duration-150"
+                    style={{ width: `${Math.max(uploadProgress.percent, 4)}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-2 flex items-center justify-between text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
+                <span>
+                  {formatBytes(uploadProgress.loadedBytes)} of {formatBytes(uploadProgress.totalBytes)}
+                </span>
+                <span>
+                  {uploadProgress.stage === "saving" ? "Optimizing & saving..." : "Uploading data..."}
+                </span>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
