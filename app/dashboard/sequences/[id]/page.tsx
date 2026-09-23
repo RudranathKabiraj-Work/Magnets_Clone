@@ -325,7 +325,7 @@ export default function SequenceEditor() {
       )}
 
       <div className="min-h-[calc(100vh-3.5rem)] bg-gradient-to-b from-[#F8FAFC] via-[#F1F5F9]/50 to-[#F8FAFC] dark:from-[#09090B] dark:via-[#121215] dark:to-[#09090B]">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+        <div className="flex-1 px-6 py-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
           
           {/* Header Bar */}
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-6">
