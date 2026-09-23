@@ -224,65 +224,67 @@ export default function SequencesPage() {
               })}
             </div>
           ) : (
-            /* Sleek Vercel-Style Hero Empty State */
-            <div className="mt-8 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-8 sm:p-12 text-center shadow-xs">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0066B2]/10 dark:bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8] mb-5 border border-[#0066B2]/20">
-                <MailOpen className="h-8 w-8" />
+            <>
+              {/* Sleek Vercel-Style Hero Empty State */}
+              <div className="mt-8 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-8 sm:p-12 text-center shadow-xs">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0066B2]/10 dark:bg-[#0066B2]/20 text-[#0066B2] dark:text-[#38BDF8] mb-5 border border-[#0066B2]/20">
+                  <MailOpen className="h-8 w-8" />
+                </div>
+                <h3 className="text-xl font-extrabold text-zinc-900 dark:text-white">No follow-up sequences yet</h3>
+                <p className="mt-2 text-sm text-zinc-500 dark:text-[#9B9085] max-w-md mx-auto leading-relaxed">
+                  Automate your email delivery, send scheduled follow-ups, and convert new subscribers into clients automatically.
+                </p>
+                <div className="mt-6 flex justify-center">
+                  <Link
+                    href="/dashboard/sequences/new"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-6 py-3 text-xs font-bold text-white shadow-md hover:bg-[#005799] transition dark:bg-[#0066B2] dark:hover:bg-[#005799]"
+                  >
+                    <Plus className="h-4 w-4 stroke-[2.5px]" />
+                    Create your first sequence
+                  </Link>
+                </div>
               </div>
-              <h3 className="text-xl font-extrabold text-zinc-900 dark:text-white">No follow-up sequences yet</h3>
-              <p className="mt-2 text-sm text-zinc-500 dark:text-[#9B9085] max-w-md mx-auto leading-relaxed">
-                Automate your email delivery, send scheduled follow-ups, and convert new subscribers into clients automatically.
-              </p>
-              <div className="mt-6 flex justify-center">
-                <Link
-                  href="/dashboard/sequences/new"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#0066B2] px-6 py-3 text-xs font-bold text-white shadow-md hover:bg-[#005799] transition dark:bg-[#0066B2] dark:hover:bg-[#005799]"
-                >
-                  <Plus className="h-4 w-4 stroke-[2.5px]" />
-                  Create your first sequence
-                </Link>
+
+              {/* Feature Cards Grid (Shown only in Empty State) */}
+              <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                <div className="flex gap-3.5 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-5 shadow-2xs">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+                    <MailOpen className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white mb-0.5">Instant Trigger</h4>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] leading-relaxed">
+                      The first email sends the moment someone signs up. No manual work.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3.5 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-5 shadow-2xs">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+                    <Pause className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white mb-0.5">Custom Delays</h4>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] leading-relaxed">
+                      Control the delay for each email. Pause or stop the sequence anytime.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3.5 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-5 shadow-2xs">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+                    <StopCircle className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white mb-0.5">Smart Calendar Stop</h4>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] leading-relaxed">
+                      Stops automatically when a lead books a call via Calendly or Cal.com.
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
+            </>
           )}
-
-          {/* Feature Cards Grid */}
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <div className="flex gap-3.5 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-5 shadow-2xs">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
-                <MailOpen className="h-4 w-4" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-zinc-900 dark:text-white mb-0.5">Instant Trigger</h4>
-                <p className="text-xs text-zinc-500 dark:text-[#9B9085] leading-relaxed">
-                  The first email sends the moment someone signs up. No manual work.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3.5 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-5 shadow-2xs">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
-                <Pause className="h-4 w-4" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-zinc-900 dark:text-white mb-0.5">Custom Delays</h4>
-                <p className="text-xs text-zinc-500 dark:text-[#9B9085] leading-relaxed">
-                  Control the delay for each email. Pause or stop the sequence anytime.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3.5 rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-5 shadow-2xs">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
-                <StopCircle className="h-4 w-4" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-zinc-900 dark:text-white mb-0.5">Smart Calendar Stop</h4>
-                <p className="text-xs text-zinc-500 dark:text-[#9B9085] leading-relaxed">
-                  Stops automatically when a lead books a call via Calendly or Cal.com.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </DashboardShell>
