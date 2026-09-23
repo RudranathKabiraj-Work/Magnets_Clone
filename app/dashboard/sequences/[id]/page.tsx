@@ -34,7 +34,7 @@ import { useEffect, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import StatusBadge from "@/components/dashboard/status-badge";
 import { type Sequence, type SequenceEmail, type Account, type MagnetPage } from "@/lib/data";
-import { loadPages, loadSequences, saveSequences, deleteSequence, loadAccount, syncWithDatabase } from "@/lib/store";
+import { loadPages, loadSequences, loadLeads, saveSequences, deleteSequence, loadAccount, syncWithDatabase } from "@/lib/store";
 
 const delays = [
   { label: "Instantly", minutes: 0 },
@@ -76,17 +76,48 @@ export default function SequenceEditor() {
   }
 
   useEffect(() => {
-
     const localAcc = loadAccount();
     if (localAcc) setAccount(localAcc);
 
-    const resolveSeq = (seqList: Sequence[]) => {
-      const found = seqList.find((s) => s.id === params.id);
-      if (found) return found;
+    const localPages = loadPages();
+    const localLeads = loadLeads();
 
-      const pageFound = loadPages().find((p) => p.id === params.id);
+    const resolveSeq = (seqList: Sequence[], pagesList = localPages, leadsList = localLeads) => {
+      const found = seqList.find((s) => s.id === params.id);
+      if (found) {
+        const associatedLeads = leadsList.filter((l) => (found.pageId && l.pageId === found.pageId) || l.sequence === found.name);
+        if (associatedLeads.length > 0) {
+          const liveOpened = associatedLeads.filter((l) => l.status === "opened" || l.status === "replied").length;
+          const liveDelivered = associatedLeads.filter((l) => l.status === "delivered" || l.status === "opened" || l.status === "completed" || l.status === "replied").length;
+          const liveCompleted = associatedLeads.filter((l) => l.status === "completed" || (l.sequenceStep && l.sequenceStep.toLowerCase().includes("completed"))).length;
+          found.stats = {
+            ...found.stats,
+            signedUp: Math.max(found.stats.signedUp || 0, associatedLeads.length),
+            delivered: Math.max(found.stats.delivered || 0, liveDelivered),
+            opened: Math.max(found.stats.opened || 0, liveOpened),
+            completed: Math.max(found.stats.completed || 0, liveCompleted),
+          };
+        }
+        return found;
+      }
+
+      const pageFound = pagesList.find((p) => p.id === params.id);
       if (pageFound) {
-        const signupCount = pageFound.signups || 1;
+        const associatedLeads = leadsList.filter((l) => l.pageId === pageFound.id || l.page === pageFound.name);
+        const signupCount = Math.max(associatedLeads.length, pageFound.signups || 0);
+
+        const deliveredCount = associatedLeads.filter((l) =>
+          l.status === "delivered" || l.status === "opened" || l.status === "completed" || l.status === "replied"
+        ).length || (signupCount > 0 ? signupCount : 0);
+
+        const openedCount = associatedLeads.filter((l) =>
+          l.status === "opened" || l.status === "replied"
+        ).length;
+
+        const completedCount = associatedLeads.filter((l) =>
+          l.status === "completed" || (l.sequenceStep && l.sequenceStep.toLowerCase().includes("completed"))
+        ).length;
+
         const emailsList = (pageFound.sequenceEmails && pageFound.sequenceEmails.length > 0)
           ? pageFound.sequenceEmails.map((e, idx) => ({
               id: e.id || `se_${pageFound.id}_${idx + 1}`,
@@ -94,8 +125,8 @@ export default function SequenceEditor() {
               delayLabel: `${e.delayDays || 1} day${(e.delayDays || 1) > 1 ? "s" : ""} delay`,
               delayMinutes: (e.delayDays || 1) * 1440,
               status: "live" as const,
-              sent: signupCount,
-              opened: Math.round(signupCount * 0.8),
+              sent: deliveredCount,
+              opened: openedCount,
               body: e.body || "Hi {first_name},\n\nHope you find this resource valuable!\n\nBest regards,",
             }))
           : [
@@ -105,8 +136,8 @@ export default function SequenceEditor() {
                 delayLabel: "Instantly",
                 delayMinutes: 0,
                 status: "live" as const,
-                sent: signupCount,
-                opened: Math.round(signupCount * 0.8),
+                sent: deliveredCount,
+                opened: openedCount,
                 body: "Hi {first_name},\n\nHere is your requested download link for " + pageFound.name + ".\n\nEnjoy!",
               },
               {
@@ -115,8 +146,8 @@ export default function SequenceEditor() {
                 delayLabel: "1 day delay",
                 delayMinutes: 1440,
                 status: "live" as const,
-                sent: signupCount,
-                opened: Math.round(signupCount * 0.6),
+                sent: deliveredCount,
+                opened: openedCount,
                 body: "Hi {first_name},\n\nI wanted to check in and see if you had any questions after reviewing the resource.\n\nLet me know!",
               },
             ];
@@ -130,17 +161,18 @@ export default function SequenceEditor() {
           stopOnBooking: pageFound.stopOnCall || false,
           stats: {
             signedUp: signupCount,
-            delivered: signupCount,
-            opened: Math.round(signupCount * 0.8),
-            replied: 0,
-            stopped: 0,
+            delivered: deliveredCount,
+            opened: openedCount,
+            replied: associatedLeads.filter((l) => l.status === "replied").length,
+            stopped: associatedLeads.filter((l) => l.status === "stopped").length,
+            completed: completedCount,
           },
         };
       }
       return undefined;
     };
 
-    const foundLocal = resolveSeq(loadSequences());
+    const foundLocal = resolveSeq(loadSequences(), localPages, localLeads);
     if (foundLocal) {
       setSeq(foundLocal);
       setEmailsWithBody(
@@ -154,7 +186,10 @@ export default function SequenceEditor() {
     syncWithDatabase().then((data) => {
       if (data) {
         if (data.account) setAccount(data.account);
-        const resolvedRemote = resolveSeq(data.sequences || []);
+        const remoteSeq = data.sequences || [];
+        const remotePages = data.pages || localPages;
+        const remoteLeads = data.leads || localLeads;
+        const resolvedRemote = resolveSeq(remoteSeq, remotePages, remoteLeads);
         if (resolvedRemote) {
           setSeq(resolvedRemote);
           setEmailsWithBody(

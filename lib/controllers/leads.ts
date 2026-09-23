@@ -316,6 +316,12 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
               from: `${senderName} <${defaultFrom}>`,
               subject: subject,
               html: subscriberHtml,
+              tracking: {
+                leadId: data.id,
+                pageId: foundPageDoc?.id || data.pageId || "",
+                userEmail: ownerEmail || ownerAccount?.email || "",
+                recipient: data.email.trim(),
+              },
             });
             if (res.success) {
               console.log(`✅ Deliverable email successfully sent to subscriber: ${data.email}`);

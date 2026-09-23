@@ -183,22 +183,6 @@ const IntegrationSchema = new Schema({
   trigger: { type: String, default: "" },
 });
 
-if (process.env.NODE_ENV === "development") {
-  delete (mongoose.models as any).Account;
-  delete (mongoose.models as any).MagnetPage;
-  delete (mongoose.models as any).Lead;
-  delete (mongoose.models as any).Sequence;
-  delete (mongoose.models as any).Integration;
-  delete (mongoose.models as any).Resource;
-  delete (mongoose.models as any).PdfOtp;
-}
-
-export const AccountModel = mongoose.models.Account || mongoose.model("Account", AccountSchema);
-export const MagnetPageModel = mongoose.models.MagnetPage || mongoose.model("MagnetPage", MagnetPageSchema);
-export const LeadModel = mongoose.models.Lead || mongoose.model("Lead", LeadSchema);
-export const SequenceModel = mongoose.models.Sequence || mongoose.model("Sequence", SequenceSchema);
-export const IntegrationModel = mongoose.models.Integration || mongoose.model("Integration", IntegrationSchema);
-
 // Resource Schema
 const ResourceSchema = new Schema({
   id: { type: String, required: true, unique: true },
@@ -212,6 +196,35 @@ const ResourceSchema = new Schema({
 });
 
 export const ResourceModel = mongoose.models.Resource || mongoose.model("Resource", ResourceSchema);
+
+// Email Event Schema for Real-Time Telemetry & Webhooks
+const EmailEventSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  userEmail: { type: String, lowercase: true, trim: true, index: true },
+  leadId: { type: String, index: true },
+  pageId: { type: String, index: true },
+  sequenceId: { type: String, index: true },
+  stepId: { type: String },
+  eventType: {
+    type: String,
+    enum: ["sent", "delivered", "opened", "clicked", "bounced", "complained"],
+    required: true,
+    index: true,
+  },
+  recipientEmail: { type: String, lowercase: true, trim: true },
+  subject: { type: String, default: "" },
+  linkUrl: { type: String, default: "" },
+  messageId: { type: String, default: "" },
+  userAgent: { type: String, default: "" },
+  ip: { type: String, default: "" },
+  createdAt: { type: Date, default: Date.now, index: true },
+});
+
+EmailEventSchema.index({ userEmail: 1, sequenceId: 1, eventType: 1 });
+EmailEventSchema.index({ userEmail: 1, leadId: 1, eventType: 1 });
+EmailEventSchema.index({ pageId: 1, eventType: 1 });
+
+export const EmailEventModel = mongoose.models.EmailEvent || mongoose.model("EmailEvent", EmailEventSchema);
 
 // PdfOtp Schema — stores OTPs for the locked-PDF email gate.
 // MongoDB TTL index auto-deletes expired records (no manual cleanup needed).
@@ -228,4 +241,20 @@ const PdfOtpSchema = new Schema({
 PdfOtpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 PdfOtpSchema.index({ email: 1, magnetId: 1, used: 1 });
 
+if (process.env.NODE_ENV === "development") {
+  delete (mongoose.models as any).Account;
+  delete (mongoose.models as any).MagnetPage;
+  delete (mongoose.models as any).Lead;
+  delete (mongoose.models as any).Sequence;
+  delete (mongoose.models as any).Integration;
+  delete (mongoose.models as any).Resource;
+  delete (mongoose.models as any).EmailEvent;
+  delete (mongoose.models as any).PdfOtp;
+}
+
+export const AccountModel = mongoose.models.Account || mongoose.model("Account", AccountSchema);
+export const MagnetPageModel = mongoose.models.MagnetPage || mongoose.model("MagnetPage", MagnetPageSchema);
+export const LeadModel = mongoose.models.Lead || mongoose.model("Lead", LeadSchema);
+export const SequenceModel = mongoose.models.Sequence || mongoose.model("Sequence", SequenceSchema);
+export const IntegrationModel = mongoose.models.Integration || mongoose.model("Integration", IntegrationSchema);
 export const PdfOtpModel = mongoose.models.PdfOtp || mongoose.model("PdfOtp", PdfOtpSchema);

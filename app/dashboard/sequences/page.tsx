@@ -26,7 +26,24 @@ export default function SequencesPage() {
       const pageSequences: Sequence[] = pagesList
         .filter((p) => (p.sequenceEmails && p.sequenceEmails.length > 0) || p.sequenceEnabled)
         .map((p) => {
-          const signupCount = p.signups || leadsList.filter((l) => l.page === p.name || l.pageId === p.id).length || 1;
+          const associatedLeads = leadsList.filter((l) => l.pageId === p.id || l.page === p.name);
+          const signupCount = Math.max(associatedLeads.length, p.signups || 0);
+
+          const deliveredCount = associatedLeads.filter((l) =>
+            l.status === "delivered" || l.status === "opened" || l.status === "completed" || l.status === "replied"
+          ).length || (signupCount > 0 ? signupCount : 0);
+
+          const openedCount = associatedLeads.filter((l) =>
+            l.status === "opened" || l.status === "replied"
+          ).length;
+
+          const completedCount = associatedLeads.filter((l) =>
+            l.status === "completed" || (l.sequenceStep && l.sequenceStep.toLowerCase().includes("completed"))
+          ).length;
+
+          const repliedCount = associatedLeads.filter((l) => l.status === "replied").length;
+          const stoppedCount = associatedLeads.filter((l) => l.status === "stopped").length;
+
           const emailsList: SequenceEmail[] = (p.sequenceEmails && p.sequenceEmails.length > 0)
             ? p.sequenceEmails.map((e, idx) => ({
                 id: e.id || `se_${p.id}_${idx + 1}`,
@@ -34,8 +51,8 @@ export default function SequencesPage() {
                 delayLabel: `${e.delayDays || 1} day${(e.delayDays || 1) > 1 ? "s" : ""} delay`,
                 delayMinutes: (e.delayDays || 1) * 1440,
                 status: "live" as const,
-                sent: signupCount,
-                opened: Math.round(signupCount * 0.8),
+                sent: deliveredCount,
+                opened: openedCount,
               }))
             : [
                 {
@@ -44,8 +61,8 @@ export default function SequencesPage() {
                   delayLabel: "1 day delay",
                   delayMinutes: 1440,
                   status: "live" as const,
-                  sent: signupCount,
-                  opened: Math.round(signupCount * 0.8),
+                  sent: deliveredCount,
+                  opened: openedCount,
                 },
                 {
                   id: `se_${p.id}_2`,
@@ -53,8 +70,8 @@ export default function SequencesPage() {
                   delayLabel: "3 days delay",
                   delayMinutes: 4320,
                   status: "live" as const,
-                  sent: signupCount,
-                  opened: Math.round(signupCount * 0.6),
+                  sent: deliveredCount,
+                  opened: openedCount,
                 },
               ];
 
@@ -67,17 +84,33 @@ export default function SequencesPage() {
             stopOnBooking: p.stopOnCall || false,
             stats: {
               signedUp: signupCount,
-              delivered: signupCount,
-              opened: Math.round(signupCount * 0.8),
-              replied: 0,
-              stopped: 0,
+              delivered: deliveredCount,
+              opened: openedCount,
+              replied: repliedCount,
+              stopped: stoppedCount,
+              completed: completedCount,
             },
           };
         });
 
       const map = new Map<string, Sequence>();
       for (const s of pageSequences) map.set(s.id, s);
-      for (const s of seqList) map.set(s.id, s);
+      for (const s of seqList) {
+        const associatedLeads = leadsList.filter((l) => (s.pageId && l.pageId === s.pageId) || l.sequence === s.name);
+        if (associatedLeads.length > 0) {
+          const liveOpened = associatedLeads.filter((l) => l.status === "opened" || l.status === "replied").length;
+          const liveDelivered = associatedLeads.filter((l) => l.status === "delivered" || l.status === "opened" || l.status === "completed" || l.status === "replied").length;
+          const liveCompleted = associatedLeads.filter((l) => l.status === "completed" || (l.sequenceStep && l.sequenceStep.toLowerCase().includes("completed"))).length;
+          s.stats = {
+            ...s.stats,
+            signedUp: Math.max(s.stats.signedUp || 0, associatedLeads.length),
+            delivered: Math.max(s.stats.delivered || 0, liveDelivered),
+            opened: Math.max(s.stats.opened || 0, liveOpened),
+            completed: Math.max(s.stats.completed || 0, liveCompleted),
+          };
+        }
+        map.set(s.id, s);
+      }
       return Array.from(map.values());
     };
 
