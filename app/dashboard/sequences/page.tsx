@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useDeferredValue } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   MailOpen,
   Pause,
@@ -14,6 +14,7 @@ import {
   Trash2,
   Search,
   SlidersHorizontal,
+  ChevronDown,
   Copy,
   MoreVertical,
   TrendingUp,
@@ -50,6 +51,14 @@ type FilterStatus = "all" | "live" | "draft" | "has_leads";
 type SortOption = "recent" | "name" | "subscribers" | "delivered" | "open_rate";
 type ViewMode = "grid" | "table";
 
+const sortOptions: { id: SortOption; label: string }[] = [
+  { id: "recent", label: "Most Recent" },
+  { id: "name", label: "Name (A-Z)" },
+  { id: "subscribers", label: "Subscribers" },
+  { id: "delivered", label: "Most Delivered" },
+  { id: "open_rate", label: "Highest Open %" },
+];
+
 export default function SequencesPage() {
   const router = useRouter();
   const [account, setAccount] = useState<Account | null>(null);
@@ -63,6 +72,7 @@ export default function SequencesPage() {
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("recent");
+  const [isSortOpen, setIsSortOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   // Dropdown menu tracking
@@ -76,12 +86,15 @@ export default function SequencesPage() {
 
   // Close menus on outside click
   useEffect(() => {
-    const handleClickOutside = () => setActiveMenuId(null);
-    if (activeMenuId) {
+    const handleClickOutside = () => {
+      setActiveMenuId(null);
+      setIsSortOpen(false);
+    };
+    if (activeMenuId || isSortOpen) {
       window.addEventListener("click", handleClickOutside);
       return () => window.removeEventListener("click", handleClickOutside);
     }
-  }, [activeMenuId]);
+  }, [activeMenuId, isSortOpen]);
 
   useEffect(() => {
     const localAccount = loadAccount();
@@ -379,118 +392,154 @@ export default function SequencesPage() {
       )}
 
       <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">
-        <div className="flex-1 px-4 py-5 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-3.5">
+        <div className="flex-1 px-6 py-6 lg:px-8 max-w-7xl mx-auto w-full space-y-4">
           
           {/* Header Section */}
-          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center mb-4">
             <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+              <div className="flex items-center gap-2">
+                <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
                   Follow-up Sequences
-                </h1>
-                <span className="inline-flex items-center justify-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
-                  {sequences.length} Total
+                </h2>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <Check className="h-3 w-3" /> {metrics.liveCount} Active Flows
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                {metrics.liveCount} active · Automate email delivery & nurture high-intent leads while the problem is top of mind.
+              <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
+                Automate email delivery & nurture high-intent leads while the problem is top of mind.
               </p>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               <Link
                 href="/dashboard/leads"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#18181B] px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition shadow-2xs"
+                className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-[#2e2e38] dark:bg-[#18181B] dark:text-zinc-300 dark:hover:bg-[#25252A] transition cursor-pointer shadow-xs"
               >
-                <Users className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
+                <Users className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" />
                 View all leads
               </Link>
               <Link
                 href="/dashboard/sequences/new"
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-[#0066B2] px-3.5 text-xs font-bold text-white shadow-xs hover:bg-[#005799] transition dark:bg-[#0066B2] dark:hover:bg-[#005799] cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl bg-[#0066B2] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005291] transition shadow-md cursor-pointer"
               >
-                <Plus className="h-3.5 w-3.5 stroke-[2.5px]" aria-hidden="true" />
+                <Plus className="h-4 w-4 stroke-[2.5px]" aria-hidden="true" />
                 New sequence
               </Link>
             </div>
           </div>
 
-          {/* Top Executive KPI Performance Cards */}
+          {/* Top Executive KPI Performance Cards (Horizontal Single-Row Layout matching Leads & Assets) */}
           {sequences.length > 0 && (
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
               {/* Card 1: Active Sequences */}
-              <div className="rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-3.5 shadow-2xs transition hover:shadow-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Active Sequences</span>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-                    <Rocket className="h-3.5 w-3.5" />
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === "live" ? "all" : "live")}
+                className={`flex items-center rounded-2xl border px-5 py-4 shadow-sm backdrop-blur-sm transition-all text-left cursor-pointer ${
+                  statusFilter === "live"
+                    ? "border-[#0066B2] dark:border-[#38BDF8] bg-[#EFF6FF]/90 dark:bg-[#0066B2]/20 ring-1 ring-[#0066B2] dark:ring-[#38BDF8]"
+                    : "border-zinc-200/80 bg-white/80 dark:border-[#2e2e38] dark:bg-[#18181B]/80 hover:border-zinc-300 dark:hover:border-zinc-700"
+                }`}
+                title="Click to filter by Active Sequences"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-50 text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/20 dark:text-emerald-400 mr-3.5">
+                  <Rocket className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085] truncate">
+                    Active Flows
+                  </p>
+                  <div className="flex items-baseline gap-1.5 mt-0.5">
+                    <p className="text-2xl font-bold text-zinc-900 dark:text-white leading-none">
+                      {metrics.liveCount}
+                    </p>
+                    <span className="text-xs font-semibold text-zinc-400">/ {metrics.totalSequences}</span>
                   </div>
                 </div>
-                <div className="mt-1.5 flex items-baseline gap-1.5">
-                  <span className="text-xl font-extrabold text-zinc-900 dark:text-white">{metrics.liveCount}</span>
-                  <span className="text-[11px] font-medium text-zinc-400">/ {metrics.totalSequences} total</span>
-                </div>
-                <div className="mt-1.5 flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>{metrics.pausedCount === 0 ? "100% active flows" : `${metrics.pausedCount} paused`}</span>
-                </div>
-              </div>
+              </button>
 
               {/* Card 2: Total Delivered */}
-              <div className="rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-3.5 shadow-2xs transition hover:shadow-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Emails Delivered</span>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-[#0066B2] dark:bg-blue-950/50 dark:text-[#38BDF8]">
-                    <Send className="h-3.5 w-3.5" />
+              <button
+                type="button"
+                onClick={() => setSortBy(sortBy === "delivered" ? "recent" : "delivered")}
+                className={`flex items-center rounded-2xl border px-5 py-4 shadow-sm backdrop-blur-sm transition-all text-left cursor-pointer ${
+                  sortBy === "delivered"
+                    ? "border-[#0066B2] dark:border-[#38BDF8] bg-[#EFF6FF]/90 dark:bg-[#0066B2]/20 ring-1 ring-[#0066B2] dark:ring-[#38BDF8]"
+                    : "border-zinc-200/80 bg-white/80 dark:border-[#2e2e38] dark:bg-[#18181B]/80 hover:border-zinc-300 dark:hover:border-zinc-700"
+                }`}
+                title="Click to sort by Most Delivered"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#0066B2]/30 bg-[#EFF6FF] text-[#0066B2] dark:border-[#0066B2]/30 dark:bg-[#0066B2]/20 dark:text-[#38BDF8] mr-3.5">
+                  <Send className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085] truncate">
+                    Total Delivered
+                  </p>
+                  <div className="flex items-baseline gap-1.5 mt-0.5">
+                    <p className="text-2xl font-bold text-zinc-900 dark:text-white leading-none">
+                      {metrics.totalDelivered.toLocaleString()}
+                    </p>
+                    <span className="text-xs font-semibold text-zinc-400">sent</span>
                   </div>
                 </div>
-                <div className="mt-1.5 flex items-baseline gap-1.5">
-                  <span className="text-xl font-extrabold text-zinc-900 dark:text-white">
-                    {metrics.totalDelivered.toLocaleString()}
-                  </span>
-                  <span className="text-[11px] font-medium text-zinc-400">sent</span>
-                </div>
-                <div className="mt-1.5 text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
-                  Across {metrics.totalSignedUp} total subscribers
-                </div>
-              </div>
+              </button>
 
               {/* Card 3: Avg Open Rate */}
-              <div className="rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-3.5 shadow-2xs transition hover:shadow-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Avg. Open Rate</span>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
-                    <TrendingUp className="h-3.5 w-3.5" />
+              <button
+                type="button"
+                onClick={() => setSortBy(sortBy === "open_rate" ? "recent" : "open_rate")}
+                className={`flex items-center rounded-2xl border px-5 py-4 shadow-sm backdrop-blur-sm transition-all text-left cursor-pointer ${
+                  sortBy === "open_rate"
+                    ? "border-[#0066B2] dark:border-[#38BDF8] bg-[#EFF6FF]/90 dark:bg-[#0066B2]/20 ring-1 ring-[#0066B2] dark:ring-[#38BDF8]"
+                    : "border-zinc-200/80 bg-white/80 dark:border-[#2e2e38] dark:bg-[#18181B]/80 hover:border-zinc-300 dark:hover:border-zinc-700"
+                }`}
+                title="Click to sort by Highest Open Rate"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-50 text-indigo-600 dark:border-indigo-500/30 dark:bg-indigo-500/20 dark:text-indigo-400 mr-3.5">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085] truncate">
+                    Avg Open Rate
+                  </p>
+                  <div className="flex items-baseline gap-1.5 mt-0.5">
+                    <p className="text-2xl font-bold text-zinc-900 dark:text-white leading-none">
+                      {metrics.openRate}%
+                    </p>
+                    <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                      {metrics.totalOpened} opened
+                    </span>
                   </div>
                 </div>
-                <div className="mt-1.5 flex items-baseline gap-1.5">
-                  <span className="text-xl font-extrabold text-zinc-900 dark:text-white">{metrics.openRate}%</span>
-                  <span className="text-[11px] font-medium text-zinc-400">({metrics.totalOpened} opened)</span>
-                </div>
-                <div className="mt-1.5 flex items-center gap-1 text-[10px] font-medium text-indigo-600 dark:text-indigo-400">
-                  <BarChart3 className="h-3 w-3" />
-                  <span>{metrics.openRate >= 40 ? "High engagement" : "Target: >40%"}</span>
-                </div>
-              </div>
+              </button>
 
               {/* Card 4: Sequence Completed */}
-              <div className="rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] p-3.5 shadow-2xs transition hover:shadow-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Completed Flows</span>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === "has_leads" ? "all" : "has_leads")}
+                className={`flex items-center rounded-2xl border px-5 py-4 shadow-sm backdrop-blur-sm transition-all text-left cursor-pointer ${
+                  statusFilter === "has_leads"
+                    ? "border-[#0066B2] dark:border-[#38BDF8] bg-[#EFF6FF]/90 dark:bg-[#0066B2]/20 ring-1 ring-[#0066B2] dark:ring-[#38BDF8]"
+                    : "border-zinc-200/80 bg-white/80 dark:border-[#2e2e38] dark:bg-[#18181B]/80 hover:border-zinc-300 dark:hover:border-zinc-700"
+                }`}
+                title="Click to filter by Sequences With Leads"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-50 text-emerald-600 dark:border-emerald-500/30 dark:bg-emerald-500/20 dark:text-emerald-400 mr-3.5">
+                  <CheckCircle2 className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085] truncate">
+                    Completed
+                  </p>
+                  <div className="flex items-baseline gap-1.5 mt-0.5">
+                    <p className="text-2xl font-bold text-zinc-900 dark:text-white leading-none">
+                      {metrics.totalCompleted.toLocaleString()}
+                    </p>
+                    <span className="text-xs font-semibold text-zinc-400">finished</span>
                   </div>
                 </div>
-                <div className="mt-1.5 flex items-baseline gap-1.5">
-                  <span className="text-xl font-extrabold text-zinc-900 dark:text-white">
-                    {metrics.totalCompleted.toLocaleString()}
-                  </span>
-                  <span className="text-[11px] font-medium text-zinc-400">finished</span>
-                </div>
-                <div className="mt-1.5 text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
-                  {metrics.totalReplied} direct replies received
-                </div>
-              </div>
+              </button>
             </div>
           )}
 
@@ -560,7 +609,7 @@ export default function SequencesPage() {
                 })}
               </div>
 
-              {/* Right controls: Search, Sort, View Toggle */}
+              {/* Right controls: Search, Custom Dropdown, View Toggle */}
               <div className="flex items-center gap-2">
                 {/* Search Bar */}
                 <div className="relative flex-1 sm:w-60">
@@ -582,19 +631,62 @@ export default function SequencesPage() {
                   )}
                 </div>
 
-                {/* Sort Dropdown */}
+                {/* Custom Animated Sort Dropdown (Matches Leads Page style) */}
                 <div className="relative">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="h-8 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#18181B] px-2.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 focus:border-[#0066B2] focus:outline-none transition cursor-pointer shadow-2xs"
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsSortOpen((v) => !v);
+                    }}
+                    className="flex h-8 items-center gap-2 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#18181B] px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-[#222226] transition shadow-2xs cursor-pointer select-none"
                   >
-                    <option value="recent">Sort: Most Recent</option>
-                    <option value="name">Sort: Name (A-Z)</option>
-                    <option value="subscribers">Sort: Subscribers</option>
-                    <option value="delivered">Sort: Most Delivered</option>
-                    <option value="open_rate">Sort: Highest Open %</option>
-                  </select>
+                    <SlidersHorizontal className="h-3 w-3 text-zinc-400" />
+                    <span>{sortOptions.find((o) => o.id === sortBy)?.label || "Sort"}</span>
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${
+                        isSortOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  <AnimatePresence>
+                    {isSortOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.96, y: -6 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                        transition={{ type: "spring", damping: 28, stiffness: 400 }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute right-0 top-full z-40 mt-1.5 w-48 rounded-xl border border-zinc-200/90 dark:border-white/10 bg-white/95 dark:bg-[#1C1C20]/95 p-1.5 shadow-xl backdrop-blur-xl dark:text-white"
+                      >
+                        <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                          Sort by
+                        </div>
+                        {sortOptions.map((opt) => {
+                          const isSelected = sortBy === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => {
+                                setSortBy(opt.id);
+                                setIsSortOpen(false);
+                              }}
+                              className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition cursor-pointer text-left ${
+                                isSelected
+                                  ? "bg-[#0066B2]/10 text-[#0066B2] font-bold dark:bg-[#38BDF8]/20 dark:text-[#38BDF8]"
+                                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-white/5 font-medium"
+                              }`}
+                            >
+                              <span>{opt.label}</span>
+                              {isSelected && <Check className="h-3.5 w-3.5" />}
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* View Mode Toggle */}
