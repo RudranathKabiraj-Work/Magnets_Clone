@@ -154,9 +154,14 @@ export default async function MagnetPageRoute({
   let accountDoc: any = null;
   let pageDoc: any = null;
 
+  const rawUser = params.username || "";
+  if (rawUser.includes(".") || rawUser.startsWith("_") || rawUser === "favicon.ico") {
+    notFound();
+  }
+
   try {
     await dbConnect();
-    const decodedUsername = decodeURIComponent(params.username || "");
+    const decodedUsername = decodeURIComponent(rawUser);
     const escapedUsername = decodedUsername.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 
     accountDoc = await AccountModel.findOne(

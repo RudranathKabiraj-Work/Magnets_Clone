@@ -15,8 +15,13 @@ export default async function UserProfileRoute({
   let pages: any[] = [];
 
   try {
+    const rawUser = params.username || "";
+    if (rawUser.includes(".") || rawUser.startsWith("_") || rawUser === "favicon.ico") {
+      notFound();
+    }
+
     await dbConnect();
-    const decodedUsername = decodeURIComponent(params.username || "");
+    const decodedUsername = decodeURIComponent(rawUser);
     const escapedUsername = decodedUsername.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 
     accountDoc = await AccountModel.findOne(

@@ -178,11 +178,20 @@ export default function NewSequence() {
                 className="w-full rounded-xl border border-zinc-200 bg-white p-3 text-xs font-semibold text-zinc-800 focus:border-[#0066B2] focus:outline-none dark:border-[#2e2e38] dark:bg-[#202026] dark:text-zinc-200 cursor-pointer shadow-xs"
               >
                 {pages.length > 0 ? (
-                  pages.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      🎯 {p.name}
-                    </option>
-                  ))
+                  pages.map((p) => {
+                    const isLive = p.status === "live";
+                    const isPdf = Boolean(p.pdfTitle || (p.pdfPages && p.pdfPages.length > 0));
+                    const icon = isPdf ? "🔒" : "🎯";
+                    const statusLabel = isLive ? "Live" : "Draft";
+                    const slugLabel = p.slug ? `/${p.slug}` : `/${p.id}`;
+                    const displayName = p.name || p.pdfTitle || "Untitled Lead Magnet";
+
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {icon} {displayName} ({statusLabel}) · {slugLabel}
+                      </option>
+                    );
+                  })
                 ) : (
                   <option value="">Standalone Sequence (No page attached)</option>
                 )}
