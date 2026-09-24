@@ -511,3 +511,108 @@ export async function handleSyncLinkedInNow(authEmail: string | null) {
   const result = await syncUserLinkedInComments(account);
   return NextResponse.json(result);
 }
+
+/**
+ * Fetches recent LinkedIn posts for the user and merges them with any per-post campaigns.
+ */
+export async function handleGetLinkedInRecentPosts(authEmail: string | null) {
+  if (!authEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const account = await AccountModel.findOne({ email: authEmail.trim().toLowerCase() });
+  if (!account || !account.linkedinConnected || !account.linkedinAccountId) {
+    return NextResponse.json({ success: false, posts: [], message: "LinkedIn not connected." });
+  }
+
+  const UNIPILE_DSN = "https://api36.unipile.com:16619";
+  const UNIPILE_API_KEY = "wOFSf6du.f/PTCdwTaeOqSSw5PaLUCTPVwks++2G3tUtqBXh8gfU=";
+
+  try {
+    const profileId = account.linkedinProfileId;
+    const postEndpoint = profileId
+      ? `${UNIPILE_DSN}/api/v1/users/${encodeURIComponent(profileId)}/posts?account_id=${encodeURIComponent(account.linkedinAccountId)}&limit=10`
+      : `${UNIPILE_DSN}/api/v1/posts?account_id=${encodeURIComponent(account.linkedinAccountId)}&limit=10`;
+
+    const res = await fetch(postEndpoint, {
+      headers: { "X-API-KEY": UNIPILE_API_KEY },
+    });
+
+    let rawPosts: any[] = [];
+    if (res.ok) {
+      const data = await res.json();
+      rawPosts = data.items || [];
+    }
+
+    const savedCampaigns = account.linkedinPostCampaigns || [];
+
+    const posts = rawPosts.map((p: any) => {
+      const postId = p.id || p.provider_id || "";
+      const matched = savedCampaigns.find((c: any) => c.postId === postId);
+      const postText = p.text || p.commentary || p.content || (p.attachments?.[0]?.description) || "LinkedIn Post";
+      const postUrl = p.url || p.share_url || (postId.includes("activity:") ? `https://www.linkedin.com/feed/update/${postId}` : "");
+      const commentsCount = p.comments_count || p.social_actions?.comments || p.comments || 0;
+      const createdAt = p.created_at || p.date || "";
+
+      return {
+        postId,
+        postUrl,
+        postText,
+        commentsCount,
+        createdAt,
+        enabled: matched ? matched.enabled : true,
+        magnetId: matched ? matched.magnetId : (account.linkedinDefaultMagnetId || ""),
+        triggerWord: matched ? matched.triggerWord : (account.linkedinTriggerWord || "resource"),
+      };
+    });
+
+    return NextResponse.json({ success: true, posts });
+  } catch (err: any) {
+    console.error("[LinkedIn Recent Posts Error]:", err);
+    return NextResponse.json({ success: false, error: err.message, posts: [] }, { status: 500 });
+  }
+}
+
+/**
+ * Saves or updates automation configuration for a specific LinkedIn post.
+ */
+export async function handleSaveLinkedInPostCampaign(data: any, authEmail: string | null) {
+  if (!authEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const { postId, enabled, magnetId, triggerWord, postUrl, postText, commentsCount, createdAt } = data;
+  if (!postId) {
+    return NextResponse.json({ error: "Post ID is required." }, { status: 400 });
+  }
+
+  const account = await AccountModel.findOne({ email: authEmail.trim().toLowerCase() });
+  if (!account) {
+    return NextResponse.json({ error: "Account not found." }, { status: 404 });
+  }
+
+  if (!account.linkedinPostCampaigns) {
+    account.linkedinPostCampaigns = [];
+  }
+
+  const existingIdx = account.linkedinPostCampaigns.findIndex((c: any) => c.postId === postId);
+  const updatedEntry = {
+    postId,
+    postUrl: postUrl || "",
+    postText: postText || "",
+    enabled: enabled !== undefined ? enabled : true,
+    magnetId: magnetId || "",
+    triggerWord: triggerWord ? triggerWord.trim().toLowerCase() : "resource",
+    commentsCount: commentsCount || 0,
+    createdAt: createdAt || "",
+  };
+
+  if (existingIdx >= 0) {
+    account.linkedinPostCampaigns[existingIdx] = updatedEntry;
+  } else {
+    account.linkedinPostCampaigns.push(updatedEntry);
+  }
+
+  await account.save();
+  return NextResponse.json({ success: true, message: "Post campaign updated." });
+}

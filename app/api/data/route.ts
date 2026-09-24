@@ -18,6 +18,8 @@ import {
   handleDisconnectLinkedIn,
   handleSaveLinkedInCampaignSettings,
   handleSyncLinkedInNow,
+  handleGetLinkedInRecentPosts,
+  handleSaveLinkedInPostCampaign,
 } from "@/lib/controllers/account";
 import {
   handleSavePages,
@@ -178,6 +180,10 @@ export async function POST(req: Request) {
         return handleSaveLinkedInCampaignSettings(data, authEmail);
       case "syncLinkedInNow":
         return handleSyncLinkedInNow(authEmail);
+      case "getLinkedInRecentPosts":
+        return handleGetLinkedInRecentPosts(authEmail);
+      case "saveLinkedInPostCampaign":
+        return handleSaveLinkedInPostCampaign(data, authEmail);
       case "sendResetEmail":
       case "sendForgotPasswordEmail":
         return handleSendResetEmail(data);

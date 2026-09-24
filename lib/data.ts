@@ -169,6 +169,18 @@ export interface Account {
   linkedinProfileImage?: string;
   linkedinDefaultMagnetId?: string;
   linkedinTriggerWord?: string;
+  linkedinPostCampaigns?: LinkedInPostCampaign[];
+}
+
+export interface LinkedInPostCampaign {
+  postId: string;
+  postUrl?: string;
+  postText?: string;
+  enabled: boolean;
+  magnetId?: string;
+  triggerWord?: string;
+  commentsCount?: number;
+  createdAt?: string;
 }
 
 export interface Integration {

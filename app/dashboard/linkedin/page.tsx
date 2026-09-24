@@ -25,7 +25,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { syncWithDatabase, loadAccount, loadPages, loadLeads } from "@/lib/store";
 import { getAppUrl } from "@/lib/data";
-import type { Account, MagnetPage, Lead } from "@/lib/data";
+import type { Account, MagnetPage, Lead, LinkedInPostCampaign } from "@/lib/data";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -146,6 +146,11 @@ export default function LinkedInAutomationPage() {
   const [selectedMagnetId, setSelectedMagnetId] = useState("");
   const [triggerKeyword, setTriggerKeyword] = useState("resource");
 
+  // Recent Posts & Per-Post Campaigns state
+  const [posts, setPosts] = useState<LinkedInPostCampaign[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [savingPostId, setSavingPostId] = useState<string | null>(null);
+
   useEffect(() => {
     if (account) {
       if (account.linkedinDefaultMagnetId) setSelectedMagnetId(account.linkedinDefaultMagnetId);
@@ -236,6 +241,105 @@ export default function LinkedInAutomationPage() {
       console.error(err);
     } finally {
       setSavingSettings(false);
+    }
+  };
+
+  // ── Recent Posts Fetcher & Campaign Config Handlers ──
+  const fetchRecentPosts = useCallback(async () => {
+    if (!account?.linkedinConnected) return;
+    setLoadingPosts(true);
+    try {
+      const res = await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "getLinkedInRecentPosts" }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.posts)) {
+          setPosts(data.posts);
+        }
+      }
+    } catch (err) {
+      console.error("[Recent Posts] Error fetching:", err);
+    } finally {
+      setLoadingPosts(false);
+    }
+  }, [account?.linkedinConnected]);
+
+  useEffect(() => {
+    if (account?.linkedinConnected) {
+      fetchRecentPosts();
+    }
+  }, [account?.linkedinConnected, fetchRecentPosts]);
+
+  const handleTogglePostCampaign = async (postId: string, currentEnabled: boolean) => {
+    const newEnabled = !currentEnabled;
+    setPosts((prev) =>
+      prev.map((p) => (p.postId === postId ? { ...p, enabled: newEnabled } : p))
+    );
+    const post = posts.find((p) => p.postId === postId);
+    try {
+      await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "saveLinkedInPostCampaign",
+          data: {
+            postId,
+            enabled: newEnabled,
+            magnetId: post?.magnetId,
+            triggerWord: post?.triggerWord,
+            postUrl: post?.postUrl,
+            postText: post?.postText,
+            commentsCount: post?.commentsCount,
+            createdAt: post?.createdAt,
+          },
+        }),
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUpdatePostConfig = async (postId: string, magnetId?: string, triggerWord?: string) => {
+    setSavingPostId(postId);
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.postId === postId) {
+          return {
+            ...p,
+            magnetId: magnetId !== undefined ? magnetId : p.magnetId,
+            triggerWord: triggerWord !== undefined ? triggerWord : p.triggerWord,
+          };
+        }
+        return p;
+      })
+    );
+
+    const post = posts.find((p) => p.postId === postId);
+    try {
+      await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "saveLinkedInPostCampaign",
+          data: {
+            postId,
+            enabled: post?.enabled !== false,
+            magnetId: magnetId !== undefined ? magnetId : post?.magnetId,
+            triggerWord: triggerWord !== undefined ? triggerWord : post?.triggerWord,
+            postUrl: post?.postUrl,
+            postText: post?.postText,
+            commentsCount: post?.commentsCount,
+            createdAt: post?.createdAt,
+          },
+        }),
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setTimeout(() => setSavingPostId(null), 600);
     }
   };
 
@@ -564,6 +668,158 @@ export default function LinkedInAutomationPage() {
                 </div>
               )}
             </div>
+
+            {/* ── Card 0.5: Recent Posts & Custom Campaigns ── */}
+            {account?.linkedinConnected && (
+              <div className="rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-white dark:bg-[#18181B] shadow-xs p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                        Recent LinkedIn Posts & Campaigns
+                      </h3>
+                      <span className="rounded-full bg-[#0A66C2]/10 text-[#0A66C2] dark:bg-[#0A66C2]/20 dark:text-[#38BDF8] px-2.5 py-0.5 text-[11px] font-bold">
+                        {posts.length} Posts Monitored
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
+                      Customize distinct lead magnets and keywords per post, or pause automation for specific posts.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={loadingPosts}
+                    onClick={fetchRecentPosts}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] hover:bg-zinc-50 dark:hover:bg-white/5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition cursor-pointer self-start sm:self-auto disabled:opacity-50 shadow-2xs"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${loadingPosts ? "animate-spin text-[#0A66C2]" : ""}`} />
+                    {loadingPosts ? "Refreshing..." : "Refresh Posts"}
+                  </button>
+                </div>
+
+                {loadingPosts && posts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-[#0A66C2] mb-2" />
+                    <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Loading your recent LinkedIn posts...</p>
+                  </div>
+                ) : posts.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-zinc-200 dark:border-white/10 p-6 text-center">
+                    <Linkedin className="h-8 w-8 text-zinc-400 mx-auto mb-2 opacity-60" />
+                    <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200">No recent posts found</p>
+                    <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5 max-w-sm mx-auto">
+                      When you publish a post on LinkedIn, it will appear here automatically so you can configure individual lead magnets.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3.5">
+                    {posts.map((post) => {
+                      const isSaving = savingPostId === post.postId;
+                      return (
+                        <div
+                          key={post.postId}
+                          className={`rounded-xl border p-4 transition ${
+                            post.enabled
+                              ? "border-zinc-200 dark:border-white/10 bg-zinc-50/50 dark:bg-[#141416]"
+                              : "border-zinc-200/50 dark:border-white/5 bg-zinc-100/40 dark:bg-[#121214]/50 opacity-70"
+                          }`}
+                        >
+                          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                            {/* Left: Post Snippet & Meta */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                                    post.enabled
+                                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                                      : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500 border border-zinc-300 dark:border-zinc-700"
+                                  }`}
+                                >
+                                  {post.enabled ? "● Auto-DM Active" : "⏸ Paused"}
+                                </span>
+                                <span className="text-[11px] text-zinc-500 dark:text-[#9B9085] flex items-center gap-1">
+                                  <MessageSquare className="h-3 w-3" /> {post.commentsCount} comments
+                                </span>
+                                {post.postUrl && (
+                                  <a
+                                    href={post.postUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-0.5 text-[11px] text-[#0A66C2] dark:text-[#38BDF8] hover:underline"
+                                  >
+                                    Open Post <ExternalLink className="h-2.5 w-2.5" />
+                                  </a>
+                                )}
+                              </div>
+
+                              <p className="text-xs text-zinc-800 dark:text-zinc-200 line-clamp-2 leading-relaxed font-normal">
+                                &ldquo;{post.postText}&rdquo;
+                              </p>
+                            </div>
+
+                            {/* Right: Controls */}
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 lg:w-[480px]">
+                              {/* Lead Magnet Selector */}
+                              <div className="flex-1">
+                                <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#9B9085] mb-1">
+                                  Deliver Magnet
+                                </label>
+                                <select
+                                  value={post.magnetId || selectedMagnetId || ""}
+                                  onChange={(e) => handleUpdatePostConfig(post.postId, e.target.value, undefined)}
+                                  className="w-full rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1E1E22] px-2.5 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 outline-none"
+                                >
+                                  {livePages.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                      {p.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              {/* Trigger Word */}
+                              <div className="w-28">
+                                <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-[#9B9085] mb-1">
+                                  Keyword
+                                </label>
+                                <input
+                                  type="text"
+                                  value={post.triggerWord || triggerKeyword || ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setPosts((prev) =>
+                                      prev.map((p) => (p.postId === post.postId ? { ...p, triggerWord: val } : p))
+                                    );
+                                  }}
+                                  onBlur={(e) => handleUpdatePostConfig(post.postId, undefined, e.target.value)}
+                                  placeholder="e.g. pdf"
+                                  className="w-full rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1E1E22] px-2.5 py-1.5 text-xs font-mono text-zinc-800 dark:text-zinc-200 outline-none"
+                                />
+                              </div>
+
+                              {/* Toggle Button */}
+                              <div className="flex flex-col justify-end pt-3 sm:pt-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleTogglePostCampaign(post.postId, post.enabled)}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${
+                                    post.enabled
+                                      ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                                      : "bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300"
+                                  }`}
+                                >
+                                  {post.enabled ? "Active" : "Paused"}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ── Advanced & Developer Settings Toggle ── */}
             <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#18181B] shadow-xs overflow-hidden">

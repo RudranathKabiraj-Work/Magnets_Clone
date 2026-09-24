@@ -88,12 +88,27 @@ export async function syncUserLinkedInComments(account: any) {
 
   let processedCount = 0;
   let dmsSent = 0;
-  const triggerWord = (account.linkedinTriggerWord || "resource").toLowerCase().trim();
+  const globalTriggerWord = (account.linkedinTriggerWord || "resource").toLowerCase().trim();
+  const savedCampaigns = account.linkedinPostCampaigns || [];
 
   // 4. Iterate over posts and inspect comments
   for (const post of posts) {
     const postUrn = post.social_id || post.id;
     if (!postUrn) continue;
+
+    // Check if this post has custom campaign settings
+    const postCampaign = savedCampaigns.find((c: any) => c.postId === postUrn || c.postId === post.id);
+    if (postCampaign && postCampaign.enabled === false) {
+      // Automation is paused for this specific post
+      continue;
+    }
+
+    const postTriggerWord = (postCampaign?.triggerWord || globalTriggerWord).toLowerCase().trim();
+    let postMagnet = defaultMagnet;
+    if (postCampaign?.magnetId) {
+      const matchedPage = livePages.find((p: any) => p.id === postCampaign.magnetId);
+      if (matchedPage) postMagnet = matchedPage;
+    }
 
     try {
       const commentRes = await fetch(`${UNIPILE_DSN}/api/v1/posts/${encodeURIComponent(postUrn)}/comments?account_id=${encodeURIComponent(accountId)}`, {
@@ -113,11 +128,11 @@ export async function syncUserLinkedInComments(account: any) {
         const networkDistance = authorDetails.network_distance || "DISTANCE_1";
 
         // Filter for trigger word or "pdf" or "resource"
-        const hasTrigger = text.includes(triggerWord) || text.includes("resource") || text.includes("pdf") || text.includes("guide");
+        const hasTrigger = text.includes(postTriggerWord) || text.includes("resource") || text.includes("pdf") || text.includes("guide");
         if (!hasTrigger) continue;
 
-        // Route to the matching magnet (if comment mentions magnet title/slug, else default magnet)
-        let targetMagnet = defaultMagnet;
+        // Route to the matching magnet (if comment specifically mentions a different magnet name, or the post's assigned magnet)
+        let targetMagnet = postMagnet;
         for (const page of livePages) {
           const nameLower = page.name.toLowerCase();
           const slugLower = page.slug.toLowerCase();

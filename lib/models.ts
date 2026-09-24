@@ -50,6 +50,21 @@ const AccountSchema = new Schema({
   linkedinProfileImage: { type: String, default: "" },
   linkedinDefaultMagnetId: { type: String, default: "" },
   linkedinTriggerWord: { type: String, default: "resource" },
+  linkedinPostCampaigns: {
+    type: [
+      {
+        postId: { type: String, required: true },
+        postUrl: { type: String, default: "" },
+        postText: { type: String, default: "" },
+        enabled: { type: Boolean, default: true },
+        magnetId: { type: String, default: "" },
+        triggerWord: { type: String, default: "" },
+        commentsCount: { type: Number, default: 0 },
+        createdAt: { type: String, default: "" },
+      },
+    ],
+    default: [],
+  },
 });
 
 AccountSchema.index({ resetPasswordToken: 1 });
