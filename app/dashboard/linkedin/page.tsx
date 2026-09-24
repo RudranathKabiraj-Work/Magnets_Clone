@@ -543,19 +543,56 @@ export default function LinkedInAutomationPage() {
               )}
             </div>
 
-            {/* ── Card 1: Webhook Credentials ── */}
-            <div className="rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm transition-colors p-5">
-              <div className="flex items-start gap-3 mb-5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#0066B2]/30 bg-[#F8FBFF] text-[#0066B2] shadow-sm dark:border-[#0066B2]/30 dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
-                  <Zap className="h-4 w-4" />
+            {/* ── Advanced & Developer Settings Toggle ── */}
+            <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#18181B] shadow-xs overflow-hidden">
+              <button
+                type="button"
+                onClick={() => toggle("developer")}
+                className="w-full flex items-center justify-between p-4 sm:p-5 text-left transition hover:bg-zinc-50 dark:hover:bg-white/[0.02] cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                    <Zap className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                      Developer & Custom Webhook Settings
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-white/10">
+                        Optional
+                      </span>
+                    </h4>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
+                      For advanced users who prefer building external automation workflows in n8n or Make.com.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Custom Webhook Credentials</h4>
-                  <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
-                    (Optional for developers) If you prefer using n8n or Make.com instead of our native 1-click integration.
-                  </p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs font-semibold text-zinc-500 dark:text-[#9B9085] hidden sm:inline">
+                    {openSections["developer"] ? "Hide Settings" : "Show Settings"}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 text-zinc-400 transition-transform duration-200 ${
+                      openSections["developer"] ? "rotate-180" : ""
+                    }`}
+                  />
                 </div>
-              </div>
+              </button>
+
+              {openSections["developer"] && (
+                <div className="p-5 pt-2 border-t border-zinc-100 dark:border-white/5 space-y-4 bg-zinc-50/50 dark:bg-[#121214]/50">
+                  {/* ── Card 1: Webhook Credentials ── */}
+                  <div className="rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm transition-colors p-5">
+                    <div className="flex items-start gap-3 mb-5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#0066B2]/30 bg-[#F8FBFF] text-[#0066B2] shadow-sm dark:border-[#0066B2]/30 dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
+                        <Zap className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Custom Webhook Credentials</h4>
+                        <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
+                          Use these endpoints to send raw webhook events from your own custom n8n / Make.com nodes.
+                        </p>
+                      </div>
+                    </div>
 
               <div className="space-y-4">
 
@@ -911,11 +948,13 @@ export default function LinkedInAutomationPage() {
                         View n8n template <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
-
                   </div>
                 </div>
               </div>
             </div>
+          </div>
+        )}
+      </div>
 
             {/* ── Card 4: LinkedIn Funnel Tracker ── */}
             <div className="rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm transition-colors p-5">
