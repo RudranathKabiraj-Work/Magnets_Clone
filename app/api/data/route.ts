@@ -170,7 +170,8 @@ export async function POST(req: Request) {
       case "regenerateLinkedInSecret":
         return handleRegenerateLinkedInSecret(authEmail);
       case "getLinkedInAuthLink":
-        return handleGetLinkedInAuthLink(authEmail);
+        const authOrigin = req.headers.get("origin") || req.headers.get("referer") || "https://magnets.bdatech.in";
+        return handleGetLinkedInAuthLink(authEmail, authOrigin);
       case "disconnectLinkedIn":
         return handleDisconnectLinkedIn(authEmail);
       case "saveLinkedInSettings":

@@ -17,9 +17,10 @@ export async function POST(req: NextRequest) {
 
     await dbConnect();
     const event = body.event || body.type;
-    const accountId = body.account_id || body.id;
+    const accountId = body.account_id || body.id || body.accountId;
+    const queryEmail = req.nextUrl.searchParams.get("userEmail");
     const custom = body.custom || body.state || {};
-    const userEmail = custom.userEmail || body.email;
+    const userEmail = queryEmail || custom.userEmail || body.email || body.name;
 
     if (userEmail && accountId) {
       await AccountModel.updateOne(
@@ -31,6 +32,7 @@ export async function POST(req: NextRequest) {
           linkedinProfileId: body.provider_id || body.user_id || "",
         }
       );
+      console.log(`[Unipile Webhook] Linked LinkedIn account ${accountId} to ${userEmail}`);
     }
 
     return NextResponse.json({ success: true, event, accountId });

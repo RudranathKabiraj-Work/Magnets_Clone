@@ -392,17 +392,27 @@ export async function handleRegenerateLinkedInSecret(authEmail: string | null) {
  * Generates a 1-click Unipile Hosted Authentication Link for the user.
  * Opens a secure LinkedIn login popup so the user can connect in 10 seconds.
  */
-export async function handleGetLinkedInAuthLink(authEmail: string | null) {
+export async function handleGetLinkedInAuthLink(authEmail: string | null, clientOrigin?: string) {
   if (!authEmail) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
   const UNIPILE_DSN = "https://api36.unipile.com:16619";
   const UNIPILE_API_KEY = "wOFSf6du.f/PTCdwTaeOqSSw5PaLUCTPVwks++2G3tUtqBXh8gfU=";
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in";
+  
+  // Use client origin for browser redirect so user stays on localhost or production domain
+  let browserOrigin = (clientOrigin || process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in").replace(/\/$/, "");
+  if (browserOrigin.includes("api/")) {
+    browserOrigin = browserOrigin.split("/api")[0];
+  }
+  
+  // Production URL for Unipile server-to-server webhook callback
+  const prodWebhookUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in").replace(/\/$/, "");
 
   try {
     const expiresOn = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const notifyUrl = `${prodWebhookUrl}/api/webhooks/unipile?userEmail=${encodeURIComponent(authEmail.trim().toLowerCase())}`;
+
     const res = await fetch(`${UNIPILE_DSN}/api/v1/hosted/accounts/link`, {
       method: "POST",
       headers: {
@@ -414,10 +424,10 @@ export async function handleGetLinkedInAuthLink(authEmail: string | null) {
         providers: ["LINKEDIN"],
         api_url: UNIPILE_DSN,
         expiresOn,
-        success_redirect_url: `${appUrl}/dashboard/linkedin?connected=true`,
-        failure_redirect_url: `${appUrl}/dashboard/linkedin?error=true`,
-        notify_url: `${appUrl}/api/webhooks/unipile`,
-        name: authEmail,
+        success_redirect_url: `${browserOrigin}/dashboard/linkedin?connected=true`,
+        failure_redirect_url: `${browserOrigin}/dashboard/linkedin?error=true`,
+        notify_url: notifyUrl,
+        name: authEmail.trim().toLowerCase(),
       }),
     });
 

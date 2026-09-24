@@ -90,6 +90,25 @@ export default function LinkedInAutomationPage() {
         setLinkedinLeads(liLeads);
       }
     });
+
+    // Check if returning from 1-Click LinkedIn connect redirect
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("connected") === "true" || params.get("account_id")) {
+        // Poll for 2.5s to ensure webhook is ingested
+        const pollInterval = setInterval(() => {
+          syncWithDatabase().then((data) => {
+            if (data?.account?.linkedinConnected) {
+              setAccount(data.account);
+              clearInterval(pollInterval);
+            }
+          });
+        }, 1200);
+
+        setTimeout(() => clearInterval(pollInterval), 8000);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
   }, []);
 
   // ── Fetch webhook credentials from secure API endpoint ──
