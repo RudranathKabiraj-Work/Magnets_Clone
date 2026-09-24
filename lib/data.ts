@@ -86,7 +86,7 @@ export interface Lead {
   email: string;
   page: string;
   pageId: string;
-  status: "new" | "delivered" | "opened" | "replied" | "stopped" | "completed";
+  status: "new" | "delivered" | "opened" | "replied" | "stopped" | "completed" | "pending_email" | "converted";
   source: "leadmagnets" | "magnets" | "custom-domain" | "integration" | "locked-pdf-otp" | "linkedin-comment";
   signedUpAt: string;
   sequence?: string;

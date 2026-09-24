@@ -223,6 +223,7 @@ export async function POST(req: NextRequest) {
     // 8. Create the Lead
     const signedUpAt = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
     const leadId = `lead_li_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const leadStatus = commenterEmail ? "converted" : "pending_email";
 
     await LeadModel.create({
       id: leadId,
@@ -231,27 +232,31 @@ export async function POST(req: NextRequest) {
       email: effectiveEmail,
       page: magnetPage.name,
       pageId: magnetId,
-      status: "new",
+      status: leadStatus,
       source: "linkedin-comment",
       signedUpAt,
       referrer: "linkedin.com",
       deviceType: "desktop",
-      tags: ["linkedin", "auto-reply"],
+      tags: ["linkedin", "auto-reply", commenterEmail ? "converted" : "dm-sent"],
       customFields: {
         linkedinProfile: commenterLinkedIn,
         linkedinPost: postUrl,
         commentText: commentText,
+        dmSentAt: signedUpAt,
+        isConverted: !!commenterEmail,
       },
     });
 
-    // 9. Increment Magnet Signup Count
-    magnetPage.signups = (magnetPage.signups || 0) + 1;
-    if (magnetPage.views > 0) {
-      magnetPage.conversionRate = parseFloat(
-        ((magnetPage.signups / magnetPage.views) * 100).toFixed(1)
-      );
+    // 9. Increment Magnet Signup Count (if email was provided)
+    if (commenterEmail) {
+      magnetPage.signups = (magnetPage.signups || 0) + 1;
+      if (magnetPage.views > 0) {
+        magnetPage.conversionRate = parseFloat(
+          ((magnetPage.signups / magnetPage.views) * 100).toFixed(1)
+        );
+      }
+      await magnetPage.save();
     }
-    await magnetPage.save();
 
     // 10. Send Emails in Background (non-blocking)
     waitUntil(
@@ -266,7 +271,7 @@ export async function POST(req: NextRequest) {
           if (alertsEnabled && notifyInbox) {
             await sendInstantLeadAlert({
               ownerEmail: notifyInbox,
-              leadEmail: commenterEmail,
+              leadEmail: commenterEmail || "LinkedIn Prospect (DM Sent)",
               leadName: commenterName,
               pageTitle: magnetPage.name,
               signedUpAt,
@@ -276,48 +281,50 @@ export async function POST(req: NextRequest) {
             );
           }
 
-          // 10b. Delivery email to the commenter
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in";
-          const username = fullOwnerAccount?.username || ownerAccount.username || "u";
-          const pageSlug = magnetPage.slug || magnetId;
-          const resourceAccessUrl = `${appUrl}/${encodeURIComponent(username)}/${encodeURIComponent(pageSlug)}/thank-you?email=${encodeURIComponent(commenterEmail)}&name=${encodeURIComponent(commenterName)}`;
+          // 10b. Delivery email to the commenter (only if real email exists)
+          if (commenterEmail) {
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in";
+            const username = fullOwnerAccount?.username || ownerAccount.username || "u";
+            const pageSlug = magnetPage.slug || magnetId;
+            const resourceAccessUrl = `${appUrl}/${encodeURIComponent(username)}/${encodeURIComponent(pageSlug)}/thank-you?email=${encodeURIComponent(commenterEmail)}&name=${encodeURIComponent(commenterName)}`;
 
-          const emailSubject =
-            magnetPage.emailSubject?.trim()
-              ? magnetPage.emailSubject.replace(/{name}/g, commenterName)
-              : `Here is your resource: ${magnetPage.name}`;
+            const emailSubject =
+              magnetPage.emailSubject?.trim()
+                ? magnetPage.emailSubject.replace(/{name}/g, commenterName)
+                : `Here is your resource: ${magnetPage.name}`;
 
-          let rawBody =
-            magnetPage.emailBody?.trim()
-              ? magnetPage.emailBody
-              : `Hey {name},\n\nThank you for your interest in ${magnetPage.name}! As promised in the LinkedIn comments, here is your free resource.\n\nClick the button below to get instant access.\n\nEnjoy!`;
+            let rawBody =
+              magnetPage.emailBody?.trim()
+                ? magnetPage.emailBody
+                : `Hey {name},\n\nThank you for your interest in ${magnetPage.name}! As promised in the LinkedIn comments, here is your free resource.\n\nClick the button below to get instant access.\n\nEnjoy!`;
 
-          rawBody = rawBody.replace(/{name}/g, commenterName);
-          const hasHtmlTags = /<[a-z][\s\S]*>/i.test(rawBody);
-          const formattedBodyHtml = hasHtmlTags ? rawBody : rawBody.replace(/\n/g, "<br/>");
+            rawBody = rawBody.replace(/{name}/g, commenterName);
+            const hasHtmlTags = /<[a-z][\s\S]*>/i.test(rawBody);
+            const formattedBodyHtml = hasHtmlTags ? rawBody : rawBody.replace(/\n/g, "<br/>");
 
-          const deliveryEmailHtml = `
-            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
-              <p style="font-size:15px;color:#333;line-height:1.6;">${formattedBodyHtml}</p>
-              <div style="text-align:center;margin:32px 0;">
-                <a href="${resourceAccessUrl}"
-                   style="background-color:${magnetPage.accent || "#0066B2"};color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">
-                  Access Your Free Resource
-                </a>
+            const deliveryEmailHtml = `
+              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+                <p style="font-size:15px;color:#333;line-height:1.6;">${formattedBodyHtml}</p>
+                <div style="text-align:center;margin:32px 0;">
+                  <a href="${resourceAccessUrl}"
+                     style="background-color:${magnetPage.accent || "#0066B2"};color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block;">
+                    Access Your Free Resource
+                  </a>
+                </div>
+                <p style="font-size:12px;color:#999;text-align:center;margin-top:24px;">
+                  You received this because you commented on our LinkedIn post.
+                </p>
               </div>
-              <p style="font-size:12px;color:#999;text-align:center;margin-top:24px;">
-                You received this because you commented on our LinkedIn post.
-              </p>
-            </div>
-          `;
+            `;
 
-          await sendMail({
-            to: commenterEmail,
-            subject: emailSubject,
-            html: deliveryEmailHtml,
-          }).catch((err) =>
-            console.error("[LinkedIn Webhook] Delivery email failed:", err)
-          );
+            await sendMail({
+              to: commenterEmail,
+              subject: emailSubject,
+              html: deliveryEmailHtml,
+            }).catch((err) =>
+              console.error("[LinkedIn Webhook] Delivery email failed:", err)
+            );
+          }
 
         } catch (bgErr) {
           console.error("[LinkedIn Webhook] Background email task error:", bgErr);
@@ -328,11 +335,14 @@ export async function POST(req: NextRequest) {
     // 11. Return Success
     return NextResponse.json({
       success: true,
-      message: `Lead created. Delivery email is being sent to ${commenterEmail}.`,
+      message: commenterEmail
+        ? `Lead created & verified. Delivery email sent to ${commenterEmail}.`
+        : `LinkedIn lead logged (${commenterName}). DM sent status recorded.`,
       lead: {
         id: leadId,
         name: commenterName,
-        email: commenterEmail,
+        email: effectiveEmail,
+        status: leadStatus,
         source: "linkedin-comment",
         magnet: magnetPage.name,
         signedUpAt,

@@ -17,6 +17,10 @@ import {
   Users,
   ArrowRight,
   Info,
+  CheckCircle2,
+  Clock,
+  MessageSquare,
+  Send,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { syncWithDatabase, loadAccount, loadPages, loadLeads } from "@/lib/store";
@@ -215,6 +219,28 @@ export default function LinkedInAutomationPage() {
       }, null, 2)
     : "";
 
+  // ── Lead Filtering & Funnel Metrics ──
+  const [selectedTab, setSelectedTab] = useState<"all" | "converted" | "pending">("all");
+
+  const convertedLeads = linkedinLeads.filter(
+    (l) => l.email && !l.email.includes("@linkedin-prospect.com")
+  );
+  const pendingLeads = linkedinLeads.filter(
+    (l) => !l.email || l.email.includes("@linkedin-prospect.com")
+  );
+
+  const filteredLeads =
+    selectedTab === "converted"
+      ? convertedLeads
+      : selectedTab === "pending"
+      ? pendingLeads
+      : linkedinLeads;
+
+  const conversionRate =
+    linkedinLeads.length > 0
+      ? Math.round((convertedLeads.length / linkedinLeads.length) * 100)
+      : 0;
+
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <DashboardShell account={account} title="LinkedIn Auto-Reply">
@@ -230,38 +256,43 @@ export default function LinkedInAutomationPage() {
             <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
               Automatically deliver your lead magnet to anyone who{" "}
               <span className="text-[#0066B2] font-semibold">comments on your LinkedIn posts</span>.
-              Powered by Make.com.
+              Powered by n8n & Unipile.
             </p>
           </div>
 
-          {/* ── Stats Banner ── */}
-          <div className="conversion-banner-bg relative mb-5 overflow-hidden rounded-2xl border border-[#0A66C2]/30 bg-white py-6 px-8 shadow-sm dark:border-[#0A66C2]/35 dark:bg-[#18181C] transition-colors">
-            <div className="mb-3 flex items-center">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#0A66C2]/30 bg-[#EFF6FF] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0A66C2] dark:border-[#0A66C2]/40 dark:bg-[#0A66C2]/15 dark:text-[#38BDF8]">
-                <Linkedin className="h-3.5 w-3.5" />
-                LINKEDIN AUTOMATION
-              </span>
+          {/* ── Funnel KPI Cards ── */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-5">
+            <div className="rounded-2xl border border-[#0A66C2]/20 bg-white p-5 shadow-xs dark:border-[#0A66C2]/25 dark:bg-[#18181C]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-zinc-500 dark:text-[#9B9085]">Total LinkedIn Inbound</span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#0A66C2] dark:bg-[#0A66C2]/20 dark:text-[#38BDF8]">
+                  <Linkedin className="h-3.5 w-3.5" />
+                </span>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{loading ? "—" : linkedinLeads.length}</p>
+              <p className="text-[11px] text-zinc-400 dark:text-[#9B9085] mt-0.5">Commenters delivered via DM</p>
             </div>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="max-w-lg">
-                <h3 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight mb-1">
-                  Turn every comment into a lead
-                </h3>
-                <p className="text-sm text-zinc-600 dark:text-[#9B9085]/90 leading-relaxed">
-                  Set up once. Make.com watches your LinkedIn posts and calls your personal webhook the moment someone comments — automatically delivering your resource and capturing them as a lead.
-                </p>
-              </div>
 
-              {/* Stats pills */}
-              <div className="flex items-center gap-2.5 rounded-2xl border border-[#0A66C2]/30 bg-white/80 dark:border-[#0A66C2]/35 dark:bg-[#0E0E10]/70 px-4 py-3 shrink-0 shadow-sm">
-                <Users className="h-4 w-4 text-[#0A66C2] shrink-0" />
-                <div>
-                  <p className="text-xs font-semibold text-zinc-900 dark:text-white">
-                    {loading ? "—" : linkedinLeads.length} LinkedIn Leads
-                  </p>
-                  <p className="text-[11px] text-zinc-500 dark:text-[#9B9085]">captured so far</p>
-                </div>
+            <div className="rounded-2xl border border-emerald-500/20 bg-white p-5 shadow-xs dark:border-emerald-500/25 dark:bg-[#18181C]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">Converted (Emails Captured)</span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
+                  <Check className="h-3.5 w-3.5" />
+                </span>
               </div>
+              <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{loading ? "—" : convertedLeads.length}</p>
+              <p className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">Unlocked PDF & subscribed</p>
+            </div>
+
+            <div className="rounded-2xl border border-amber-500/20 bg-white p-5 shadow-xs dark:border-amber-500/25 dark:bg-[#18181C]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">Conversion Rate</span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400">
+                  <Zap className="h-3.5 w-3.5" />
+                </span>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-white">{loading ? "—" : `${conversionRate}%`}</p>
+              <p className="text-[11px] text-amber-600/80 dark:text-amber-400/80 mt-0.5">{pendingLeads.length} waiting to signup</p>
             </div>
           </div>
 
@@ -642,7 +673,7 @@ export default function LinkedInAutomationPage() {
               </div>
             </div>
 
-            {/* ── Card 4: Recent LinkedIn Leads ── */}
+            {/* ── Card 4: LinkedIn Funnel Tracker ── */}
             <div className="rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm transition-colors p-5">
               <div className="flex items-start justify-between gap-3 mb-5">
                 <div className="flex items-start gap-3">
@@ -650,9 +681,9 @@ export default function LinkedInAutomationPage() {
                     <Users className="h-4 w-4" />
                   </div>
                   <div>
-                    <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Recent LinkedIn Leads</h4>
+                    <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">LinkedIn Lead Funnel</h4>
                     <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
-                      Leads captured via LinkedIn comment automation.
+                      Track who received your automated DM vs who signed up with their email.
                     </p>
                   </div>
                 </div>
@@ -664,41 +695,132 @@ export default function LinkedInAutomationPage() {
                 </a>
               </div>
 
+              {/* Filter Tabs */}
+              <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-white/10 pb-3 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTab("all")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                    selectedTab === "all"
+                      ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+                      : "text-zinc-500 hover:text-zinc-800 dark:text-[#9B9085] dark:hover:text-white"
+                  }`}
+                >
+                  All Inbound ({linkedinLeads.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTab("converted")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                    selectedTab === "converted"
+                      ? "bg-emerald-600 text-white"
+                      : "text-zinc-500 hover:text-zinc-800 dark:text-[#9B9085] dark:hover:text-white"
+                  }`}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Converted ({convertedLeads.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTab("pending")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                    selectedTab === "pending"
+                      ? "bg-amber-600 text-white"
+                      : "text-zinc-500 hover:text-zinc-800 dark:text-[#9B9085] dark:hover:text-white"
+                  }`}
+                >
+                  <Clock className="h-3.5 w-3.5" /> Pending ({pendingLeads.length})
+                </button>
+              </div>
+
+              {/* Lead Prospect List */}
               {loading ? (
-                <div className="flex items-center gap-2 text-xs text-zinc-400 py-4">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading leads...
+                <div className="flex items-center gap-2 text-xs text-zinc-400 py-6 justify-center">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loading funnel data...
                 </div>
-              ) : linkedinLeads.length === 0 ? (
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-5 dark:border-white/10 dark:bg-[#121214] text-center">
+              ) : filteredLeads.length === 0 ? (
+                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-6 dark:border-white/10 dark:bg-[#121214] text-center">
                   <Linkedin className="h-8 w-8 text-zinc-300 dark:text-zinc-700 mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-zinc-700 dark:text-white">No LinkedIn leads yet</p>
+                  <p className="text-xs font-semibold text-zinc-700 dark:text-white">
+                    {selectedTab === "all" ? "No LinkedIn leads yet" : `No ${selectedTab} leads found`}
+                  </p>
                   <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-1">
-                    Once Make.com is connected and a post comment comes in, leads will appear here automatically.
+                    Once n8n or Unipile sends comment data, leads will update in real time.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {linkedinLeads.slice(0, 8).map((lead) => (
-                    <div
-                      key={lead.id}
-                      className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-[#121214] px-4 py-3"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-zinc-900 dark:text-white truncate">{lead.name}</p>
-                        <p className="text-[10px] text-zinc-500 dark:text-[#9B9085] truncate">{lead.email}</p>
+                <div className="space-y-3">
+                  {filteredLeads.slice(0, 10).map((lead) => {
+                    const isPending = lead.status === "pending_email" || lead.email.endsWith("@linkedin-prospect.com");
+                    const profileUrl = lead.customFields?.linkedinProfile || `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(lead.name)}`;
+                    const commentSnippet = lead.customFields?.commentText;
+
+                    return (
+                      <div
+                        key={lead.id}
+                        className="rounded-xl border border-zinc-200 bg-zinc-50/80 dark:border-white/10 dark:bg-[#121214] p-3.5 transition hover:border-zinc-300 dark:hover:border-white/20"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3 min-w-0">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0066B2]/10 text-[#0066B2] dark:bg-[#0066B2]/20 dark:text-[#38BDF8] font-bold text-xs">
+                              {lead.name?.charAt(0)?.toUpperCase() || "L"}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-xs font-bold text-zinc-900 dark:text-white">{lead.name}</span>
+                                {profileUrl && (
+                                  <a
+                                    href={profileUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-0.5 text-[10px] text-[#0066B2] dark:text-[#38BDF8] hover:underline"
+                                  >
+                                    <Linkedin className="h-2.5 w-2.5" /> Profile <ExternalLink className="h-2.5 w-2.5" />
+                                  </a>
+                                )}
+                              </div>
+
+                              <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5 truncate">
+                                {isPending ? (
+                                  <span className="italic text-zinc-400">Waiting for email signup on magnet page</span>
+                                ) : (
+                                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-medium">{lead.email}</span>
+                                )}
+                              </p>
+
+                              {commentSnippet && (
+                                <div className="mt-1.5 flex items-center gap-1.5 text-[10.5px] text-zinc-600 dark:text-zinc-300 bg-white dark:bg-zinc-800/60 border border-zinc-200 dark:border-white/5 rounded-lg px-2.5 py-1">
+                                  <MessageSquare className="h-3 w-3 text-zinc-400 shrink-0" />
+                                  <span className="truncate">&ldquo;{commentSnippet}&rdquo;</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col items-end gap-1.5 shrink-0">
+                            {isPending ? (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                                <Clock className="h-3 w-3" /> DM Sent (Pending)
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                <CheckCircle2 className="h-3 w-3" /> Converted
+                              </span>
+                            )}
+                            <span className="text-[10px] text-zinc-400 dark:text-[#9B9085]">
+                              {lead.signedUpAt?.split(",")[0] || "Today"}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                          {lead.status}
-                        </span>
-                        <span className="text-[10px] text-zinc-400 dark:text-[#9B9085]">{lead.signedUpAt?.split(",")[0]}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {linkedinLeads.length > 8 && (
-                    <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] text-center pt-1">
-                      +{linkedinLeads.length - 8} more —{" "}
-                      <a href="/dashboard/leads" className="text-[#0066B2] hover:underline">view all in Leads</a>
+                    );
+                  })}
+
+                  {filteredLeads.length > 10 && (
+                    <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] text-center pt-2">
+                      +{filteredLeads.length - 10} more leads —{" "}
+                      <a href="/dashboard/leads" className="text-[#0066B2] hover:underline font-semibold">
+                        view all in Leads Dashboard
+                      </a>
                     </p>
                   )}
                 </div>

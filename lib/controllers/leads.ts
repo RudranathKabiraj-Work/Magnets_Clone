@@ -28,22 +28,67 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
     }
   }
 
-  if (data.email && (data.pageId || data.page)) {
-    const leadQuery: any = {
-      email: data.email.trim().toLowerCase(),
-    };
-    if (data.pageId) leadQuery.pageId = data.pageId;
-    else if (data.page) leadQuery.page = data.page;
+  let isUpgradedFromPending = false;
+  let createdOrUpdatedLead: any = null;
 
-    const existingLead = await LeadModel.findOne(leadQuery).lean();
-    if (existingLead) {
-      return NextResponse.json({
-        success: true,
-        lead: existingLead,
-        alreadySubscribed: true,
-        afterSignupOption: foundPageDoc?.afterSignupOption || data.afterSignupOption || "standard",
-        destinationUrl: foundPageDoc?.destinationUrl || data.destinationUrl || "",
-      });
+  if (data.email && (data.pageId || data.page)) {
+    const targetPageId = data.pageId || (foundPageDoc ? foundPageDoc.id : null);
+    const normalizedEmail = data.email.trim().toLowerCase();
+
+    // Check if there is a pending LinkedIn lead waiting for email conversion
+    const pendingQuery: any = {
+      status: "pending_email",
+    };
+    if (targetPageId) {
+      pendingQuery.pageId = targetPageId;
+    } else if (data.page) {
+      pendingQuery.page = data.page;
+    }
+
+    const nameConditions: any[] = [{ email: normalizedEmail }];
+    if (data.name && data.name.trim()) {
+      const cleanName = data.name.trim();
+      nameConditions.push({ name: new RegExp(`^${cleanName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, "i") });
+      nameConditions.push({ email: new RegExp(`^${cleanName.toLowerCase().replace(/[^a-z0-9]/g, "")}@linkedin-prospect\\.com$`, "i") });
+    }
+    pendingQuery.$or = nameConditions;
+
+    const pendingLead = await LeadModel.findOne(pendingQuery);
+    if (pendingLead) {
+      pendingLead.status = "converted";
+      pendingLead.email = normalizedEmail;
+      if (data.name && data.name.trim()) pendingLead.name = data.name.trim();
+      pendingLead.customFields = {
+        ...(pendingLead.customFields || {}),
+        convertedAt: new Date().toISOString(),
+        isConverted: true,
+      };
+      if (data.customAnswer) pendingLead.customAnswer = data.customAnswer;
+      if (data.sequence) pendingLead.sequence = data.sequence;
+      if (data.sequenceStep) pendingLead.sequenceStep = data.sequenceStep;
+      await pendingLead.save();
+
+      createdOrUpdatedLead = pendingLead;
+      isUpgradedFromPending = true;
+    } else {
+      // Regular already subscribed check
+      const leadQuery: any = {
+        email: normalizedEmail,
+        status: { $ne: "pending_email" },
+      };
+      if (data.pageId) leadQuery.pageId = data.pageId;
+      else if (data.page) leadQuery.page = data.page;
+
+      const existingLead = await LeadModel.findOne(leadQuery).lean();
+      if (existingLead) {
+        return NextResponse.json({
+          success: true,
+          lead: existingLead,
+          alreadySubscribed: true,
+          afterSignupOption: foundPageDoc?.afterSignupOption || data.afterSignupOption || "standard",
+          destinationUrl: foundPageDoc?.destinationUrl || data.destinationUrl || "",
+        });
+      }
     }
   }
 
@@ -65,13 +110,15 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
     normalizedSignedUpAt = new Date().toISOString();
   }
 
-  const createdLead = await LeadModel.create({
-    ...data,
-    signedUpAt: normalizedSignedUpAt,
-    deviceType: data.deviceType || (isMobile ? "mobile" : "desktop"),
-    referrer: data.referrer || cleanReferrer,
-    userEmail: ownerEmail || "",
-  });
+  if (!isUpgradedFromPending) {
+    createdOrUpdatedLead = await LeadModel.create({
+      ...data,
+      signedUpAt: normalizedSignedUpAt,
+      deviceType: data.deviceType || (isMobile ? "mobile" : "desktop"),
+      referrer: data.referrer || cleanReferrer,
+      userEmail: ownerEmail || "",
+    });
+  }
 
   if (data.pageId) {
     const page = await MagnetPageModel.findOne({ id: data.pageId });
@@ -415,7 +462,7 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
 
   return NextResponse.json({
     success: true,
-    lead: createdLead,
+    lead: createdOrUpdatedLead,
     afterSignupOption: foundPageDoc?.afterSignupOption || data.afterSignupOption || "standard",
     destinationUrl: foundPageDoc?.destinationUrl || data.destinationUrl || "",
   });
