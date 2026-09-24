@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongodb";
 import { LeadModel, MagnetPageModel, AccountModel } from "@/lib/models";
 import { sendMail } from "@/lib/email";
@@ -153,25 +153,25 @@ export async function POST(req: NextRequest) {
       ? sanitizeText(body.commentText, 1000)
       : "";
 
-    // Required field presence check
-    if (!magnetId || !commenterName || !commenterEmail) {
+    // Required field presence check (magnetId and commenterName are required)
+    if (!magnetId || !commenterName) {
       return NextResponse.json(
         {
           error: "Missing required fields.",
-          required: ["magnetId", "commenterName", "commenterEmail"],
+          required: ["magnetId", "commenterName"],
           received: {
             magnetId: !!magnetId,
             commenterName: !!commenterName,
-            commenterEmail: !!commenterEmail,
           },
         },
         { status: 400 }
       );
     }
 
-    // RFC 5322 email format check
+    // Email validation if email is provided, else fallback to a readable identifier
+    const effectiveEmail = commenterEmail || `${commenterName.toLowerCase().replace(/[^a-z0-9]/g, '')}@linkedin-prospect.com`;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(commenterEmail)) {
+    if (commenterEmail && !emailRegex.test(commenterEmail)) {
       return NextResponse.json(
         { error: "Invalid email address format for commenterEmail." },
         { status: 400 }
@@ -205,15 +205,17 @@ export async function POST(req: NextRequest) {
 
     // 7. Duplicate Check
     const existingLead = await LeadModel.findOne({
-      email: commenterEmail,
-      pageId: magnetId,
+      $or: [
+        { email: effectiveEmail, pageId: magnetId },
+        ...(commenterLinkedIn ? [{ "customFields.linkedinProfile": commenterLinkedIn, pageId: magnetId }] : [])
+      ]
     });
 
     if (existingLead) {
       return NextResponse.json({
         success: true,
         alreadySubscribed: true,
-        message: `${commenterEmail} already signed up for this magnet. No duplicate created.`,
+        message: `${commenterName} already signed up for this magnet. No duplicate created.`,
         leadId: existingLead.id,
       });
     }
@@ -226,7 +228,7 @@ export async function POST(req: NextRequest) {
       id: leadId,
       userEmail: ownerEmail,
       name: commenterName,
-      email: commenterEmail,
+      email: effectiveEmail,
       page: magnetPage.name,
       pageId: magnetId,
       status: "new",
