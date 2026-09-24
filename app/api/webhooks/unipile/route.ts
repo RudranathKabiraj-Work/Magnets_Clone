@@ -23,14 +23,18 @@ export async function POST(req: NextRequest) {
     const userEmail = queryEmail || custom.userEmail || body.email || body.name;
 
     if (userEmail && accountId) {
+      const updateData: Record<string, any> = {
+        linkedinConnected: true,
+        linkedinAccountId: accountId,
+        linkedinAccountName: body.name || body.account_name || "LinkedIn Connected User",
+        linkedinProfileId: body.provider_id || body.user_id || "",
+      };
+      const img = body.profile_picture_url || body.avatar_url || body.avatar || body.picture_url;
+      if (img) updateData.linkedinProfileImage = img;
+
       await AccountModel.updateOne(
         { email: userEmail.trim().toLowerCase() },
-        {
-          linkedinConnected: true,
-          linkedinAccountId: accountId,
-          linkedinAccountName: body.name || body.account_name || "LinkedIn Connected User",
-          linkedinProfileId: body.provider_id || body.user_id || "",
-        }
+        updateData
       );
       console.log(`[Unipile Webhook] Linked LinkedIn account ${accountId} to ${userEmail}`);
     }

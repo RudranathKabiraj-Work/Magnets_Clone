@@ -47,6 +47,7 @@ const AccountSchema = new Schema({
   linkedinAccountId: { type: String, default: "" },
   linkedinAccountName: { type: String, default: "" },
   linkedinProfileId: { type: String, default: "" },
+  linkedinProfileImage: { type: String, default: "" },
   linkedinDefaultMagnetId: { type: String, default: "" },
   linkedinTriggerWord: { type: String, default: "resource" },
 });

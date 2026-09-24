@@ -166,6 +166,7 @@ export interface Account {
   linkedinAccountId?: string;
   linkedinAccountName?: string;
   linkedinProfileId?: string;
+  linkedinProfileImage?: string;
   linkedinDefaultMagnetId?: string;
   linkedinTriggerWord?: string;
 }

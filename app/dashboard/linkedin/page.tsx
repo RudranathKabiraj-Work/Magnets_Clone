@@ -423,13 +423,35 @@ export default function LinkedInAutomationPage() {
             <div className="rounded-2xl border border-[#0A66C2]/30 bg-white dark:border-[#0A66C2]/35 dark:bg-[#18181B] shadow-sm transition-colors p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3.5">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0A66C2] text-white shadow-md">
-                    <Linkedin className="h-6 w-6" />
-                  </div>
+                  {account?.linkedinConnected && (account?.linkedinProfileImage || account?.avatar) ? (
+                    <div className="relative h-11 w-11 shrink-0">
+                      <img
+                        src={account.linkedinProfileImage || account.avatar || ""}
+                        alt={account.linkedinAccountName || account.name || "LinkedIn Profile"}
+                        className="h-11 w-11 rounded-xl object-cover border border-zinc-200 dark:border-white/10 shadow-md"
+                      />
+                      <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#0A66C2] text-white ring-2 ring-white dark:ring-[#18181B] shadow-xs">
+                        <Linkedin className="h-2.5 w-2.5" />
+                      </span>
+                    </div>
+                  ) : account?.linkedinConnected ? (
+                    <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#0A66C2] to-[#0077B5] text-white font-bold text-sm shadow-md">
+                      {(account.linkedinAccountName || account.name || "LI").charAt(0).toUpperCase()}
+                      <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#0A66C2] text-white ring-2 ring-white dark:ring-[#18181B] shadow-xs">
+                        <Linkedin className="h-2.5 w-2.5" />
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0A66C2] text-white shadow-md">
+                      <Linkedin className="h-6 w-6" />
+                    </div>
+                  )}
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="text-base font-bold text-zinc-900 dark:text-white">
-                        1-Click LinkedIn Integration
+                        {account?.linkedinConnected && account?.linkedinAccountName
+                          ? account.linkedinAccountName
+                          : "1-Click LinkedIn Integration"}
                       </h3>
                       {account?.linkedinConnected ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">

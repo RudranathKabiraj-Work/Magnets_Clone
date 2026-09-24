@@ -32,18 +32,29 @@ export async function syncUserLinkedInComments(account: any) {
   // Determine default active magnet
   let defaultMagnet = livePages.find((p: any) => p.id === account.linkedinDefaultMagnetId) || livePages[0];
 
-  // 2. Resolve LinkedIn Profile ID if not stored
+  // 2. Resolve LinkedIn Profile info (ID, name, profile picture)
   let profileId = account.linkedinProfileId;
-  if (!profileId) {
+  let profileImage = account.linkedinProfileImage;
+  let accountName = account.linkedinAccountName;
+
+  if (!profileId || !profileImage || !accountName) {
     try {
       const meRes = await fetch(`${UNIPILE_DSN}/api/v1/users/me?account_id=${encodeURIComponent(accountId)}`, {
         headers: { "X-API-KEY": UNIPILE_API_KEY },
       });
       if (meRes.ok) {
         const meData = await meRes.json();
-        profileId = meData.id || meData.provider_id;
-        if (profileId) {
-          await AccountModel.updateOne({ email: userEmail }, { linkedinProfileId: profileId });
+        profileId = meData.id || meData.provider_id || profileId;
+        profileImage = meData.profile_picture_url || meData.profile_picture || meData.avatar_url || meData.avatar || meData.picture_url || profileImage;
+        accountName = meData.name || meData.full_name || meData.formatted_name || accountName;
+
+        const updateFields: Record<string, any> = {};
+        if (profileId) updateFields.linkedinProfileId = profileId;
+        if (profileImage) updateFields.linkedinProfileImage = profileImage;
+        if (accountName) updateFields.linkedinAccountName = accountName;
+
+        if (Object.keys(updateFields).length > 0) {
+          await AccountModel.updateOne({ email: userEmail }, updateFields);
         }
       }
     } catch (e) {
