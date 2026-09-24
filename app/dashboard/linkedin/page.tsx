@@ -119,6 +119,107 @@ export default function LinkedInAutomationPage() {
     fetchLinkedInConfig();
   }, [fetchLinkedInConfig]);
 
+  // Native LinkedIn 1-Click Connection state
+  const [connectingLinkedIn, setConnectingLinkedIn] = useState(false);
+  const [syncingLinkedIn, setSyncingLinkedIn] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [selectedMagnetId, setSelectedMagnetId] = useState("");
+  const [triggerKeyword, setTriggerKeyword] = useState("resource");
+
+  useEffect(() => {
+    if (account) {
+      if (account.linkedinDefaultMagnetId) setSelectedMagnetId(account.linkedinDefaultMagnetId);
+      if (account.linkedinTriggerWord) setTriggerKeyword(account.linkedinTriggerWord);
+    }
+  }, [account]);
+
+  const handleConnectLinkedIn = async () => {
+    setConnectingLinkedIn(true);
+    try {
+      const res = await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "getLinkedInAuthLink" }),
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Could not start LinkedIn connection. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error. Please try again.");
+    } finally {
+      setConnectingLinkedIn(false);
+    }
+  };
+
+  const handleDisconnectLinkedIn = async () => {
+    if (!confirm("Are you sure you want to disconnect your LinkedIn account?")) return;
+    try {
+      const res = await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "disconnectLinkedIn" }),
+      });
+      if (res.ok) {
+        setAccount((prev) => prev ? { ...prev, linkedinConnected: false, linkedinAccountId: "", linkedinAccountName: "" } : null);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRunSyncNow = async () => {
+    setSyncingLinkedIn(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "syncLinkedInNow" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSyncResult(data.message || `Checked posts. ${data.dmsSent || 0} DMs sent.`);
+        syncWithDatabase().then((d) => {
+          if (d?.leads) {
+            setLinkedinLeads(d.leads.filter((l: Lead) => l.source === "linkedin-comment"));
+          }
+        });
+      } else {
+        setSyncResult(data.message || "Sync finished.");
+      }
+    } catch (err) {
+      setSyncResult("Sync failed. Check connection.");
+    } finally {
+      setSyncingLinkedIn(false);
+    }
+  };
+
+  const handleSaveCampaignSettings = async (newMagnetId?: string, newKeyword?: string) => {
+    setSavingSettings(true);
+    try {
+      await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "saveLinkedInSettings",
+          data: {
+            defaultMagnetId: newMagnetId !== undefined ? newMagnetId : selectedMagnetId,
+            triggerWord: newKeyword !== undefined ? newKeyword : triggerKeyword,
+          },
+        }),
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   // ── Regenerate secret ──
   const handleRegenerate = async () => {
     setRegenerating(true);
@@ -299,6 +400,130 @@ export default function LinkedInAutomationPage() {
           {/* ── Cards ── */}
           <div className="space-y-4">
 
+            {/* ── Card 0: 1-Click Native LinkedIn Connect ── */}
+            <div className="rounded-2xl border border-[#0A66C2]/30 bg-white dark:border-[#0A66C2]/35 dark:bg-[#18181B] shadow-sm transition-colors p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0A66C2] text-white shadow-md">
+                    <Linkedin className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                        1-Click LinkedIn Integration
+                      </h3>
+                      {account?.linkedinConnected ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="h-3 w-3" /> Connected
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 px-2 py-0.5 text-[10px] font-semibold text-zinc-600 dark:text-zinc-400">
+                          Not Connected
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
+                      {account?.linkedinConnected
+                        ? `Connected to your LinkedIn profile. All new post comments are automatically monitored & replied to.`
+                        : `Connect your LinkedIn profile in 10 seconds. Automatically watches your posts and sends DM lead magnets to commenters.`}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0">
+                  {account?.linkedinConnected ? (
+                    <>
+                      <button
+                        type="button"
+                        disabled={syncingLinkedIn}
+                        onClick={handleRunSyncNow}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#0A66C2] hover:bg-[#004182] px-4 py-2.5 text-xs font-bold text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                      >
+                        {syncingLinkedIn ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                        {syncingLinkedIn ? "Checking Comments..." : "Sync Comments Now"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDisconnectLinkedIn}
+                        className="rounded-xl border border-zinc-200 dark:border-white/10 px-3.5 py-2.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-400 transition cursor-pointer"
+                      >
+                        Disconnect
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={connectingLinkedIn}
+                      onClick={handleConnectLinkedIn}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#0A66C2] hover:bg-[#004182] px-5 py-2.5 text-xs font-bold text-white shadow-md transition cursor-pointer disabled:opacity-50"
+                    >
+                      {connectingLinkedIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <Linkedin className="h-4 w-4" />}
+                      {connectingLinkedIn ? "Connecting..." : "Connect LinkedIn (10 Seconds)"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {syncResult && (
+                <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-50/70 dark:bg-emerald-500/10 p-3 text-xs text-emerald-700 dark:text-emerald-300 font-medium">
+                  {syncResult}
+                </div>
+              )}
+
+              {/* Campaign Settings inside the Connected Card */}
+              {account?.linkedinConnected && (
+                <div className="mt-5 pt-5 border-t border-zinc-100 dark:border-white/5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085] mb-1.5">
+                      Default Lead Magnet to Deliver
+                    </label>
+                    <select
+                      value={selectedMagnetId}
+                      onChange={(e) => {
+                        setSelectedMagnetId(e.target.value);
+                        handleSaveCampaignSettings(e.target.value, undefined);
+                      }}
+                      className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs font-medium text-zinc-800 dark:text-zinc-200 outline-none"
+                    >
+                      {livePages.length === 0 ? (
+                        <option value="">No live magnets available</option>
+                      ) : (
+                        livePages.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} ({p.slug})
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-[#9B9085] mb-1.5">
+                      Trigger Keyword
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={triggerKeyword}
+                        onChange={(e) => setTriggerKeyword(e.target.value)}
+                        onBlur={() => handleSaveCampaignSettings(undefined, triggerKeyword)}
+                        placeholder="e.g. resource, pdf, guide"
+                        className="flex-1 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs font-mono text-zinc-800 dark:text-zinc-200 outline-none"
+                      />
+                      <button
+                        type="button"
+                        disabled={savingSettings}
+                        onClick={() => handleSaveCampaignSettings(undefined, triggerKeyword)}
+                        className="px-3 py-2.5 rounded-xl text-xs font-semibold bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 transition cursor-pointer shrink-0 disabled:opacity-50"
+                      >
+                        {savingSettings ? "Saving..." : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* ── Card 1: Webhook Credentials ── */}
             <div className="rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm transition-colors p-5">
               <div className="flex items-start gap-3 mb-5">
@@ -306,9 +531,9 @@ export default function LinkedInAutomationPage() {
                   <Zap className="h-4 w-4" />
                 </div>
                 <div>
-                  <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Your Webhook Credentials</h4>
+                  <h4 className="text-[14.2px] font-bold text-zinc-900 dark:text-white">Custom Webhook Credentials</h4>
                   <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-0.5">
-                    Paste these into Make.com. Your secret is unique to your account — never share it.
+                    (Optional for developers) If you prefer using n8n or Make.com instead of our native 1-click integration.
                   </p>
                 </div>
               </div>

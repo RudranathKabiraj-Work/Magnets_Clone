@@ -14,6 +14,10 @@ import {
   handleSendVerificationEmail,
   handleGetLinkedInConfig,
   handleRegenerateLinkedInSecret,
+  handleGetLinkedInAuthLink,
+  handleDisconnectLinkedIn,
+  handleSaveLinkedInCampaignSettings,
+  handleSyncLinkedInNow,
 } from "@/lib/controllers/account";
 import {
   handleSavePages,
@@ -165,6 +169,14 @@ export async function POST(req: Request) {
         return handleGetLinkedInConfig(authEmail);
       case "regenerateLinkedInSecret":
         return handleRegenerateLinkedInSecret(authEmail);
+      case "getLinkedInAuthLink":
+        return handleGetLinkedInAuthLink(authEmail);
+      case "disconnectLinkedIn":
+        return handleDisconnectLinkedIn(authEmail);
+      case "saveLinkedInSettings":
+        return handleSaveLinkedInCampaignSettings(data, authEmail);
+      case "syncLinkedInNow":
+        return handleSyncLinkedInNow(authEmail);
       case "sendResetEmail":
       case "sendForgotPasswordEmail":
         return handleSendResetEmail(data);

@@ -41,9 +41,14 @@ const AccountSchema = new Schema({
   ogImageUrl: { type: String, default: "" },
   spfVerified: { type: Boolean, default: false },
   dkimVerified: { type: Boolean, default: false },
-  // LinkedIn Comment Automation — each user gets their own unique webhook secret.
-  // Generated with crypto.randomBytes(32) at account creation or on-demand via the dashboard.
+  // LinkedIn Comment Automation
   linkedinWebhookSecret: { type: String, default: "" },
+  linkedinConnected: { type: Boolean, default: false },
+  linkedinAccountId: { type: String, default: "" },
+  linkedinAccountName: { type: String, default: "" },
+  linkedinProfileId: { type: String, default: "" },
+  linkedinDefaultMagnetId: { type: String, default: "" },
+  linkedinTriggerWord: { type: String, default: "resource" },
 });
 
 AccountSchema.index({ resetPasswordToken: 1 });

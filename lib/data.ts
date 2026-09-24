@@ -160,8 +160,14 @@ export interface Account {
   spfVerified?: boolean;
   dkimVerified?: boolean;
   substackPublication?: string;
-  // LinkedIn Comment Automation — unique per-user webhook secret
+  // LinkedIn Comment Automation
   linkedinWebhookSecret?: string;
+  linkedinConnected?: boolean;
+  linkedinAccountId?: string;
+  linkedinAccountName?: string;
+  linkedinProfileId?: string;
+  linkedinDefaultMagnetId?: string;
+  linkedinTriggerWord?: string;
 }
 
 export interface Integration {

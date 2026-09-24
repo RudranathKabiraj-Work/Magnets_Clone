@@ -387,3 +387,117 @@ export async function handleRegenerateLinkedInSecret(authEmail: string | null) {
     message: "New secret generated. Update your Make.com scenario with this new secret.",
   });
 }
+
+/**
+ * Generates a 1-click Unipile Hosted Authentication Link for the user.
+ * Opens a secure LinkedIn login popup so the user can connect in 10 seconds.
+ */
+export async function handleGetLinkedInAuthLink(authEmail: string | null) {
+  if (!authEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const UNIPILE_DSN = "https://api36.unipile.com:16619";
+  const UNIPILE_API_KEY = "wOFSf6du.f/PTCdwTaeOqSSw5PaLUCTPVwks++2G3tUtqBXh8gfU=";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in";
+
+  try {
+    const expiresOn = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const res = await fetch(`${UNIPILE_DSN}/api/v1/hosted/accounts/link`, {
+      method: "POST",
+      headers: {
+        "X-API-KEY": UNIPILE_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        type: "create",
+        providers: ["LINKEDIN"],
+        api_url: UNIPILE_DSN,
+        expiresOn,
+        success_redirect_url: `${appUrl}/dashboard/linkedin?connected=true`,
+        failure_redirect_url: `${appUrl}/dashboard/linkedin?error=true`,
+        notify_url: `${appUrl}/api/webhooks/unipile`,
+        name: authEmail,
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("[Unipile Hosted Auth Error]:", errText);
+      return NextResponse.json({ error: "Failed to generate LinkedIn login link." }, { status: 500 });
+    }
+
+    const data = await res.json();
+    return NextResponse.json({
+      success: true,
+      url: data.url,
+    });
+  } catch (err: any) {
+    console.error("[Unipile Auth Link Exception]:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+/**
+ * Disconnects the user's LinkedIn account.
+ */
+export async function handleDisconnectLinkedIn(authEmail: string | null) {
+  if (!authEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const account = await AccountModel.findOne({ email: authEmail.trim().toLowerCase() });
+  if (!account) {
+    return NextResponse.json({ error: "Account not found." }, { status: 404 });
+  }
+
+  account.linkedinConnected = false;
+  account.linkedinAccountId = "";
+  account.linkedinAccountName = "";
+  account.linkedinProfileId = "";
+  await account.save();
+
+  return NextResponse.json({ success: true, message: "LinkedIn account disconnected." });
+}
+
+/**
+ * Updates default lead magnet and trigger keyword settings for LinkedIn.
+ */
+export async function handleSaveLinkedInCampaignSettings(data: any, authEmail: string | null) {
+  if (!authEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const account = await AccountModel.findOne({ email: authEmail.trim().toLowerCase() });
+  if (!account) {
+    return NextResponse.json({ error: "Account not found." }, { status: 404 });
+  }
+
+  if (typeof data.defaultMagnetId === "string") {
+    account.linkedinDefaultMagnetId = data.defaultMagnetId.trim();
+  }
+  if (typeof data.triggerWord === "string") {
+    account.linkedinTriggerWord = data.triggerWord.trim().toLowerCase() || "resource";
+  }
+
+  await account.save();
+  return NextResponse.json({ success: true, message: "LinkedIn settings saved." });
+}
+
+/**
+ * Runs an immediate comment sync for the authenticated user's account.
+ */
+export async function handleSyncLinkedInNow(authEmail: string | null) {
+  if (!authEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const account = await AccountModel.findOne({ email: authEmail.trim().toLowerCase() }).lean();
+  if (!account) {
+    return NextResponse.json({ error: "Account not found." }, { status: 404 });
+  }
+
+  const { syncUserLinkedInComments } = await import("@/lib/linkedin-automation");
+  const result = await syncUserLinkedInComments(account);
+  return NextResponse.json(result);
+}
