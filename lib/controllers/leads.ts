@@ -396,7 +396,7 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               event: "new_lead",
-              lead_id: createdLead.id || data.id,
+              lead_id: createdOrUpdatedLead?.id || data.id,
               name: data.name,
               email: data.email,
               lead_magnet_title: pageTitle,

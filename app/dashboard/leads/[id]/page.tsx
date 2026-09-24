@@ -16,6 +16,8 @@ const statusCopy: Record<Lead["status"], { label: string; desc: string; color: s
   replied: { label: "Replied", desc: "They replied to your sequence.", color: "bg-emerald-500" },
   stopped: { label: "Sequence stopped", desc: "Follow-ups stopped, likely after booking.", color: "bg-brand-yellow" },
   completed: { label: "Completed", desc: "Sequence completed all steps.", color: "bg-blue-500" },
+  pending_email: { label: "DM Sent (Pending)", desc: "LinkedIn DM sent, awaiting email signup.", color: "bg-amber-500" },
+  converted: { label: "Converted", desc: "Email captured & resource claimed.", color: "bg-emerald-500" },
 };
 
 function SourceLabel({ source }: { source: Lead["source"] }) {
