@@ -602,10 +602,10 @@ export default async function MagnetPageRoute({
             </div>
           </div>
         ) : ((page.template as string) === "template5" || (!page.template && (accountDoc?.templateId as string) === "template5")) ? (
-          /* TEMPLATE 5: Magazine Cover Hero */
-          <div className="w-full max-w-6xl mx-auto">
-            {/* Cover image header banner */}
-            <div className="relative w-full h-40 sm:h-52 md:h-60 rounded-3xl overflow-hidden flex items-end shadow-2xl mb-4">
+          /* TEMPLATE 5: Magazine Cover Hero (Full Viewport / Stacked Tray matching Template5.tsx) */
+          <div className="w-full max-w-5xl mx-auto space-y-0">
+            {/* Full-bleed cover image header banner */}
+            <div className="relative w-full h-44 sm:h-56 md:h-64 rounded-3xl overflow-hidden flex items-end shadow-2xl border border-black/10 dark:border-white/10">
               {activeImageUrl && activeImageUrl.trim() !== "" ? (
                 <img
                   src={activeImageUrl}
@@ -616,48 +616,56 @@ export default async function MagnetPageRoute({
                 <div className="absolute inset-0 bg-[#121215]" />
               )}
               {/* Cinematic scrim */}
-              <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.95) 100%)` }} />
-              <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${brandColor}33 0%, transparent 60%)` }} />
+              <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.92) 100%)" }} />
+              <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(to right, ${brandColor}33 0%, transparent 60%)` }} />
 
               {/* Overlaid headline & subheadline */}
-              <div className="relative z-10 w-full p-4 sm:p-6 space-y-1">
+              <div className="relative z-10 w-full p-5 sm:p-7 md:p-8 space-y-1.5">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight drop-shadow-xl">{activeHeadline}</h1>
-                {page.subheadline && <p className="text-white/80 text-xs sm:text-sm md:text-base max-w-3xl line-clamp-1 leading-relaxed drop-shadow">{page.subheadline}</p>}
+                {page.subheadline && <p className="text-white/85 text-xs sm:text-sm md:text-base max-w-3xl leading-relaxed drop-shadow">{page.subheadline}</p>}
               </div>
             </div>
 
-            {/* Content & form row */}
-            <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-              <div className="lg:col-span-7 space-y-3">
-                {page.pitch && (
-                  <p className={`text-xs sm:text-sm leading-relaxed line-clamp-2 ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
-                    {page.pitch}
-                  </p>
-                )}
+            {/* Floating glass form tray stacked underneath */}
+            <div
+              className="relative z-20 mx-3 sm:mx-6 md:mx-8 -mt-6 rounded-2xl p-5 sm:p-6 space-y-3.5 shadow-2xl"
+              style={{
+                background: themeMode === "dark" ? "rgba(12,12,18,0.94)" : "rgba(255,255,255,0.96)",
+                border: `1px solid ${themeMode === "dark" ? `${brandColor}35` : `${brandColor}25`}`,
+                backdropFilter: "blur(20px)",
+                boxShadow: `0 12px 48px -12px rgba(0,0,0,0.35)`
+              }}
+            >
+              {/* Pitch Area */}
+              {page.pitch && (
+                <p className={`text-xs sm:text-sm leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
+                  {page.pitch}
+                </p>
+              )}
 
-                {((page.bullets && page.bullets.length > 0) || page.bulletsTitle) && (
-                  <div className="space-y-2">
-                    <h4 className={`text-[10px] font-bold uppercase tracking-wider ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
-                      {page.bulletsTitle || "What they will learn"}
-                    </h4>
-                    {page.bullets && page.bullets.length > 0 && (
-                      <div className="space-y-1.5">
-                        {page.bullets.map((item, idx) => (
-                          <div key={idx} className="flex items-center gap-2.5">
-                            <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-md" style={{ background: `${brandColor}18`, border: `1px solid ${brandColor}44` }}>
-                              <svg width="6" height="6" viewBox="0 0 7 7" fill="none"><path d="M1 3.5l1.7 1.7L6 1.5" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                            </div>
-                            <span className={`text-xs sm:text-sm ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>{item}</span>
+              {/* Bullets Section Header & List */}
+              {((page.bullets && page.bullets.length > 0) || page.bulletsTitle) && (
+                <div className="space-y-2">
+                  <h3 className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                    {page.bulletsTitle || "What they will learn"}
+                  </h3>
+                  {page.bullets && page.bullets.length > 0 && (
+                    <div className="space-y-1.5">
+                      {page.bullets.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2.5">
+                          <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-md" style={{ background: `${brandColor}18`, border: `1px solid ${brandColor}44` }}>
+                            <svg width="6" height="6" viewBox="0 0 7 7" fill="none"><path d="M1 3.5l1.7 1.7L6 1.5" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                          <span className={`text-xs sm:text-sm ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
-              {/* Form Column */}
-              <div className="lg:col-span-5">
+              {/* Stacked Form */}
+              <div className="pt-2 border-t border-zinc-200/20 dark:border-zinc-800/40">
                 <MagnetSignupForm
                   cta={page.cta}
                   formTitle={page.formTitle}
@@ -678,6 +686,7 @@ export default async function MagnetPageRoute({
                   customFormFields={page.customFormFields}
                   username={params.username}
                   isVariantB={isVariantB}
+                  layout="split-panel"
                   afterSignupOption={page.afterSignupOption}
                   destinationUrl={page.destinationUrl}
                 />
