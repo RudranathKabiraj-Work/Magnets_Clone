@@ -9,9 +9,6 @@ import {
   RotateCw,
   ChevronUp,
   ChevronDown,
-  FileText,
-  Bookmark,
-  Layers,
   Lock,
   Menu,
 } from "lucide-react";
@@ -57,7 +54,6 @@ export default function PdfViewerClient({
   const [unlocked, setUnlocked] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<"thumbnails" | "bookmarks" | "layers">("thumbnails");
   const [zoomScale, setZoomScale] = useState(100);
   const [rotation, setRotation] = useState(0);
   const [gateVisible, setGateVisible] = useState(false);
@@ -248,6 +244,16 @@ export default function PdfViewerClient({
       gateObs.disconnect();
     };
   }, [pdfFreePages, sidebarOpen, updateGate]);
+
+  // ── Auto-scroll thumbnail sidebar when current page changes ───────────────
+  useEffect(() => {
+    if (sidebarOpen) {
+      const activeThumb = thumbRefs.current[currentPage - 1];
+      if (activeThumb) {
+        activeThumb.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+  }, [currentPage, sidebarOpen]);
 
   // ── Unlock all pages ──────────────────────────────────────────────────────
   const performUnlock = useCallback(() => {
@@ -467,70 +473,40 @@ export default function PdfViewerClient({
       <div className="adobe-main-layout">
         {/* Left Navigation Sidebar */}
         {sidebarOpen && (
-          <div className="adobe-sidebar-wrapper" ref={sideRef as any}>
-            <div className="adobe-rail">
-              <button
-                className={`adobe-rail-item ${activeTab === "thumbnails" ? "active" : ""}`}
-                title="Page Thumbnails"
-                onClick={() => setActiveTab("thumbnails")}
-              >
-                <FileText size={16} />
-              </button>
-              <button
-                className={`adobe-rail-item ${activeTab === "bookmarks" ? "active" : ""}`}
-                title="Bookmarks"
-                onClick={() => setActiveTab("bookmarks")}
-              >
-                <Bookmark size={16} />
-              </button>
-              <button
-                className={`adobe-rail-item ${activeTab === "layers" ? "active" : ""}`}
-                title="Attachments & Layers"
-                onClick={() => setActiveTab("layers")}
-              >
-                <Layers size={16} />
-              </button>
-            </div>
-
+          <aside className="adobe-sidebar-wrapper" ref={sideRef as any}>
             <div className="adobe-thumb-panel">
-              <div className="adobe-thumb-header">
-                {activeTab === "thumbnails" ? "Page Thumbnails" : activeTab === "bookmarks" ? "Bookmarks" : "Attachments"}
-              </div>
+              <div className="adobe-thumb-header">Page Thumbnails</div>
               <div className="adobe-thumb-list" data-lenis-prevent>
-                {activeTab === "thumbnails" ? (
-                  pdfPages.map((url, idx) => {
-                    const isLocked = !unlocked && idx >= pdfFreePages;
-                    const displayUrl = isLocked ? getBlurUrl(url) : url;
-                    return (
-                      <button
-                        key={idx}
-                        ref={(el) => { thumbRefs.current[idx] = el; }}
-                        className={`adobe-thumb-card ${isLocked ? "is-locked" : ""}`}
-                        data-active={currentPage === idx + 1}
-                        onClick={() => scrollToPage(idx)}
-                      >
-                        <div className="adobe-thumb-frame">
-                          <img
-                            src={displayUrl}
-                            alt={`Thumbnail page ${idx + 1}`}
-                            className="adobe-thumb-img"
-                            loading="lazy"
-                            decoding="async"
-                            draggable={false}
-                          />
-                        </div>
-                        <span className="adobe-thumb-num">{idx + 1}</span>
-                      </button>
-                    );
-                  })
-                ) : (
-                  <div style={{ padding: "12px", fontSize: "12px", color: "#888", textAlign: "center" }}>
-                    No {activeTab} available.
-                  </div>
-                )}
+                {pdfPages.map((url, idx) => {
+                  const isLocked = !unlocked && idx >= pdfFreePages;
+                  const displayUrl = isLocked ? getBlurUrl(url) : url;
+                  return (
+                    <button
+                      key={idx}
+                      ref={(el) => {
+                        thumbRefs.current[idx] = el;
+                      }}
+                      className={`adobe-thumb-card ${isLocked ? "is-locked" : ""}`}
+                      data-active={currentPage === idx + 1}
+                      onClick={() => scrollToPage(idx)}
+                    >
+                      <div className="adobe-thumb-frame">
+                        <img
+                          src={displayUrl}
+                          alt={`Thumbnail page ${idx + 1}`}
+                          className="adobe-thumb-img"
+                          loading="lazy"
+                          decoding="async"
+                          draggable={false}
+                        />
+                      </div>
+                      <span className="adobe-thumb-num">{idx + 1}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          </div>
+          </aside>
         )}
 
         {/* Document View Canvas */}

@@ -155,46 +155,13 @@
   position: relative;
 }
 
-/* Left Navigation Rail & Sidebar */
+/* Left Navigation Sidebar */
 .adobe-sidebar-wrapper {
   display: flex;
-  background: #25282a;
+  background: #26292b;
   border-right: 1px solid #1a1c1e;
   z-index: 10;
   transition: width 0.2s ease;
-}
-
-.adobe-rail {
-  width: 44px;
-  background: #1e2022;
-  border-right: 1px solid #2d3033;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px 0;
-  gap: 12px;
-}
-
-.adobe-rail-item {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  color: #999999;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.adobe-rail-item:hover {
-  color: #ffffff;
-  background: rgba(255,255,255,0.08);
-}
-.adobe-rail-item.active {
-  color: #ffffff;
-  background: #0265dc;
 }
 
 .adobe-thumb-panel {
@@ -334,11 +301,22 @@ body:has(.adobe-viewer-root) {
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  transition: opacity 0.25s ease;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
   pointer-events: none;
 }
-.pdf-gate.is-hidden { opacity: 0; pointer-events: none; }
-.pdf-gate.is-visible { opacity: 1; pointer-events: none; }
+.pdf-gate.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none !important;
+}
+.pdf-gate.is-hidden * {
+  pointer-events: none !important;
+}
+.pdf-gate.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+}
 
 .pdf-gate-card {
   background: #ffffff;
