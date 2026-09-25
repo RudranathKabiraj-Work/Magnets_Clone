@@ -531,8 +531,8 @@ export async function handleGetLinkedInRecentPosts(authEmail: string | null) {
   try {
     const profileId = account.linkedinProfileId;
     const postEndpoint = profileId
-      ? `${UNIPILE_DSN}/api/v1/users/${encodeURIComponent(profileId)}/posts?account_id=${encodeURIComponent(account.linkedinAccountId)}&limit=10`
-      : `${UNIPILE_DSN}/api/v1/posts?account_id=${encodeURIComponent(account.linkedinAccountId)}&limit=10`;
+      ? `${UNIPILE_DSN}/api/v1/users/${encodeURIComponent(profileId)}/posts?account_id=${encodeURIComponent(account.linkedinAccountId)}&limit=20`
+      : `${UNIPILE_DSN}/api/v1/posts?account_id=${encodeURIComponent(account.linkedinAccountId)}&limit=20`;
 
     const res = await fetch(postEndpoint, {
       headers: { "X-API-KEY": UNIPILE_API_KEY },
@@ -546,25 +546,60 @@ export async function handleGetLinkedInRecentPosts(authEmail: string | null) {
 
     const savedCampaigns = account.linkedinPostCampaigns || [];
 
-    const posts = rawPosts.map((p: any) => {
-      const postId = p.id || p.provider_id || "";
-      const matched = savedCampaigns.find((c: any) => c.postId === postId);
-      const postText = p.text || p.commentary || p.content || (p.attachments?.[0]?.description) || "LinkedIn Post";
-      const postUrl = p.url || p.share_url || (postId.includes("activity:") ? `https://www.linkedin.com/feed/update/${postId}` : "");
-      const commentsCount = p.comments_count || p.social_actions?.comments || p.comments || 0;
-      const createdAt = p.created_at || p.date || "";
+    const posts = await Promise.all(
+      rawPosts.map(async (p: any) => {
+        const postId = p.id || p.provider_id || "";
+        const matched = savedCampaigns.find((c: any) => c.postId === postId);
+        const postText =
+          p.text ||
+          p.commentary ||
+          p.content ||
+          p.attachments?.[0]?.description ||
+          "LinkedIn Post";
+        const postUrl =
+          p.url ||
+          p.share_url ||
+          (postId.includes("activity:") ? `https://www.linkedin.com/feed/update/${postId}` : "");
 
-      return {
-        postId,
-        postUrl,
-        postText,
-        commentsCount,
-        createdAt,
-        enabled: matched ? matched.enabled : true,
-        magnetId: matched ? matched.magnetId : (account.linkedinDefaultMagnetId || ""),
-        triggerWord: matched ? matched.triggerWord : (account.linkedinTriggerWord || "resource"),
-      };
-    });
+        let commentsCount =
+          p.comments_count ??
+          p.comments_counter ??
+          p.num_comments ??
+          p.total_comments ??
+          p.comment_count ??
+          p.stats?.comments ??
+          p.social_actions?.comments ??
+          p.social_details?.total_social_activity_counts?.num_comments ??
+          (Array.isArray(p.comments) ? p.comments.length : 0);
+
+        // If count is 0, query comments endpoint directly for accurate real-time count
+        if (!commentsCount && postId) {
+          try {
+            const cRes = await fetch(
+              `${UNIPILE_DSN}/api/v1/posts/${encodeURIComponent(postId)}/comments?account_id=${encodeURIComponent(account.linkedinAccountId)}`,
+              { headers: { "X-API-KEY": UNIPILE_API_KEY } }
+            );
+            if (cRes.ok) {
+              const cData = await cRes.json();
+              commentsCount = Array.isArray(cData.items) ? cData.items.length : 0;
+            }
+          } catch (_) {}
+        }
+
+        const createdAt = p.created_at || p.date || "";
+
+        return {
+          postId,
+          postUrl,
+          postText,
+          commentsCount: Number(commentsCount) || 0,
+          createdAt,
+          enabled: matched ? matched.enabled : true,
+          magnetId: matched ? matched.magnetId : (account.linkedinDefaultMagnetId || ""),
+          triggerWord: matched ? matched.triggerWord : (account.linkedinTriggerWord || "resource"),
+        };
+      })
+    );
 
     return NextResponse.json({ success: true, posts });
   } catch (err: any) {

@@ -97,6 +97,16 @@ export default function MagnetSignupForm({
         }
       }
 
+      let liLeadId = "";
+      let liAuthorId = "";
+      if (typeof window !== "undefined") {
+        try {
+          const sp = new URLSearchParams(window.location.search);
+          liLeadId = sp.get("li_lead") || "";
+          liAuthorId = sp.get("li_author") || sp.get("authorId") || "";
+        } catch (_) {}
+      }
+
       const newLead = {
         id: `l_${Date.now()}`,
         name: name.trim() || email.split("@")[0],
@@ -106,11 +116,17 @@ export default function MagnetSignupForm({
         pageSlug: pageSlug || "",
         userEmail: pageOwnerEmail || "",
         status: "new",
-        source: "leadmagnets",
+        source: liLeadId || liAuthorId ? "linkedin-comment" : "leadmagnets",
         signedUpAt: `${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} at ${new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}`,
         tags: enableAiPersonalizedDeliverable ? ["ai-personalized"] : [],
         customAnswer: customAnswer.trim(),
-        customFields: customFieldValues,
+        customFields: {
+          ...customFieldValues,
+          liLeadId,
+          liAuthorId,
+        },
+        liLeadId,
+        liAuthorId,
         isVariantB: Boolean(isVariantB),
         afterSignupOption: afterSignupOption || "standard",
         destinationUrl: destinationUrl || "",

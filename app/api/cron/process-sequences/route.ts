@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongodb";
 import { LeadModel, MagnetPageModel, SequenceModel, AccountModel } from "@/lib/models";
 import { sendMail } from "@/lib/email";
+import { parseFlexibleDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -95,22 +96,12 @@ export async function GET(req: NextRequest) {
       }
 
       const sequenceEmails = pageDoc.sequenceEmails;
-      const cleanDateStr = typeof lead.signedUpAt === "string"
-        ? lead.signedUpAt.replace(/\s+at\s+/i, " ")
-        : lead.signedUpAt;
-      let signupTime = new Date(cleanDateStr).getTime();
-
-      // If timestamp is time-only (e.g. "8:59:01 PM"), combine with today's date
-      if (isNaN(signupTime) && typeof cleanDateStr === "string") {
-        const todayDateStr = new Date().toISOString().split("T")[0];
-        const combined = new Date(`${todayDateStr} ${cleanDateStr}`).getTime();
-        if (!isNaN(combined)) {
-          signupTime = combined;
-        }
-      }
+      const parsedDate = parseFlexibleDate(lead.signedUpAt);
+      let signupTime = parsedDate ? parsedDate.getTime() : NaN;
 
       if (isNaN(signupTime) && (lead as any).createdAt) {
-        signupTime = new Date((lead as any).createdAt).getTime();
+        const parsedCreated = parseFlexibleDate((lead as any).createdAt);
+        if (parsedCreated) signupTime = parsedCreated.getTime();
       }
 
       if (isNaN(signupTime)) {

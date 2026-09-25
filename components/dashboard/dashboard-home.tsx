@@ -34,6 +34,7 @@ import {
 } from "@/lib/store";
 import { getPlanLimits } from "@/lib/plan-limits";
 import type { Account, MagnetPage, Lead, Sequence } from "@/lib/data";
+import { parseFlexibleDate, formatRelativeTime } from "@/lib/utils";
 
 // ─────────────────────────────────────────────
 // Sparkline helpers
@@ -44,8 +45,8 @@ function buildSparkline(leads: Lead[], days = 7): number[] {
   const buckets: number[] = Array(days).fill(0);
   leads.forEach((l) => {
     if (!l.signedUpAt) return;
-    const d = new Date(l.signedUpAt);
-    if (isNaN(d.getTime())) return;
+    const d = parseFlexibleDate(l.signedUpAt);
+    if (!d) return;
     const diff = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
     if (diff >= 0 && diff < days) buckets[days - 1 - diff]++;
   });
@@ -142,18 +143,7 @@ function getGreeting(name?: string) {
 // ─────────────────────────────────────────────
 
 function relativeTime(dateStr?: string): string {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  const diffMs = Date.now() - d.getTime();
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return formatRelativeTime(dateStr);
 }
 
 // ─────────────────────────────────────────────
@@ -509,15 +499,16 @@ export default function DashboardHome({
       [...leads]
         .sort(
           (a, b) =>
-            new Date(b.signedUpAt || 0).getTime() - new Date(a.signedUpAt || 0).getTime()
+            (parseFlexibleDate(b.signedUpAt)?.getTime() || 0) -
+            (parseFlexibleDate(a.signedUpAt)?.getTime() || 0)
         )
         .slice(0, 4),
     [leads]
   );
 
-  // Active sequences
+  // Active sequences (showing top 2 for a balanced dashboard layout)
   const activeSeqs = useMemo(
-    () => sequences.filter((s) => s.status === "live").slice(0, 4),
+    () => sequences.filter((s) => s.status === "live").slice(0, 2),
     [sequences]
   );
 

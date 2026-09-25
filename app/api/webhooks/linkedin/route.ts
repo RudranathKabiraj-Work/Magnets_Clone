@@ -221,7 +221,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 8. Create the Lead
-    const signedUpAt = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+    const signedUpAt = new Date().toISOString();
     const leadId = `lead_li_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const leadStatus = commenterEmail ? "converted" : "pending_email";
 

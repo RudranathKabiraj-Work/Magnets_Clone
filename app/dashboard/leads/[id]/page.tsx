@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpRight, CalendarClock, Globe, Inbox, Link2, Mail, Rock
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import Button from "@/components/ui/button";
 import { type Lead } from "@/lib/data";
+import { formatDateTime } from "@/lib/utils";
 import { dbConnect } from "@/lib/mongodb";
 import { LeadModel, AccountModel } from "@/lib/models";
 import { account as seedAccount } from "@/lib/data";
@@ -127,7 +128,7 @@ export default async function LeadDetail({ params }: { params: { id: string } })
               <div className="mt-4 space-y-2 border-t border-ink-200 pt-4 dark:border-ink-700">
                 <p className="flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300">
                   <CalendarClock className="h-4 w-4 text-ink-400" aria-hidden="true" />
-                  Signed up {lead.signedUpAt}
+                  Signed up {formatDateTime(lead.signedUpAt)}
                 </p>
                 {lead.sequence && (
                   <p className="flex items-center gap-2 text-sm text-ink-600 dark:text-ink-300">
@@ -148,15 +149,60 @@ export default async function LeadDetail({ params }: { params: { id: string } })
             {lead.customFields && Object.keys(lead.customFields).length > 0 && (
               <section className="rounded-2xl border border-ink-200 bg-white p-5 dark:border-ink-700 dark:bg-ink-900/95">
                 <h3 className="text-sm font-semibold text-ink-950 dark:text-white flex items-center gap-1.5">
-                  <span>Custom Form Responses</span>
+                  <span>Form & Interaction Data</span>
                 </h3>
                 <div className="mt-3 space-y-2 text-xs">
-                  {Object.entries(lead.customFields).map(([key, val]) => (
-                    <div key={key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 p-2 rounded-lg bg-zinc-50 dark:bg-ink-950 border border-zinc-100 dark:border-ink-800">
-                      <span className="font-medium text-ink-600 dark:text-ink-400 capitalize">{key.replace("field_", "").replace("_", " ")}</span>
-                      <span className="font-bold text-ink-900 dark:text-white">{String(val)}</span>
-                    </div>
-                  ))}
+                  {Object.entries(lead.customFields).map(([key, val]) => {
+                    const norm = key.toLowerCase().replace(/[^a-z0-9]/g, "");
+                    const label =
+                      norm === "linkedinprofile"
+                        ? "LinkedIn Profile"
+                        : norm === "linkedinpost"
+                        ? "LinkedIn Post"
+                        : norm === "commenttext"
+                        ? "Comment Text"
+                        : norm === "dmsentat"
+                        ? "DM Sent At"
+                        : norm === "isconverted"
+                        ? "Conversion Status"
+                        : norm === "convertedat"
+                        ? "Converted At"
+                        : key
+                            .replace(/([A-Z])/g, " $1")
+                            .replace(/_/g, " ")
+                            .replace(/^./, (s) => s.toUpperCase())
+                            .trim();
+
+                    const strVal = String(val ?? "");
+                    const isUrl = strVal.startsWith("http://") || strVal.startsWith("https://");
+
+                    return (
+                      <div
+                        key={key}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 p-2.5 rounded-xl bg-zinc-50 dark:bg-ink-950 border border-zinc-100 dark:border-ink-800 overflow-hidden"
+                      >
+                        <span className="font-medium text-ink-600 dark:text-ink-400 shrink-0 text-[11px]">
+                          {label}
+                        </span>
+                        <div className="min-w-0 max-w-full">
+                          {isUrl ? (
+                            <a
+                              href={strVal}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#0066B2] dark:text-[#38BDF8] hover:underline font-semibold text-xs truncate block max-w-[260px]"
+                            >
+                              {strVal}
+                            </a>
+                          ) : (
+                            <span className="font-bold text-ink-900 dark:text-white break-words text-xs">
+                              {strVal}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
             )}

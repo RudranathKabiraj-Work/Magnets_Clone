@@ -1,7 +1,7 @@
 "use client";
 
 import React, { memo } from "react";
-import { Copy, Eye, Trash2, Lock, Upload, Sparkles } from "lucide-react";
+import { Copy, Eye, Trash2, Lock, Upload, Sparkles, Linkedin } from "lucide-react";
 import type { Lead } from "@/lib/data";
 
 interface LeadTableRowProps {
@@ -9,6 +9,7 @@ interface LeadTableRowProps {
   isSelected: boolean;
   isLockedPdf: boolean;
   isManual: boolean;
+  isLinkedIn?: boolean;
   sequenceStatusNode: React.ReactNode;
   formattedDate: string;
   onToggleSelect: (id: string) => void;
@@ -22,6 +23,7 @@ export const LeadTableRow = memo(function LeadTableRow({
   isSelected,
   isLockedPdf,
   isManual,
+  isLinkedIn,
   sequenceStatusNode,
   formattedDate,
   onToggleSelect,
@@ -76,7 +78,12 @@ export const LeadTableRow = memo(function LeadTableRow({
 
       {/* Source / Gate Column */}
       <td className="px-3 lg:px-4 py-3.5 whitespace-nowrap">
-        {isLockedPdf ? (
+        {isLinkedIn ? (
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#0A66C2]/10 px-2 py-0.5 text-xs font-bold text-[#0A66C2] dark:text-[#38BDF8] border border-[#0A66C2]/20 shadow-2xs">
+            <Linkedin className="h-3.5 w-3.5 text-[#0A66C2] dark:text-[#38BDF8] shrink-0" />
+            <span>LinkedIn</span>
+          </span>
+        ) : isLockedPdf ? (
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-2xs">
             <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
             <span>Locked PDF</span>

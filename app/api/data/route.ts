@@ -71,43 +71,43 @@ export async function GET(req: Request) {
       });
     }
 
-    const pageFilter = { userEmail: normEmail };
-    const userFilter = { userEmail: normEmail };
+const pageFilter = { userEmail: normEmail };
+const userFilter = { userEmail: normEmail };
 
-    const [account, pages, leads, sequences, integrations, resources] = await Promise.all([
-      AccountModel.findOne({ email: normEmail }).select("-password").lean(),
-      MagnetPageModel.find(pageFilter).lean(),
-      LeadModel.find(userFilter).lean(),
-      SequenceModel.find(userFilter).lean(),
-      IntegrationModel.find(userFilter).lean(),
-      ResourceModel.find({ userEmail: normEmail, isPageAsset: { $ne: true }, type: { $ne: "page_asset" } }).lean(),
-    ]);
+const [account, pages, leads, sequences, integrations, resources] = await Promise.all([
+  AccountModel.findOne({ email: normEmail }).select("-password").lean(),
+  MagnetPageModel.find(pageFilter).lean(),
+  LeadModel.find(userFilter).lean(),
+  SequenceModel.find(userFilter).lean(),
+  IntegrationModel.find(userFilter).lean(),
+  ResourceModel.find({ userEmail: normEmail, isPageAsset: { $ne: true }, type: { $ne: "page_asset" } }).lean(),
+]);
 
-    let finalLeads = leads;
-    if (pages.length > 0) {
-      const pageNames = (pages as any[]).map((p) => p.name).filter(Boolean);
-      const pageIds = (pages as any[]).map((p) => p.id).filter(Boolean);
-      const fallbackLeads = await LeadModel.find({
-        $or: [
-          { userEmail: normEmail },
-          { pageId: { $in: pageIds } },
-          { page: { $in: pageNames } },
-        ],
-      }).lean();
-      finalLeads = fallbackLeads;
-    }
+let finalLeads = leads;
+if (pages.length > 0) {
+  const pageNames = (pages as any[]).map((p) => p.name).filter(Boolean);
+  const pageIds = (pages as any[]).map((p) => p.id).filter(Boolean);
+  const fallbackLeads = await LeadModel.find({
+    $or: [
+      { userEmail: normEmail },
+      { pageId: { $in: pageIds } },
+      { page: { $in: pageNames } },
+    ],
+  }).lean();
+  finalLeads = fallbackLeads;
+}
 
-    return NextResponse.json({
-      account,
-      pages,
-      leads: finalLeads,
-      sequences,
-      integrations,
-      resources,
-    });
+return NextResponse.json({
+  account,
+  pages,
+  leads: finalLeads,
+  sequences,
+  integrations,
+  resources,
+});
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  return NextResponse.json({ error: error.message }, { status: 500 });
+}
 }
 
 export async function POST(req: Request) {

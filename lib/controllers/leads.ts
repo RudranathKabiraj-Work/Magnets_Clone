@@ -3,6 +3,7 @@ import { waitUntil } from "@vercel/functions";
 import { LeadModel, MagnetPageModel, AccountModel, ResourceModel } from "@/lib/models";
 import { sendInstantLeadAlert } from "@/lib/email-alerts";
 import { sendMail } from "@/lib/email";
+import { parseFlexibleDate } from "@/lib/utils";
 
 export async function handleAddLead(data: any, req: Request, normEmail: string | null) {
   let ownerEmail = normEmail || data.userEmail;
@@ -36,31 +37,70 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
     const normalizedEmail = data.email.trim().toLowerCase();
 
     // Check if there is a pending LinkedIn lead waiting for email conversion
-    const pendingQuery: any = {
-      status: "pending_email",
-    };
-    if (targetPageId) {
-      pendingQuery.pageId = targetPageId;
-    } else if (data.page) {
-      pendingQuery.page = data.page;
+    let pendingLead: any = null;
+
+    // 1. Check by explicit liLeadId or customFields.liLeadId
+    const targetLiLeadId = data.liLeadId || data.customFields?.liLeadId;
+    if (targetLiLeadId) {
+      pendingLead = await LeadModel.findOne({
+        $or: [{ id: targetLiLeadId }, { "customFields.commentId": targetLiLeadId }],
+        status: "pending_email",
+      });
     }
 
-    const nameConditions: any[] = [{ email: normalizedEmail }];
-    if (data.name && data.name.trim()) {
-      const cleanName = data.name.trim();
-      nameConditions.push({ name: new RegExp(`^${cleanName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, "i") });
-      nameConditions.push({ email: new RegExp(`^${cleanName.toLowerCase().replace(/[^a-z0-9]/g, "")}@linkedin-prospect\\.com$`, "i") });
+    // 2. Check by authorId
+    const targetAuthorId = data.liAuthorId || data.customFields?.liAuthorId;
+    if (!pendingLead && targetAuthorId) {
+      pendingLead = await LeadModel.findOne({
+        "customFields.authorId": targetAuthorId,
+        status: "pending_email",
+      });
     }
-    pendingQuery.$or = nameConditions;
 
-    const pendingLead = await LeadModel.findOne(pendingQuery);
+    // 3. Check by name or email pattern on this page or owner's account
+    if (!pendingLead) {
+      const pendingQuery: any = {
+        status: "pending_email",
+      };
+      if (targetPageId) {
+        pendingQuery.pageId = targetPageId;
+      } else if (data.page) {
+        pendingQuery.page = data.page;
+      } else if (ownerEmail) {
+        pendingQuery.userEmail = ownerEmail;
+      }
+
+      const nameConditions: any[] = [{ email: normalizedEmail }];
+      if (data.name && data.name.trim()) {
+        const cleanName = data.name.trim();
+        nameConditions.push({ name: new RegExp(cleanName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), "i") });
+        nameConditions.push({ email: new RegExp(cleanName.toLowerCase().replace(/[^a-z0-9]/g, ""), "i") });
+      }
+      pendingQuery.$or = nameConditions;
+
+      pendingLead = await LeadModel.findOne(pendingQuery);
+    }
+
+    // 4. Fallback: match most recent pending LinkedIn lead on this account / page
+    if (!pendingLead) {
+      const fallbackQuery: any = {
+        status: "pending_email",
+      };
+      if (ownerEmail) fallbackQuery.userEmail = ownerEmail;
+      if (targetPageId) fallbackQuery.pageId = targetPageId;
+
+      pendingLead = await LeadModel.findOne(fallbackQuery).sort({ _id: -1 });
+    }
+
     if (pendingLead) {
       pendingLead.status = "converted";
       pendingLead.email = normalizedEmail;
       if (data.name && data.name.trim()) pendingLead.name = data.name.trim();
+      pendingLead.tags = Array.from(new Set([...(pendingLead.tags || []), "converted", "verified-email"]));
       pendingLead.customFields = {
         ...(pendingLead.customFields || {}),
         convertedAt: new Date().toISOString(),
+        verifiedEmail: normalizedEmail,
         isConverted: true,
       };
       if (data.customAnswer) pendingLead.customAnswer = data.customAnswer;
@@ -105,10 +145,8 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
     }
   }
 
-  let normalizedSignedUpAt = data.signedUpAt;
-  if (!normalizedSignedUpAt || isNaN(new Date(normalizedSignedUpAt).getTime())) {
-    normalizedSignedUpAt = new Date().toISOString();
-  }
+  const parsedDate = parseFlexibleDate(data.signedUpAt);
+  const normalizedSignedUpAt = parsedDate ? parsedDate.toISOString() : new Date().toISOString();
 
   if (!isUpgradedFromPending) {
     createdOrUpdatedLead = await LeadModel.create({

@@ -21,6 +21,7 @@ import {
   BarChart3,
   FileText,
   Layers,
+  Linkedin,
 } from "lucide-react";
 import {
   syncWithDatabase,
@@ -43,27 +44,13 @@ const DeleteLeadModal = dynamic(() => import("@/components/leads/DeleteLeadModal
 const BulkDeleteModal = dynamic(() => import("@/components/leads/BulkDeleteModal").then((mod) => mod.BulkDeleteModal), { ssr: false });
 const LeadDetailsModal = dynamic(() => import("@/components/leads/LeadDetailsModal").then((mod) => mod.LeadDetailsModal), { ssr: false });
 
+import { formatDateOnly, parseFlexibleDate } from "@/lib/utils";
+
 function generateSafeId() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID().slice(0, 8);
   }
   return Math.random().toString(36).substring(2, 9);
-}
-
-function formatDateOnly(dateStr?: string) {
-  if (!dateStr) return "";
-  if (dateStr.includes(" at ")) {
-    return dateStr.split(" at ")[0];
-  }
-  const dateObj = new Date(dateStr);
-  if (!isNaN(dateObj.getTime())) {
-    return dateObj.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
-  return dateStr;
 }
 
 // Sanitize CSV cells against Formula Injection (CWE-1236)
@@ -177,6 +164,20 @@ export default function LeadsPage() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  // Check if lead is from LinkedIn Automation / Comments
+  const checkIsLinkedInLead = useCallback((l: Lead): boolean => {
+    return (
+      l.source === "linkedin-comment" ||
+      l.source === "linkedin" ||
+      Boolean(l.tags?.includes("linkedin")) ||
+      Boolean(l.tags?.includes("dm-sent")) ||
+      Boolean(l.tags?.includes("auto-reply")) ||
+      Boolean(l.email && l.email.endsWith("@linkedin-prospect.com")) ||
+      l.referrer === "linkedin.com" ||
+      Boolean(l.customFields?.linkedinProfile)
+    );
+  }, []);
+
   // Check if lead or magnet page is a Locked PDF
   const checkIsLockedPdfLead = useCallback(
     (l: Lead): boolean => {
@@ -210,12 +211,17 @@ export default function LeadsPage() {
     [magnetPages, leads, checkIsLockedPdfLead]
   );
 
-  // Magnet Options Grouped by Type (Locked PDF vs Form)
-  const { lockedPdfMagnets, formMagnets, otherSources } = useMemo(() => {
+  // Magnet Options Grouped by Type (Locked PDF vs Form vs LinkedIn)
+  const { lockedPdfMagnets, formMagnets, linkedInCount, otherSources } = useMemo(() => {
     const rawMagnets = Array.from(new Set(leads.map((l) => l.page).filter(Boolean)));
     const locked: string[] = [];
     const forms: string[] = [];
     const others: string[] = [];
+    let linkedInTotal = 0;
+
+    leads.forEach((l) => {
+      if (checkIsLinkedInLead(l)) linkedInTotal++;
+    });
 
     rawMagnets.forEach((name) => {
       if (name === "Direct Manual Add" || name === "Imported Contact") {
@@ -230,9 +236,10 @@ export default function LeadsPage() {
     return {
       lockedPdfMagnets: locked,
       formMagnets: forms,
+      linkedInCount: linkedInTotal,
       otherSources: others,
     };
-  }, [leads, checkIsLockedPdfMagnet]);
+  }, [leads, checkIsLockedPdfMagnet, checkIsLinkedInLead]);
 
   // Filtered leads using React 18 Deferred Search Value
   const filtered = useMemo(() => {
@@ -240,13 +247,16 @@ export default function LeadsPage() {
     return leads.filter((l) => {
       let matchMagnet = false;
       const isLocked = checkIsLockedPdfLead(l);
+      const isLinkedIn = checkIsLinkedInLead(l);
 
       if (filterMagnet === "All lead magnets") {
         matchMagnet = true;
+      } else if (filterMagnet === "All LinkedIn Leads") {
+        matchMagnet = isLinkedIn;
       } else if (filterMagnet === "All Locked PDFs") {
         matchMagnet = isLocked;
       } else if (filterMagnet === "All Form Magnets") {
-        matchMagnet = !isLocked;
+        matchMagnet = !isLocked && !isLinkedIn;
       } else {
         matchMagnet = l.page === filterMagnet;
       }
@@ -255,11 +265,12 @@ export default function LeadsPage() {
         !q ||
         l.email.toLowerCase().includes(q) ||
         (l.name && l.name.toLowerCase().includes(q)) ||
-        (l.page && l.page.toLowerCase().includes(q));
+        (l.page && l.page.toLowerCase().includes(q)) ||
+        (l.customFields?.linkedinProfile && String(l.customFields.linkedinProfile).toLowerCase().includes(q));
 
       return matchMagnet && matchSearch;
     });
-  }, [leads, filterMagnet, deferredSearch, checkIsLockedPdfLead]);
+  }, [leads, filterMagnet, deferredSearch, checkIsLockedPdfLead, checkIsLinkedInLead]);
 
   // 5. Pagination Logic
   const totalPages = useMemo(() => Math.ceil(filtered.length / pageSize) || 1, [filtered.length, pageSize]);
@@ -549,8 +560,8 @@ export default function LeadsPage() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     return leads.filter((l) => {
       if (!l.signedUpAt) return true;
-      const d = new Date(l.signedUpAt);
-      if (isNaN(d.getTime())) return true;
+      const d = parseFlexibleDate(l.signedUpAt);
+      if (!d) return true;
       return d >= thirtyDaysAgo;
     }).length;
   }, [leads]);
@@ -750,7 +761,9 @@ export default function LeadsPage() {
                       }}
                       className="flex items-center gap-2 rounded-xl border border-zinc-200/80 bg-white/70 px-3.5 py-2 text-xs font-semibold text-zinc-700 shadow-xs backdrop-blur-md transition-all hover:bg-white/90 focus:outline-none dark:border-white/10 dark:bg-[#18181B]/80 dark:text-zinc-200 dark:hover:bg-[#222226] cursor-pointer select-none"
                     >
-                      {filterMagnet === "All Locked PDFs" || (checkIsLockedPdfMagnet(filterMagnet) && filterMagnet !== "All lead magnets" && filterMagnet !== "All Form Magnets") ? (
+                      {filterMagnet === "All LinkedIn Leads" ? (
+                        <Linkedin className="h-3.5 w-3.5 text-[#0A66C2] dark:text-[#38BDF8] shrink-0" />
+                      ) : filterMagnet === "All Locked PDFs" || (checkIsLockedPdfMagnet(filterMagnet) && filterMagnet !== "All lead magnets" && filterMagnet !== "All Form Magnets") ? (
                         <Lock className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
                       ) : filterMagnet === "All Form Magnets" || (formMagnets.includes(filterMagnet)) ? (
                         <FileText className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8] shrink-0" />
@@ -794,6 +807,35 @@ export default function LeadsPage() {
                               All lead magnets
                             </span>
                             {filterMagnet === "All lead magnets" && <Check className="h-3.5 w-3.5 text-current shrink-0" />}
+                          </button>
+
+                          {/* LinkedIn Leads Filter Option */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFilterMagnet("All LinkedIn Leads");
+                              setFilterOpen(false);
+                              setCurrentPage(1);
+                            }}
+                            className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                              filterMagnet === "All LinkedIn Leads"
+                                ? "bg-[#0A66C2]/10 text-[#0A66C2] font-bold dark:bg-[#0A66C2]/20 dark:text-[#38BDF8]"
+                                : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-white/5"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2 truncate">
+                              <Linkedin className="h-3.5 w-3.5 text-[#0A66C2] dark:text-[#38BDF8] shrink-0" />
+                              All LinkedIn Leads
+                            </span>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {linkedInCount > 0 && (
+                                <span className="px-1.5 py-0.2 rounded bg-[#0A66C2]/10 text-[9px] font-semibold text-[#0A66C2] dark:bg-[#0A66C2]/25 dark:text-[#38BDF8]">
+                                  {linkedInCount}
+                                </span>
+                              )}
+                              {filterMagnet === "All LinkedIn Leads" && <Check className="h-3.5 w-3.5 text-current shrink-0" />}
+                            </div>
                           </button>
 
                           <button
@@ -1003,12 +1045,14 @@ export default function LeadsPage() {
                 <tbody className="divide-y divide-zinc-100 bg-white dark:divide-[#222228] dark:bg-[#18181B]">
                   {paginatedLeads.map((lead) => {
                     const isSelected = selectedLeadIds.includes(lead.id);
-                    const isLockedPdf = checkIsLockedPdfLead(lead);
+                    const isLinkedIn = checkIsLinkedInLead(lead);
+                    const isLockedPdf = !isLinkedIn && checkIsLockedPdfLead(lead);
                     const isManual =
-                      lead.source === "integration" ||
+                      !isLinkedIn &&
+                      (lead.source === "integration" ||
                       (lead.source as string) === "manual" ||
                       lead.page === "Direct Manual Add" ||
-                      lead.sequence === "Imported Contact";
+                      lead.sequence === "Imported Contact");
 
                     return (
                       <LeadTableRow
@@ -1017,6 +1061,7 @@ export default function LeadsPage() {
                         isSelected={isSelected}
                         isLockedPdf={isLockedPdf}
                         isManual={isManual}
+                        isLinkedIn={isLinkedIn}
                         formattedDate={formatDateOnly(lead.signedUpAt)}
                         sequenceStatusNode={renderSequenceStatus(lead)}
                         onToggleSelect={toggleSelectLead}
