@@ -47,7 +47,7 @@ export default function MagnetSignupForm({
   customFormFields?: CustomFormField[];
   username?: string;
   isVariantB?: boolean;
-  layout?: "standard" | "horizontal-glass";
+  layout?: "standard" | "horizontal-glass" | "split-panel";
   afterSignupOption?: "standard" | "elsewhere" | "custom";
   destinationUrl?: string;
 }) {
@@ -380,6 +380,87 @@ export default function MagnetSignupForm({
             </div>
           )}
         </form>
+      ) : layout === "split-panel" ? (
+        <div className="space-y-3 w-full">
+          {formTitle && (
+            <h2 className={`w-full text-center text-lg sm:text-xl font-bold ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>
+              {formTitle}
+            </h2>
+          )}
+          {formSubtitle && (
+            <p className="w-full text-center text-xs text-zinc-400">
+              {formSubtitle}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-2.5 pt-2">
+            <input
+              type="text"
+              required
+              placeholder="Name *"
+              value={name}
+              disabled={loading}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full rounded-xl border border-zinc-200 dark:border-[#252529] bg-white dark:bg-[#18181C] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none transition shadow-xs"
+            />
+            <input
+              type="email"
+              required
+              placeholder="Email *"
+              value={email}
+              disabled={loading}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-xl border border-zinc-200 dark:border-[#252529] bg-white dark:bg-[#18181C] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none transition shadow-xs"
+            />
+
+            {customFormFields && customFormFields.length > 0 && (
+              customFormFields.map((field) => (
+                <input
+                  key={field.id}
+                  type="text"
+                  required={field.required}
+                  placeholder={`${field.label}${field.required ? " *" : ""}`}
+                  value={customFieldValues[field.id] || ""}
+                  disabled={loading}
+                  onChange={(e) => handleCustomFieldChange(field.id, e.target.value)}
+                  className="w-full rounded-xl border border-zinc-200 dark:border-[#252529] bg-white dark:bg-[#18181C] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none transition shadow-xs"
+                />
+              ))
+            )}
+
+            {enableAiPersonalizedDeliverable && (
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-[#0066B2] flex items-center gap-1">
+                  ✨ {customPromptQuestion || "What is your main goal or bottleneck?"}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={customAnswer}
+                  disabled={loading}
+                  onChange={(e) => setCustomAnswer(e.target.value)}
+                  placeholder={customPromptPlaceholder || "e.g. Scaling outreach, Lead generation"}
+                  className="w-full rounded-xl border border-zinc-200 dark:border-[#252529] bg-white dark:bg-[#18181C] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none transition shadow-xs"
+                />
+              </div>
+            )}
+
+            {errorMsg && (
+              <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs font-semibold text-rose-500 text-center">
+                {errorMsg}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full text-center rounded-xl py-3 px-4 text-xs font-extrabold text-white shadow-md transition duration-150 outline-none border-2 border-transparent hover:border-white/40 focus:border-white cursor-pointer mt-2 disabled:opacity-50"
+              style={{ backgroundColor: brandColor }}
+            >
+              {loading ? "Sending..." : (formButtonText || cta || "Send it to me")}
+            </button>
+          </form>
+        </div>
       ) : (
         <div className={`rounded-xl border p-5 sm:p-6 text-left transition-all duration-300 backdrop-blur-sm ${themeMode === "dark"
           ? "text-white"

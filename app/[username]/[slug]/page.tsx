@@ -327,43 +327,45 @@ export default async function MagnetPageRoute({
       <div className="flex-1 w-full flex flex-col justify-center px-4 sm:px-8 lg:px-12 py-1 md:py-2">
         {/* Dynamic Multi-Template View Renderer */}
         {((page.template as string) === "template2" || (!page.template && (accountDoc?.templateId as string) === "template2")) ? (
-          /* TEMPLATE 2: Lead Capture Split Panel Layout */
+          /* TEMPLATE 2: Lead Capture Split Panel Layout (Full Screen / No Outer Card) */
           <div className="w-full max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
-              {/* Left Panel: Cover Image + Bullets */}
-              <div className="lg:col-span-7 space-y-4">
+              {/* Left Panel: Cover Image Backdrop + Gradient Scrim + Content Overlay */}
+              <div className="lg:col-span-7 relative flex flex-col justify-end p-6 sm:p-8 md:p-10 rounded-3xl overflow-hidden min-h-[380px] sm:min-h-[440px] bg-zinc-900 text-white shadow-2xl border border-black/10 dark:border-white/10 group">
                 {activeImageUrl && activeImageUrl.trim() !== "" && (
-                  <div className="rounded-2xl overflow-hidden max-h-[220px] w-full shadow-xl border border-black/5 dark:border-white/5">
-                    <img
-                      src={activeImageUrl}
-                      alt={page.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <img
+                    src={activeImageUrl}
+                    alt={page.name}
+                    className="absolute inset-0 w-full h-full object-cover opacity-50"
+                  />
                 )}
-                <div className="space-y-3">
-                  <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.1] ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>
-                    {activeHeadline}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0c16] via-[#0a0c16]/70 to-transparent pointer-events-none" />
+
+                {/* Left Panel Content */}
+                <div className="relative z-10 space-y-3">
+                  <h1 className={`text-white leading-tight drop-shadow-md ${(activeHeadline?.length || 0) > 60 ? "text-xl sm:text-2xl md:text-3xl font-bold" : (activeHeadline?.length || 0) > 35 ? "text-2xl sm:text-3xl md:text-4xl font-extrabold" : "text-3xl sm:text-4xl md:text-5xl font-black"}`}>
+                    {activeHeadline || "Free Resource"}
                   </h1>
                   {page.subheadline && (
-                    <p className={`text-sm sm:text-base font-semibold leading-relaxed line-clamp-2 ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
+                    <p className="text-sm sm:text-base text-white/85 leading-relaxed drop-shadow">
                       {page.subheadline}
                     </p>
                   )}
                   {page.pitch && (
-                    <p className={`text-xs sm:text-sm leading-relaxed line-clamp-2 ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                    <p className="text-xs sm:text-sm text-white/75 leading-relaxed">
                       {page.pitch}
                     </p>
                   )}
 
+                  {/* Bullets */}
                   {page.bullets && page.bullets.length > 0 && (
-                    <ul className="space-y-2 pt-2 border-t border-black/10 dark:border-white/10">
-                      {page.bullets.map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm">
-                          <span style={{ color: brandColor || "#a5b4fc" }}>
-                            <CheckIcon className="w-4 h-4 shrink-0 mt-0.5" />
+                    <ul className="space-y-2 pt-2 border-t border-white/15">
+                      {page.bullets.map((b, i) => (
+                        <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-zinc-100">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 mt-0.5">
+                            ✓
                           </span>
-                          <span className={themeMode === "dark" ? "text-zinc-300" : "text-zinc-700"}>{item}</span>
+                          <span>{b}</span>
                         </li>
                       ))}
                     </ul>
@@ -372,7 +374,7 @@ export default async function MagnetPageRoute({
               </div>
 
               {/* Right Panel: Form */}
-              <div className="lg:col-span-5">
+              <div className="lg:col-span-5 flex flex-col justify-center">
                 <MagnetSignupForm
                   cta={page.cta}
                   formTitle={page.formTitle}
