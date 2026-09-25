@@ -126,18 +126,30 @@ export default function PdfViewerClient({
     };
   }, []);
 
-  // ── Handle Ctrl + Wheel for zooming document ──────────────────────────────
+  // ── Handle Ctrl + Wheel / Trackpad pinch for smooth zooming ────────────────
   useEffect(() => {
     const viewportEl = docRef.current;
     if (!viewportEl) return;
 
+    let accumulatedDelta = 0;
+    let animFrameId: number | null = null;
+
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        if (e.deltaY < 0) {
-          setZoomScale((z) => Math.min(200, z + 15));
-        } else if (e.deltaY > 0) {
-          setZoomScale((z) => Math.max(50, z - 15));
+        accumulatedDelta += e.deltaY;
+
+        if (animFrameId === null) {
+          animFrameId = requestAnimationFrame(() => {
+            const step = Math.sign(accumulatedDelta) * Math.min(25, Math.max(5, Math.abs(Math.round(accumulatedDelta * 0.08))));
+            if (accumulatedDelta < 0) {
+              setZoomScale((z) => Math.min(200, z + Math.abs(step)));
+            } else if (accumulatedDelta > 0) {
+              setZoomScale((z) => Math.max(50, z - Math.abs(step)));
+            }
+            accumulatedDelta = 0;
+            animFrameId = null;
+          });
         }
       }
     };
@@ -145,6 +157,7 @@ export default function PdfViewerClient({
     viewportEl.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
       viewportEl.removeEventListener("wheel", handleWheel);
+      if (animFrameId !== null) cancelAnimationFrame(animFrameId);
     };
   }, []);
 
@@ -428,7 +441,11 @@ export default function PdfViewerClient({
             className="adobe-icon-btn"
             title="Zoom Out"
             disabled={zoomScale <= 50}
-            onClick={() => setZoomScale((z) => Math.max(50, z - 25))}
+            onClick={() => {
+              const levels = [50, 75, 100, 125, 150, 200];
+              const prev = [...levels].reverse().find((lvl) => lvl < zoomScale) || Math.max(50, zoomScale - 25);
+              setZoomScale(prev);
+            }}
           >
             <ZoomOut size={16} />
           </button>
@@ -438,6 +455,9 @@ export default function PdfViewerClient({
             value={zoomScale}
             onChange={(e) => setZoomScale(Number(e.target.value))}
           >
+            {![50, 75, 100, 125, 150, 200].includes(zoomScale) && (
+              <option value={zoomScale}>{zoomScale}%</option>
+            )}
             <option value={50}>50%</option>
             <option value={75}>75%</option>
             <option value={100}>100%</option>
@@ -450,7 +470,11 @@ export default function PdfViewerClient({
             className="adobe-icon-btn"
             title="Zoom In"
             disabled={zoomScale >= 200}
-            onClick={() => setZoomScale((z) => Math.min(200, z + 25))}
+            onClick={() => {
+              const levels = [50, 75, 100, 125, 150, 200];
+              const next = levels.find((lvl) => lvl > zoomScale) || Math.min(200, zoomScale + 25);
+              setZoomScale(next);
+            }}
           >
             <ZoomIn size={16} />
           </button>
@@ -514,6 +538,7 @@ export default function PdfViewerClient({
           {pdfPages.map((url, idx) => {
             const isLocked = !unlocked && idx >= pdfFreePages;
             const displayUrl = isLocked ? getBlurUrl(url) : url;
+            const computedWidth = Math.round(860 * (zoomScale / 100));
 
             return (
               <div
@@ -522,9 +547,9 @@ export default function PdfViewerClient({
                 data-page-index={idx}
                 className={`adobe-page-wrapper ${isLocked ? "is-locked" : ""}`}
                 style={{
-                  transform: `scale(${zoomScale / 100}) rotate(${rotation}deg)`,
-                  transformOrigin: "top center",
-                  maxWidth: `${zoomScale * 8.6}px`,
+                  width: `${computedWidth}px`,
+                  maxWidth: zoomScale === 100 ? "min(860px, 92vw)" : undefined,
+                  ...(rotation !== 0 ? { transform: `rotate(${rotation}deg)` } : {}),
                 }}
               >
                 <img

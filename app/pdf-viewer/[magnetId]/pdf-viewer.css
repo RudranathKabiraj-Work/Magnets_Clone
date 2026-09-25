@@ -245,9 +245,9 @@
   flex: 1;
   height: 100%;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
   background: #525659;
-  padding: 32px 16px 90px;
+  padding: 32px 24px 90px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -265,13 +265,13 @@ body:has(.adobe-viewer-root) {
 .adobe-page-wrapper {
   position: relative;
   flex: none;
-  width: min(860px, 92%);
   background: #ffffff;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s ease, max-width 0.2s ease;
+  transition: width 0.18s ease-out, transform 0.2s ease;
   overflow: hidden;
   user-select: none;
   pointer-events: none;
+  margin: 0 auto;
 }
 
 .adobe-page-img {
