@@ -49,21 +49,45 @@ interface LinkedInCommentItem {
  * Standard headers required by LinkedIn Voyager APIs
  */
 function buildVoyagerHeaders(session: LinkedInSession, customHeaders: Record<string, string> = {}) {
-  const cleanLiAt = (session.liAt || "").trim().replace(/^"|"$/g, "");
-  let cleanJSessionId = (session.jsessionId || "ajax:9182374650192837").trim().replace(/^"|"$/g, "");
+  const rawInput = (session.liAt || "").trim();
+  let cookieString = "";
+  let cleanJSessionId = (session.jsessionId || "").trim().replace(/^"|"$/g, "");
+
+  if (rawInput.includes("li_at=") || rawInput.includes(";")) {
+    cookieString = rawInput;
+    // Extract JSESSIONID from cookie string if not provided separately
+    if (!cleanJSessionId) {
+      const match = rawInput.match(/JSESSIONID="?([^";]+)"?/i);
+      if (match) cleanJSessionId = match[1];
+    }
+  } else {
+    const cleanLiAt = rawInput.replace(/^"|"$/g, "");
+    if (!cleanJSessionId) cleanJSessionId = "ajax:9182374650192837";
+    if (!cleanJSessionId.startsWith("ajax:")) {
+      cleanJSessionId = `ajax:${cleanJSessionId}`;
+    }
+    cookieString = `li_at=${cleanLiAt}; JSESSIONID="${cleanJSessionId}"`;
+  }
+
+  if (!cleanJSessionId) cleanJSessionId = "ajax:9182374650192837";
   if (!cleanJSessionId.startsWith("ajax:")) {
     cleanJSessionId = `ajax:${cleanJSessionId}`;
   }
 
-  const cookieString = `li_at=${cleanLiAt}; JSESSIONID="${cleanJSessionId}"`;
-
   return {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
     "Accept": "application/vnd.linkedin.normalized+json+2.1, application/json, text/plain, */*",
     "Accept-Language": "en-US,en;q=0.9",
     "csrf-token": cleanJSessionId,
     "x-li-lang": "en_US",
     "x-restli-protocol-version": "2.0.0",
+    "sec-ch-ua": '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "referer": "https://www.linkedin.com/feed/",
     "Cookie": cookieString,
     ...customHeaders,
   };

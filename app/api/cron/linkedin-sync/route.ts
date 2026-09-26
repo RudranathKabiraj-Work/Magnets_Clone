@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongodb";
 import { AccountModel } from "@/lib/models";
 import { syncUserLinkedInComments } from "@/lib/linkedin-automation";
@@ -9,8 +9,17 @@ export const dynamic = "force-dynamic";
  * Background Cron Job: Runs periodically to process LinkedIn comments
  * and send DMs for all accounts with an active LinkedIn connection.
  */
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
+    const authHeader = req.headers.get("authorization");
+    const vercelCronHeader = req.headers.get("x-vercel-cron");
+    const querySecret = req.nextUrl.searchParams.get("secret");
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}` && querySecret !== cronSecret && !vercelCronHeader) {
+      return NextResponse.json({ error: "Unauthorized cron execution" }, { status: 401 });
+    }
+
     await dbConnect();
 
     // Fetch all accounts with active LinkedIn connections
@@ -52,7 +61,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   return GET(req);
 }
 
