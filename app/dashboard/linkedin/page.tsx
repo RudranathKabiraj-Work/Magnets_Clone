@@ -165,6 +165,8 @@ export default function LinkedInAutomationPage() {
   const [postSearchQuery, setPostSearchQuery] = useState("");
   const [postStatusFilter, setPostStatusFilter] = useState<"all" | "active" | "paused">("all");
   const [postPage, setPostPage] = useState(1);
+  const [customPostUrl, setCustomPostUrl] = useState("");
+  const [addingPost, setAddingPost] = useState(false);
   const POSTS_PER_PAGE = 5;
 
   useEffect(() => {
@@ -331,10 +333,16 @@ export default function LinkedInAutomationPage() {
       });
       const data = await res.json();
       if (data.success) {
+        if (data.account) {
+          setAccount(data.account);
+        }
         setSyncResult(data.message || `Checked posts. ${data.dmsSent || 0} DMs sent.`);
         syncWithDatabase().then((d) => {
           if (d?.leads) {
             setLinkedinLeads(d.leads.filter((l: Lead) => l.source === "linkedin-comment"));
+          }
+          if (d?.account) {
+            setAccount(d.account);
           }
         });
       } else {
@@ -396,6 +404,54 @@ export default function LinkedInAutomationPage() {
       fetchRecentPosts();
     }
   }, [account?.linkedinConnected, fetchRecentPosts]);
+
+  const handleAddCustomPost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customPostUrl.trim()) return;
+
+    const url = customPostUrl.trim();
+    let postId = "";
+    const matchActivity =
+      url.match(/activity[:\-]([0-9]+)/) ||
+      url.match(/update\/urn:li:activity:([0-9]+)/) ||
+      url.match(/posts\/([a-zA-Z0-9_\-]+)/);
+
+    if (matchActivity) {
+      postId = matchActivity[1];
+    } else {
+      postId = `post_${Date.now()}`;
+    }
+
+    setAddingPost(true);
+    try {
+      const newEntry: LinkedInPostCampaign = {
+        postId,
+        postUrl: url,
+        postText: `LinkedIn Post (${postId})`,
+        enabled: true,
+        magnetId: selectedMagnetId || (livePages[0]?.id || ""),
+        triggerWord: triggerKeyword || "resource",
+        commentsCount: 0,
+        createdAt: new Date().toISOString(),
+      };
+
+      setPosts((prev) => [newEntry, ...prev.filter((p) => p.postId !== postId)]);
+      setCustomPostUrl("");
+
+      await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "saveLinkedInPostCampaign",
+          data: newEntry,
+        }),
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAddingPost(false);
+    }
+  };
 
   const handleTogglePostCampaign = async (postId: string, currentEnabled: boolean) => {
     const newEnabled = !currentEnabled;
@@ -845,6 +901,24 @@ export default function LinkedInAutomationPage() {
                       {loadingPosts ? "Refreshing..." : "Refresh Posts"}
                     </button>
                   </div>
+
+                  {/* Add Post by URL Input */}
+                  <form onSubmit={handleAddCustomPost} className="mb-4 flex items-center gap-2">
+                    <input
+                      type="url"
+                      placeholder="Paste any LinkedIn post URL to monitor (e.g. https://www.linkedin.com/posts/...)"
+                      value={customPostUrl}
+                      onChange={(e) => setCustomPostUrl(e.target.value)}
+                      className="flex-1 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3.5 py-2 text-xs text-zinc-800 dark:text-zinc-200 outline-none focus:border-[#0A66C2] transition"
+                    />
+                    <button
+                      type="submit"
+                      disabled={addingPost || !customPostUrl.trim()}
+                      className="rounded-xl bg-[#0A66C2] hover:bg-[#004182] px-4 py-2 text-xs font-bold text-white transition disabled:opacity-50 cursor-pointer shrink-0"
+                    >
+                      {addingPost ? "Adding..." : "+ Add Post"}
+                    </button>
+                  </form>
 
                   {/* Search Bar & Filter Tabs */}
                   {posts.length > 0 && (
@@ -1828,6 +1902,21 @@ export default function LinkedInAutomationPage() {
                       onChange={(e) => setInputLiAt(e.target.value)}
                       className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs font-mono text-zinc-800 dark:text-zinc-200 outline-none focus:border-[#0A66C2] transition"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      CSRF Token Cookie (<code className="font-mono text-zinc-900 dark:text-white">JSESSIONID</code>) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder='"ajax:1234567890..."'
+                      value={inputJSessionId}
+                      onChange={(e) => setInputJSessionId(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs font-mono text-zinc-800 dark:text-zinc-200 outline-none focus:border-[#0A66C2] transition"
+                    />
+                    <p className="text-[10.5px] text-zinc-400 mt-1">Copy the JSESSIONID value from the same Cookies table in DevTools.</p>
                   </div>
 
                   <div className="flex items-center justify-end gap-3 pt-2">

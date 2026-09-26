@@ -2,12 +2,7 @@
  * In-House Native LinkedIn Automation Engine (Zero 3rd-Party Dependencies)
  * 
  * Interacts directly with LinkedIn using authenticated session cookies (li_at, JSESSIONID).
- * Provides end-to-end functionality:
- * 1. Session verification & Profile info retrieval
- * 2. Fetching user's latest posts & comment counts
- * 3. Fetching comments with rich commenter profiles
- * 4. Replying to comments automatically
- * 5. Sending direct messages (DMs) with personalized lead magnet links
+ * Configured with anti-redirect loops (redirect: "manual") and full multi-endpoint fallbacks.
  */
 
 interface LinkedInSession {
@@ -54,7 +49,7 @@ interface LinkedInCommentItem {
  * Standard headers required by LinkedIn Voyager APIs
  */
 function buildVoyagerHeaders(session: LinkedInSession, customHeaders: Record<string, string> = {}) {
-  const cleanLiAt = session.liAt.trim().replace(/^"|"$/g, "");
+  const cleanLiAt = (session.liAt || "").trim().replace(/^"|"$/g, "");
   let cleanJSessionId = (session.jsessionId || "ajax:9182374650192837").trim().replace(/^"|"$/g, "");
   if (!cleanJSessionId.startsWith("ajax:")) {
     cleanJSessionId = `ajax:${cleanJSessionId}`;
@@ -64,7 +59,7 @@ function buildVoyagerHeaders(session: LinkedInSession, customHeaders: Record<str
 
   return {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "application/vnd.linkedin.normalized+json+2.1",
+    "Accept": "application/vnd.linkedin.normalized+json+2.1, application/json, text/plain, */*",
     "Accept-Language": "en-US,en;q=0.9",
     "csrf-token": cleanJSessionId,
     "x-li-lang": "en_US",
@@ -89,13 +84,22 @@ export async function validateLinkedInSession(liAt: string, jsessionId?: string)
   try {
     const headers = buildVoyagerHeaders({ liAt, jsessionId });
     
-    // Fetch Me profile from Voyager API
+    // Fetch Me profile from Voyager API with redirect manual to avoid loops
     const res = await fetch("https://www.linkedin.com/voyager/api/me", {
       method: "GET",
       headers,
+      redirect: "manual",
     });
 
-    if (!res.ok) {
+    if (res.status >= 300 && res.status < 400) {
+      // If redirected to login, session is expired
+      const loc = res.headers.get("location") || "";
+      if (loc.includes("login") || loc.includes("checkpoint") || loc.includes("auth")) {
+        return { success: false, error: "LinkedIn session cookie expired. Please copy a fresh li_at cookie." };
+      }
+    }
+
+    if (!res.ok && res.status !== 200) {
       if (res.status === 401 || res.status === 403) {
         return { success: false, error: "LinkedIn session cookie expired or unauthorized. Please refresh your li_at cookie." };
       }
@@ -104,24 +108,60 @@ export async function validateLinkedInSession(liAt: string, jsessionId?: string)
 
     const data = await res.json();
     
-    // Extract profile info from standard voyager response structure
-    const miniProfile = data.miniProfile || data.plainId || {};
-    const firstName = miniProfile.firstName || data.firstName || "";
-    const lastName = miniProfile.lastName || data.lastName || "";
-    const fullName = `${firstName} ${lastName}`.trim() || miniProfile.localizedFirstName || "LinkedIn User";
-    const headline = miniProfile.occupation || data.headline || "";
-    const id = miniProfile.entityUrn ? miniProfile.entityUrn.replace("urn:li:fs_miniProfile:", "") : (miniProfile.plainId || data.plainId || "unknown");
-    const publicIdentifier = miniProfile.publicIdentifier || id;
+    // 1. Extract from miniProfile or root object or included objects
+    let miniProfile = data.miniProfile || {};
+    
+    // Check included array if present
+    if (Array.isArray(data.included)) {
+      const foundMini = data.included.find(
+        (item: any) =>
+          item.$type?.includes("MiniProfile") ||
+          item.$type?.includes("MemberActor") ||
+          item.firstName ||
+          item.publicIdentifier
+      );
+      if (foundMini) {
+        miniProfile = { ...foundMini, ...miniProfile };
+      }
+    }
 
-    // Resolve picture url
-    let avatarUrl = "";
-    if (miniProfile.picture && miniProfile.picture["com.linkedin.common.VectorImage"]) {
-      const vector = miniProfile.picture["com.linkedin.common.VectorImage"];
-      const rootUrl = vector.rootUrl || "";
-      const artifacts = vector.artifacts || [];
-      if (artifacts.length > 0) {
-        const bestArtifact = artifacts[artifacts.length - 1];
-        avatarUrl = `${rootUrl}${bestArtifact.fileIdentifyingUrlPathSegment}`;
+    let firstName = miniProfile.firstName || data.firstName || data.localizedFirstName || "";
+    let lastName = miniProfile.lastName || data.lastName || data.localizedLastName || "";
+    let fullName = `${firstName} ${lastName}`.trim() || data.name || data.formattedName || "LinkedIn User";
+    let headline = miniProfile.occupation || miniProfile.headline || data.headline || data.occupation || "";
+    let id = miniProfile.entityUrn ? miniProfile.entityUrn.replace("urn:li:fs_miniProfile:", "").replace("urn:li:fsd_profile:", "") : (miniProfile.plainId || data.plainId || "me");
+    let publicIdentifier = miniProfile.publicIdentifier || data.publicIdentifier || id;
+
+    // Resolve picture url using robust vector extractor
+    let avatarUrl = extractVectorImageUrl(miniProfile.picture || data.picture || data.profilePicture);
+
+    // If avatarUrl or fullName is still empty, fetch from profileView
+    if ((!avatarUrl || fullName === "LinkedIn User") && publicIdentifier && publicIdentifier !== "me") {
+      try {
+        const pRes = await fetch(`https://www.linkedin.com/voyager/api/identity/profiles/${encodeURIComponent(publicIdentifier)}`, {
+          headers,
+          redirect: "manual",
+        });
+        if (pRes.ok) {
+          const pData = await pRes.json();
+          firstName = pData.firstName || firstName;
+          lastName = pData.lastName || lastName;
+          fullName = `${firstName} ${lastName}`.trim() || pData.localizedFirstName || fullName;
+          headline = pData.headline || headline;
+          if (!avatarUrl && pData.profilePicture) {
+            avatarUrl = extractVectorImageUrl(pData.profilePicture);
+          }
+          if (!avatarUrl && Array.isArray(pData.included)) {
+            for (const inc of pData.included) {
+              if (inc.picture) {
+                avatarUrl = extractVectorImageUrl(inc.picture);
+                if (avatarUrl) break;
+              }
+            }
+          }
+        }
+      } catch (pErr) {
+        console.warn("[LinkedIn Native] ProfileView enrichment fallback:", pErr);
       }
     }
 
@@ -143,8 +183,24 @@ export async function validateLinkedInSession(liAt: string, jsessionId?: string)
   }
 }
 
+function extractVectorImageUrl(pic: any): string {
+  if (!pic) return "";
+  if (typeof pic === "string" && pic.startsWith("http")) return pic;
+  const vector = pic["com.linkedin.common.VectorImage"] || pic.vectorImage || pic;
+  if (vector && vector.rootUrl) {
+    const rootUrl = vector.rootUrl;
+    const artifacts = vector.artifacts || [];
+    if (artifacts.length > 0) {
+      const best = artifacts[artifacts.length - 1];
+      const segment = best.fileIdentifyingUrlPathSegment || best.url || "";
+      return `${rootUrl}${segment}`;
+    }
+  }
+  return "";
+}
+
 /**
- * 2. Fetch User's Latest Posts
+ * 2. Fetch User's Latest Posts with Multi-Endpoint Fallbacks
  */
 export async function fetchUserLinkedInPosts(
   liAt: string,
@@ -155,28 +211,38 @@ export async function fetchUserLinkedInPosts(
   try {
     const headers = buildVoyagerHeaders({ liAt, jsessionId });
     
-    // Call Voyager feed updates for the profile
-    const profileUrn = profileUrnOrId.startsWith("urn:li:fsd_profile:") 
-      ? profileUrnOrId 
-      : (profileUrnOrId.startsWith("urn:li:") ? profileUrnOrId : `urn:li:fsd_profile:${profileUrnOrId}`);
+    // Normalize profile URN
+    const cleanId = (profileUrnOrId || "me").replace("urn:li:fsd_profile:", "").replace("urn:li:fs_miniProfile:", "");
+    const profileUrn = cleanId.startsWith("urn:li:") ? cleanId : `urn:li:fsd_profile:${cleanId}`;
 
-    const url = `https://www.linkedin.com/voyager/api/identity/profileUpdatesV2?profileUrn=${encodeURIComponent(profileUrn)}&q=memberShareFeed&count=${limit}`;
-    
-    const res = await fetch(url, { method: "GET", headers });
+    const endpoints = [
+      `https://www.linkedin.com/voyager/api/identity/profileUpdatesV2?profileUrn=${encodeURIComponent(profileUrn)}&q=memberShareFeed&count=${limit}`,
+      `https://www.linkedin.com/voyager/api/identity/profileUpdatesV2?q=memberShareFeed&count=${limit}`,
+      `https://www.linkedin.com/voyager/api/feed/updates?q=memberShareFeed&count=${limit}`,
+      `https://www.linkedin.com/voyager/api/feed/updates?moduleKey=member-shares%3Aphone&count=${limit}`,
+    ];
 
-    if (!res.ok) {
-      // Fallback to feed updates
-      const fallbackUrl = `https://www.linkedin.com/voyager/api/feed/updates?q=memberShareFeed&count=${limit}`;
-      const fallbackRes = await fetch(fallbackUrl, { method: "GET", headers });
-      if (!fallbackRes.ok) {
-        return { success: false, posts: [], error: `Failed to fetch posts (${res.status})` };
+    for (const url of endpoints) {
+      try {
+        const res = await fetch(url, {
+          method: "GET",
+          headers,
+          redirect: "manual",
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const parsed = parseVoyagerPosts(data);
+          if (parsed.posts.length > 0) {
+            return parsed;
+          }
+        }
+      } catch (endpointErr) {
+        console.warn(`[LinkedIn Native] Endpoint ${url} warning:`, endpointErr);
       }
-      const data = await fallbackRes.json();
-      return parseVoyagerPosts(data);
     }
 
-    const data = await res.json();
-    return parseVoyagerPosts(data);
+    return { success: true, posts: [] };
   } catch (err: any) {
     console.error("[LinkedIn Native] Fetch posts error:", err);
     return { success: false, posts: [], error: err.message };
@@ -185,48 +251,68 @@ export async function fetchUserLinkedInPosts(
 
 function parseVoyagerPosts(data: any): { success: boolean; posts: LinkedInPostItem[] } {
   const posts: LinkedInPostItem[] = [];
-  const elements = data.elements || data.included || [];
+  const rawList = [
+    ...(data.elements || []),
+    ...(data.included || []),
+    ...(data.data?.elements || []),
+  ];
 
-  for (const el of elements) {
+  for (const el of rawList) {
     const urn = el.urn || el.entityUrn || el.id;
-    if (!urn) continue;
+    if (!urn || typeof urn !== "string") continue;
 
-    // Extract commentary text
-    let text = "";
-    if (el.commentary && el.commentary.text) {
-      text = el.commentary.text.text || el.commentary.text || "";
-    } else if (el.text && typeof el.text === "string") {
-      text = el.text;
-    } else if (el.summary) {
-      text = el.summary;
+    // Only process update / activity objects
+    if (!urn.includes("update") && !urn.includes("activity") && !urn.includes("share")) {
+      continue;
     }
 
-    // Extract social metrics (comments count)
+    // Extract commentary text across various LinkedIn schema versions
+    let text = "";
+    if (el.commentary?.text?.text) {
+      text = el.commentary.text.text;
+    } else if (typeof el.commentary?.text === "string") {
+      text = el.commentary.text;
+    } else if (el.specificContent?.["com.linkedin.voyager.feed.ShareContent"]?.shareCommentary?.text) {
+      text = el.specificContent["com.linkedin.voyager.feed.ShareContent"].shareCommentary.text;
+    } else if (typeof el.text === "string") {
+      text = el.text;
+    } else if (typeof el.summary === "string") {
+      text = el.summary;
+    } else if (el.header?.text?.text) {
+      text = el.header.text.text;
+    }
+
+    // Extract comments count
     let commentsCount = 0;
     if (el.totalShareStatistics && typeof el.totalShareStatistics.numComments === "number") {
       commentsCount = el.totalShareStatistics.numComments;
-    } else if (el.socialDetail && el.socialDetail.totalSocialActivityCounts) {
-      commentsCount = el.socialDetail.totalSocialActivityCounts.numComments || 0;
+    } else if (el.socialDetail?.totalSocialActivityCounts?.numComments) {
+      commentsCount = el.socialDetail.totalSocialActivityCounts.numComments;
+    } else if (el.socialActivityCounts?.numComments) {
+      commentsCount = el.socialActivityCounts.numComments;
     }
 
-    const cleanUrn = urn.replace("urn:li:fs_updateV2:", "").replace("urn:li:activity:", "");
+    const cleanUrn = urn.replace("urn:li:fs_updateV2:", "").replace("urn:li:activity:", "").replace("urn:li:share:", "");
     const postUrl = `https://www.linkedin.com/feed/update/urn:li:activity:${cleanUrn}`;
 
-    posts.push({
-      id: urn,
-      social_id: cleanUrn,
-      text: text || "LinkedIn Post",
-      postUrl,
-      commentsCount,
-      createdAt: el.created ? new Date(el.created.time).toISOString() : new Date().toISOString(),
-    });
+    // Deduplicate by cleanUrn
+    if (!posts.some((p) => p.social_id === cleanUrn)) {
+      posts.push({
+        id: urn,
+        social_id: cleanUrn,
+        text: text || "LinkedIn Post",
+        postUrl,
+        commentsCount,
+        createdAt: el.created ? new Date(el.created.time || el.created).toISOString() : new Date().toISOString(),
+      });
+    }
   }
 
   return { success: true, posts };
 }
 
 /**
- * 3. Fetch Comments for a specific Post
+ * 3. Fetch Comments for a specific Post with Multi-Endpoint Fallbacks
  */
 export async function fetchPostCommentsNative(
   liAt: string,
@@ -237,42 +323,117 @@ export async function fetchPostCommentsNative(
   try {
     const headers = buildVoyagerHeaders({ liAt, jsessionId });
     
-    // Normalize URN
-    const targetUrn = postUrn.startsWith("urn:li:") ? postUrn : `urn:li:activity:${postUrn}`;
-    const url = `https://www.linkedin.com/voyager/api/feed/comments?q=comments&sortOrder=RELEVANCE&updateUrn=${encodeURIComponent(targetUrn)}&count=${limit}`;
+    // Normalize URN to urn:li:activity:ID
+    const cleanId = postUrn.replace("urn:li:activity:", "").replace("urn:li:share:", "").replace("urn:li:fs_updateV2:", "");
+    const targetUrn = `urn:li:activity:${cleanId}`;
 
-    const res = await fetch(url, { method: "GET", headers });
-    if (!res.ok) {
-      return { success: false, comments: [], error: `Failed to fetch comments (${res.status})` };
+    const endpoints = [
+      `https://www.linkedin.com/voyager/api/feed/comments?q=comments&sortOrder=CHRONOLOGICAL&updateUrn=${encodeURIComponent(targetUrn)}&count=${limit}`,
+      `https://www.linkedin.com/voyager/api/feed/comments?q=comments&sortOrder=RELEVANCE&updateUrn=${encodeURIComponent(targetUrn)}&count=${limit}`,
+      `https://www.linkedin.com/voyager/api/feed/comments?q=comments&updateUrn=${encodeURIComponent(targetUrn)}&count=${limit}`,
+      `https://www.linkedin.com/voyager/api/feed/updates/${encodeURIComponent(targetUrn)}/comments?count=${limit}`,
+    ];
+
+    let comments: LinkedInCommentItem[] = [];
+
+    for (const url of endpoints) {
+      try {
+        const res = await fetch(url, {
+          method: "GET",
+          headers,
+          redirect: "manual",
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          comments = parseVoyagerComments(data);
+          if (comments.length > 0) {
+            console.log(`[LinkedIn Native] Found ${comments.length} comments from ${url}`);
+            return { success: true, comments };
+          }
+        }
+      } catch (endpointErr) {
+        console.warn(`[LinkedIn Native] Comment endpoint warning (${url}):`, endpointErr);
+      }
     }
 
-    const data = await res.json();
-    const comments: LinkedInCommentItem[] = [];
-    const elements = data.elements || [];
+    return { success: true, comments: [] };
+  } catch (err: any) {
+    console.error("[LinkedIn Native] Fetch comments error:", err);
+    return { success: false, comments: [], error: err.message };
+  }
+}
 
-    for (const el of elements) {
-      const commentId = el.urn || el.entityUrn || el.id;
-      const commentText = el.commentary?.text?.text || el.commentary?.text || el.text || "";
-      const commenter = el.commenter || {};
-      const miniProfile = commenter["com.linkedin.voyager.feed.MemberActor"]?.miniProfile || commenter.miniProfile || {};
+function parseVoyagerComments(data: any): LinkedInCommentItem[] {
+  const comments: LinkedInCommentItem[] = [];
+  const rawElements = [
+    ...(data.elements || []),
+    ...(data.included || []),
+    ...(data.data?.elements || []),
+  ];
 
-      const authorFirstName = miniProfile.firstName || "";
-      const authorLastName = miniProfile.lastName || "";
-      const authorFullName = `${authorFirstName} ${authorLastName}`.trim() || miniProfile.localizedFirstName || "LinkedIn User";
-      const authorId = miniProfile.entityUrn ? miniProfile.entityUrn.replace("urn:li:fs_miniProfile:", "") : (miniProfile.plainId || "");
-      const authorHeadline = miniProfile.occupation || "";
-      const publicIdentifier = miniProfile.publicIdentifier || authorId;
+  // Build miniProfile lookup map from included array
+  const profileMap = new Map<string, any>();
+  if (Array.isArray(data.included)) {
+    for (const inc of data.included) {
+      const urn = inc.entityUrn || inc.urn || inc.id;
+      if (urn) profileMap.set(urn, inc);
+    }
+  }
 
-      let avatarUrl = "";
-      if (miniProfile.picture && miniProfile.picture["com.linkedin.common.VectorImage"]) {
-        const vector = miniProfile.picture["com.linkedin.common.VectorImage"];
-        const rootUrl = vector.rootUrl || "";
-        const artifacts = vector.artifacts || [];
-        if (artifacts.length > 0) {
-          avatarUrl = `${rootUrl}${artifacts[artifacts.length - 1].fileIdentifyingUrlPathSegment}`;
-        }
-      }
+  for (const el of rawElements) {
+    const commentId = el.urn || el.entityUrn || el.id;
+    if (!commentId || typeof commentId !== "string") continue;
 
+    // Must be a comment object or component
+    if (!commentId.includes("comment") && !el.commentary && !el.commenter) {
+      continue;
+    }
+
+    // Extract comment text
+    let commentText = "";
+    if (el.commentary?.text?.text) {
+      commentText = el.commentary.text.text;
+    } else if (typeof el.commentary?.text === "string") {
+      commentText = el.commentary.text;
+    } else if (typeof el.text === "string") {
+      commentText = el.text;
+    } else if (el.value?.commentary?.text?.text) {
+      commentText = el.value.commentary.text.text;
+    }
+
+    if (!commentText) continue;
+
+    // Resolve author
+    let commenter = el.commenter || el.actor || {};
+    let miniProfile =
+      commenter["com.linkedin.voyager.feed.MemberActor"]?.miniProfile ||
+      commenter.miniProfile ||
+      commenter;
+
+    // Check profile lookup map if empty
+    if (!miniProfile.firstName && el.actor?.miniProfileUrn && profileMap.has(el.actor.miniProfileUrn)) {
+      miniProfile = profileMap.get(el.actor.miniProfileUrn);
+    }
+
+    const authorFirstName = miniProfile.firstName || miniProfile.localizedFirstName || "";
+    const authorLastName = miniProfile.lastName || miniProfile.localizedLastName || "";
+    const authorFullName =
+      `${authorFirstName} ${authorLastName}`.trim() ||
+      miniProfile.name ||
+      miniProfile.formattedName ||
+      "LinkedIn Prospect";
+
+    const authorId = miniProfile.entityUrn
+      ? miniProfile.entityUrn.replace("urn:li:fs_miniProfile:", "").replace("urn:li:fsd_profile:", "")
+      : miniProfile.plainId || "";
+
+    const authorHeadline = miniProfile.occupation || miniProfile.headline || "";
+    const publicIdentifier = miniProfile.publicIdentifier || authorId;
+
+    let avatarUrl = extractVectorImageUrl(miniProfile.picture || miniProfile.profilePicture);
+
+    if (!comments.some((c) => c.id === commentId)) {
       comments.push({
         id: commentId,
         social_id: commentId,
@@ -289,12 +450,9 @@ export async function fetchPostCommentsNative(
         },
       });
     }
-
-    return { success: true, comments };
-  } catch (err: any) {
-    console.error("[LinkedIn Native] Fetch comments error:", err);
-    return { success: false, comments: [], error: err.message };
   }
+
+  return comments;
 }
 
 /**
@@ -328,6 +486,7 @@ export async function replyToCommentNative(
       method: "POST",
       headers,
       body: JSON.stringify(payload),
+      redirect: "manual",
     });
 
     if (!res.ok) {
@@ -380,10 +539,11 @@ export async function sendDirectMessageNative(
       method: "POST",
       headers,
       body: JSON.stringify(payload),
+      redirect: "manual",
     });
 
     if (!res.ok) {
-      // If direct DM requires existing connection, attempt sending InMail or Invitation with Note
+      // If direct DM requires existing connection, attempt sending Invitation with Note
       const inviteHeaders = buildVoyagerHeaders(
         { liAt, jsessionId },
         { "Content-Type": "application/json" }
@@ -402,6 +562,7 @@ export async function sendDirectMessageNative(
         method: "POST",
         headers: inviteHeaders,
         body: JSON.stringify(invitePayload),
+        redirect: "manual",
       });
 
       if (inviteRes.ok) {

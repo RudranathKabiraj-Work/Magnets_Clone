@@ -89,18 +89,39 @@ export async function syncUserLinkedInComments(account: any) {
     }
   }
 
-  // 3. Fetch user's latest LinkedIn posts
+  // 3. Fetch user's latest LinkedIn posts from feed
   const postsResult = await fetchUserLinkedInPosts(liAt, profileId || "me", jsessionId, 20);
-  const posts = postsResult.posts || [];
+  const feedPosts = postsResult.posts || [];
+
+  const savedCampaigns = account.linkedinPostCampaigns || [];
+  const posts = [...feedPosts];
+
+  // Merge any saved post campaigns so manually added posts are always processed
+  for (const c of savedCampaigns) {
+    if (c.postId && !posts.some((p) => p.social_id === c.postId || p.id === c.postId)) {
+      posts.push({
+        id: c.postId,
+        social_id: c.postId,
+        text: c.postText || "Monitored Post",
+        postUrl: c.postUrl || (c.postId.startsWith("http") ? c.postId : `https://www.linkedin.com/feed/update/urn:li:activity:${c.postId}`),
+        commentsCount: c.commentsCount || 0,
+        createdAt: c.createdAt || new Date().toISOString(),
+      });
+    }
+  }
 
   if (posts.length === 0) {
-    return { success: true, processedCount: 0, dmsSent: 0, message: "No recent posts found on LinkedIn." };
+    return {
+      success: true,
+      processedCount: 0,
+      dmsSent: 0,
+      message: "No posts found. Paste your LinkedIn post URL into the '+ Add Post' box below to start monitoring.",
+    };
   }
 
   let processedCount = 0;
   let dmsSent = 0;
   const globalTriggerWord = (account.linkedinTriggerWord || "resource").toLowerCase().trim();
-  const savedCampaigns = account.linkedinPostCampaigns || [];
 
   // 4. Iterate over posts and process comments
   for (const post of posts) {
@@ -125,6 +146,7 @@ export async function syncUserLinkedInComments(account: any) {
       if (!commentRes.success || !commentRes.comments) continue;
 
       const comments = commentRes.comments;
+      console.log(`[LinkedIn Automation] Post ${postUrn} has ${comments.length} comments fetched.`);
 
       for (const comment of comments) {
         // Enforce daily safety limits dynamically
@@ -140,7 +162,7 @@ export async function syncUserLinkedInComments(account: any) {
         const commentId = comment.id || comment.social_id;
 
         // Skip self-authored comments
-        if (authorId && profileId && (authorId === profileId || authorId.includes(profileId))) {
+        if (authorId && profileId && profileId !== "me" && (authorId === profileId || (profileId.length > 5 && authorId.includes(profileId)))) {
           continue;
         }
 
