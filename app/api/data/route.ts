@@ -15,6 +15,9 @@ import {
   handleGetLinkedInConfig,
   handleRegenerateLinkedInSecret,
   handleGetLinkedInAuthLink,
+  handleConnectLinkedInNative,
+  handleLoginLinkedInCredentials,
+  handleSubmitLinkedInPin,
   handleDisconnectLinkedIn,
   handleSaveLinkedInCampaignSettings,
   handleSyncLinkedInNow,
@@ -174,6 +177,13 @@ export async function POST(req: Request) {
       case "getLinkedInAuthLink":
         const authOrigin = req.headers.get("origin") || req.headers.get("referer") || "https://magnets.bdatech.in";
         return handleGetLinkedInAuthLink(authEmail, authOrigin);
+      case "connectLinkedInNative":
+      case "connectLinkedIn":
+        return handleConnectLinkedInNative(data, authEmail);
+      case "loginLinkedInCredentials":
+        return handleLoginLinkedInCredentials(data, authEmail);
+      case "submitLinkedInPin":
+        return handleSubmitLinkedInPin(data, authEmail);
       case "disconnectLinkedIn":
         return handleDisconnectLinkedIn(authEmail);
       case "saveLinkedInSettings":

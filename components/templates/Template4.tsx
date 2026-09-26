@@ -43,19 +43,10 @@ export default function Template4(props: TemplateProps) {
   const isDark = themeMode === "dark";
 
   return (
-    <div
-      className="mx-auto max-w-6xl rounded-3xl overflow-hidden relative transition-all duration-300"
-      style={{
-        background: isDark
-          ? `radial-gradient(ellipse 80% 60% at 70% 30%, ${brandColor}14 0%, #08080f 55%, #0d0012 100%)`
-          : `radial-gradient(ellipse 80% 60% at 70% 30%, ${brandColor}0d 0%, #f4f5fb 55%, #f8f4ff 100%)`,
-        border: `1px solid ${isDark ? `${brandColor}22` : `${brandColor}18`}`,
-        boxShadow: `0 32px 80px -16px ${brandColor}${Math.round((0.22 + ((account?.highlightIntensity ?? 100) / 100) * 0.35) * 255).toString(16).padStart(2, '0')}`,
-      }}
-    >
-      <div className="grid grid-cols-12 min-h-[460px] p-6 gap-5 items-center">
+    <div className="w-full max-w-7xl mx-auto py-1">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
         {/* LEFT: Copy + Form */}
-        <div className="col-span-12 md:col-span-6 flex flex-col justify-center space-y-4">
+        <div className="col-span-12 lg:col-span-7 flex flex-col justify-center space-y-4">
           <div className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: brandColor }} />
             {isEditor ? (
@@ -242,7 +233,7 @@ export default function Template4(props: TemplateProps) {
         </div>
 
         {/* RIGHT: Orbital image */}
-        <div className="col-span-12 md:col-span-6 flex items-center justify-center relative" style={{ minHeight: "360px" }}>
+        <div className="col-span-12 lg:col-span-5 flex items-center justify-center relative py-4" style={{ minHeight: "300px" }}>
           <div className="absolute rounded-full pointer-events-none" style={{ width: "380px", height: "380px", background: `radial-gradient(circle, ${brandColor}20 0%, transparent 70%)`, filter: "blur(28px)" }} />
           <div className="absolute rounded-full border border-dashed pointer-events-none" style={{ width: "340px", height: "340px", borderColor: `${brandColor}25` }} />
           <div className="absolute rounded-full pointer-events-none" style={{ width: "295px", height: "295px", border: `1px solid ${brandColor}33`, boxShadow: `0 0 20px ${brandColor}22` }} />

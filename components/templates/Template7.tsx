@@ -39,44 +39,33 @@ export default function Template7(props: TemplateProps) {
   const isDark = themeMode === "dark";
 
   return (
-    <div
-      className="mx-auto max-w-6xl rounded-3xl overflow-hidden transition-all duration-300 relative"
-      style={{
-        padding: "2px",
-        background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}55 50%, ${brandColor} 100%)`,
-        boxShadow: `0 30px 80px -16px ${brandColor}${Math.round((0.3 + ((account?.highlightIntensity ?? 100) / 100) * 0.4) * 255).toString(16).padStart(2, '0')}`,
-      }}
-    >
-      <div
-        className="rounded-[22px] overflow-hidden relative"
-        style={{ background: isDark ? "#0b0b10" : "#ffffff", minHeight: "460px" }}
-      >
-        {/* Upload progress overlay */}
-        {uploadProgress !== null && uploadProgress !== undefined && (
-          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 text-center text-white rounded-[22px]">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#0066B2] dark:text-[#38BDF8]">
-              {uploadProgress === 100 ? (
-                <Check className="h-6 w-6 text-emerald-400" />
-              ) : (
-                <Loader2 className="h-6 w-6 animate-spin text-[#0066B2] dark:text-[#38BDF8]" />
-              )}
-            </div>
-            <p className="text-sm font-bold">
-              {uploadProgress === 100 ? "Image uploaded!" : "Uploading cover image..."}
-            </p>
-            <div className="mt-3 w-full max-w-xs overflow-hidden rounded-full bg-zinc-800 p-0.5 border border-zinc-700">
-              <div
-                className="h-2 rounded-full bg-gradient-to-r from-[#0066B2] via-sky-400 to-emerald-400 transition-all duration-200"
-                style={{ width: `${uploadProgress}%` }}
-              />
-            </div>
-            <span className="mt-1 font-mono text-xs text-zinc-300 font-bold">{uploadProgress}%</span>
+    <div className="w-full max-w-7xl mx-auto py-1 relative">
+      {/* Upload progress overlay */}
+      {uploadProgress !== null && uploadProgress !== undefined && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 text-center text-white rounded-3xl">
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#0066B2] dark:text-[#38BDF8]">
+            {uploadProgress === 100 ? (
+              <Check className="h-6 w-6 text-emerald-400" />
+            ) : (
+              <Loader2 className="h-6 w-6 animate-spin text-[#0066B2] dark:text-[#38BDF8]" />
+            )}
           </div>
-        )}
+          <p className="text-sm font-bold">
+            {uploadProgress === 100 ? "Image uploaded!" : "Uploading cover image..."}
+          </p>
+          <div className="mt-3 w-full max-w-xs overflow-hidden rounded-full bg-zinc-800 p-0.5 border border-zinc-700">
+            <div
+              className="h-2 rounded-full bg-gradient-to-r from-[#0066B2] via-sky-400 to-emerald-400 transition-all duration-200"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+          <span className="mt-1 font-mono text-xs text-zinc-300 font-bold">{uploadProgress}%</span>
+        </div>
+      )}
 
-        <div className="flex flex-col md:flex-row" style={{ minHeight: "460px" }}>
-          {/* LEFT: Image panel */}
-          <div className="relative md:w-[55%] h-52 md:h-auto overflow-hidden flex-shrink-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
+        {/* LEFT: Image panel */}
+        <div className="col-span-12 lg:col-span-6 relative overflow-hidden rounded-3xl shadow-2xl aspect-[4/3] max-h-[360px] min-h-[300px]">
             {imageUrl && imageUrl.trim() !== "" ? (
               <img src={imageUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
             ) : (
@@ -167,13 +156,8 @@ export default function Template7(props: TemplateProps) {
             </div>
           </div>
 
-          {/* RIGHT: Form panel */}
-          <div
-            className="relative md:w-[45%] flex flex-col justify-center p-5 md:p-6 space-y-3"
-            style={{
-              borderLeft: `1px solid ${isDark ? `${brandColor}30` : `${brandColor}20`}`,
-            }}
-          >
+        {/* RIGHT: Form and details */}
+        <div className="col-span-12 lg:col-span-6 flex flex-col justify-center space-y-3.5">
             <div className="space-y-0.5">
               {isEditor ? (
                 <>
@@ -388,6 +372,5 @@ export default function Template7(props: TemplateProps) {
           </div>
         </div>
       </div>
-    </div>
   );
 }

@@ -16,7 +16,10 @@ export async function GET(req: Request) {
     // Fetch all accounts with active LinkedIn connections
     const connectedAccounts = await AccountModel.find({
       linkedinConnected: true,
-      linkedinAccountId: { $ne: "", $exists: true },
+      $or: [
+        { linkedinLiAt: { $ne: "", $exists: true } },
+        { linkedinAccountId: { $ne: "", $exists: true } },
+      ],
     }).lean();
 
     if (connectedAccounts.length === 0) {

@@ -80,21 +80,7 @@ export default function Template1(props: TemplateProps) {
 
 
   return (
-    <div
-      className={`mx-auto max-w-6xl rounded-2xl border p-6 md:p-8 shadow-2xl transition-all duration-300 backdrop-blur-md relative ${
-        isDark ? "text-white" : "text-zinc-900"
-      }`}
-      style={{
-        borderColor: `${brandColor}${Math.round((0.15 + (highlightIntensity / 100) * 0.65) * 255).toString(16).padStart(2, "0")}`,
-        boxShadow:
-          highlightIntensity > 10
-            ? `0 16px 40px -10px ${brandColor}${Math.round((highlightIntensity / 100) * 0.45 * 255).toString(16).padStart(2, "0")}`
-            : "0 4px 12px rgba(0,0,0,0.05)",
-        background: isDark
-          ? `linear-gradient(135deg, ${brandColor}${Math.round((0.05 + (highlightIntensity / 100) * 0.3) * 255).toString(16).padStart(2, "0")} 0%, rgba(18, 18, 20, 0.85) 50%)`
-          : `linear-gradient(135deg, ${brandColor}${Math.round((0.02 + (highlightIntensity / 100) * 0.25) * 255).toString(16).padStart(2, "0")} 0%, rgba(255, 255, 255, 0.85) 50%)`,
-      }}
-    >
+    <div className={`w-full max-w-7xl mx-auto py-1 relative ${isDark ? "text-white" : "text-zinc-900"}`}>
       {/* Upload progress overlay */}
       {uploadProgress !== null && uploadProgress !== undefined && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 text-center text-white rounded-2xl">

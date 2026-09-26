@@ -121,6 +121,10 @@ export default function EditLeadMagnetPage() {
     if (typeof window !== "undefined") return loadPages().find((p) => p.id === params.id);
     return undefined;
   });
+  const pageRef = useRef<MagnetPage | undefined>(page);
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
 
   // Single Init Effect — ONE syncWithDatabase() call fans out all data
   // Eliminates the previous 3 separate calls that fired simultaneously on mount
@@ -132,6 +136,7 @@ export default function EditLeadMagnetPage() {
     const localP = loadPages().find((p) => p.id === params.id);
     if (localP) {
       setPage(localP);
+      pageRef.current = localP;
       if (localP.pdfPages && Array.isArray(localP.pdfPages)) {
         setLockedPdfPages(localP.pdfPages);
       }
@@ -186,8 +191,14 @@ export default function EditLeadMagnetPage() {
         const found = data.pages.find((p: any) => p.id === params.id);
         if (found) {
           setPage((prev) => {
-            if (!prev) return found;
-            return { ...prev, ...found };
+            if (!prev) {
+              pageRef.current = found;
+              return found;
+            }
+            // Retain locally modified fields (especially status / publishedAt) over older server fetch
+            const merged = { ...found, ...prev };
+            pageRef.current = merged;
+            return merged;
           });
 
           if (found.pdfPages && Array.isArray(found.pdfPages)) {
@@ -985,9 +996,10 @@ export default function EditLeadMagnetPage() {
 
     setSaveStatus("saving");
     const timer = setTimeout(() => {
-      if (page) {
+      const current = pageRef.current || page;
+      if (current) {
         const next = {
-          ...page,
+          ...current,
           headline,
           subheadline,
           pitch,
@@ -1026,6 +1038,7 @@ export default function EditLeadMagnetPage() {
           template: (templateId as any),
           updatedAt: "Just now"
         };
+        pageRef.current = next;
         setPage(next);
         const all = loadPages().map((p) => (p.id === next.id ? next : p));
         savePages(all);
@@ -1047,9 +1060,10 @@ export default function EditLeadMagnetPage() {
   ]);
 
   const handleGoBack = () => {
-    if (page) {
+    const current = pageRef.current || page;
+    if (current) {
       const next = {
-        ...page,
+        ...current,
         headline,
         subheadline,
         pitch,
@@ -1081,8 +1095,10 @@ export default function EditLeadMagnetPage() {
         pdfPages: lockedPdfPages,
         pdfFreePages: lockedPdfFreePages,
         pdfTitle: lockedPdfTitle,
+        template: (templateId as any),
         updatedAt: "Just now"
       };
+      pageRef.current = next;
       const all = loadPages().map((p) => (p.id === next.id ? next : p));
       savePages(all);
     }
@@ -1110,8 +1126,10 @@ export default function EditLeadMagnetPage() {
   const live = page.status === "live";
 
   function update(patch: Partial<MagnetPage>) {
-    if (!page) return;
-    const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, bulletsTitle, pdfPages: lockedPdfPages, pdfFreePages: lockedPdfFreePages, pdfTitle: lockedPdfTitle, ...patch };
+    const current = pageRef.current || page;
+    if (!current) return;
+    const next = { ...current, headline, subheadline, pitch, bullets, imageUrl, bulletsTitle, pdfPages: lockedPdfPages, pdfFreePages: lockedPdfFreePages, pdfTitle: lockedPdfTitle, ...patch };
+    pageRef.current = next;
     setPage(next);
     const all = loadPages().map((p) => (p.id === next.id ? next : p));
     savePages(all);
@@ -1120,8 +1138,10 @@ export default function EditLeadMagnetPage() {
   function save() {
     setSaving(true);
     window.setTimeout(() => {
-      if (!page) return;
-      const next = { ...page, headline, subheadline, pitch, bullets, imageUrl, bulletsTitle, pdfPages: lockedPdfPages, pdfFreePages: lockedPdfFreePages, pdfTitle: lockedPdfTitle, updatedAt: "Just now" };
+      const current = pageRef.current || page;
+      if (!current) return;
+      const next = { ...current, headline, subheadline, pitch, bullets, imageUrl, bulletsTitle, pdfPages: lockedPdfPages, pdfFreePages: lockedPdfFreePages, pdfTitle: lockedPdfTitle, updatedAt: "Just now" };
+      pageRef.current = next;
       setPage(next);
       const all = loadPages().map((p) => (p.id === next.id ? next : p));
       savePages(all);

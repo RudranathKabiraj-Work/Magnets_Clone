@@ -140,7 +140,17 @@ export default function LinkedInAutomationPage() {
     fetchLinkedInConfig();
   }, [fetchLinkedInConfig]);
 
-  // Native LinkedIn 1-Click Connection state
+  // Native In-House LinkedIn Connection state
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [connectTab, setConnectTab] = useState<"credentials" | "cookie">("credentials");
+  const [inputEmail, setInputEmail] = useState("");
+  const [inputPassword, setInputPassword] = useState("");
+  const [inputLiAt, setInputLiAt] = useState("");
+  const [inputJSessionId, setInputJSessionId] = useState("");
+  const [requiresPin, setRequiresPin] = useState(false);
+  const [inputPin, setInputPin] = useState("");
+  const [transactionData, setTransactionData] = useState("");
+  const [connectError, setConnectError] = useState<string | null>(null);
   const [connectingLinkedIn, setConnectingLinkedIn] = useState(false);
   const [syncingLinkedIn, setSyncingLinkedIn] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
@@ -164,23 +174,131 @@ export default function LinkedInAutomationPage() {
     }
   }, [account]);
 
-  const handleConnectLinkedIn = async () => {
+  const handleOpenConnectModal = () => {
+    setConnectError(null);
+    setRequiresPin(false);
+    setInputPin("");
+    setInputEmail(account?.email || "");
+    setInputPassword("");
+    setInputLiAt(account?.linkedinLiAt || "");
+    setInputJSessionId(account?.linkedinJSessionId || "");
+    setShowConnectModal(true);
+  };
+
+  const handleLoginCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputEmail || !inputPassword) {
+      setConnectError("Please enter both your LinkedIn email and password.");
+      return;
+    }
+
     setConnectingLinkedIn(true);
+    setConnectError(null);
+
     try {
       const res = await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getLinkedInAuthLink" }),
+        body: JSON.stringify({
+          action: "loginLinkedInCredentials",
+          data: {
+            email: inputEmail.trim(),
+            password: inputPassword,
+          },
+        }),
       });
+
       const data = await res.json();
-      if (data.success && data.url) {
-        window.location.href = data.url;
+      if (data.requiresPin) {
+        setRequiresPin(true);
+        setTransactionData(data.transactionData || "");
+        setConnectError(null);
+      } else if (data.success) {
+        setAccount(data.account);
+        setShowConnectModal(false);
+        syncWithDatabase();
       } else {
-        alert(data.error || "Could not start LinkedIn connection. Please try again.");
+        setConnectError(data.error || "Could not sign into LinkedIn. Please verify your credentials.");
       }
-    } catch (err) {
-      console.error(err);
-      alert("Network error. Please try again.");
+    } catch (err: any) {
+      setConnectError("Network error. Please try again.");
+    } finally {
+      setConnectingLinkedIn(false);
+    }
+  };
+
+  const handleSubmitPinCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputPin || inputPin.trim().length < 4) {
+      setConnectError("Please enter the 6-digit PIN code.");
+      return;
+    }
+
+    setConnectingLinkedIn(true);
+    setConnectError(null);
+
+    try {
+      const res = await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "submitLinkedInPin",
+          data: {
+            pin: inputPin.trim(),
+            transactionData,
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setAccount(data.account);
+        setShowConnectModal(false);
+        setRequiresPin(false);
+        syncWithDatabase();
+      } else {
+        setConnectError(data.error || "Verification PIN was incorrect or expired.");
+      }
+    } catch (err: any) {
+      setConnectError("Network error. Please try again.");
+    } finally {
+      setConnectingLinkedIn(false);
+    }
+  };
+
+  const handleSaveNativeLinkedInConnection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputLiAt || inputLiAt.trim().length < 15) {
+      setConnectError("Please enter a valid li_at cookie.");
+      return;
+    }
+
+    setConnectingLinkedIn(true);
+    setConnectError(null);
+
+    try {
+      const res = await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "connectLinkedInNative",
+          data: {
+            liAt: inputLiAt.trim(),
+            jsessionId: inputJSessionId.trim(),
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setAccount(data.account);
+        setShowConnectModal(false);
+        syncWithDatabase();
+      } else {
+        setConnectError(data.error || "Could not validate LinkedIn session. Please check your cookie.");
+      }
+    } catch (err: any) {
+      setConnectError("Network error. Please try again.");
     } finally {
       setConnectingLinkedIn(false);
     }
@@ -486,7 +604,7 @@ export default function LinkedInAutomationPage() {
             <p className="text-xs text-zinc-500 dark:text-[#9B9085] mt-1">
               Automatically deliver your lead magnet to anyone who{" "}
               <span className="text-[#0066B2] font-semibold">comments on your LinkedIn posts</span>.
-              Powered by n8n & Unipile.
+              100% In-House Engine with Anti-Ban Protection.
             </p>
           </div>
 
@@ -605,11 +723,11 @@ export default function LinkedInAutomationPage() {
                     <button
                       type="button"
                       disabled={connectingLinkedIn}
-                      onClick={handleConnectLinkedIn}
+                      onClick={handleOpenConnectModal}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#0A66C2] hover:bg-[#004182] px-5 py-2.5 text-xs font-bold text-white shadow-md transition cursor-pointer disabled:opacity-50"
                     >
-                      {connectingLinkedIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <Linkedin className="h-4 w-4" />}
-                      {connectingLinkedIn ? "Connecting..." : "Connect LinkedIn (10 Seconds)"}
+                      <Linkedin className="h-4 w-4" />
+                      Connect LinkedIn (Direct In-House)
                     </button>
                   )}
                 </div>
@@ -1519,6 +1637,222 @@ export default function LinkedInAutomationPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Native In-House LinkedIn Connection Modal ── */}
+      <AnimatePresence>
+        {showConnectModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="w-full max-w-lg rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#18181B] p-6 shadow-2xl space-y-5"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0A66C2] text-white shadow-md">
+                    <Linkedin className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-zinc-900 dark:text-white">Connect LinkedIn Account</h3>
+                    <p className="text-xs text-zinc-500 dark:text-[#9B9085]">100% In-House &bull; Anti-Ban Protection Active</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowConnectModal(false)}
+                  className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                >
+                  &times;
+                </button>
+              </div>
+
+              {/* Anti-Ban Safety Notice */}
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-50/60 dark:bg-emerald-500/10 p-3 text-[11.5px] text-emerald-800 dark:text-emerald-300 font-medium">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <span><strong>Safe Automation Guard:</strong> Human-like delays (8–20s) and daily safety limits are enabled to protect your account from restrictions.</span>
+              </div>
+
+              {/* Mode Tabs */}
+              {!requiresPin && (
+                <div className="flex rounded-xl bg-zinc-100 dark:bg-zinc-800/80 p-1 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setConnectTab("credentials")}
+                    className={`flex-1 rounded-lg py-2 transition ${
+                      connectTab === "credentials"
+                        ? "bg-white dark:bg-[#18181B] text-[#0A66C2] dark:text-[#38BDF8] shadow-xs"
+                        : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400"
+                    }`}
+                  >
+                    Email & Password (Easy)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConnectTab("cookie")}
+                    className={`flex-1 rounded-lg py-2 transition ${
+                      connectTab === "cookie"
+                        ? "bg-white dark:bg-[#18181B] text-[#0A66C2] dark:text-[#38BDF8] shadow-xs"
+                        : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400"
+                    }`}
+                  >
+                    Session Cookie (Advanced)
+                  </button>
+                </div>
+              )}
+
+              {connectError && (
+                <div className="rounded-xl border border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-300 font-medium">
+                  {connectError}
+                </div>
+              )}
+
+              {/* 2FA PIN Code Submission Form */}
+              {requiresPin ? (
+                <form onSubmit={handleSubmitPinCode} className="space-y-4">
+                  <div className="rounded-xl border border-blue-500/20 bg-blue-50/60 dark:bg-blue-500/10 p-3.5 text-xs text-blue-900 dark:text-blue-200">
+                    <p className="font-bold mb-1">Two-Factor Authentication (2FA)</p>
+                    <p className="text-[11.5px] leading-relaxed">
+                      LinkedIn sent a 6-digit verification code to your email/phone. Enter it below to complete connection:
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      6-Digit Verification PIN *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={8}
+                      placeholder="123456"
+                      value={inputPin}
+                      onChange={(e) => setInputPin(e.target.value)}
+                      className="w-full text-center tracking-widest text-lg font-mono rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-zinc-800 dark:text-zinc-200 outline-none focus:border-[#0A66C2] transition"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setRequiresPin(false)}
+                      className="rounded-xl border border-zinc-200 dark:border-white/10 px-4 py-2.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={connectingLinkedIn}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#0A66C2] hover:bg-[#004182] px-5 py-2.5 text-xs font-bold text-white shadow-md transition disabled:opacity-50"
+                    >
+                      {connectingLinkedIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                      {connectingLinkedIn ? "Verifying PIN..." : "Verify & Connect"}
+                    </button>
+                  </div>
+                </form>
+              ) : connectTab === "credentials" ? (
+                /* Email & Password Login Form */
+                <form onSubmit={handleLoginCredentials} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      LinkedIn Account Email *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="you@company.com"
+                      value={inputEmail}
+                      onChange={(e) => setInputEmail(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs text-zinc-800 dark:text-zinc-200 outline-none focus:border-[#0A66C2] transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      LinkedIn Password *
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••••••"
+                      value={inputPassword}
+                      onChange={(e) => setInputPassword(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs text-zinc-800 dark:text-zinc-200 outline-none focus:border-[#0A66C2] transition"
+                    />
+                    <p className="text-[10.5px] text-zinc-400 mt-1">
+                      Credentials are used solely to establish an encrypted session token and are never stored.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowConnectModal(false)}
+                      className="rounded-xl border border-zinc-200 dark:border-white/10 px-4 py-2.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={connectingLinkedIn}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#0A66C2] hover:bg-[#004182] px-5 py-2.5 text-xs font-bold text-white shadow-md transition disabled:opacity-50"
+                    >
+                      {connectingLinkedIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <Linkedin className="h-4 w-4" />}
+                      {connectingLinkedIn ? "Signing In..." : "Sign In & Connect"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* Cookie Option Form */
+                <form onSubmit={handleSaveNativeLinkedInConnection} className="space-y-4">
+                  <div className="rounded-xl border border-blue-500/20 bg-blue-50/60 dark:bg-blue-500/10 p-3.5 text-xs text-blue-900 dark:text-blue-200 space-y-1.5">
+                    <p className="font-bold flex items-center gap-1.5 text-blue-800 dark:text-blue-300">
+                      <Info className="h-3.5 w-3.5" /> How to get your li_at session cookie:
+                    </p>
+                    <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed text-blue-950 dark:text-blue-100">
+                      <li>Log in to LinkedIn.com &rarr; Press <kbd className="bg-white/80 dark:bg-black/40 px-1 py-0.5 rounded border border-blue-200 dark:border-white/10 font-mono">F12</kbd>.</li>
+                      <li>Go to <strong>Application</strong> &rarr; <strong>Cookies</strong> &rarr; <code className="font-mono">https://www.linkedin.com</code>.</li>
+                      <li>Copy the value of <code className="font-mono font-bold">li_at</code>.</li>
+                    </ol>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      Session Cookie (<code className="font-mono text-zinc-900 dark:text-white">li_at</code>) *
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="AQEDAT..."
+                      value={inputLiAt}
+                      onChange={(e) => setInputLiAt(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-[#121214] px-3.5 py-2.5 text-xs font-mono text-zinc-800 dark:text-zinc-200 outline-none focus:border-[#0A66C2] transition"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowConnectModal(false)}
+                      className="rounded-xl border border-zinc-200 dark:border-white/10 px-4 py-2.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={connectingLinkedIn}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#0A66C2] hover:bg-[#004182] px-5 py-2.5 text-xs font-bold text-white shadow-md transition disabled:opacity-50"
+                    >
+                      {connectingLinkedIn ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                      {connectingLinkedIn ? "Verifying..." : "Connect & Verify"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </DashboardShell>
   );
 }

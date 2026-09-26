@@ -39,13 +39,7 @@ export default function Template6(props: TemplateProps) {
 
   return (
     <div
-      className={`w-full mx-auto max-w-6xl rounded-3xl overflow-hidden relative min-h-[560px] flex flex-col justify-between transition-all duration-300 group shadow-2xl ${isDark ? "bg-[#0e0e14] text-white" : "bg-white text-zinc-900"}`}
-      style={{
-        border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
-        boxShadow: isDark
-          ? `0 0 0 1px ${brandColor}22, 0 28px 70px -14px rgba(0,0,0,0.8)`
-          : `0 0 0 1px ${brandColor}18, 0 20px 60px -12px ${brandColor}22`
-      }}
+      className={`w-full mx-auto max-w-5xl rounded-3xl overflow-hidden relative min-h-[520px] flex flex-col justify-between transition-all duration-300 group shadow-2xl border border-black/10 dark:border-white/10 ${isDark ? "bg-[#0e0e14] text-white" : "bg-white text-zinc-900"}`}
     >
       {/* FULL CARD BACKGROUND IMAGE / GRADIENT LAYER */}
       {imageUrl && imageUrl.trim() !== "" ? (

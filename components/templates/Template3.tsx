@@ -40,17 +40,11 @@ export default function Template3(props: TemplateProps) {
   const isDark = themeMode === "dark";
 
   return (
-    <div
-      className="mx-auto max-w-6xl rounded-3xl overflow-hidden relative transition-all duration-300"
-      style={{
-        background: isDark ? "#0c0c12" : "#f7f8fc",
-        border: `1px solid ${brandColor}${Math.round((0.15 + ((account?.highlightIntensity ?? 100) / 100) * 0.2) * 255).toString(16).padStart(2, '0')}`,
-        boxShadow: `0 24px 70px -12px ${brandColor}${Math.round((0.22 + ((account?.highlightIntensity ?? 100) / 100) * 0.3) * 255).toString(16).padStart(2, '0')}`,
-      }}
-    >
-      <div className="grid grid-cols-12 min-h-[440px]">
+    <div className="w-full max-w-7xl mx-auto py-1">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
         {/* LEFT: Aurora Image Tile (5 cols) */}
-        <div className="col-span-12 md:col-span-5 relative overflow-hidden group min-h-[260px] md:min-h-[300px]">
+        <div className="col-span-12 lg:col-span-5 flex justify-center">
+          <div className="rounded-3xl overflow-hidden relative shadow-2xl aspect-[4/5] max-h-[380px] w-full border border-black/5 dark:border-white/5 group">
           {imageUrl && imageUrl.trim() !== "" && (
             <img
               src={imageUrl}
@@ -116,15 +110,11 @@ export default function Template3(props: TemplateProps) {
               )}
             </div>
           )}
+          </div>
         </div>
 
         {/* RIGHT: Editorial Form Panel (7 cols) */}
-        <div
-          className="col-span-12 md:col-span-7 flex flex-col justify-center p-6 space-y-4"
-          style={{
-            borderLeft: `1px solid ${isDark ? `${brandColor}22` : `${brandColor}15`}`,
-          }}
-        >
+        <div className="col-span-12 lg:col-span-7 flex flex-col justify-center space-y-4">
           {/* Eyebrow / Bullets Title */}
           <div className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />

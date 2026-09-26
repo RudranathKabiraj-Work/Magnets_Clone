@@ -45,6 +45,8 @@ const AccountSchema = new Schema({
   linkedinWebhookSecret: { type: String, default: "" },
   linkedinConnected: { type: Boolean, default: false },
   linkedinAccountId: { type: String, default: "" },
+  linkedinLiAt: { type: String, default: "" },
+  linkedinJSessionId: { type: String, default: "" },
   linkedinAccountName: { type: String, default: "" },
   linkedinProfileId: { type: String, default: "" },
   linkedinProfileImage: { type: String, default: "" },

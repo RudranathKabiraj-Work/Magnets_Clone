@@ -164,6 +164,8 @@ export interface Account {
   linkedinWebhookSecret?: string;
   linkedinConnected?: boolean;
   linkedinAccountId?: string;
+  linkedinLiAt?: string;
+  linkedinJSessionId?: string;
   linkedinAccountName?: string;
   linkedinProfileId?: string;
   linkedinProfileImage?: string;

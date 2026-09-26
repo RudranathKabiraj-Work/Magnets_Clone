@@ -30,22 +30,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
     <>
       {/* TEMPLATE 1: Modern Split Layout */}
       {templateId === "template1" && (
-        <div
-          className={`rounded-2xl border py-4 px-6 transition-all duration-300 backdrop-blur-md ${
-            themeMode === "dark" ? "text-white" : "text-zinc-900"
-          }`}
-          style={{
-            borderColor: hexWithAlpha(brandColor, 0.15 + intensityRatio * 0.65),
-            boxShadow:
-              highlightIntensity > 10
-                ? `0 12px 32px -8px ${hexWithAlpha(brandColor, intensityRatio * 0.45)}`
-                : "0 4px 12px rgba(0,0,0,0.05)",
-            background:
-              themeMode === "light"
-                ? `linear-gradient(135deg, ${hexWithAlpha(brandColor, 0.02 + intensityRatio * 0.25)} 0%, rgba(255, 255, 255, 0.85) 50%)`
-                : `linear-gradient(135deg, ${hexWithAlpha(brandColor, 0.05 + intensityRatio * 0.3)} 0%, rgba(18, 18, 20, 0.85) 50%)`,
-          }}
-        >
+        <div className={`w-full py-1 ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
             <div className="md:col-span-7 flex flex-col justify-between h-full py-1">
               <h3 className="text-xl md:text-3xl font-extrabold leading-tight tracking-tight">
@@ -184,18 +169,10 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
 
       {/* TEMPLATE 2: Lead Capture Split Panel Layout */}
       {templateId === "template2" && (
-        <div
-          className={`rounded-2xl border transition-all duration-300 overflow-hidden shadow-2xl ${
-            themeMode === "dark" ? "bg-[#111827] text-white border-zinc-800" : "bg-white text-zinc-900 border-zinc-200"
-          }`}
-          style={{
-            borderColor: hexWithAlpha(brandColor, 0.25 + intensityRatio * 0.55),
-            boxShadow: `0 16px 40px -10px ${hexWithAlpha(brandColor, intensityRatio * 0.25)}`,
-          }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
+        <div className="w-full py-1">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
             {/* Left Panel: Cover Image + Gradient Scrim + Bullets */}
-            <div className="md:col-span-7 relative flex flex-col justify-end p-6 md:p-8 overflow-hidden min-h-[260px] md:min-h-full bg-zinc-900 text-white">
+            <div className="md:col-span-7 relative flex flex-col justify-end p-6 md:p-8 rounded-3xl overflow-hidden min-h-[340px] bg-zinc-900 text-white shadow-xl border border-black/10 dark:border-white/10">
               {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" && (
                 <img
                   src={latestPage.imageUrl}
@@ -234,9 +211,9 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
             </div>
 
             {/* Right Panel: Form */}
-            <div className={`md:col-span-5 p-6 md:p-8 flex flex-col justify-center border-t md:border-t-0 md:border-l ${themeMode === "dark" ? "border-zinc-800 bg-[#18181B]" : "border-zinc-200 bg-white"}`}>
+            <div className={`md:col-span-5 p-6 md:p-8 rounded-3xl flex flex-col justify-center border shadow-xl ${themeMode === "dark" ? "border-zinc-800 bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
               <div className="space-y-3">
-                <p className="w-full text-center text-lg font-bold text-zinc-900 dark:text-white">
+                <p className="w-full text-center text-lg font-bold">
                   {latestPage?.formTitle || "Download for free"}
                 </p>
                 <p className="w-full text-center text-xs text-zinc-400">
@@ -285,50 +262,39 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
 
       {/* TEMPLATE 3: Aurora Reveal */}
       {templateId === "template3" && (
-        <div
-          className="rounded-3xl overflow-hidden relative transition-all duration-300"
-          style={{
-            background: themeMode === "dark" ? "#0c0c12" : "#f7f8fc",
-            border: `1px solid ${hexWithAlpha(brandColor, 0.15 + intensityRatio * 0.2)}`,
-            boxShadow: `0 24px 70px -12px ${hexWithAlpha(brandColor, 0.22 + intensityRatio * 0.3)}`,
-          }}
-        >
-          <div className="grid grid-cols-12 min-h-[440px]">
+        <div className="w-full py-1">
+          <div className="grid grid-cols-12 gap-5 items-center">
             {/* LEFT: Aurora Image Tile */}
-            <div className="col-span-5 relative overflow-hidden">
-              {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
-                <img
-                  src={latestPage.imageUrl}
-                  alt={latestPage?.name || "Cover"}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center p-6 text-center bg-[#121215]">
-                  <div className="flex flex-col items-center gap-2 p-5 rounded-2xl border-2 border-dashed border-zinc-700 bg-zinc-900/80 text-white">
-                    <svg className="h-8 w-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <polyline points="21 15 16 10 5 21" strokeWidth="2" />
-                    </svg>
-                    <span className="text-xs font-bold text-white">Add a cover image</span>
-                    <span className="text-[11px] text-zinc-400">PNG, JPG, WebP or GIF · 10 MB max</span>
+            <div className="col-span-12 md:col-span-5 flex justify-center">
+              <div className="rounded-3xl overflow-hidden relative shadow-xl aspect-[4/5] max-h-[340px] w-full border border-black/5 dark:border-white/5">
+                {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
+                  <img
+                    src={latestPage.imageUrl}
+                    alt={latestPage?.name || "Cover"}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center p-6 text-center bg-[#121215]">
+                    <div className="flex flex-col items-center gap-2 p-5 rounded-2xl border-2 border-dashed border-zinc-700 bg-zinc-900/80 text-white">
+                      <svg className="h-8 w-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" strokeWidth="2" />
+                      </svg>
+                      <span className="text-xs font-bold text-white">Add a cover image</span>
+                    </div>
                   </div>
-                </div>
-              )}
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: themeMode === "dark" ? "linear-gradient(to right, transparent 55%, #0c0c12 100%)" : "linear-gradient(to right, transparent 55%, #f7f8fc 100%)" }}
-              />
-              <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%)" }} />
+                )}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ background: themeMode === "dark" ? "linear-gradient(to right, transparent 55%, #0c0c12 100%)" : "linear-gradient(to right, transparent 55%, #f7f8fc 100%)" }}
+                />
+                <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%)" }} />
+              </div>
             </div>
 
             {/* RIGHT: Editorial Form Panel */}
-            <div
-              className="col-span-7 flex flex-col justify-center p-6 space-y-4"
-              style={{
-                borderLeft: `1px solid ${themeMode === "dark" ? hexWithAlpha(brandColor, 0.13) : hexWithAlpha(brandColor, 0.08)}`,
-              }}
-            >
+            <div className="col-span-12 md:col-span-7 flex flex-col justify-center space-y-4">
               <div className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: brandColor }} />
                 <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${themeMode === "dark" ? "text-zinc-500" : "text-zinc-400"}`}>
@@ -419,20 +385,10 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
 
       {/* TEMPLATE 4: Neon Orbit */}
       {templateId === "template4" && (
-        <div
-          className="rounded-3xl overflow-hidden transition-all duration-300 relative"
-          style={{
-            background:
-              themeMode === "dark"
-                ? `radial-gradient(ellipse 80% 60% at 70% 30%, ${hexWithAlpha(brandColor, 0.08)} 0%, #08080f 55%, #0d0012 100%)`
-                : `radial-gradient(ellipse 80% 60% at 70% 30%, ${hexWithAlpha(brandColor, 0.05)} 0%, #f4f5fb 55%, #f8f4ff 100%)`,
-            border: `1px solid ${themeMode === "dark" ? hexWithAlpha(brandColor, 0.13) : hexWithAlpha(brandColor, 0.09)}`,
-            boxShadow: `0 0 0 1px ${hexWithAlpha(brandColor, 0.07)}, 0 32px 80px -16px ${hexWithAlpha(brandColor, 0.22 + intensityRatio * 0.35)}`,
-          }}
-        >
-          <div className="grid grid-cols-12 min-h-[360px] p-5 gap-4 items-center">
+        <div className="w-full py-1">
+          <div className="grid grid-cols-12 gap-5 items-center">
             {/* LEFT: Copy Panel */}
-            <div className="col-span-6 flex flex-col justify-center space-y-4">
+            <div className="col-span-12 md:col-span-7 flex flex-col justify-center space-y-4">
               <div className="flex items-center gap-2">
                 <span
                   className="h-1.5 w-1.5 rounded-full animate-pulse"
@@ -535,22 +491,22 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
             </div>
 
             {/* RIGHT: Orbital image portal */}
-            <div className="col-span-6 flex items-center justify-center relative" style={{ minHeight: "360px" }}>
+            <div className="col-span-12 md:col-span-5 flex items-center justify-center relative" style={{ minHeight: "300px" }}>
               <div
                 className="absolute rounded-full pointer-events-none"
                 style={{
-                  width: "380px",
-                  height: "380px",
+                  width: "280px",
+                  height: "280px",
                   background: `radial-gradient(circle, ${hexWithAlpha(brandColor, 0.12 + intensityRatio * 0.2)} 0%, transparent 70%)`,
-                  filter: "blur(28px)",
+                  filter: "blur(24px)",
                 }}
               />
-              <div className="absolute rounded-full border border-dashed pointer-events-none" style={{ width: "340px", height: "340px", borderColor: hexWithAlpha(brandColor, 0.15) }} />
+              <div className="absolute rounded-full border border-dashed pointer-events-none" style={{ width: "250px", height: "250px", borderColor: hexWithAlpha(brandColor, 0.15) }} />
               <div
                 className="absolute rounded-full pointer-events-none"
                 style={{
-                  width: "295px",
-                  height: "295px",
+                  width: "215px",
+                  height: "215px",
                   border: `1px solid ${hexWithAlpha(brandColor, 0.18 + intensityRatio * 0.3)}`,
                   boxShadow: `0 0 20px ${hexWithAlpha(brandColor, 0.1 + intensityRatio * 0.2)}`,
                 }}
@@ -558,8 +514,8 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
               <div
                 className="absolute rounded-full pointer-events-none"
                 style={{
-                  width: "260px",
-                  height: "260px",
+                  width: "180px",
+                  height: "180px",
                   border: `2px solid ${hexWithAlpha(brandColor, 0.35 + intensityRatio * 0.5)}`,
                   boxShadow: `0 0 32px ${hexWithAlpha(brandColor, 0.2 + intensityRatio * 0.35)}, inset 0 0 16px ${hexWithAlpha(brandColor, 0.08 + intensityRatio * 0.15)}`,
                 }}
@@ -568,8 +524,8 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
               <div
                 className="relative rounded-full overflow-hidden z-10"
                 style={{
-                  width: "230px",
-                  height: "230px",
+                  width: "155px",
+                  height: "155px",
                   border: `3px solid ${hexWithAlpha(brandColor, 0.5 + intensityRatio * 0.5)}`,
                   boxShadow: `0 0 40px -8px ${hexWithAlpha(brandColor, 0.45 + intensityRatio * 0.55)}`,
                 }}
@@ -596,7 +552,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
               <div
                 className="absolute z-20 h-3 w-3 rounded-full"
                 style={{
-                  right: "calc(50% - 175px)",
+                  right: "calc(50% - 120px)",
                   top: "50%",
                   transform: "translateY(-50%)",
                   backgroundColor: brandColor,
@@ -607,7 +563,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
           </div>
 
           {/* BOTTOM TRUST STRIP */}
-          <div className={`px-5 pb-4 pt-2 flex items-center justify-between border-t ${themeMode === "dark" ? "border-white/[0.05]" : "border-zinc-100"}`}>
+          <div className={`px-2 pb-2 pt-3 flex items-center justify-between border-t mt-3 ${themeMode === "dark" ? "border-white/[0.05]" : "border-zinc-100"}`}>
             <div className="flex items-center gap-2">
               {logo ? (
                 <img src={logo} alt="Logo" className="h-5 w-5 rounded object-contain" />
@@ -632,16 +588,9 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
 
       {/* TEMPLATE 5: Magazine Cover Overlay */}
       {templateId === "template5" && (
-        <div
-          className="rounded-3xl overflow-hidden relative transition-all duration-300"
-          style={{
-            border: `1px solid ${hexWithAlpha(brandColor, 0.14 + intensityRatio * 0.22)}`,
-            boxShadow: `0 24px 70px -12px ${hexWithAlpha(brandColor, 0.18 + intensityRatio * 0.28)}`,
-            background: themeMode === "dark" ? "#0d0d11" : "#f0f2f7",
-          }}
-        >
+        <div className="w-full space-y-0 py-1">
           {/* COVER IMAGE BLOCK */}
-          <div className="relative w-full" style={{ paddingBottom: "45%" }}>
+          <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl border border-black/10 dark:border-white/10" style={{ paddingBottom: "42%" }}>
             {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
               <img
                 src={latestPage.imageUrl}
@@ -699,7 +648,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
 
           {/* FLOATING SIGN-UP TRAY */}
           <div
-            className="relative z-20 mx-4 md:mx-8 -mt-5 mb-6 rounded-2xl p-5 space-y-4"
+            className="relative z-20 mx-3 md:mx-6 -mt-5 mb-4 rounded-2xl p-5 space-y-4 shadow-2xl"
             style={{
               background: themeMode === "dark" ? "rgba(12,12,18,0.92)" : "rgba(255,255,255,0.96)",
               border: `1px solid ${themeMode === "dark" ? hexWithAlpha(brandColor, 0.19) : hexWithAlpha(brandColor, 0.13)}`,
@@ -800,14 +749,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
       {/* TEMPLATE 6: Full Bleed Image Card Preview */}
       {templateId === "template6" && (
         <div
-          className="rounded-3xl overflow-hidden relative min-h-[420px] flex flex-col justify-between transition-all duration-300 shadow-2xl"
-          style={{
-            border: `1px solid ${themeMode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
-            boxShadow:
-              themeMode === "dark"
-                ? `0 0 0 1px ${hexWithAlpha(brandColor, 0.13)}, 0 28px 70px -14px rgba(0,0,0,0.8)`
-                : `0 0 0 1px ${hexWithAlpha(brandColor, 0.09)}, 0 20px 60px -12px ${hexWithAlpha(brandColor, 0.13)}`,
-          }}
+          className={`w-full rounded-3xl overflow-hidden relative min-h-[420px] flex flex-col justify-between transition-all duration-300 shadow-2xl border border-black/10 dark:border-white/10 ${themeMode === "dark" ? "bg-[#0e0e14] text-white" : "bg-white text-zinc-900"}`}
         >
           {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
             <img
@@ -944,221 +886,201 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
 
       {/* TEMPLATE 7: Spotlight Hero */}
       {templateId === "template7" && (
-        <div
-          className="rounded-3xl overflow-hidden transition-all duration-300"
-          style={{
-            padding: "2px",
-            background: `linear-gradient(135deg, ${brandColor} 0%, ${hexWithAlpha(brandColor, 0.33)} 50%, ${brandColor} 100%)`,
-            boxShadow: `0 30px 80px -16px ${hexWithAlpha(brandColor, 0.3 + intensityRatio * 0.4)}`,
-          }}
-        >
-          <div
-            className="rounded-[22px] overflow-hidden"
-            style={{
-              background: themeMode === "dark" ? "#0b0b10" : "#ffffff",
-              minHeight: "480px",
-            }}
-          >
-            <div className="flex flex-col md:flex-row" style={{ minHeight: "480px" }}>
-              {/* LEFT: Full-bleed image panel */}
-              <div className="relative md:w-[55%] h-52 md:h-auto overflow-hidden flex-shrink-0">
-                {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
-                  <img
-                    src={latestPage.imageUrl}
-                    alt={latestPage?.name || "Cover"}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                ) : (
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      background: `linear-gradient(155deg, ${hexWithAlpha(brandColor, 0.6 + intensityRatio * 0.35)} 0%, #060610 55%, #12001a 100%)`,
-                    }}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                      {[160, 110, 66, 32].map((size, i) => (
-                        <div
-                          key={i}
-                          className="absolute rounded-full border border-white"
-                          style={{ width: size, height: size, opacity: 1 - i * 0.2 }}
-                        />
-                      ))}
-                    </div>
-                    <div
-                      className="absolute inset-0 opacity-[0.05]"
-                      style={{ backgroundImage: "repeating-linear-gradient(0deg, white 0px, white 1px, transparent 1px, transparent 8px)" }}
-                    />
-                  </div>
-                )}
-                <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.4) 100%)" }} />
-                <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)" }} />
-                <div className="absolute inset-0 flex flex-col justify-end p-5 z-10">
-                  <div className="space-y-1.5 max-w-xs">
-                    <h3 className="text-2xl md:text-3xl font-black text-white leading-[1.0] tracking-tight drop-shadow-2xl">
-                      {latestPage?.headline || latestPage?.name || "101 Winning Viral Templates"}
-                    </h3>
-                    <p className="text-[11px] text-white/70 leading-relaxed font-medium drop-shadow-sm">
-                      {latestPage?.subheadline || "Content that connects, converts, and compounds."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* RIGHT: Glassmorphic form panel */}
-              <div
-                className="relative md:w-[45%] flex flex-col justify-center p-5 md:p-6 space-y-3"
-                style={{
-                  borderLeft: `1px solid ${themeMode === "dark" ? hexWithAlpha(brandColor, 0.19) : hexWithAlpha(brandColor, 0.13)}`,
-                }}
-              >
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: brandColor }}>
-                    {latestPage?.bulletsTitle || "Exclusive · Free Access"}
-                  </p>
-                  <h4 className={`text-sm font-black leading-tight ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>
-                    {latestPage?.formTitle || "Claim Your Free Copy"}
-                  </h4>
-                  <p className={`text-[10px] leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
-                    {latestPage?.formSubtitle || "Instant delivery. No card needed."}
-                  </p>
-                </div>
-
-                {latestPage?.bullets && latestPage.bullets.length > 0 && (
-                  <div className="space-y-1.5">
-                    {latestPage.bullets.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex items-start gap-2">
-                        <div
-                          className="flex h-3.5 w-3.5 shrink-0 mt-0.5 items-center justify-center rounded-full"
-                          style={{ backgroundColor: hexWithAlpha(brandColor, 0.13), border: `1px solid ${hexWithAlpha(brandColor, 0.33)}` }}
-                        >
-                          <svg width="6" height="6" viewBox="0 0 6 6" fill="none">
-                            <path d="M1 3l1.5 1.5L5 1.5" stroke={brandColor} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </div>
-                        <span className={`text-[10px] leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>
-                          {item}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2">
-                  <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${hexWithAlpha(brandColor, 0.27)}, transparent)` }} />
-                  <span className={`text-[8px] font-bold uppercase tracking-widest ${themeMode === "dark" ? "text-zinc-600" : "text-zinc-400"}`}>Sign Up Free</span>
-                  <div className="h-px flex-1" style={{ background: `linear-gradient(to left, ${hexWithAlpha(brandColor, 0.27)}, transparent)` }} />
-                </div>
-
-                <div className="space-y-2">
-                  <div
-                    className="flex items-center gap-2 rounded-xl px-3 py-2.5"
-                    style={{
-                      background: themeMode === "dark" ? "rgba(255,255,255,0.05)" : "#f4f5f8",
-                      border: `1px solid ${themeMode === "dark" ? hexWithAlpha(brandColor, 0.13) : hexWithAlpha(brandColor, 0.13)}`,
-                    }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0">
-                      <circle cx="6" cy="4" r="2.5" stroke={brandColor} strokeWidth="1.4" />
-                      <path d="M1.5 10.5C1.5 8.567 3.567 7 6 7s4.5 1.567 4.5 3.5" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder={latestPage?.namePlaceholder || "Full name"}
-                      readOnly
-                      className={`w-full bg-transparent text-[11px] outline-none pointer-events-none select-none ${themeMode === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
-                    />
-                  </div>
-
-                  <div
-                    className="flex items-center gap-2 rounded-xl px-3 py-2.5"
-                    style={{
-                      background: themeMode === "dark" ? "rgba(255,255,255,0.05)" : "#f4f5f8",
-                      border: `1px solid ${themeMode === "dark" ? hexWithAlpha(brandColor, 0.13) : hexWithAlpha(brandColor, 0.13)}`,
-                    }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0">
-                      <rect x="1" y="2.5" width="10" height="7" rx="1.5" stroke={brandColor} strokeWidth="1.4" />
-                      <path d="M1 4l5 3.5L11 4" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" />
-                    </svg>
-                    <input
-                      type="email"
-                      placeholder={latestPage?.emailPlaceholder || "Email address"}
-                      readOnly
-                      className={`w-full bg-transparent text-[11px] outline-none pointer-events-none select-none ${themeMode === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
-                    />
-                  </div>
-
-                  {latestPage?.customFormFields && latestPage.customFormFields.length > 0 && (
-                    latestPage.customFormFields.map((field) => (
-                      <div
-                        key={field.id}
-                        className="flex items-center gap-2 rounded-xl px-3 py-2.5"
-                        style={{
-                          background: themeMode === "dark" ? "rgba(255,255,255,0.05)" : "#f4f5f8",
-                          border: `1px solid ${themeMode === "dark" ? hexWithAlpha(brandColor, 0.13) : hexWithAlpha(brandColor, 0.13)}`,
-                        }}
-                      >
-                        {field.type === "select" ? (
-                          <select disabled className={`w-full bg-transparent text-[11px] outline-none appearance-none ${themeMode === "dark" ? "text-white" : "text-zinc-800"}`}>
-                            <option>{field.placeholder || field.label}</option>
-                            {field.options?.map((opt: string, i: number) => <option key={i}>{opt}</option>)}
-                          </select>
-                        ) : field.type === "textarea" ? (
-                          <textarea
-                            placeholder={field.placeholder || field.label}
-                            rows={2}
-                            readOnly
-                            className={`w-full bg-transparent text-[11px] outline-none resize-none ${themeMode === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
-                          />
-                        ) : (
-                          <input
-                            type={field.type === "number" ? "number" : "text"}
-                            placeholder={field.placeholder || field.label}
-                            readOnly
-                            className={`w-full bg-transparent text-[11px] outline-none pointer-events-none ${themeMode === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
-                          />
-                        )}
-                      </div>
-                    ))
-                  )}
-
-                  <button
-                    type="button"
-                    className="w-full rounded-xl py-3 text-xs font-black text-white relative overflow-hidden transition-all duration-200"
-                    style={{
-                      background: `linear-gradient(135deg, ${brandColor} 0%, ${hexWithAlpha(brandColor, 0.73)} 100%)`,
-                      boxShadow: `0 0 24px -4px ${hexWithAlpha(brandColor, 0.55 + intensityRatio * 0.45)}, 0 4px 12px rgba(0,0,0,0.2)`,
-                    }}
-                  >
-                    <span className="relative z-10 flex items-center justify-center gap-2 tracking-wide">
-                      <span>{latestPage?.formButtonText || latestPage?.cta || "Unlock Free Access"}</span>
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M2 7h10M8 3l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_2.5s_infinite] pointer-events-none" />
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2 pt-1">
-                  <div className="flex -space-x-2">
-                    {["#e879f9", "#38bdf8", "#4ade80", "#fb923c"].map((color, i) => (
+        <div className="w-full py-1">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+            {/* LEFT: Full-bleed image panel */}
+            <div className="col-span-12 md:col-span-6 relative overflow-hidden rounded-3xl shadow-2xl aspect-[4/3] max-h-[340px] min-h-[260px]">
+              {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
+                <img
+                  src={latestPage.imageUrl}
+                  alt={latestPage?.name || "Cover"}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: `linear-gradient(155deg, ${hexWithAlpha(brandColor, 0.6 + intensityRatio * 0.35)} 0%, #060610 55%, #12001a 100%)`,
+                  }}
+                >
+                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                    {[160, 110, 66, 32].map((size, i) => (
                       <div
                         key={i}
-                        className="h-5 w-5 rounded-full border-2 flex items-center justify-center text-[7px] font-black text-white"
-                        style={{
-                          backgroundColor: i === 0 ? brandColor : color,
-                          borderColor: themeMode === "dark" ? "#0b0b10" : "#ffffff",
-                        }}
-                      >
-                        {["A", "B", "C", "D"][i]}
-                      </div>
+                        className="absolute rounded-full border border-white"
+                        style={{ width: size, height: size, opacity: 1 - i * 0.2 }}
+                      />
                     ))}
                   </div>
-                  <p className={`text-[9px] font-semibold ${themeMode === "dark" ? "text-zinc-500" : "text-zinc-400"}`}>
-                    Join <span style={{ color: brandColor }} className="font-black">12,000+</span> creators already inside
+                  <div
+                    className="absolute inset-0 opacity-[0.05]"
+                    style={{ backgroundImage: "repeating-linear-gradient(0deg, white 0px, white 1px, transparent 1px, transparent 8px)" }}
+                  />
+                </div>
+              )}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.4) 100%)" }} />
+              <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)" }} />
+              <div className="absolute inset-0 flex flex-col justify-end p-5 z-10">
+                <div className="space-y-1.5 max-w-xs">
+                  <h3 className="text-2xl md:text-3xl font-black text-white leading-[1.0] tracking-tight drop-shadow-2xl">
+                    {latestPage?.headline || latestPage?.name || "101 Winning Viral Templates"}
+                  </h3>
+                  <p className="text-[11px] text-white/70 leading-relaxed font-medium drop-shadow-sm">
+                    {latestPage?.subheadline || "Content that connects, converts, and compounds."}
                   </p>
                 </div>
+              </div>
+            </div>
+
+            {/* RIGHT: Glassmorphic form panel */}
+            <div className="col-span-12 md:col-span-6 flex flex-col justify-center space-y-3">
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: brandColor }}>
+                  {latestPage?.bulletsTitle || "Exclusive · Free Access"}
+                </p>
+                <h4 className={`text-sm font-black leading-tight ${themeMode === "dark" ? "text-white" : "text-zinc-900"}`}>
+                  {latestPage?.formTitle || "Claim Your Free Copy"}
+                </h4>
+                <p className={`text-[10px] leading-relaxed ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
+                  {latestPage?.formSubtitle || "Instant delivery. No card needed."}
+                </p>
+              </div>
+
+              {latestPage?.bullets && latestPage.bullets.length > 0 && (
+                <div className="space-y-1.5">
+                  {latestPage.bullets.slice(0, 3).map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-2">
+                      <div
+                        className="flex h-3.5 w-3.5 shrink-0 mt-0.5 items-center justify-center rounded-full"
+                        style={{ backgroundColor: hexWithAlpha(brandColor, 0.13), border: `1px solid ${hexWithAlpha(brandColor, 0.33)}` }}
+                      >
+                        <svg width="6" height="6" viewBox="0 0 6 6" fill="none">
+                          <path d="M1 3l1.5 1.5L5 1.5" stroke={brandColor} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      <span className={`text-[10px] leading-relaxed ${themeMode === "dark" ? "text-zinc-300" : "text-zinc-600"}`}>
+                        {item}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${hexWithAlpha(brandColor, 0.27)}, transparent)` }} />
+                <span className={`text-[8px] font-bold uppercase tracking-widest ${themeMode === "dark" ? "text-zinc-600" : "text-zinc-400"}`}>Sign Up Free</span>
+                <div className="h-px flex-1" style={{ background: `linear-gradient(to left, ${hexWithAlpha(brandColor, 0.27)}, transparent)` }} />
+              </div>
+
+              <div className="space-y-2">
+                <div
+                  className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+                  style={{
+                    background: themeMode === "dark" ? "rgba(255,255,255,0.05)" : "#f4f5f8",
+                    border: `1px solid ${themeMode === "dark" ? hexWithAlpha(brandColor, 0.13) : hexWithAlpha(brandColor, 0.13)}`,
+                  }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0">
+                    <circle cx="6" cy="4" r="2.5" stroke={brandColor} strokeWidth="1.4" />
+                    <path d="M1.5 10.5C1.5 8.567 3.567 7 6 7s4.5 1.567 4.5 3.5" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder={latestPage?.namePlaceholder || "Full name"}
+                    readOnly
+                    className={`w-full bg-transparent text-[11px] outline-none pointer-events-none select-none ${themeMode === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
+                  />
+                </div>
+
+                <div
+                  className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+                  style={{
+                    background: themeMode === "dark" ? "rgba(255,255,255,0.05)" : "#f4f5f8",
+                    border: `1px solid ${themeMode === "dark" ? hexWithAlpha(brandColor, 0.13) : hexWithAlpha(brandColor, 0.13)}`,
+                  }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0">
+                    <rect x="1" y="2.5" width="10" height="7" rx="1.5" stroke={brandColor} strokeWidth="1.4" />
+                    <path d="M1 4l5 3.5L11 4" stroke={brandColor} strokeWidth="1.4" strokeLinecap="round" />
+                  </svg>
+                  <input
+                    type="email"
+                    placeholder={latestPage?.emailPlaceholder || "Email address"}
+                    readOnly
+                    className={`w-full bg-transparent text-[11px] outline-none pointer-events-none select-none ${themeMode === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
+                  />
+                </div>
+
+                {latestPage?.customFormFields && latestPage.customFormFields.length > 0 && (
+                  latestPage.customFormFields.map((field) => (
+                    <div
+                      key={field.id}
+                      className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+                      style={{
+                        background: themeMode === "dark" ? "rgba(255,255,255,0.05)" : "#f4f5f8",
+                        border: `1px solid ${themeMode === "dark" ? hexWithAlpha(brandColor, 0.13) : hexWithAlpha(brandColor, 0.13)}`,
+                      }}
+                    >
+                      {field.type === "select" ? (
+                        <select disabled className={`w-full bg-transparent text-[11px] outline-none appearance-none ${themeMode === "dark" ? "text-white" : "text-zinc-800"}`}>
+                          <option>{field.placeholder || field.label}</option>
+                          {field.options?.map((opt: string, i: number) => <option key={i}>{opt}</option>)}
+                        </select>
+                      ) : field.type === "textarea" ? (
+                        <textarea
+                          placeholder={field.placeholder || field.label}
+                          rows={2}
+                          readOnly
+                          className={`w-full bg-transparent text-[11px] outline-none resize-none ${themeMode === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
+                        />
+                      ) : (
+                        <input
+                          type={field.type === "number" ? "number" : "text"}
+                          placeholder={field.placeholder || field.label}
+                          readOnly
+                          className={`w-full bg-transparent text-[11px] outline-none pointer-events-none ${themeMode === "dark" ? "text-white placeholder:text-zinc-600" : "text-zinc-800 placeholder:text-zinc-400"}`}
+                        />
+                      )}
+                    </div>
+                  ))
+                )}
+
+                <button
+                  type="button"
+                  className="w-full rounded-xl py-3 text-xs font-black text-white relative overflow-hidden transition-all duration-200"
+                  style={{
+                    background: `linear-gradient(135deg, ${brandColor} 0%, ${hexWithAlpha(brandColor, 0.73)} 100%)`,
+                    boxShadow: `0 0 24px -4px ${hexWithAlpha(brandColor, 0.55 + intensityRatio * 0.45)}, 0 4px 12px rgba(0,0,0,0.2)`,
+                  }}
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2 tracking-wide">
+                    <span>{latestPage?.formButtonText || latestPage?.cta || "Unlock Free Access"}</span>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M2 7h10M8 3l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_2.5s_infinite] pointer-events-none" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <div className="flex -space-x-2">
+                  {["#e879f9", "#38bdf8", "#4ade80", "#fb923c"].map((color, i) => (
+                    <div
+                      key={i}
+                      className="h-5 w-5 rounded-full border-2 flex items-center justify-center text-[7px] font-black text-white"
+                      style={{
+                        backgroundColor: i === 0 ? brandColor : color,
+                        borderColor: themeMode === "dark" ? "#0b0b10" : "#ffffff",
+                      }}
+                    >
+                      {["A", "B", "C", "D"][i]}
+                    </div>
+                  ))}
+                </div>
+                <p className={`text-[9px] font-semibold ${themeMode === "dark" ? "text-zinc-500" : "text-zinc-400"}`}>
+                  Join <span style={{ color: brandColor }} className="font-black">12,000+</span> creators already inside
+                </p>
               </div>
             </div>
           </div>

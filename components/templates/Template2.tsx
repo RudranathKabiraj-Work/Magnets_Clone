@@ -49,18 +49,10 @@ export default function Template2(props: TemplateProps) {
   };
 
   return (
-    <div
-      className={`mx-auto max-w-6xl rounded-2xl border transition-all duration-300 overflow-hidden shadow-2xl ${isDark ? "bg-[#111827] text-white border-zinc-800" : "bg-white text-zinc-900 border-zinc-200"}`}
-      style={{
-        borderColor: account?.brandColor
-          ? `${brandColor}${Math.round((0.25 + ((account?.highlightIntensity ?? 100) / 100) * 0.55) * 255).toString(16).padStart(2, '0')}`
-          : "#0066B240",
-        boxShadow: `0 16px 40px -10px ${brandColor}${Math.round(((account?.highlightIntensity ?? 100) / 100) * 0.25 * 255).toString(16).padStart(2, '0')}`
-      }}
-    >
-      <div className="grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
+    <div className="w-full max-w-7xl mx-auto py-1">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
         {/* Left Panel: Cover Image + Gradient Scrim + Bullets (~60%) */}
-        <div className="md:col-span-7 relative flex flex-col justify-end p-6 md:p-8 overflow-hidden min-h-[260px] md:min-h-full bg-zinc-900 text-white group">
+        <div className="lg:col-span-7 relative flex flex-col justify-end p-6 sm:p-8 md:p-10 rounded-3xl overflow-hidden min-h-[380px] sm:min-h-[440px] bg-zinc-900 text-white shadow-2xl border border-black/10 dark:border-white/10 group">
           {imageUrl && imageUrl.trim() !== "" && (
             <img
               src={imageUrl}
@@ -242,9 +234,10 @@ export default function Template2(props: TemplateProps) {
           </div>
         </div>
 
-        {/* Right Panel: Form (~40%) */}
-        <div className={`md:col-span-5 p-6 md:p-8 flex flex-col justify-center border-t md:border-t-0 md:border-l ${isDark ? "border-zinc-800 bg-[#18181B]" : "border-zinc-200 bg-white"}`}>
-          <div className="space-y-3">
+        {/* Right Panel: Form */}
+        <div className="lg:col-span-5 flex flex-col justify-center">
+          <div className={`p-6 sm:p-8 rounded-3xl border shadow-2xl transition-all duration-300 backdrop-blur-md ${isDark ? "border-zinc-800 bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
+            <div className="space-y-3">
             {isEditor ? (
               <>
                 <input
@@ -362,6 +355,7 @@ export default function Template2(props: TemplateProps) {
                 </button>
               </form>
             )}
+            </div>
           </div>
         </div>
       </div>

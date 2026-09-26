@@ -40,16 +40,9 @@ export default function Template5(props: TemplateProps) {
   const isDark = themeMode === "dark";
 
   return (
-    <div
-      className="mx-auto max-w-6xl rounded-3xl overflow-hidden relative transition-all duration-300"
-      style={{
-        border: `1px solid ${brandColor}30`,
-        boxShadow: `0 24px 70px -12px ${brandColor}${Math.round((0.18 + ((account?.highlightIntensity ?? 100) / 100) * 0.28) * 255).toString(16).padStart(2, '0')}`,
-        background: isDark ? "#0d0d11" : "#f0f2f7"
-      }}
-    >
-      {/* Full-bleed cover image */}
-      <div className="relative w-full overflow-hidden" style={{ paddingBottom: "45%", minHeight: "260px" }}>
+    <div className="w-full max-w-5xl mx-auto space-y-0 py-1 relative">
+      {/* Full-bleed cover image header banner */}
+      <div className="relative w-full overflow-hidden rounded-3xl shadow-2xl border border-black/10 dark:border-white/10" style={{ paddingBottom: "45%", minHeight: "260px" }}>
         {imageUrl && imageUrl.trim() !== "" ? (
           <img src={imageUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
         ) : (

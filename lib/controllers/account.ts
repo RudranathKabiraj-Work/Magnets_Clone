@@ -449,6 +449,153 @@ export async function handleGetLinkedInAuthLink(authEmail: string | null, client
 }
 
 /**
+ * Directly connects LinkedIn using in-house native session cookie (li_at).
+ * Validates the cookie with LinkedIn, fetches the user's profile info,
+ * and saves connection state to MongoDB.
+ */
+export async function handleConnectLinkedInNative(data: any, authEmail: string | null) {
+  if (!authEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const { liAt, jsessionId } = data || {};
+  if (!liAt || typeof liAt !== "string" || liAt.trim().length < 15) {
+    return NextResponse.json({ error: "Please enter a valid li_at session cookie." }, { status: 400 });
+  }
+
+  const { validateLinkedInSession } = await import("@/lib/linkedin-native");
+  const validation = await validateLinkedInSession(liAt.trim(), jsessionId);
+
+  if (!validation.success || !validation.profile) {
+    return NextResponse.json({
+      error: validation.error || "Could not validate LinkedIn session. Please check your li_at cookie and try again.",
+    }, { status: 400 });
+  }
+
+  const account = await AccountModel.findOne({ email: authEmail.trim().toLowerCase() });
+  if (!account) {
+    return NextResponse.json({ error: "Account not found." }, { status: 404 });
+  }
+
+  account.linkedinConnected = true;
+  account.linkedinLiAt = liAt.trim();
+  account.linkedinJSessionId = (jsessionId || "").trim();
+  account.linkedinAccountId = validation.profile.id;
+  account.linkedinProfileId = validation.profile.id;
+  account.linkedinAccountName = validation.profile.fullName;
+  account.linkedinProfileImage = validation.profile.avatarUrl;
+  await account.save();
+
+  return NextResponse.json({
+    success: true,
+    message: "LinkedIn connected successfully!",
+    profile: validation.profile,
+    account,
+  });
+}
+
+/**
+ * In-App Login with LinkedIn Email & Password.
+ * Handles credentials, automatic session extraction, and 2FA challenge initiation.
+ */
+export async function handleLoginLinkedInCredentials(data: any, authEmail: string | null) {
+  if (!authEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const { email, password } = data || {};
+  if (!email || !password) {
+    return NextResponse.json({ error: "Please provide both LinkedIn email and password." }, { status: 400 });
+  }
+
+  const { loginWithLinkedInCredentials } = await import("@/lib/linkedin-auth-direct");
+  const result = await loginWithLinkedInCredentials(email, password);
+
+  if (result.requiresPin) {
+    return NextResponse.json({
+      success: false,
+      requiresPin: true,
+      challengeId: result.challengeId,
+      transactionData: result.transactionData,
+      message: result.error,
+    });
+  }
+
+  if (!result.success || !result.session || !result.profile) {
+    return NextResponse.json({
+      success: false,
+      error: result.error || "Could not sign into LinkedIn. Please check your credentials.",
+    }, { status: 400 });
+  }
+
+  const account = await AccountModel.findOne({ email: authEmail.trim().toLowerCase() });
+  if (!account) {
+    return NextResponse.json({ error: "Account not found." }, { status: 404 });
+  }
+
+  account.linkedinConnected = true;
+  account.linkedinLiAt = result.session.liAt;
+  account.linkedinJSessionId = result.session.jsessionId;
+  account.linkedinAccountId = result.profile.id;
+  account.linkedinProfileId = result.profile.id;
+  account.linkedinAccountName = result.profile.fullName;
+  account.linkedinProfileImage = result.profile.avatarUrl;
+  await account.save();
+
+  return NextResponse.json({
+    success: true,
+    message: "LinkedIn connected successfully!",
+    profile: result.profile,
+    account,
+  });
+}
+
+/**
+ * Submits 2FA / Verification PIN code sent to user by LinkedIn.
+ */
+export async function handleSubmitLinkedInPin(data: any, authEmail: string | null) {
+  if (!authEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const { pin, transactionData } = data || {};
+  if (!pin) {
+    return NextResponse.json({ error: "Please enter the 6-digit verification PIN." }, { status: 400 });
+  }
+
+  const { submitLinkedInChallengePin } = await import("@/lib/linkedin-auth-direct");
+  const result = await submitLinkedInChallengePin(pin, transactionData || "");
+
+  if (!result.success || !result.session || !result.profile) {
+    return NextResponse.json({
+      success: false,
+      error: result.error || "Verification PIN was incorrect or expired.",
+    }, { status: 400 });
+  }
+
+  const account = await AccountModel.findOne({ email: authEmail.trim().toLowerCase() });
+  if (!account) {
+    return NextResponse.json({ error: "Account not found." }, { status: 404 });
+  }
+
+  account.linkedinConnected = true;
+  account.linkedinLiAt = result.session.liAt;
+  account.linkedinJSessionId = result.session.jsessionId;
+  account.linkedinAccountId = result.profile.id;
+  account.linkedinProfileId = result.profile.id;
+  account.linkedinAccountName = result.profile.fullName;
+  account.linkedinProfileImage = result.profile.avatarUrl;
+  await account.save();
+
+  return NextResponse.json({
+    success: true,
+    message: "LinkedIn verified and connected successfully!",
+    profile: result.profile,
+    account,
+  });
+}
+
+/**
  * Disconnects the user's LinkedIn account.
  */
 export async function handleDisconnectLinkedIn(authEmail: string | null) {
@@ -462,9 +609,12 @@ export async function handleDisconnectLinkedIn(authEmail: string | null) {
   }
 
   account.linkedinConnected = false;
+  account.linkedinLiAt = "";
+  account.linkedinJSessionId = "";
   account.linkedinAccountId = "";
   account.linkedinAccountName = "";
   account.linkedinProfileId = "";
+  account.linkedinProfileImage = "";
   await account.save();
 
   return NextResponse.json({ success: true, message: "LinkedIn account disconnected." });
@@ -514,6 +664,7 @@ export async function handleSyncLinkedInNow(authEmail: string | null) {
 
 /**
  * Fetches recent LinkedIn posts for the user and merges them with any per-post campaigns.
+ * Uses 100% in-house native LinkedIn engine.
  */
 export async function handleGetLinkedInRecentPosts(authEmail: string | null) {
   if (!authEmail) {
@@ -521,89 +672,46 @@ export async function handleGetLinkedInRecentPosts(authEmail: string | null) {
   }
 
   const account = await AccountModel.findOne({ email: authEmail.trim().toLowerCase() });
-  if (!account || !account.linkedinConnected || !account.linkedinAccountId) {
+  if (!account || !account.linkedinConnected) {
     return NextResponse.json({ success: false, posts: [], message: "LinkedIn not connected." });
   }
 
-  const UNIPILE_DSN = "https://api36.unipile.com:16619";
-  const UNIPILE_API_KEY = "wOFSf6du.f/PTCdwTaeOqSSw5PaLUCTPVwks++2G3tUtqBXh8gfU=";
+  const liAt = account.linkedinLiAt || account.linkedinAccountId;
+  if (!liAt) {
+    return NextResponse.json({ success: false, posts: [], message: "No active LinkedIn session found." });
+  }
 
   try {
-    const profileId = account.linkedinProfileId;
-    const postEndpoint = profileId
-      ? `${UNIPILE_DSN}/api/v1/users/${encodeURIComponent(profileId)}/posts?account_id=${encodeURIComponent(account.linkedinAccountId)}&limit=20`
-      : `${UNIPILE_DSN}/api/v1/posts?account_id=${encodeURIComponent(account.linkedinAccountId)}&limit=20`;
+    const { fetchUserLinkedInPosts } = await import("@/lib/linkedin-native");
+    const postsRes = await fetchUserLinkedInPosts(
+      liAt,
+      account.linkedinProfileId || "me",
+      account.linkedinJSessionId || "",
+      20
+    );
 
-    const res = await fetch(postEndpoint, {
-      headers: { "X-API-KEY": UNIPILE_API_KEY },
-    });
-
-    let rawPosts: any[] = [];
-    if (res.ok) {
-      const data = await res.json();
-      rawPosts = data.items || [];
-    }
-
+    const rawPosts = postsRes.posts || [];
     const savedCampaigns = account.linkedinPostCampaigns || [];
 
-    const posts = await Promise.all(
-      rawPosts.map(async (p: any) => {
-        const postId = p.id || p.provider_id || "";
-        const matched = savedCampaigns.find((c: any) => c.postId === postId);
-        const postText =
-          p.text ||
-          p.commentary ||
-          p.content ||
-          p.attachments?.[0]?.description ||
-          "LinkedIn Post";
-        const postUrl =
-          p.url ||
-          p.share_url ||
-          (postId.includes("activity:") ? `https://www.linkedin.com/feed/update/${postId}` : "");
+    const posts = rawPosts.map((p: any) => {
+      const postId = p.social_id || p.id || "";
+      const matched = savedCampaigns.find((c: any) => c.postId === postId || c.postId === p.id);
 
-        let commentsCount =
-          p.comments_count ??
-          p.comments_counter ??
-          p.num_comments ??
-          p.total_comments ??
-          p.comment_count ??
-          p.stats?.comments ??
-          p.social_actions?.comments ??
-          p.social_details?.total_social_activity_counts?.num_comments ??
-          (Array.isArray(p.comments) ? p.comments.length : 0);
-
-        // If count is 0, query comments endpoint directly for accurate real-time count
-        if (!commentsCount && postId) {
-          try {
-            const cRes = await fetch(
-              `${UNIPILE_DSN}/api/v1/posts/${encodeURIComponent(postId)}/comments?account_id=${encodeURIComponent(account.linkedinAccountId)}`,
-              { headers: { "X-API-KEY": UNIPILE_API_KEY } }
-            );
-            if (cRes.ok) {
-              const cData = await cRes.json();
-              commentsCount = Array.isArray(cData.items) ? cData.items.length : 0;
-            }
-          } catch (_) {}
-        }
-
-        const createdAt = p.created_at || p.date || "";
-
-        return {
-          postId,
-          postUrl,
-          postText,
-          commentsCount: Number(commentsCount) || 0,
-          createdAt,
-          enabled: matched ? matched.enabled : true,
-          magnetId: matched ? matched.magnetId : (account.linkedinDefaultMagnetId || ""),
-          triggerWord: matched ? matched.triggerWord : (account.linkedinTriggerWord || "resource"),
-        };
-      })
-    );
+      return {
+        postId,
+        postUrl: p.postUrl || (postId ? `https://www.linkedin.com/feed/update/${postId}` : ""),
+        postText: p.text || "LinkedIn Post",
+        commentsCount: Number(p.commentsCount) || 0,
+        createdAt: p.createdAt || "",
+        enabled: matched ? matched.enabled : true,
+        magnetId: matched ? matched.magnetId : (account.linkedinDefaultMagnetId || ""),
+        triggerWord: matched ? matched.triggerWord : (account.linkedinTriggerWord || "resource"),
+      };
+    });
 
     return NextResponse.json({ success: true, posts });
   } catch (err: any) {
-    console.error("[LinkedIn Recent Posts Error]:", err);
+    console.error("[LinkedIn Native Recent Posts Error]:", err);
     return NextResponse.json({ success: false, error: err.message, posts: [] }, { status: 500 });
   }
 }
