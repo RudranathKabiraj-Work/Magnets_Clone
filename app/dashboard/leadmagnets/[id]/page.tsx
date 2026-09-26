@@ -1676,34 +1676,12 @@ export default function EditLeadMagnetPage() {
             if (data.pitch) setPitch(data.pitch);
             if (data.bullets) setBullets(data.bullets);
 
-            if (data.imageUrl) {
-              setIsGeneratingAICover(true);
-              setImageGenerationStatus("generating");
-              setImageUrl(data.imageUrl);
-              update({
-                headline: data.headline,
-                subheadline: data.subheadline,
-                pitch: data.pitch,
-                bullets: data.bullets,
-                imageUrl: data.imageUrl,
-              });
-
-              setTimeout(() => {
-                setImageGenerationStatus((prev) => (prev === "generating" ? "refining" : prev));
-              }, 2500);
-
-              setTimeout(() => {
-                setImageGenerationStatus("complete");
-                setIsGeneratingAICover(false);
-              }, 15000);
-            } else {
-              update({
-                headline: data.headline,
-                subheadline: data.subheadline,
-                pitch: data.pitch,
-                bullets: data.bullets,
-              });
-            }
+            update({
+              headline: data.headline,
+              subheadline: data.subheadline,
+              pitch: data.pitch,
+              bullets: data.bullets,
+            });
           }}
         />
       )}

@@ -4,21 +4,6 @@ import { getAuthenticatedUserEmail } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-function generateFluxAIImageUrl(topic: string, aiImagePrompt?: string): string {
-  const base = aiImagePrompt || topic || "Digital Strategy";
-  const cleanKeywords = base
-    .replace(/[^a-zA-Z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter((w) => w.length > 2)
-    .slice(0, 6)
-    .join(" ");
-
-  const prompt = encodeURIComponent(`modern 3d graphic cover illustration for ${cleanKeywords || "business growth"}, studio lighting, 4k render`);
-  const seed = Math.floor(Math.random() * 1000000);
-
-  return `https://image.pollinations.ai/prompt/${prompt}?width=1024&height=576&nologo=true&seed=${seed}`;
-}
-
 export async function POST(req: Request) {
   try {
     const sessionEmail = await getAuthenticatedUserEmail();
@@ -62,7 +47,6 @@ Respond ONLY with a valid JSON object with the following fields:
   "deliverable": "A detailed Markdown document outline for the lead magnet (use headings, bullet points, and actionable steps)",
   "pitch": "A 2-sentence persuasive hook about why this resource is a must-have",
   "bullets": ["Benefit 1 (10-15 words)", "Benefit 2 (10-15 words)", "Benefit 3 (10-15 words)"],
-  "imagePrompt": "Short visual prompt describing a 3D modern digital ebook/guide cover graphic for '${cleanTopic}'",
   "accent": "Hex color code fitting the topic (e.g. '#FE6F34', '#6366F1', or '#10B981')",
   "template": "${selectedFormat.toLowerCase().includes("video") ? "video" : "classic"}",
   "emails": [
@@ -107,14 +91,11 @@ Respond ONLY with a valid JSON object with the following fields:
           const text = result.response.text();
           const aiData = JSON.parse(text);
 
-          const generatedImageUrl = generateFluxAIImageUrl(cleanTopic, aiData?.imagePrompt);
-
           return NextResponse.json({
             success: true,
             provider: `Google AI Studio (${modelName})`,
             data: {
               ...aiData,
-              imageUrl: generatedImageUrl,
               template: selectedFormat.toLowerCase().includes("video") ? "video" : "classic"
             }
           });
@@ -130,8 +111,6 @@ Respond ONLY with a valid JSON object with the following fields:
     const headline = `Master ${cleanTopic} in Under 10 Minutes (Step-by-Step ${selectedFormat})`;
     const subheadline = `Get the exact ${selectedFormat.toLowerCase()} engineered specifically for ${audience} to cut setup time in half and drive measurable results today.`;
     const cta = `Claim Your Free ${selectedFormat.split(" ")[0]} Now`;
-
-    const fallbackImageUrl = generateFluxAIImageUrl(cleanTopic);
 
     const deliverable = `### 🚀 What's Inside:
 - **Phase 1: Foundation Setup**: Core principles & mistake elimination framework.
@@ -188,7 +167,6 @@ Respond ONLY with a valid JSON object with the following fields:
         deliverable,
         pitch,
         bullets,
-        imageUrl: fallbackImageUrl,
         accent: "#FE6F34",
         template: selectedFormat.toLowerCase().includes("video") ? "video" : "classic",
         emails
