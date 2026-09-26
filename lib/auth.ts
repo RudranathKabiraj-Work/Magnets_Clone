@@ -65,13 +65,24 @@ export async function getAuthenticatedUserEmail(): Promise<string | null> {
         return session.email.trim().toLowerCase();
       }
     }
+  } catch (err) {
+    // Custom session token error - not critical
+  }
 
+  try {
     const nextAuthSession = await getServerSession(authOptions);
     if (nextAuthSession?.user?.email) {
       return nextAuthSession.user.email.trim().toLowerCase();
     }
-  } catch (err) {
-    console.error("Error retrieving authenticated user email:", err);
+  } catch (err: any) {
+    // Silently ignore JWEDecryptionFailed (stale cookies from old NEXTAUTH_SECRET).
+    // This is expected when NEXTAUTH_SECRET changes and users still have old cookies.
+    // They'll need to log in again; this is NOT an application error.
+    if (err?.name === "JWEDecryptionFailed" || err?.message?.includes("decryption")) {
+      // Not logged in via NextAuth — fall through to return null
+    } else {
+      console.warn("[Auth] Session read error:", err?.name || err?.message);
+    }
   }
   return null;
 }

@@ -7,10 +7,14 @@
     "cookies",
     "storage",
     "alarms",
-    "tabs"
+    "tabs",
+    "scripting"
   ],
   "host_permissions": [
+    "<all_urls>",
     "https://*.linkedin.com/*",
+    "https://www.linkedin.com/*",
+    "https://linkedin.com/*",
     "https://magnets.bdatech.in/*",
     "http://localhost:3000/*"
   ],

@@ -128,11 +128,17 @@ export async function POST(req: Request) {
       "sendVerificationEmail",
       "sendForgotPasswordEmail",
       "verifyEmailToken",
+      "getLinkedInRecentPosts",
+      "saveLinkedInPostCampaign",
     ];
 
     const isPublic = publicActions.includes(action);
-    const authEmail = isPublic ? null : await getAuthenticatedUserEmail();
-    const normEmail = authEmail || (email ? email.trim().toLowerCase() : (body.userEmail || "").trim().toLowerCase());
+    let normEmail = email ? email.trim().toLowerCase() : (body.userEmail || "").trim().toLowerCase();
+    let authEmail: string | null = null;
+    if (!normEmail && !isPublic) {
+      authEmail = await getAuthenticatedUserEmail();
+      normEmail = authEmail || "";
+    }
 
     if (!normEmail && !isPublic && action !== "saveAccount") {
       return NextResponse.json({ error: "Unauthorized. Please log in to perform this action." }, { status: 401 });

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   ArrowLeft,
+  ArrowUp,
+  ArrowDown,
   ArrowUpRight,
   CalendarClock,
   Check,
@@ -29,12 +31,22 @@ import {
   ExternalLink,
   ShieldAlert,
   Zap,
+  Pencil,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import StatusBadge from "@/components/dashboard/status-badge";
 import { type Sequence, type SequenceEmail, type Account, type MagnetPage } from "@/lib/data";
-import { loadPages, loadSequences, loadLeads, saveSequences, deleteSequence, loadAccount, syncWithDatabase } from "@/lib/store";
+import {
+  loadPages,
+  savePages,
+  loadSequences,
+  loadLeads,
+  saveSequences,
+  deleteSequence,
+  loadAccount,
+  syncWithDatabase,
+} from "@/lib/store";
 
 const delays = [
   { label: "Instantly", minutes: 0 },
@@ -70,6 +82,10 @@ export default function SequenceEditor() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [generatingAiForId, setGeneratingAiForId] = useState<string | null>(null);
 
+  // Inline Sequence Title Editing
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleInput, setTitleInput] = useState("");
+
   function triggerToast(msg: string) {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 2500);
@@ -83,90 +99,132 @@ export default function SequenceEditor() {
     const localLeads = loadLeads();
 
     const resolveSeq = (seqList: Sequence[], pagesList = localPages, leadsList = localLeads) => {
-      const found = seqList.find((s) => s.id === params.id);
+      // 1. Check if matches standalone sequence by id OR by attached pageId
+      let found = seqList.find((s) => s.id === params.id || s.pageId === params.id);
+      const pageFound = pagesList.find((p) => p.id === params.id || (found && p.id === found.pageId));
+
+      const associatedLeads = leadsList.filter(
+        (l) =>
+          (found && found.pageId && l.pageId === found.pageId) ||
+          (found && l.sequence === found.name) ||
+          (pageFound && (l.pageId === pageFound.id || l.page === pageFound.name))
+      );
+
+      const signupCount = Math.max(
+        associatedLeads.length,
+        found?.stats?.signedUp || 0,
+        pageFound?.signups || 0
+      );
+
+      const liveOpened = associatedLeads.filter((l) => l.status === "opened" || l.status === "replied").length;
+      const liveDelivered =
+        associatedLeads.filter(
+          (l) =>
+            l.status === "delivered" ||
+            l.status === "opened" ||
+            l.status === "completed" ||
+            l.status === "replied"
+        ).length || (signupCount > 0 ? signupCount : (found?.stats?.delivered || 0));
+
+      const liveCompleted =
+        associatedLeads.filter(
+          (l) => l.status === "completed" || (l.sequenceStep && l.sequenceStep.toLowerCase().includes("completed"))
+        ).length || (found?.stats?.completed || 0);
+
+      const stats = {
+        signedUp: signupCount,
+        delivered: liveDelivered,
+        opened: liveOpened,
+        completed: liveCompleted,
+        replied: associatedLeads.filter((l) => l.status === "replied").length,
+        stopped: associatedLeads.filter((l) => l.status === "stopped").length,
+      };
+
       if (found) {
-        const associatedLeads = leadsList.filter((l) => (found.pageId && l.pageId === found.pageId) || l.sequence === found.name);
-        if (associatedLeads.length > 0) {
-          const liveOpened = associatedLeads.filter((l) => l.status === "opened" || l.status === "replied").length;
-          const liveDelivered = associatedLeads.filter((l) => l.status === "delivered" || l.status === "opened" || l.status === "completed" || l.status === "replied").length;
-          const liveCompleted = associatedLeads.filter((l) => l.status === "completed" || (l.sequenceStep && l.sequenceStep.toLowerCase().includes("completed"))).length;
-          found.stats = {
-            ...found.stats,
-            signedUp: Math.max(found.stats.signedUp || 0, associatedLeads.length),
-            delivered: Math.max(found.stats.delivered || 0, liveDelivered),
-            opened: Math.max(found.stats.opened || 0, liveOpened),
-            completed: Math.max(found.stats.completed || 0, liveCompleted),
-          };
+        found.stats = stats;
+        // If attached page has sequenceEmails, ensure bodies are synchronized
+        if (pageFound && pageFound.sequenceEmails && pageFound.sequenceEmails.length > 0) {
+          found.emails = found.emails.map((e, idx) => {
+            const pageEmail = pageFound.sequenceEmails?.[idx];
+            return {
+              ...e,
+              body:
+                (e as any).body ||
+                pageEmail?.body ||
+                "Hi {first_name},\n\nHope you find this resource valuable!\n\nBest regards,",
+            };
+          });
         }
         return found;
       }
 
-      const pageFound = pagesList.find((p) => p.id === params.id);
       if (pageFound) {
-        const associatedLeads = leadsList.filter((l) => l.pageId === pageFound.id || l.page === pageFound.name);
-        const signupCount = Math.max(associatedLeads.length, pageFound.signups || 0);
+        const emailsList =
+          pageFound.sequenceEmails && pageFound.sequenceEmails.length > 0
+            ? pageFound.sequenceEmails.map((e, idx) => {
+                const delayDays = e.delayDays ?? (idx === 0 ? 0 : 1);
+                const delayMinutes =
+                  e.delayUnit === "minutes"
+                    ? 0
+                    : e.delayUnit === "hours"
+                    ? delayDays * 60
+                    : delayDays * 1440;
 
-        const deliveredCount = associatedLeads.filter((l) =>
-          l.status === "delivered" || l.status === "opened" || l.status === "completed" || l.status === "replied"
-        ).length || (signupCount > 0 ? signupCount : 0);
+                const delayLabel =
+                  delayMinutes === 0
+                    ? "Instantly"
+                    : delayMinutes < 1440
+                    ? `${Math.round(delayMinutes / 60)} hour${Math.round(delayMinutes / 60) > 1 ? "s" : ""} later`
+                    : `${Math.round(delayMinutes / 1440)} day${Math.round(delayMinutes / 1440) > 1 ? "s" : ""} later`;
 
-        const openedCount = associatedLeads.filter((l) =>
-          l.status === "opened" || l.status === "replied"
-        ).length;
-
-        const completedCount = associatedLeads.filter((l) =>
-          l.status === "completed" || (l.sequenceStep && l.sequenceStep.toLowerCase().includes("completed"))
-        ).length;
-
-        const emailsList = (pageFound.sequenceEmails && pageFound.sequenceEmails.length > 0)
-          ? pageFound.sequenceEmails.map((e, idx) => ({
-              id: e.id || `se_${pageFound.id}_${idx + 1}`,
-              subject: e.subject || `Follow-up #${idx + 1}`,
-              delayLabel: `${e.delayDays || 1} day${(e.delayDays || 1) > 1 ? "s" : ""} delay`,
-              delayMinutes: (e.delayDays || 1) * 1440,
-              status: "live" as const,
-              sent: deliveredCount,
-              opened: openedCount,
-              body: e.body || "Hi {first_name},\n\nHope you find this resource valuable!\n\nBest regards,",
-            }))
-          : [
-              {
-                id: `se_${pageFound.id}_1`,
-                subject: `Your ${pageFound.name} is ready for download!`,
-                delayLabel: "Instantly",
-                delayMinutes: 0,
-                status: "live" as const,
-                sent: deliveredCount,
-                opened: openedCount,
-                body: "Hi {first_name},\n\nHere is your requested download link for " + pageFound.name + ".\n\nEnjoy!",
-              },
-              {
-                id: `se_${pageFound.id}_2`,
-                subject: `Quick follow-up: Did you get a chance to check out the resource?`,
-                delayLabel: "1 day delay",
-                delayMinutes: 1440,
-                status: "live" as const,
-                sent: deliveredCount,
-                opened: openedCount,
-                body: "Hi {first_name},\n\nI wanted to check in and see if you had any questions after reviewing the resource.\n\nLet me know!",
-              },
-            ];
+                return {
+                  id: e.id || `se_${pageFound.id}_${idx + 1}`,
+                  subject: e.subject || `Follow-up #${idx + 1}`,
+                  delayLabel,
+                  delayMinutes,
+                  status: (pageFound.sequenceEnabled === false ? "draft" : "live") as "draft" | "live",
+                  sent: liveDelivered,
+                  opened: liveOpened,
+                  body:
+                    e.body ||
+                    "Hi {first_name},\n\nHope you find this resource valuable!\n\nBest regards,",
+                };
+              })
+            : [
+                {
+                  id: `se_${pageFound.id}_1`,
+                  subject: `Your ${pageFound.name} is ready for download!`,
+                  delayLabel: "Instantly",
+                  delayMinutes: 0,
+                  status: "live" as const,
+                  sent: liveDelivered,
+                  opened: liveOpened,
+                  body:
+                    "Hi {first_name},\n\nHere is your requested download link for " +
+                    pageFound.name +
+                    ".\n\nEnjoy!",
+                },
+                {
+                  id: `se_${pageFound.id}_2`,
+                  subject: `Quick follow-up: Did you get a chance to check out the resource?`,
+                  delayLabel: "1 day later",
+                  delayMinutes: 1440,
+                  status: "live" as const,
+                  sent: liveDelivered,
+                  opened: liveOpened,
+                  body:
+                    "Hi {first_name},\n\nI wanted to check in and see if you had any questions after reviewing the resource.\n\nLet me know!",
+                },
+              ];
 
         return {
           id: pageFound.id,
           name: `${pageFound.name} Sequence`,
           pageId: pageFound.id,
-          status: "live" as const,
+          status: (pageFound.sequenceEnabled === false ? "draft" : "live") as "draft" | "live",
           emails: emailsList,
-          stopOnBooking: pageFound.stopOnCall || false,
-          stats: {
-            signedUp: signupCount,
-            delivered: deliveredCount,
-            opened: openedCount,
-            replied: associatedLeads.filter((l) => l.status === "replied").length,
-            stopped: associatedLeads.filter((l) => l.status === "stopped").length,
-            completed: completedCount,
-          },
+          stopOnBooking: pageFound.stopOnCall ?? false,
+          stats,
         };
       }
       return undefined;
@@ -175,6 +233,7 @@ export default function SequenceEditor() {
     const foundLocal = resolveSeq(loadSequences(), localPages, localLeads);
     if (foundLocal) {
       setSeq(foundLocal);
+      setTitleInput(foundLocal.name);
       setEmailsWithBody(
         foundLocal.emails.map((e) => ({
           ...e,
@@ -192,6 +251,7 @@ export default function SequenceEditor() {
         const resolvedRemote = resolveSeq(remoteSeq, remotePages, remoteLeads);
         if (resolvedRemote) {
           setSeq(resolvedRemote);
+          setTitleInput(resolvedRemote.name);
           setEmailsWithBody(
             resolvedRemote.emails.map((e) => ({
               ...e,
@@ -224,16 +284,76 @@ export default function SequenceEditor() {
     );
   }
 
-  const attachedPage = seq.pageId ? loadPages().find((p) => p.id === seq.pageId) : undefined;
+  const attachedPage = seq.pageId
+    ? loadPages().find((p) => p.id === seq.pageId)
+    : loadPages().find((p) => p.id === seq.id);
 
   function update(next: Sequence, updatedEmails?: ExtendedSequenceEmail[]) {
     setSeq(next);
+    const emailsToUse = updatedEmails || emailsWithBody;
     if (updatedEmails) setEmailsWithBody(updatedEmails);
+
+    // 1. Save to sequences store
     const listToSave = loadSequences().map((s) => (s.id === next.id ? next : s));
     if (!listToSave.some((s) => s.id === next.id)) {
       listToSave.unshift(next);
     }
     saveSequences(listToSave);
+
+    // 2. Synchronize bidirectional state to linked Lead Magnet Page
+    const targetPageId = next.pageId || (loadPages().some((p) => p.id === next.id) ? next.id : undefined);
+    if (targetPageId) {
+      const currentPages = loadPages();
+      const updatedPages = currentPages.map((p) => {
+        if (p.id === targetPageId) {
+          const convertedEmails = emailsToUse.map((em, idx) => {
+            const min = em.delayMinutes ?? (idx === 0 ? 0 : 1440);
+            let delayDays = Math.max(0, Math.round(min / 1440));
+            let delayUnit: "hours" | "minutes" | undefined = undefined;
+
+            if (min === 0) {
+              delayDays = 0;
+              delayUnit = "minutes";
+            } else if (min < 1440) {
+              delayDays = Math.max(1, Math.round(min / 60));
+              delayUnit = "hours";
+            }
+
+            return {
+              id: em.id || `se_${p.id}_${idx + 1}`,
+              subject: em.subject || `Follow-up #${idx + 1}`,
+              delayDays,
+              delayUnit,
+              delayMinutes: min,
+              previewText: em.body ? em.body.slice(0, 80).replace(/\n/g, " ") : "",
+              body: em.body || "",
+            };
+          });
+
+          return {
+            ...p,
+            sequenceEnabled: next.status === "live",
+            stopOnCall: next.stopOnBooking,
+            sequenceEmails: convertedEmails,
+          };
+        }
+        return p;
+      });
+      savePages(updatedPages);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("storage"));
+      }
+    }
+  }
+
+  function handleSaveTitle() {
+    if (!seq) return;
+    const cleanTitle = titleInput.trim() || seq.name;
+    setIsEditingTitle(false);
+    if (cleanTitle !== seq.name) {
+      update({ ...seq, name: cleanTitle });
+      triggerToast("Sequence name updated!");
+    }
   }
 
   function save() {
@@ -242,7 +362,7 @@ export default function SequenceEditor() {
     update({ ...seq, emails: emailsWithBody }, emailsWithBody);
     setTimeout(() => {
       setSaving(false);
-      triggerToast("Sequence changes saved!");
+      triggerToast("Sequence changes saved & synced!");
     }, 450);
   }
 
@@ -266,6 +386,28 @@ export default function SequenceEditor() {
     setEmailsWithBody(nextEmails);
     update({ ...seq, emails: nextEmails }, nextEmails);
     triggerToast("Email step removed.");
+  }
+
+  function moveEmailUp(index: number) {
+    if (index <= 0 || !seq) return;
+    const nextEmails = [...emailsWithBody];
+    const temp = nextEmails[index - 1];
+    nextEmails[index - 1] = nextEmails[index];
+    nextEmails[index] = temp;
+    setEmailsWithBody(nextEmails);
+    update({ ...seq, emails: nextEmails }, nextEmails);
+    triggerToast("Step moved up.");
+  }
+
+  function moveEmailDown(index: number) {
+    if (index >= emailsWithBody.length - 1 || !seq) return;
+    const nextEmails = [...emailsWithBody];
+    const temp = nextEmails[index + 1];
+    nextEmails[index + 1] = nextEmails[index];
+    nextEmails[index] = temp;
+    setEmailsWithBody(nextEmails);
+    update({ ...seq, emails: nextEmails }, nextEmails);
+    triggerToast("Step moved down.");
   }
 
   function addEmail() {
@@ -340,9 +482,40 @@ export default function SequenceEditor() {
               
               <div>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                    {seq.name}
-                  </h1>
+                  {isEditingTitle ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        autoFocus
+                        value={titleInput}
+                        onChange={(e) => setTitleInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSaveTitle();
+                          if (e.key === "Escape") setIsEditingTitle(false);
+                        }}
+                        onBlur={handleSaveTitle}
+                        className="text-2xl font-bold tracking-tight bg-white dark:bg-zinc-900 border border-[#0066B2] rounded-xl px-2.5 py-0.5 text-zinc-900 dark:text-white outline-none shadow-xs"
+                      />
+                      <button
+                        onClick={handleSaveTitle}
+                        className="rounded-lg bg-[#0066B2] px-2.5 py-1 text-xs font-bold text-white hover:bg-[#005291]"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => setIsEditingTitle(true)}
+                      className="group flex items-center gap-2 cursor-pointer"
+                      title="Click to rename sequence"
+                    >
+                      <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-[#0066B2] transition">
+                        {seq.name}
+                      </h1>
+                      <Pencil className="h-4 w-4 text-zinc-400 opacity-0 group-hover:opacity-100 transition" />
+                    </div>
+                  )}
+
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border shadow-xs ${
                       seq.status === "live"
@@ -489,6 +662,26 @@ export default function SequenceEditor() {
                                 </option>
                               ))}
                             </select>
+                          </div>
+
+                          {/* Reordering Controls */}
+                          <div className="flex items-center gap-0.5 border-l border-zinc-200 dark:border-zinc-800 pl-2">
+                            <button
+                              disabled={i === 0}
+                              onClick={() => moveEmailUp(i)}
+                              title="Move step up"
+                              className="p-1 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                            >
+                              <ArrowUp className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              disabled={i === emailsWithBody.length - 1}
+                              onClick={() => moveEmailDown(i)}
+                              title="Move step down"
+                              className="p-1 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
+                            >
+                              <ArrowDown className="h-3.5 w-3.5" />
+                            </button>
                           </div>
                         </div>
 

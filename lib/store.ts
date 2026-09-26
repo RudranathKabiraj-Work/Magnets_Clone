@@ -46,6 +46,49 @@ export function savePages(pages: MagnetPage[]) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "savePages", data: pages, email }),
     }).catch(console.error);
+
+    // Keep corresponding sequences in loadSequences() in sync with page sequence updates
+    try {
+      const currentSequences = loadSequences();
+      let seqsChanged = false;
+      const nextSequences = currentSequences.map((s) => {
+        const matchingPage = pages.find((p) => p.id === s.pageId || p.id === s.id);
+        if (matchingPage && matchingPage.sequenceEmails) {
+          seqsChanged = true;
+          return {
+            ...s,
+            status: (matchingPage.sequenceEnabled === false ? "draft" : "live") as "draft" | "live",
+            stopOnBooking: matchingPage.stopOnCall ?? s.stopOnBooking,
+            emails: matchingPage.sequenceEmails.map((e, idx) => {
+              const min = e.delayUnit === "minutes"
+                ? 0
+                : e.delayUnit === "hours"
+                  ? (e.delayDays ?? 1) * 60
+                  : (e.delayDays ?? (idx === 0 ? 0 : 1)) * 1440;
+              const lbl = min === 0
+                ? "Instantly"
+                : min < 1440
+                  ? `${Math.round(min / 60)} hour${Math.round(min / 60) > 1 ? "s" : ""} later`
+                  : `${Math.round(min / 1440)} day${Math.round(min / 1440) > 1 ? "s" : ""} later`;
+              return {
+                id: e.id || `se_${s.id}_${idx + 1}`,
+                subject: e.subject || `Follow-up #${idx + 1}`,
+                delayLabel: lbl,
+                delayMinutes: min,
+                status: (matchingPage.sequenceEnabled === false ? "draft" : "live") as "draft" | "live",
+                sent: s.emails[idx]?.sent || 0,
+                opened: s.emails[idx]?.opened || 0,
+                body: e.body || "",
+              };
+            }),
+          };
+        }
+        return s;
+      });
+      if (seqsChanged) {
+        saveSequences(nextSequences);
+      }
+    } catch (_) {}
   }
 }
 

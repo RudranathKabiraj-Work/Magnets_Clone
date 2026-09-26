@@ -187,7 +187,9 @@ export default function SequencesPage() {
         });
 
       const map = new Map<string, Sequence>();
-      for (const s of pageSequences) map.set(s.id, s);
+      for (const s of pageSequences) {
+        map.set(s.pageId || s.id, s);
+      }
       for (const s of seqList) {
         const associatedLeads = leadsList.filter(
           (l) => (s.pageId && l.pageId === s.pageId) || l.sequence === s.name
@@ -216,6 +218,10 @@ export default function SequencesPage() {
             opened: Math.max(s.stats.opened || 0, liveOpened),
             completed: Math.max(s.stats.completed || 0, liveCompleted),
           };
+        }
+        // Deduplicate: If this sequence belongs to a pageId that was also in pageSequences, replace it with this custom sequence
+        if (s.pageId && map.has(s.pageId)) {
+          map.delete(s.pageId);
         }
         map.set(s.id, s);
       }
@@ -727,9 +733,7 @@ export default function SequencesPage() {
                   const { signedUp, delivered, opened, replied } = seq.stats;
                   const completed = seq.stats.completed || (delivered > 0 ? delivered : 0);
                   const openRate = delivered > 0 ? Math.round((opened / delivered) * 100) : 0;
-                  const linkHref = seq.pageId
-                    ? `/dashboard/leadmagnets/${seq.pageId}?tab=sequence`
-                    : `/dashboard/sequences/${seq.id}`;
+                  const linkHref = `/dashboard/sequences/${seq.id}`;
                   const attachedName = seq.name.replace(" Follow-up", "").replace(" (Copy)", "");
                   const isMenuOpen = activeMenuId === seq.id;
 
@@ -752,8 +756,15 @@ export default function SequencesPage() {
                                 </p>
                               </div>
                               <p className="mt-0.5 truncate text-xs text-zinc-500 dark:text-zinc-400">
-                                Attached to <span className="font-semibold text-zinc-700 dark:text-zinc-200">"{attachedName}"</span> · {seq.emails.length}{" "}
-                                {seq.emails.length === 1 ? "email step" : "email steps"}
+                                Attached to{" "}
+                                {seq.pageId ? (
+                                  <span className="font-semibold text-zinc-700 dark:text-zinc-200 hover:text-[#0066B2] dark:hover:text-[#38BDF8]">
+                                    "{attachedName}"
+                                  </span>
+                                ) : (
+                                  <span className="font-semibold text-zinc-700 dark:text-zinc-200">"{attachedName}"</span>
+                                )}{" "}
+                                · {seq.emails.length} {seq.emails.length === 1 ? "email step" : "email steps"}
                               </p>
                             </div>
                           </Link>
@@ -779,15 +790,25 @@ export default function SequencesPage() {
                               {isMenuOpen && (
                                 <div
                                   onClick={(e) => e.stopPropagation()}
-                                  className="absolute right-0 top-8 z-30 w-48 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] py-1 shadow-xl animate-in fade-in zoom-in-95"
+                                  className="absolute right-0 top-8 z-30 w-52 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] py-1 shadow-xl animate-in fade-in zoom-in-95"
                                 >
                                   <Link
-                                    href={linkHref}
+                                    href={`/dashboard/sequences/${seq.id}`}
                                     className="flex w-full items-center gap-2 px-3.5 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-white/5"
                                   >
                                     <Eye className="h-3.5 w-3.5 text-zinc-400" />
-                                    Edit Sequence Steps
+                                    Open Sequence Editor
                                   </Link>
+
+                                  {seq.pageId && (
+                                    <Link
+                                      href={`/dashboard/leadmagnets/${seq.pageId}?tab=sequence`}
+                                      className="flex w-full items-center gap-2 px-3.5 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-white/5"
+                                    >
+                                      <ExternalLink className="h-3.5 w-3.5 text-zinc-400" />
+                                      Edit in Lead Magnet Builder
+                                    </Link>
+                                  )}
 
                                   <button
                                     onClick={(e) => handleToggleStatus(seq, e)}
@@ -929,9 +950,7 @@ export default function SequencesPage() {
                         const { signedUp, delivered, opened, replied } = seq.stats;
                         const completed = seq.stats.completed || (delivered > 0 ? delivered : 0);
                         const openRate = delivered > 0 ? Math.round((opened / delivered) * 100) : 0;
-                        const linkHref = seq.pageId
-                          ? `/dashboard/leadmagnets/${seq.pageId}?tab=sequence`
-                          : `/dashboard/sequences/${seq.id}`;
+                        const linkHref = `/dashboard/sequences/${seq.id}`;
                         const attachedName = seq.name.replace(" Follow-up", "").replace(" (Copy)", "");
 
                         return (

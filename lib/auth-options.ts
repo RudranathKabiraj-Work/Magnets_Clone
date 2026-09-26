@@ -76,9 +76,17 @@ export const authOptions: NextAuthOptions = {
       return `${baseUrl}/register/onboarding`;
     },
   },
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
   secret: process.env.NEXTAUTH_SECRET,
+  logger: {
+    error(code, metadata) {
+      if (code === "JWT_SESSION_ERROR" || (metadata as any)?.name === "JWEDecryptionFailed" || (metadata as any)?.message?.includes("decryption")) {
+        return; // Suppress noisy stale cookie stack traces in dev terminal
+      }
+      console.error(`[next-auth][${code}]`, metadata);
+    },
+    warn(code) {
+      if (code === "JWT_SESSION_ERROR") return;
+      console.warn(`[next-auth][${code}]`);
+    },
+  },
 };

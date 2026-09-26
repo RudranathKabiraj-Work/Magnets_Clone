@@ -40,7 +40,7 @@ export interface MagnetPage {
   };
   sequenceEnabled?: boolean;
   stopOnCall?: boolean;
-  sequenceEmails?: { id: string; subject: string; delayDays: number; body: string }[];
+  sequenceEmails?: { id: string; subject: string; delayDays: number; delayUnit?: "hours" | "minutes"; delayMinutes?: number; previewText?: string; body: string }[];
   afterSignupOption?: "standard" | "elsewhere" | "custom";
   destinationUrl?: string;
   customHeading?: string;

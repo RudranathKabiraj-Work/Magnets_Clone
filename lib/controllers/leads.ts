@@ -10,6 +10,20 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
   let pageTitle = data.page || "Lead Magnet";
   let foundPageDoc: any = null;
 
+  // Auto-generate ID if missing
+  if (!data.id) {
+    data.id = `lead-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  }
+
+  // Ensure name and email exist
+  if (!data.name || !String(data.name).trim()) {
+    data.name = "LinkedIn Prospect";
+  }
+  if (!data.email || !String(data.email).trim()) {
+    const slugName = String(data.name).toLowerCase().replace(/[^a-z0-9]/g, "") || "prospect";
+    data.email = `${slugName}@linkedin-prospect.com`;
+  }
+
   if (data.pageId || data.page || data.pageSlug) {
     const query: any[] = [];
     if (data.pageId) query.push({ id: data.pageId });
@@ -21,11 +35,49 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
     if (foundPageDoc) {
       if (foundPageDoc.userEmail) ownerEmail = foundPageDoc.userEmail;
       if (foundPageDoc.name) pageTitle = foundPageDoc.name;
+      data.pageId = foundPageDoc.id;
+      data.page = foundPageDoc.name || pageTitle;
       const seqList = (foundPageDoc.sequenceEmails && foundPageDoc.sequenceEmails.length > 0) ? foundPageDoc.sequenceEmails : [];
       if (foundPageDoc.sequenceEnabled || seqList.length > 0) {
         data.sequence = `${pageTitle} Follow-up`;
         data.sequenceStep = `Step 1 of ${Math.max(1, seqList.length)} (In Progress)`;
       }
+    }
+  }
+
+  // Fallback: If page or pageId is still missing, attempt resolution from owner account or latest magnet
+  if (!data.pageId || !data.page) {
+    let resolvedMagnet: any = null;
+    if (ownerEmail) {
+      try {
+        const ownerAcc = await AccountModel.findOne({ email: ownerEmail.trim().toLowerCase() }).lean();
+        if (ownerAcc) {
+          const incomingPostId = data.postId || data.customFields?.postId;
+          if (incomingPostId && Array.isArray((ownerAcc as any).linkedinPostCampaigns)) {
+            const matchedCampaign = (ownerAcc as any).linkedinPostCampaigns.find((c: any) => c.postId === incomingPostId);
+            if (matchedCampaign?.magnetId) {
+              resolvedMagnet = await MagnetPageModel.findOne({ id: matchedCampaign.magnetId }).lean();
+            }
+          }
+          if (!resolvedMagnet && (ownerAcc as any).linkedinDefaultMagnetId) {
+            resolvedMagnet = await MagnetPageModel.findOne({ id: (ownerAcc as any).linkedinDefaultMagnetId }).lean();
+          }
+        }
+        if (!resolvedMagnet) {
+          resolvedMagnet = await MagnetPageModel.findOne({ userEmail: ownerEmail.trim().toLowerCase() }).sort({ updatedAt: -1, createdAt: -1 }).lean();
+        }
+      } catch (_) {}
+    }
+
+    if (resolvedMagnet) {
+      foundPageDoc = resolvedMagnet;
+      data.pageId = resolvedMagnet.id;
+      data.page = resolvedMagnet.name || resolvedMagnet.slug || "Lead Magnet";
+      pageTitle = data.page;
+    } else {
+      data.pageId = data.pageId || "linkedin-auto-lead";
+      data.page = data.page || "LinkedIn Lead Magnet";
+      pageTitle = data.page;
     }
   }
 
@@ -150,6 +202,12 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
 
   if (!isUpgradedFromPending) {
     createdOrUpdatedLead = await LeadModel.create({
+      id: data.id,
+      pageId: data.pageId,
+      page: data.page,
+      name: data.name,
+      email: data.email,
+      status: data.status || "new",
       ...data,
       signedUpAt: normalizedSignedUpAt,
       deviceType: data.deviceType || (isMobile ? "mobile" : "desktop"),
@@ -180,8 +238,9 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
         const ownerAccount = await AccountModel.findOne({ email: ownerEmail.trim().toLowerCase() });
         const alertsEnabled = ownerAccount ? ownerAccount.leadAlertsEnabled !== false : true;
         const targetInbox = (ownerAccount && ownerAccount.notifyEmail) ? ownerAccount.notifyEmail : ownerEmail;
+        const isPendingLead = data.status === "pending_email" || (data.email && data.email.endsWith("@linkedin-prospect.com"));
 
-        if (alertsEnabled) {
+        if (alertsEnabled && !isPendingLead) {
           try {
             await sendInstantLeadAlert({
               ownerEmail: targetInbox,
@@ -196,7 +255,7 @@ export async function handleAddLead(data: any, req: Request, normEmail: string |
           }
         }
 
-        if (data.email) {
+        if (data.email && !isPendingLead) {
           const reqHost = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
           const reqProto = req.headers.get("x-forwarded-proto") || "https";
           const dynamicOrigin = reqHost ? `${reqProto}://${reqHost}` : "http://localhost:3000";
