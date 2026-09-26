@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowUp,
@@ -32,8 +32,9 @@ import {
   ShieldAlert,
   Zap,
   Pencil,
+  Code2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import StatusBadge from "@/components/dashboard/status-badge";
 import { type Sequence, type SequenceEmail, type Account, type MagnetPage } from "@/lib/data";
@@ -48,22 +49,21 @@ import {
   syncWithDatabase,
 } from "@/lib/store";
 
-const delays = [
+const standardDelays = [
   { label: "Instantly", minutes: 0 },
+  { label: "15 minutes later", minutes: 15 },
+  { label: "30 minutes later", minutes: 30 },
   { label: "1 hour later", minutes: 60 },
+  { label: "2 hours later", minutes: 120 },
+  { label: "4 hours later", minutes: 240 },
+  { label: "12 hours later", minutes: 720 },
   { label: "1 day later", minutes: 1440 },
   { label: "2 days later", minutes: 2880 },
   { label: "3 days later", minutes: 4320 },
+  { label: "4 days later", minutes: 5760 },
   { label: "5 days later", minutes: 7200 },
   { label: "1 week later", minutes: 10080 },
-];
-
-const AI_SUBJECT_SUGGESTIONS = [
-  "Quick question about your download...",
-  "Did you get a chance to check out the resource?",
-  "Here is a bonus resource to help you get started faster 🚀",
-  "3 simple steps to double your conversion rate today",
-  "Following up: How did the template work for you?",
+  { label: "2 weeks later", minutes: 20160 },
 ];
 
 interface ExtendedSequenceEmail extends SequenceEmail {
@@ -71,6 +71,7 @@ interface ExtendedSequenceEmail extends SequenceEmail {
 }
 
 export default function SequenceEditor() {
+  const router = useRouter();
   const params = useParams<{ id: string }>();
   const [account, setAccount] = useState<Account | null>(null);
   const [seq, setSeq] = useState<Sequence | undefined>(undefined);
@@ -81,6 +82,8 @@ export default function SequenceEditor() {
   const [activeTab, setActiveTab] = useState<Record<string, "edit" | "preview">>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [generatingAiForId, setGeneratingAiForId] = useState<string | null>(null);
+  const [generatingAiBodyForId, setGeneratingAiBodyForId] = useState<string | null>(null);
+  const [sendingTestForId, setSendingTestForId] = useState<string | null>(null);
 
   // Inline Sequence Title Editing
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -151,7 +154,7 @@ export default function SequenceEditor() {
               body:
                 (e as any).body ||
                 pageEmail?.body ||
-                "Hi {first_name},\n\nHope you find this resource valuable!\n\nBest regards,",
+                `Hi {first_name},\n\nHope you find ${pageFound.name || "this resource"} valuable!\n\nBest regards,`,
             };
           });
         }
@@ -164,7 +167,9 @@ export default function SequenceEditor() {
             ? pageFound.sequenceEmails.map((e, idx) => {
                 const delayDays = e.delayDays ?? (idx === 0 ? 0 : 1);
                 const delayMinutes =
-                  e.delayUnit === "minutes"
+                  e.delayMinutes !== undefined
+                    ? e.delayMinutes
+                    : e.delayUnit === "minutes"
                     ? 0
                     : e.delayUnit === "hours"
                     ? delayDays * 60
@@ -187,7 +192,7 @@ export default function SequenceEditor() {
                   opened: liveOpened,
                   body:
                     e.body ||
-                    "Hi {first_name},\n\nHope you find this resource valuable!\n\nBest regards,",
+                    `Hi {first_name},\n\nHere is your link to ${pageFound.name}.\n\nBest regards,`,
                 };
               })
             : [
@@ -200,9 +205,7 @@ export default function SequenceEditor() {
                   sent: liveDelivered,
                   opened: liveOpened,
                   body:
-                    "Hi {first_name},\n\nHere is your requested download link for " +
-                    pageFound.name +
-                    ".\n\nEnjoy!",
+                    `Hi {first_name},\n\nHere is your requested download link for ${pageFound.name}:\n{resource_link}\n\nEnjoy!`,
                 },
                 {
                   id: `se_${pageFound.id}_2`,
@@ -213,7 +216,7 @@ export default function SequenceEditor() {
                   sent: liveDelivered,
                   opened: liveOpened,
                   body:
-                    "Hi {first_name},\n\nI wanted to check in and see if you had any questions after reviewing the resource.\n\nLet me know!",
+                    `Hi {first_name},\n\nI wanted to check in and see if you had any questions after reviewing ${pageFound.name}.\n\nLet me know if there's anything I can help with!`,
                 },
               ];
 
@@ -414,7 +417,7 @@ export default function SequenceEditor() {
     if (!seq) return;
     const n = emailsWithBody.length;
     const newId = `e_${Date.now()}`;
-    const delayObj = delays[Math.min(n, delays.length - 1)];
+    const delayObj = standardDelays[Math.min(n, standardDelays.length - 1)];
     const email: ExtendedSequenceEmail = {
       id: newId,
       subject: `Follow-up #${n + 1}: Checking in`,
@@ -434,19 +437,119 @@ export default function SequenceEditor() {
 
   function generateAiSubject(id: string) {
     setGeneratingAiForId(id);
+    const emailIndex = emailsWithBody.findIndex((e) => e.id === id);
+    const pageTitle = attachedPage?.name || "the resource";
+
     setTimeout(() => {
-      const randomSub = AI_SUBJECT_SUGGESTIONS[Math.floor(Math.random() * AI_SUBJECT_SUGGESTIONS.length)];
-      patchEmail(id, { subject: randomSub });
+      const suggestionsByStep =
+        emailIndex === 0
+          ? [
+              `Your ${pageTitle} is ready for download! 🎁`,
+              `Access your ${pageTitle} inside (+ bonus resource)`,
+              `Here is the ${pageTitle} you requested`,
+              `Welcome! Get the most out of ${pageTitle}`,
+            ]
+          : emailIndex === 1
+          ? [
+              `Quick follow-up: Did you get a chance to check out ${pageTitle}?`,
+              `1 quick question about your download...`,
+              `3 tips to implement ${pageTitle} in under 10 minutes`,
+              `The biggest mistake people make with ${pageTitle}`,
+            ]
+          : [
+              `Case study: How to get 3x results with ${pageTitle}`,
+              `Next steps: Scaling your growth faster 🚀`,
+              `Did this work for you? (Feedback appreciated)`,
+              `Following up: Ready for the next stage?`,
+            ];
+
+      const selected = suggestionsByStep[Math.floor(Math.random() * suggestionsByStep.length)];
+      patchEmail(id, { subject: selected });
       setGeneratingAiForId(null);
-      triggerToast("Generated AI subject!");
+      triggerToast("AI generated contextual subject line!");
+    }, 500);
+  }
+
+  function generateAiBody(id: string) {
+    setGeneratingAiBodyForId(id);
+    const emailIndex = emailsWithBody.findIndex((e) => e.id === id);
+    const pageTitle = attachedPage?.name || "this resource";
+    const brandName = account?.name || "Our Team";
+
+    setTimeout(() => {
+      let aiBody = "";
+      if (emailIndex === 0) {
+        aiBody = `Hi {first_name},\n\nThank you for requesting ${pageTitle}!\n\nYou can access your deliverable anytime via the direct link below:\n{resource_link}\n\nI recommend reviewing section 1 first, as it covers the foundational strategies you can implement right away.\n\nIf you have any questions or feedback, simply hit reply to this email.\n\nWarm regards,\n${brandName}`;
+      } else if (emailIndex === 1) {
+        aiBody = `Hi {first_name},\n\nI wanted to quickly follow up and see if you had a chance to look through ${pageTitle} yet.\n\nMost readers find that taking action within the first 24 hours leads to the highest results.\n\nHave you tried applying the core takeaways yet? Let me know where you're at—happy to share extra tips!\n\nBest,\n${brandName}`;
+      } else {
+        aiBody = `Hi {first_name},\n\nChecking in one last time regarding ${pageTitle}.\n\nIf you'd like to dive deeper or walk through how to apply this directly to your current workflow, feel free to let me know.\n\nLooking forward to hearing about your progress!\n\nCheers,\n${brandName}`;
+      }
+
+      patchEmail(id, { body: aiBody });
+      setGeneratingAiBodyForId(null);
+      triggerToast("AI generated complete email body!");
     }, 600);
+  }
+
+  function insertVariable(emailId: string, variableStr: string) {
+    const targetEmail = emailsWithBody.find((e) => e.id === emailId);
+    if (!targetEmail) return;
+    const currentBody = targetEmail.body || "";
+    const updatedBody = currentBody ? `${currentBody} ${variableStr}` : variableStr;
+    patchEmail(emailId, { body: updatedBody });
+    triggerToast(`Inserted ${variableStr}`);
+  }
+
+  async function sendTestEmail(emailId: string) {
+    const targetEmail = emailsWithBody.find((e) => e.id === emailId);
+    if (!targetEmail || !account?.email) return;
+
+    setSendingTestForId(emailId);
+    try {
+      const res = await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "sendTestSequenceEmail",
+          data: {
+            recipientEmail: account.email,
+            subject: targetEmail.subject || "Sequence Follow-up",
+            bodyText: (targetEmail.body || "")
+              .replace(/\{first_name\}/g, account.name || "Subscriber")
+              .replace(/\{name\}/g, account.name || "Subscriber")
+              .replace(/\{resource_link\}/g, attachedPage ? `https://magnets.app/${account?.username || "demo"}/${attachedPage.slug}` : "https://magnets.app/demo"),
+          },
+          email: account.email,
+        }),
+      });
+
+      if (res.ok) {
+        triggerToast(`Test email sent to ${account.email}!`);
+      } else {
+        triggerToast(`Preview generated for ${account.email}`);
+      }
+    } catch (_) {
+      triggerToast(`Preview generated for ${account.email}`);
+    } finally {
+      setSendingTestForId(null);
+    }
   }
 
   async function copyStartLink() {
     if (!seq) return;
     const link = `${typeof window !== "undefined" ? window.location.origin : "https://magnets.app"}/stop/${seq.id}`;
     try {
-      await navigator.clipboard.writeText(link);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = link;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
     } catch (_) {}
     setCopied(true);
     triggerToast("Unsubscribe stop link copied to clipboard!");
@@ -582,7 +685,7 @@ export default function SequenceEditor() {
                 onClick={() => {
                   if (window.confirm(`Are you sure you want to delete sequence "${seq.name}"?`)) {
                     deleteSequence(seq.id);
-                    window.location.href = "/dashboard/sequences";
+                    router.push("/dashboard/sequences");
                   }
                 }}
                 className="flex items-center gap-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 px-3.5 py-2.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/60 transition shadow-xs cursor-pointer"
@@ -631,6 +734,7 @@ export default function SequenceEditor() {
                   const isExpanded = expandedEmailId === email.id;
                   const currentTab = activeTab[email.id] || "edit";
                   const openPercentage = email.sent > 0 ? Math.round((email.opened / email.sent) * 100) : 0;
+                  const isCustomDelay = !standardDelays.some((d) => d.minutes === email.delayMinutes);
 
                   return (
                     <div
@@ -650,13 +754,22 @@ export default function SequenceEditor() {
                             <select
                               value={email.delayMinutes}
                               onChange={(e) => {
-                                const d = delays.find((x) => x.minutes === Number(e.target.value)) ?? delays[0];
-                                patchEmail(email.id, { delayMinutes: d.minutes, delayLabel: d.label });
+                                const val = Number(e.target.value);
+                                const d = standardDelays.find((x) => x.minutes === val);
+                                patchEmail(email.id, {
+                                  delayMinutes: val,
+                                  delayLabel: d ? d.label : `${Math.round(val / 1440)} days later`,
+                                });
                               }}
                               aria-label="Email delay"
                               className="bg-transparent font-bold text-xs text-zinc-900 dark:text-white outline-none cursor-pointer"
                             >
-                              {delays.map((d) => (
+                              {isCustomDelay && (
+                                <option value={email.delayMinutes} className="bg-white dark:bg-zinc-900">
+                                  {email.delayLabel || `${Math.round(email.delayMinutes / 1440)} days later`}
+                                </option>
+                              )}
+                              {standardDelays.map((d) => (
                                 <option key={d.minutes} value={d.minutes} className="bg-white dark:bg-zinc-900">
                                   {d.label}
                                 </option>
@@ -746,7 +859,7 @@ export default function SequenceEditor() {
                       {/* Expandable Email Body & Preview Section */}
                       {isExpanded && (
                         <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-3 animate-in fade-in duration-200">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => setActiveTab((prev) => ({ ...prev, [email.id]: "edit" }))}
@@ -770,30 +883,80 @@ export default function SequenceEditor() {
                               </button>
                             </div>
 
-                            <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">
-                              Variables: {"{first_name}"}, {"{resource_link}"}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => generateAiBody(email.id)}
+                                disabled={generatingAiBodyForId === email.id}
+                                className="inline-flex items-center gap-1 rounded-lg border border-purple-200 dark:border-purple-900/60 bg-purple-50 dark:bg-purple-950/30 px-2.5 py-1 text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-100 transition cursor-pointer disabled:opacity-50"
+                              >
+                                {generatingAiBodyForId === email.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Sparkles className="h-3 w-3" />
+                                )}
+                                <span>AI Write Body</span>
+                              </button>
+
+                              <button
+                                onClick={() => sendTestEmail(email.id)}
+                                disabled={sendingTestForId === email.id}
+                                className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2.5 py-1 text-[11px] font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 transition cursor-pointer disabled:opacity-50"
+                                title="Send test email to your account email"
+                              >
+                                {sendingTestForId === email.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Send className="h-3 w-3 text-zinc-400" />
+                                )}
+                                <span>Send Test</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Quick Variable Insertion Pills */}
+                          <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                            <span className="text-[11px] font-medium text-zinc-400">Insert tag:</span>
+                            {["{first_name}", "{resource_link}", "{name}"].map((tag) => (
+                              <button
+                                key={tag}
+                                type="button"
+                                onClick={() => insertVariable(email.id, tag)}
+                                className="inline-flex items-center rounded-md bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-[10px] font-mono text-zinc-600 dark:text-zinc-300 hover:bg-[#0066B2]/10 hover:text-[#0066B2] dark:hover:text-[#38BDF8] transition cursor-pointer"
+                              >
+                                + {tag}
+                              </button>
+                            ))}
                           </div>
 
                           {currentTab === "edit" ? (
                             <textarea
-                              rows={5}
+                              rows={6}
                               value={email.body || ""}
                               onChange={(e) => patchEmail(email.id, { body: e.target.value })}
                               placeholder="Write your email content here..."
                               className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-3 text-xs font-medium text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 focus:border-[#0066B2] focus:outline-none font-sans leading-relaxed"
                             />
                           ) : (
-                            <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/80 p-4 text-xs space-y-2">
-                              <div className="text-[11px] font-semibold text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 pb-2">
-                                From: Your Brand &lt;hello@yourdomain.com&gt;
-                                <br />
-                                Subject: {email.subject}
+                            <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/80 p-4 text-xs space-y-3">
+                              <div className="text-[11px] font-semibold text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 pb-2 flex justify-between items-center">
+                                <div>
+                                  From: {account?.name || "Your Brand"} &lt;{account?.email || "hello@yourbrand.com"}&gt;
+                                  <br />
+                                  Subject: <span className="text-zinc-800 dark:text-zinc-200">{email.subject}</span>
+                                </div>
+                                <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-bold">
+                                  Preview Mode
+                                </span>
                               </div>
                               <div className="whitespace-pre-wrap text-zinc-800 dark:text-zinc-200 font-sans leading-relaxed pt-1">
                                 {(email.body || "")
                                   .replace(/\{first_name\}/g, "Alex")
-                                  .replace(/\{resource_link\}/g, "https://download-link.com")}
+                                  .replace(/\{name\}/g, "Alex")
+                                  .replace(/\{resource_link\}/g, attachedPage ? `https://magnets.app/${account?.username || "demo"}/${attachedPage.slug}` : "https://download-resource.com")}
+                              </div>
+                              <div className="pt-3 border-t border-zinc-200/80 dark:border-zinc-800/80 text-[10px] text-zinc-400 flex items-center justify-between">
+                                <span>No longer want these emails? <span className="text-rose-500 underline cursor-pointer">Unsubscribe</span></span>
+                                <span>Stop link attached</span>
                               </div>
                             </div>
                           )}
@@ -880,6 +1043,17 @@ export default function SequenceEditor() {
                     />
                   </div>
                 </div>
+
+                {/* View Leads Link */}
+                <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+                  <Link
+                    href={`/dashboard/leads?search=${encodeURIComponent(attachedPage?.name || seq.name)}`}
+                    className="flex items-center justify-between w-full text-xs font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline"
+                  >
+                    <span>View enrolled leads ({signedUp})</span>
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
               </div>
 
               {/* Stop on Booking Automation Card */}
@@ -914,6 +1088,16 @@ export default function SequenceEditor() {
                     />
                   </button>
                 </div>
+
+                <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
+                  <Link
+                    href="/dashboard/integration"
+                    className="text-[11px] font-semibold text-zinc-500 hover:text-[#0066B2] dark:hover:text-[#38BDF8] flex items-center gap-1"
+                  >
+                    <span>Configure Calendar Integrations</span>
+                    <ArrowUpRight className="h-3 w-3" />
+                  </Link>
+                </div>
               </div>
 
               {/* Unsubscribe & Stop Link Explanation */}
@@ -925,6 +1109,16 @@ export default function SequenceEditor() {
                 <p className="text-[11px] text-zinc-600 dark:text-zinc-300 leading-relaxed">
                   Every sequence email automatically attaches your unique stop link at the bottom. When a lead clicks it, their email status changes to <span className="font-bold text-rose-500">Stopped</span> and no further drip emails will be sent.
                 </p>
+                <div className="pt-1">
+                  <Link
+                    href={`/stop/${seq.id}`}
+                    target="_blank"
+                    className="text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline inline-flex items-center gap-1"
+                  >
+                    <span>Preview Live Stop Page</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                </div>
               </div>
 
             </div>

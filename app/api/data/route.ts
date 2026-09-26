@@ -31,6 +31,7 @@ import {
   handleIncrementViews,
   handleSaveSequences,
   handleDeleteSequence,
+  handleSendTestSequenceEmail,
 } from "@/lib/controllers/magnets";
 import {
   handleAddLead,
@@ -222,6 +223,8 @@ export async function POST(req: Request) {
         return handleSaveSequences(data, normEmail);
       case "deleteSequence":
         return handleDeleteSequence(data, normEmail);
+      case "sendTestSequenceEmail":
+        return handleSendTestSequenceEmail(data, normEmail);
 
       // Leads Controller
       case "addLead":

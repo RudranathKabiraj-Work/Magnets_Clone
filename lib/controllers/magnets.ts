@@ -155,3 +155,38 @@ export async function handleDeleteSequence(data: any, normEmail: string | null) 
   );
   return NextResponse.json({ success: true });
 }
+
+export async function handleSendTestSequenceEmail(data: any, normEmail: string | null) {
+  const { sendMail } = await import("@/lib/email");
+  const recipient = data.recipientEmail || normEmail;
+  if (!recipient) {
+    return NextResponse.json({ error: "Recipient email required." }, { status: 400 });
+  }
+
+  const subject = data.subject || "Test Sequence Email";
+  const bodyText = (data.bodyText || "This is a test preview of your sequence email.")
+    .replace(/\n/g, "<br/>");
+
+  const formattedHtml = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #18181B; line-height: 1.6;">
+      <div style="border-bottom: 2px solid #0066B2; padding-bottom: 12px; margin-bottom: 20px;">
+        <span style="font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #0066B2;">[Test Preview] Sequence Follow-up</span>
+      </div>
+      <div style="font-size: 15px; margin-bottom: 24px;">
+        ${bodyText}
+      </div>
+      <hr style="border: none; border-top: 1px solid #E4E4E7; margin: 24px 0;" />
+      <p style="font-size: 11px; color: #71717A;">
+        This test preview was sent from your LeadMagnets sequence editor.
+      </p>
+    </div>
+  `;
+
+  const result = await sendMail({
+    to: recipient,
+    subject: subject.startsWith("[TEST]") ? subject : `[TEST] ${subject}`,
+    html: formattedHtml,
+  });
+
+  return NextResponse.json(result);
+}
