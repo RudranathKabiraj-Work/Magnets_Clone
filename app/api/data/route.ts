@@ -179,21 +179,21 @@ export async function POST(req: Request) {
         return handleGetLinkedInAuthLink(authEmail, authOrigin);
       case "connectLinkedInNative":
       case "connectLinkedIn":
-        return handleConnectLinkedInNative(data, authEmail);
+        return handleConnectLinkedInNative(data, normEmail);
       case "loginLinkedInCredentials":
-        return handleLoginLinkedInCredentials(data, authEmail);
+        return handleLoginLinkedInCredentials(data, normEmail);
       case "submitLinkedInPin":
-        return handleSubmitLinkedInPin(data, authEmail);
+        return handleSubmitLinkedInPin(data, normEmail);
       case "disconnectLinkedIn":
-        return handleDisconnectLinkedIn(authEmail);
+        return handleDisconnectLinkedIn(normEmail);
       case "saveLinkedInSettings":
-        return handleSaveLinkedInCampaignSettings(data, authEmail);
+        return handleSaveLinkedInCampaignSettings(data, normEmail);
       case "syncLinkedInNow":
-        return handleSyncLinkedInNow(authEmail);
+        return handleSyncLinkedInNow(normEmail);
       case "getLinkedInRecentPosts":
-        return handleGetLinkedInRecentPosts(authEmail);
+        return handleGetLinkedInRecentPosts(normEmail);
       case "saveLinkedInPostCampaign":
-        return handleSaveLinkedInPostCampaign(data, authEmail);
+        return handleSaveLinkedInPostCampaign(data, normEmail);
       case "sendResetEmail":
       case "sendForgotPasswordEmail":
         return handleSendResetEmail(data);

@@ -22,6 +22,7 @@ import {
   MessageSquare,
   Send,
   Search,
+  Download,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { syncWithDatabase, loadAccount, loadPages, loadLeads } from "@/lib/store";
@@ -312,13 +313,32 @@ export default function LinkedInAutomationPage() {
       const res = await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "disconnectLinkedIn" }),
+        body: JSON.stringify({
+          action: "disconnectLinkedIn",
+          email: account?.email || "",
+        }),
       });
       if (res.ok) {
-        setAccount((prev) => prev ? { ...prev, linkedinConnected: false, linkedinAccountId: "", linkedinAccountName: "" } : null);
+        setAccount((prev) =>
+          prev
+            ? {
+                ...prev,
+                linkedinConnected: false,
+                linkedinAccountId: "",
+                linkedinAccountName: "",
+                linkedinProfileId: "",
+                linkedinProfileImage: "",
+                linkedinLiAt: "",
+                linkedinJSessionId: "",
+              }
+            : null
+        );
+        setPosts([]);
+        setSyncResult(null);
+        await syncWithDatabase();
       }
     } catch (err) {
-      console.error(err);
+      console.error("[Disconnect LinkedIn Error]:", err);
     }
   };
 
@@ -756,6 +776,15 @@ export default function LinkedInAutomationPage() {
                 </div>
 
                 <div className="flex items-center gap-2.5 shrink-0">
+                  <a
+                    href="/leadmagnets-extension.zip"
+                    download="leadmagnets-extension.zip"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-[#0A66C2]/40 bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 px-3.5 py-2.5 text-xs font-bold text-[#0A66C2] dark:text-[#38BDF8] transition shadow-2xs"
+                    title="Install the 1-Click Chrome Extension for 100% automated background replies"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>Download 1-Click Extension</span>
+                  </a>
                   {account?.linkedinConnected ? (
                     <>
                       <button

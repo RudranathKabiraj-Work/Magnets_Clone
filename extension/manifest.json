@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "LeadMagnets — LinkedIn Auto-Reply & DM Engine",
+  "version": "1.0.0",
+  "description": "100% In-House LinkedIn Comment Auto-Reply, Personalized DM Sender & CRM Lead Engine for LeadMagnets.",
+  "permissions": [
+    "cookies",
+    "storage",
+    "alarms",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*.linkedin.com/*",
+    "https://magnets.bdatech.in/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.linkedin.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

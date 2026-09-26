@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeadMagnets LinkedIn Sync</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="logo-box">
+        <div class="logo-dot"></div>
+        <span class="logo-title">LeadMagnets</span>
+      </div>
+      <span class="badge" id="statusBadge">Active</span>
+    </div>
+
+    <div class="desc">
+      100% In-House LinkedIn Comment Auto-Reply & DM Delivery Engine.
+    </div>
+
+    <div class="metrics">
+      <div class="metric-item">
+        <div class="metric-num" id="dmsCount">0</div>
+        <div class="metric-label">DMs Sent</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-num" id="commentsCount">0</div>
+        <div class="metric-label">Replies</div>
+      </div>
+    </div>
+
+    <div class="status-box" id="statusBox">
+      <div class="status-dot"></div>
+      <div class="status-text" id="statusText">Ready to sync comments</div>
+    </div>
+
+    <button id="syncBtn" class="primary-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+      <span>Sync LinkedIn Comments Now</span>
+    </button>
+
+    <div class="footer">
+      <span>Auto-Sync: <strong>Every 5 Mins</strong></span>
+      <span id="lastSync">Just now</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
