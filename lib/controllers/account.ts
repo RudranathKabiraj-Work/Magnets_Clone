@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationModel, ResourceModel } from "@/lib/models";
+import { AccountModel, MagnetPageModel, LeadModel, SequenceModel, IntegrationModel, ResourceModel, EmailEventModel, PdfOtpModel } from "@/lib/models";
 import { type MagnetPage, type Resource } from "@/lib/data";
 import { clearAuthCookie, setAuthCookie } from "@/lib/auth";
 import { hashPassword, comparePassword } from "@/lib/auth-helpers";
@@ -119,6 +119,9 @@ export async function handleSaveAccount(data: any, authEmail: string | null) {
     if (data.password && !/^\$2[aby]\$\d+\$/.test(data.password)) {
       data.password = await hashPassword(data.password);
     }
+    if (!data.joinedAt) {
+      data.joinedAt = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
     // Auto-provision a unique LinkedIn webhook secret for every new account.
     // This mirrors how Stripe, Twilio, and other SaaS platforms automatically
     // generate API keys at signup — no extra step needed from the user.
@@ -163,31 +166,58 @@ export async function handleDeleteAccount(data: any, authEmail: string | null) {
   const userPages = (await MagnetPageModel.find({ userEmail: normDelEmail }).lean()) as unknown as MagnetPage[];
   const userResources = (await ResourceModel.find({ userEmail: normDelEmail }).lean()) as unknown as Resource[];
 
+  // Collect page identifiers to delete all associated leads & OTPs
+  const userPageIds: string[] = [];
   const allUserAssets: string[] = [];
+
+  // Account level assets (logo, avatar, favicon, ogImage)
+  if (account.logo) allUserAssets.push(account.logo);
+  if (account.avatar) allUserAssets.push(account.avatar);
+  if (account.faviconUrl) allUserAssets.push(account.faviconUrl);
+  if (account.ogImageUrl) allUserAssets.push(account.ogImageUrl);
+
+  // Magnet Pages & locked PDF page images & deliverable files
   userPages.forEach((p) => {
+    if (p.id) userPageIds.push(p.id);
+    if ((p as any)._id) userPageIds.push((p as any)._id.toString());
     if (p.imageUrl) allUserAssets.push(p.imageUrl);
     if (p.variantBImage) allUserAssets.push(p.variantBImage);
+    if ((p as any).assetUrl) allUserAssets.push((p as any).assetUrl);
     if (Array.isArray(p.pdfPages)) {
       p.pdfPages.forEach((u: string) => { if (u) allUserAssets.push(u); });
     }
   });
+
+  // Uploaded media & resource deliverable files
   userResources.forEach((r) => {
     const u = r.url || r.fileUrl;
     if (u) allUserAssets.push(u);
   });
 
+  // Permanently delete all Cloudinary media assets
   if (allUserAssets.length > 0) {
     deleteCloudinaryAssets(allUserAssets).catch((err) =>
       console.error("Cloudinary cleanup error on deleteAccount:", err)
     );
   }
 
-  await AccountModel.deleteOne({ email: normDelEmail });
-  await MagnetPageModel.deleteMany({ userEmail: normDelEmail });
-  await LeadModel.deleteMany({ userEmail: normDelEmail });
-  await SequenceModel.deleteMany({ userEmail: normDelEmail });
-  await IntegrationModel.deleteMany({ userEmail: normDelEmail });
-  await ResourceModel.deleteMany({ userEmail: normDelEmail });
+  // Completely purge all collections from top to bottom
+  await Promise.all([
+    AccountModel.deleteOne({ email: normDelEmail }),
+    MagnetPageModel.deleteMany({ userEmail: normDelEmail }),
+    LeadModel.deleteMany({
+      $or: [
+        { userEmail: normDelEmail },
+        ...(userPageIds.length > 0 ? [{ pageId: { $in: userPageIds } }] : []),
+      ],
+    }),
+    SequenceModel.deleteMany({ userEmail: normDelEmail }),
+    IntegrationModel.deleteMany({ userEmail: normDelEmail }),
+    ResourceModel.deleteMany({ userEmail: normDelEmail }),
+    EmailEventModel.deleteMany({ userEmail: normDelEmail }),
+    ...(userPageIds.length > 0 ? [PdfOtpModel.deleteMany({ magnetId: { $in: userPageIds } })] : []),
+  ]);
+
   const res = NextResponse.json({ success: true });
   clearAuthCookie(res);
   return res;
