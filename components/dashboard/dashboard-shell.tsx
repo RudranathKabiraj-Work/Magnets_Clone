@@ -766,13 +766,6 @@ export default function DashboardShell({
               <h1 className="text-sm font-semibold text-ink-950 dark:text-white sm:text-base">{title}</h1>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowHelp(true)}
-                className="flex h-9 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-ink-600 dark:text-zinc-300 transition hover:text-ink-950 dark:hover:text-white cursor-pointer"
-              >
-                <CircleHelp className="h-4 w-4" aria-hidden="true" />
-                Help
-              </button>
               <ThemeToggle />
               <div ref={mobileHeaderProfileMenuRef} className="relative">
                 <button
