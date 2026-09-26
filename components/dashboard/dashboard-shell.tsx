@@ -45,7 +45,10 @@ export default function DashboardShell({
   const [showHelp, setShowHelp] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showDrawerProfileMenu, setShowDrawerProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileHeaderProfileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileDrawerProfileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
@@ -66,18 +69,26 @@ export default function DashboardShell({
   }, [showHelp]);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node;
+      const clickedInsideDesktop = profileMenuRef.current?.contains(target);
+      const clickedInsideMobileHeader = mobileHeaderProfileMenuRef.current?.contains(target);
+      const clickedInsideMobileDrawer = mobileDrawerProfileMenuRef.current?.contains(target);
+
+      if (!clickedInsideDesktop && !clickedInsideMobileHeader && !clickedInsideMobileDrawer) {
         setShowProfileMenu(false);
+        setShowDrawerProfileMenu(false);
       }
     }
-    if (showProfileMenu) {
+    if (showProfileMenu || showDrawerProfileMenu) {
       document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
     };
-  }, [showProfileMenu]);
+  }, [showProfileMenu, showDrawerProfileMenu]);
   const [dark, setDark] = useState(false);
   const [themeMode, setThemeMode] = useState<"light" | "dark" | "system">("system");
   const [showCreateMagnetModal, setShowCreateMagnetModal] = useState(false);
@@ -537,22 +548,24 @@ export default function DashboardShell({
         {menuOpen && (
           <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setMenuOpen(false)}>
             <div
-              className="flex h-full w-72 flex-col bg-[#18181B] border-r border-white/10 p-4 text-[#9B9085]"
+              className="flex h-full w-72 flex-col bg-[#F0F7FF] dark:bg-[#18181B] border-r border-[#E0EDFB] dark:border-white/10 p-4 text-zinc-900 dark:text-[#9B9085]"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="mb-4 flex items-center justify-between border-b border-[#E0EDFB] dark:border-white/10 pb-3">
                 <Link href="/dashboard" aria-label="Dashboard" onClick={() => setMenuOpen(false)}>
                   <BrandLogo height="h-9" />
                 </Link>
                 <button
                   aria-label="Close menu"
-                  className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 text-[#9B9085] hover:bg-[#1C1613] hover:text-white transition"
+                  className="flex h-9 w-9 items-center justify-center rounded-md border border-[#E0EDFB] dark:border-white/10 text-zinc-600 dark:text-[#9B9085] hover:bg-[#E2F0FD] dark:hover:bg-[#1C1613] hover:text-zinc-900 dark:hover:text-white transition cursor-pointer"
                   onClick={() => setMenuOpen(false)}
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
-              <nav className="space-y-1.5" aria-label="Dashboard">
+
+              {/* Navigation links */}
+              <nav className="flex-1 overflow-y-auto space-y-1.5 pr-1" aria-label="Dashboard">
                 {mobileNav.map((item) => {
                   const active = item.href === "/dashboard"
                     ? pathname === "/dashboard"
@@ -568,16 +581,16 @@ export default function DashboardShell({
                           setMenuOpen(false);
                           setShowHelp(true);
                         }}
-                        className="flex w-full items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition text-[#9B9085] hover:bg-[#0066B2]/15 hover:text-white"
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#0066B2]/15 dark:hover:text-white cursor-pointer"
                       >
-                        <item.icon className="h-4 w-4 shrink-0 text-[#9B9085]" aria-hidden="true" />
-                        {item.label}
+                        <item.icon className="h-4 w-4 shrink-0 text-zinc-500 dark:text-[#9B9085]" aria-hidden="true" />
+                        <span>{item.label}</span>
                       </button>
                     );
                   }
                   return (
                     <div key={item.href}>
-                      {isDividerBeforeMobile && <div className="my-1.5 border-t border-white/10" />}
+                      {isDividerBeforeMobile && <div className="my-1.5 border-t border-[#E0EDFB] dark:border-white/10" />}
                       <Link
                         href={item.href}
                         onClick={(e) => {
@@ -587,18 +600,155 @@ export default function DashboardShell({
                             router.push(item.href);
                           }
                         }}
-                        className={`flex items-center gap-1.5 rounded-md pl-2 pr-3 py-2 text-sm font-medium transition ${active
-                          ? "bg-[#0066B2]/20 text-[#38BDF8] font-semibold"
-                          : "text-[#9B9085] hover:bg-[#0066B2]/15 hover:text-white"
+                        className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition cursor-pointer ${active
+                          ? "bg-[#0066B2] text-white font-bold dark:bg-[#0066B2]/20 dark:text-[#38BDF8]"
+                          : "text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 dark:text-[#9B9085] dark:hover:bg-[#0066B2]/15 dark:hover:text-white"
                           }`}
                       >
-                        <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : "text-[#9B9085]"}`} aria-hidden="true" />
-                        {item.label}
+                        <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-white dark:text-[#38BDF8]" : "text-zinc-500 dark:text-[#9B9085]"}`} aria-hidden="true" />
+                        <span>{item.label}</span>
                       </Link>
                     </div>
                   );
                 })}
               </nav>
+
+              {/* Bottom Profile Section in Mobile Drawer */}
+              <div ref={mobileDrawerProfileMenuRef} className="pt-3 border-t border-[#E0EDFB] dark:border-white/10 relative">
+                <AnimatePresence>
+                  {showDrawerProfileMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 4 }}
+                      transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ transformOrigin: "bottom left" }}
+                      className="absolute bottom-full mb-2 left-0 w-full rounded-xl border border-[#E0EDFB] bg-white p-1.5 shadow-xl z-50 text-zinc-900 flex flex-col gap-0.5 dark:border-zinc-800 dark:bg-[#18181b] dark:text-white"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="relative flex items-center justify-between p-1 bg-zinc-100 dark:bg-zinc-800/70 rounded-xl border border-zinc-200/80 dark:border-zinc-700/50 my-0.5 select-none">
+                        {(["light", "dark", "system"] as const).map((mode) => {
+                          const Icon = mode === "light" ? Sun : mode === "dark" ? Moon : Monitor;
+                          const isActive = themeMode === mode;
+                          return (
+                            <button
+                              key={mode}
+                              type="button"
+                              title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} mode`}
+                              onClick={() => applyThemeMode(mode)}
+                              className={`relative flex-1 flex items-center justify-center py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer z-10 ${isActive
+                                ? "text-zinc-900 dark:text-white"
+                                : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                                }`}
+                            >
+                              {isActive && (
+                                <motion.div
+                                  layoutId="activeThemePillDrawer"
+                                  transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                                  className="absolute inset-0 bg-white dark:bg-zinc-900 rounded-lg shadow-sm"
+                                />
+                              )}
+                              <span className="relative z-10 flex items-center justify-center">
+                                <Icon className="h-4 w-4" />
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex flex-col gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDrawerProfileMenu(false);
+                            setMenuOpen(false);
+                            router.push("/dashboard/settings");
+                          }}
+                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition-colors w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                        >
+                          <User className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                          <span>Account</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDrawerProfileMenu(false);
+                            setMenuOpen(false);
+                            setShowHelp(true);
+                          }}
+                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition-colors w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                        >
+                          <CircleHelp className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                          <span>Help</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDrawerProfileMenu(false);
+                            openGmailCompose("bug");
+                          }}
+                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition-colors w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                        >
+                          <Bug className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                          <span>Report a bug</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDrawerProfileMenu(false);
+                            openGmailCompose("feature");
+                          }}
+                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition-colors w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                        >
+                          <Sparkles className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                          <span>Request a feature</span>
+                        </button>
+                      </div>
+
+                      <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowDrawerProfileMenu(false);
+                          setMenuOpen(false);
+                          handleLogout();
+                        }}
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors w-full dark:text-rose-400 dark:hover:bg-rose-950/30 cursor-pointer"
+                      >
+                        <LogOut className="h-4 w-4 text-rose-500" /> Sign out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <button
+                  type="button"
+                  onClick={() => setShowDrawerProfileMenu(!showDrawerProfileMenu)}
+                  className="flex w-full items-center justify-between gap-2.5 rounded-xl p-2 text-left hover:bg-[#E2F0FD] transition dark:hover:bg-[#25252A] cursor-pointer"
+                >
+                  {displayAccount.avatar ? (
+                    <img
+                      src={displayAccount.avatar}
+                      alt={displayAccount.name}
+                      className="h-8 w-8 shrink-0 rounded-full object-cover border border-[#0066B2]/40"
+                    />
+                  ) : (
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0066B2] text-xs font-extrabold text-white dark:bg-white dark:text-[#0066B2]">
+                      {mounted
+                        ? (displayAccount.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || displayAccount.name.charAt(0))
+                        : (displayAccount.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "RK")}
+                    </span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-bold text-zinc-900 leading-tight dark:text-white">{displayAccount.name}</p>
+                    <p className="truncate text-[10px] text-zinc-500 leading-tight mt-0.5 dark:text-[#9B9085]">{displayAccount.email}</p>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -608,7 +758,7 @@ export default function DashboardShell({
             <div className="flex items-center gap-3">
               <button
                 aria-label="Open menu"
-                className="flex h-9 w-9 items-center justify-center rounded-md border border-ink-200 dark:border-white/10 text-ink-700 dark:text-zinc-300 md:hidden hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-ink-200 dark:border-white/10 text-ink-700 dark:text-zinc-300 md:hidden hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
                 onClick={() => setMenuOpen(true)}
               >
                 <Menu className="h-4 w-4" aria-hidden="true" />
@@ -618,14 +768,15 @@ export default function DashboardShell({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowHelp(true)}
-                className="flex h-9 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-ink-600 dark:text-zinc-300 transition hover:text-ink-950 dark:hover:text-white"
+                className="flex h-9 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-ink-600 dark:text-zinc-300 transition hover:text-ink-950 dark:hover:text-white cursor-pointer"
               >
                 <CircleHelp className="h-4 w-4" aria-hidden="true" />
                 Help
               </button>
               <ThemeToggle />
-              <div className="relative">
+              <div ref={mobileHeaderProfileMenuRef} className="relative">
                 <button
+                  type="button"
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                   className="flex h-8 w-8 items-center justify-center rounded-full overflow-hidden bg-[#0066B2] text-sm font-bold text-white transition active:scale-95 cursor-pointer"
                 >
@@ -639,89 +790,117 @@ export default function DashboardShell({
                     displayAccount.name.charAt(0).toUpperCase()
                   )}
                 </button>
-                {showProfileMenu && (
-                  <div className="absolute right-0 top-10 w-52 rounded-xl border border-[#E0EDFB] bg-white p-1.5 shadow-2xl z-50 text-zinc-900 flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-2 duration-150 dark:border-zinc-800 dark:bg-[#191919] dark:text-white">
-                    <div className="relative flex items-center justify-between p-1 bg-zinc-100 dark:bg-zinc-800/70 rounded-xl border border-zinc-200/80 dark:border-zinc-700/50 my-0.5 select-none">
-                      {(["light", "dark", "system"] as const).map((mode) => {
-                        const Icon = mode === "light" ? Sun : mode === "dark" ? Moon : Monitor;
-                        const isActive = themeMode === mode;
-                        return (
-                          <button
-                            key={mode}
-                            type="button"
-                            title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} mode`}
-                            onClick={() => applyThemeMode(mode)}
-                            className={`relative flex-1 flex items-center justify-center py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer z-10 ${isActive
-                              ? "text-zinc-900 dark:text-white"
-                              : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-                              }`}
-                          >
-                            {isActive && (
-                              <motion.div
-                                layoutId="activeThemePillTopbar"
-                                transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                                className="absolute inset-0 bg-white dark:bg-zinc-900 rounded-lg shadow-sm"
-                              />
-                            )}
-                            <span className="relative z-10 flex items-center justify-center">
-                              <Icon className="h-4 w-4" />
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        router.push("/dashboard/settings");
-                      }}
-                      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                <AnimatePresence>
+                  {showProfileMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                      transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ transformOrigin: "top right" }}
+                      className="absolute right-0 top-10 w-56 rounded-xl border border-[#E0EDFB] bg-white p-1.5 shadow-2xl z-50 text-zinc-900 flex flex-col gap-0.5 dark:border-zinc-800 dark:bg-[#18181b] dark:text-white"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <User className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Account
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        setShowHelp(true);
-                      }}
-                      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
-                    >
-                      <CircleHelp className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Help
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        openGmailCompose("bug");
-                      }}
-                      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
-                    >
-                      <Bug className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Report a bug
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        openGmailCompose("feature");
-                      }}
-                      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
-                    >
-                      <Sparkles className="h-4 w-4 text-zinc-500 dark:text-zinc-400" /> Request a feature
-                    </button>
-                    <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setShowProfileMenu(false);
-                      }}
-                      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 transition w-full dark:text-rose-400 dark:hover:bg-rose-950/30"
-                    >
-                      <LogOut className="h-4 w-4 text-rose-500" /> Sign out
-                    </button>
-                  </div>
-                )}
+                      <div className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
+                        <p className="truncate text-xs font-bold text-zinc-900 leading-tight dark:text-white">{displayAccount.name}</p>
+                        <p className="truncate text-[10px] text-zinc-500 leading-tight mt-0.5 dark:text-[#9B9085]">{displayAccount.email}</p>
+                      </div>
+
+                      <div className="relative flex items-center justify-between p-1 bg-zinc-100 dark:bg-zinc-800/70 rounded-xl border border-zinc-200/80 dark:border-zinc-700/50 my-1 select-none">
+                        {(["light", "dark", "system"] as const).map((mode) => {
+                          const Icon = mode === "light" ? Sun : mode === "dark" ? Moon : Monitor;
+                          const isActive = themeMode === mode;
+                          return (
+                            <button
+                              key={mode}
+                              type="button"
+                              title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} mode`}
+                              onClick={() => applyThemeMode(mode)}
+                              className={`relative flex-1 flex items-center justify-center py-1.5 text-xs font-medium transition-colors duration-150 cursor-pointer z-10 ${isActive
+                                ? "text-zinc-900 dark:text-white"
+                                : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                                }`}
+                            >
+                              {isActive && (
+                                <motion.div
+                                  layoutId="activeThemePillTopbar"
+                                  transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                                  className="absolute inset-0 bg-white dark:bg-zinc-900 rounded-lg shadow-sm"
+                                />
+                              )}
+                              <span className="relative z-10 flex items-center justify-center">
+                                <Icon className="h-4 w-4" />
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex flex-col gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            router.push("/dashboard/settings");
+                          }}
+                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition-colors w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                        >
+                          <User className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                          <span>Account</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            setShowHelp(true);
+                          }}
+                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition-colors w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                        >
+                          <CircleHelp className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                          <span>Help</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            openGmailCompose("bug");
+                          }}
+                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition-colors w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                        >
+                          <Bug className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                          <span>Report a bug</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            openGmailCompose("feature");
+                          }}
+                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-zinc-600 hover:bg-[#E2F0FD] hover:text-zinc-900 transition-colors w-full dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white cursor-pointer"
+                        >
+                          <Sparkles className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                          <span>Request a feature</span>
+                        </button>
+                      </div>
+
+                      <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          handleLogout();
+                        }}
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors w-full dark:text-rose-400 dark:hover:bg-rose-950/30 cursor-pointer"
+                      >
+                        <LogOut className="h-4 w-4 text-rose-500" /> Sign out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </header>

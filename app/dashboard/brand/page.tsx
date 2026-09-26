@@ -282,11 +282,11 @@ export default function BrandPage() {
       )}
 
       <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/60 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10] text-zinc-900 dark:text-white transition-colors duration-200 animate-fade-in">
-        <div className="flex-1 px-6 py-6 lg:px-8 w-full">
+        <div className="flex-1 px-3.5 py-4 sm:px-6 sm:py-6 lg:px-8 w-full max-w-7xl mx-auto">
 
           {/* Page Title */}
-          <div className="mb-8">
-            <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-900 dark:text-white animate-slide-in">
+          <div className="mb-6 sm:mb-8">
+            <h2 className="flex items-center gap-2 text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white animate-slide-in">
               Brand
               <button
                 type="button"
@@ -303,7 +303,7 @@ export default function BrandPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
             {/* Brand Settings Form */}
-            <div className="lg:col-span-4">
+            <div className="lg:col-span-4 w-full">
               <BrandSettingsForm
                 businessName={businessName}
                 setBusinessName={setBusinessName}
@@ -326,11 +326,11 @@ export default function BrandPage() {
             </div>
 
             {/* Live Preview Panel */}
-            <div className="lg:col-span-8 flex flex-col h-full relative">
-              {/* 7 Template Switcher Tabs Floating DIRECTLY ABOVE the Preview Card with Apple layoutId pill */}
-              <div className="absolute -top-12 left-0 right-0 z-10 flex justify-end">
+            <div className="lg:col-span-8 flex flex-col h-full relative w-full pt-1 lg:pt-0">
+              {/* 7 Template Switcher Tabs Floating DIRECTLY ABOVE the Preview Card on desktop, neatly placed above on mobile */}
+              <div className="relative mb-3 lg:mb-0 lg:absolute lg:-top-12 lg:left-0 lg:right-0 z-10 flex justify-end w-full">
                 <div
-                  className="w-full flex items-center justify-between gap-1 bg-zinc-100 dark:bg-[#111113] p-1.5 rounded-xl border border-zinc-200 dark:border-[#2b2b32] shadow-xs overflow-x-auto"
+                  className="w-full flex items-center gap-1 bg-zinc-100/90 dark:bg-[#111113]/90 backdrop-blur-md p-1.5 rounded-xl border border-zinc-200 dark:border-[#2b2b32] shadow-xs overflow-x-auto no-scrollbar scroll-smooth touch-pan-x"
                   onMouseLeave={() => setHoveredTemplateTab(null)}
                 >
                   {TEMPLATE_TABS.map((t) => {
@@ -345,7 +345,7 @@ export default function BrandPage() {
                         transition={{ type: "spring", stiffness: 600, damping: 28 }}
                         onMouseEnter={() => setHoveredTemplateTab(t.id)}
                         onClick={() => setTemplateId(t.id as any)}
-                        className={`relative flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 cursor-pointer whitespace-nowrap ${isActive
+                        className={`relative shrink-0 min-w-fit lg:flex-1 flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 cursor-pointer whitespace-nowrap select-none ${isActive
                           ? "text-white font-bold"
                           : "text-zinc-600 dark:text-[#9B9085] dark:hover:text-white"
                           }`}
@@ -374,11 +374,11 @@ export default function BrandPage() {
                 </div>
               </div>
 
-              {/* Main Preview Card Box (Top aligns EXACTLY with Left Card) */}
-              <div className="rounded-2xl border border-[#0066B2]/35 bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] p-5 shadow-sm dark:shadow-2xl h-full flex flex-col transition-colors">
-                <div className="flex flex-col gap-1 mb-4 pb-3 border-b border-zinc-200 dark:border-[#2e2e38]/50">
-                  <span className="text-sm font-bold text-zinc-900 dark:text-zinc-200 uppercase tracking-wider">Preview</span>
-                  <span className="text-xs text-zinc-500 dark:text-[#9B9085] block">How your brand appears on a full magnet page.</span>
+              {/* Main Preview Card Box (Top aligns EXACTLY with Left Card on desktop) */}
+              <div className="rounded-2xl border border-[#0066B2]/35 bg-white dark:border-[#0066B2]/30 dark:bg-[#18181B] p-3.5 sm:p-5 shadow-sm dark:shadow-2xl h-full flex flex-col transition-colors">
+                <div className="flex flex-col gap-1 mb-3 sm:mb-4 pb-2.5 sm:pb-3 border-b border-zinc-200 dark:border-[#2e2e38]/50">
+                  <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-200 uppercase tracking-wider">Preview</span>
+                  <span className="text-[11px] sm:text-xs text-zinc-500 dark:text-[#9B9085] block">How your brand appears on a full magnet page.</span>
                 </div>
 
                 {/* Outer frame matching client page background theme mode */}
@@ -394,10 +394,10 @@ export default function BrandPage() {
                   }}
                 >
                   {/* Mock page container */}
-                  <div className="p-5 md:p-6">
+                  <div className="p-3.5 sm:p-5 md:p-6">
                     {/* Header brand name / logo */}
-                    <div className="flex items-center gap-3 mb-8 justify-center">
-                      <div className={`h-11 w-11 rounded-xl flex items-center justify-center bg-transparent overflow-hidden ${logo ? "border-none" : "border border-dashed border-[#a1a1aa]/45"}`}>
+                    <div className="flex items-center gap-3 mb-5 sm:mb-8 justify-center">
+                      <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center bg-transparent overflow-hidden ${logo ? "border-none" : "border border-dashed border-[#a1a1aa]/45"}`}>
                         {logo ? (
                           <img src={logo} alt="Logo" className="h-full w-full object-cover" />
                         ) : (

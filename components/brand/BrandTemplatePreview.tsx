@@ -112,7 +112,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
               )}
 
               <div
-                className={`rounded-xl border p-4 transition-all duration-300 backdrop-blur-sm aspect-[16/11] flex flex-col justify-center ${
+                className={`rounded-xl border p-4 sm:p-5 transition-all duration-300 backdrop-blur-sm aspect-auto min-h-fit flex flex-col justify-center ${
                   themeMode === "dark" ? "text-white" : "text-zinc-900"
                 }`}
                 style={{
@@ -127,7 +127,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
                       : `linear-gradient(135deg, ${hexWithAlpha(brandColor, 0.08 + intensityRatio * 0.3)} 0%, rgba(22, 22, 25, 0.95) 60%)`,
                 }}
               >
-                <p className="text-lg font-semibold text-center">{latestPage?.formTitle || "Download for free now"}</p>
+                <p className="text-base sm:text-lg font-semibold text-center">{latestPage?.formTitle || "Download for free now"}</p>
                 <p className={`text-[11px] text-center mt-1 leading-normal ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>
                   {latestPage?.formSubtitle || "By opting in you consent to receive this resource by email."}
                 </p>
@@ -172,7 +172,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
         <div className="w-full py-1">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
             {/* Left Panel: Cover Image + Gradient Scrim + Bullets */}
-            <div className="md:col-span-7 relative flex flex-col justify-end p-6 md:p-8 rounded-3xl overflow-hidden min-h-[340px] bg-zinc-900 text-white shadow-xl border border-black/10 dark:border-white/10">
+            <div className="md:col-span-7 relative flex flex-col justify-end p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl overflow-hidden min-h-[260px] sm:min-h-[340px] bg-zinc-900 text-white shadow-xl border border-black/10 dark:border-white/10">
               {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" && (
                 <img
                   src={latestPage.imageUrl}
@@ -211,7 +211,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
             </div>
 
             {/* Right Panel: Form */}
-            <div className={`md:col-span-5 p-6 md:p-8 rounded-3xl flex flex-col justify-center border shadow-xl ${themeMode === "dark" ? "border-zinc-800 bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
+            <div className={`md:col-span-5 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl flex flex-col justify-center border shadow-xl ${themeMode === "dark" ? "border-zinc-800 bg-[#18181B] text-white" : "border-zinc-200 bg-white text-zinc-900"}`}>
               <div className="space-y-3">
                 <p className="w-full text-center text-lg font-bold">
                   {latestPage?.formTitle || "Download for free"}
@@ -266,7 +266,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
           <div className="grid grid-cols-12 gap-5 items-center">
             {/* LEFT: Aurora Image Tile */}
             <div className="col-span-12 md:col-span-5 flex justify-center">
-              <div className="rounded-3xl overflow-hidden relative shadow-xl aspect-[4/5] max-h-[340px] w-full border border-black/5 dark:border-white/5">
+              <div className="rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-xl aspect-[4/3] sm:aspect-[4/5] max-h-[260px] sm:max-h-[340px] w-full border border-black/5 dark:border-white/5">
                 {latestPage?.imageUrl && latestPage.imageUrl.trim() !== "" ? (
                   <img
                     src={latestPage.imageUrl}
@@ -491,7 +491,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
             </div>
 
             {/* RIGHT: Orbital image portal */}
-            <div className="col-span-12 md:col-span-5 flex items-center justify-center relative" style={{ minHeight: "300px" }}>
+            <div className="col-span-12 md:col-span-5 flex items-center justify-center relative overflow-hidden py-4" style={{ minHeight: "260px" }}>
               <div
                 className="absolute rounded-full pointer-events-none"
                 style={{
@@ -563,7 +563,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
           </div>
 
           {/* BOTTOM TRUST STRIP */}
-          <div className={`px-2 pb-2 pt-3 flex items-center justify-between border-t mt-3 ${themeMode === "dark" ? "border-white/[0.05]" : "border-zinc-100"}`}>
+          <div className={`px-2 pb-2 pt-3 flex flex-wrap items-center justify-between gap-2 border-t mt-3 ${themeMode === "dark" ? "border-white/[0.05]" : "border-zinc-100"}`}>
             <div className="flex items-center gap-2">
               {logo ? (
                 <img src={logo} alt="Logo" className="h-5 w-5 rounded object-contain" />
@@ -574,7 +574,7 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
               )}
               <span className={`text-[10px] font-bold ${themeMode === "dark" ? "text-zinc-400" : "text-zinc-500"}`}>{businessName || "Brand"}</span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
               {["10K+ Downloads", "Verified Free", "Instant Access"].map((tag, i) => (
                 <span key={i} className={`flex items-center gap-1 text-[9px] font-semibold ${themeMode === "dark" ? "text-zinc-500" : "text-zinc-400"}`}>
                   <span className="h-1 w-1 rounded-full" style={{ backgroundColor: brandColor }} />
@@ -822,19 +822,19 @@ const BrandTemplatePreview = memo(function BrandTemplatePreview({
             {/* Form grid */}
             <div className="pt-3 space-y-3">
               {(!latestPage?.customFormFields || latestPage.customFormFields.length === 0) ? (
-                <div className="flex items-center rounded-2xl p-1.5 gap-2 bg-black/50 border border-white/15 backdrop-blur-xl">
-                  <div className="flex-1 flex items-center gap-2 px-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center rounded-2xl p-2 sm:p-1.5 gap-2 bg-black/50 border border-white/15 backdrop-blur-xl">
+                  <div className="flex-1 flex items-center gap-2 px-3 py-2 sm:py-0 bg-white/5 sm:bg-transparent rounded-xl sm:rounded-none">
                     <span className="text-xs text-zinc-400">👤</span>
                     <span className="text-xs text-zinc-400">Name *</span>
                   </div>
-                  <div className="w-px h-5 shrink-0 bg-white/20" />
-                  <div className="flex-1 flex items-center gap-2 px-3">
+                  <div className="hidden sm:block w-px h-5 shrink-0 bg-white/20" />
+                  <div className="flex-1 flex items-center gap-2 px-3 py-2 sm:py-0 bg-white/5 sm:bg-transparent rounded-xl sm:rounded-none">
                     <span className="text-xs text-zinc-400">✉️</span>
                     <span className="text-xs text-zinc-400">Email *</span>
                   </div>
                   <button
                     type="button"
-                    className="shrink-0 rounded-xl px-4 py-2 text-xs font-extrabold text-white cursor-pointer"
+                    className="w-full sm:w-auto shrink-0 rounded-xl px-4 py-2.5 sm:py-2 text-xs font-extrabold text-white cursor-pointer transition"
                     style={{
                       background: `linear-gradient(135deg, ${brandColor} 0%, ${hexWithAlpha(brandColor, 0.8)} 100%)`,
                       boxShadow: `0 4px 16px -4px ${hexWithAlpha(brandColor, 0.53)}`,
