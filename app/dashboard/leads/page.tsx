@@ -130,13 +130,17 @@ export default function LeadsPage() {
 
   // Close filter dropdown on outside click
   useEffect(() => {
-    function handler(e: MouseEvent) {
+    function handler(e: MouseEvent | TouchEvent) {
       if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
         setFilterOpen(false);
       }
     }
     document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("touchstart", handler);
+    };
   }, []);
 
   // Lock body scroll when any modal is open
@@ -649,13 +653,13 @@ export default function LeadsPage() {
   return (
     <DashboardShell account={account} title="Leads">
       <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-gradient-to-b from-[#EFF6FF]/50 via-[#F8FBFF] to-[#F8FBFF] dark:bg-none dark:bg-[#0E0E10]">
-        <div className="flex-1 px-6 py-6 lg:px-8 max-w-7xl mx-auto w-full">
+        <div className="flex-1 px-3.5 sm:px-6 py-4 sm:py-6 lg:px-8 max-w-7xl mx-auto w-full">
 
           {/* Page heading */}
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center mb-6">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
                   Leads
                 </h2>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -728,10 +732,10 @@ export default function LeadsPage() {
           </div>
 
           {/* Table Container */}
-          <div className="rounded-2xl border border-zinc-200/80 bg-white/90 dark:border-[#2e2e38] dark:bg-[#18181B]/90 shadow-sm backdrop-blur-sm overflow-hidden">
+          <div className="rounded-2xl border border-zinc-200/80 bg-white/90 dark:border-[#2e2e38] dark:bg-[#18181B]/90 shadow-sm backdrop-blur-sm relative">
 
             {/* Toolbar */}
-            <div className="p-5 border-b border-zinc-200/80 dark:border-[#2e2e38]">
+            <div className="p-3.5 sm:p-5 border-b border-zinc-200/80 dark:border-[#2e2e38]">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h3 className="text-base font-bold text-zinc-900 dark:text-white">All Subscribers</h3>
@@ -781,7 +785,8 @@ export default function LeadsPage() {
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.96, y: -4 }}
                           transition={{ type: "spring", damping: 28, stiffness: 400 }}
-                          className="absolute right-0 sm:left-0 top-full z-30 mt-1.5 w-64 max-h-[380px] overflow-y-auto rounded-xl border border-zinc-200/80 bg-white/95 p-1.5 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-[#18181F]/95 dark:text-white dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)] scrollbar-thin"
+                          style={{ transformOrigin: "top left" }}
+                          className="absolute left-0 top-full z-40 mt-1.5 w-72 max-w-[calc(100vw-3rem)] max-h-[380px] overflow-y-auto rounded-xl border border-zinc-200/80 bg-white/95 p-1.5 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#18181F]/95 dark:text-white dark:shadow-[0_8px_24px_rgba(0,0,0,0.6)] scrollbar-thin"
                         >
                           {/* Quick Filters */}
                           <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
