@@ -570,23 +570,23 @@ export default function SequenceEditor() {
       )}
 
       <div className="min-h-[calc(100vh-3.5rem)] bg-gradient-to-b from-[#F8FAFC] via-[#F1F5F9]/50 to-[#F8FAFC] dark:from-[#09090B] dark:via-[#121215] dark:to-[#09090B]">
-        <div className="flex-1 px-6 py-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
+        <div className="flex-1 px-3.5 sm:px-6 py-4 sm:py-6 lg:px-8 max-w-7xl mx-auto w-full space-y-6 sm:space-y-8">
           
           {/* Header Bar */}
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-6">
-            <div className="flex items-start gap-4">
+          <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-center lg:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-5 sm:pb-6">
+            <div className="flex items-start gap-3 sm:gap-4">
               <Link
                 href="/dashboard/sequences"
                 aria-label="Back to sequences"
-                className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#18181B] text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition shadow-xs"
+                className="mt-0.5 sm:mt-1 flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#18181B] text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition shadow-xs"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Link>
               
-              <div>
-                <div className="flex items-center gap-3 flex-wrap">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                   {isEditingTitle ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 max-w-full">
                       <input
                         type="text"
                         autoFocus
@@ -597,11 +597,11 @@ export default function SequenceEditor() {
                           if (e.key === "Escape") setIsEditingTitle(false);
                         }}
                         onBlur={handleSaveTitle}
-                        className="text-2xl font-bold tracking-tight bg-white dark:bg-zinc-900 border border-[#0066B2] rounded-xl px-2.5 py-0.5 text-zinc-900 dark:text-white outline-none shadow-xs"
+                        className="text-lg sm:text-2xl font-bold tracking-tight bg-white dark:bg-zinc-900 border border-[#0066B2] rounded-xl px-2.5 py-0.5 text-zinc-900 dark:text-white outline-none shadow-xs w-full max-w-xs"
                       />
                       <button
                         onClick={handleSaveTitle}
-                        className="rounded-lg bg-[#0066B2] px-2.5 py-1 text-xs font-bold text-white hover:bg-[#005291]"
+                        className="rounded-lg bg-[#0066B2] px-2.5 py-1 text-xs font-bold text-white hover:bg-[#005291] shrink-0"
                       >
                         Save
                       </button>
@@ -609,38 +609,38 @@ export default function SequenceEditor() {
                   ) : (
                     <div
                       onClick={() => setIsEditingTitle(true)}
-                      className="group flex items-center gap-2 cursor-pointer"
+                      className="group flex items-center gap-2 cursor-pointer min-w-0"
                       title="Click to rename sequence"
                     >
-                      <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-[#0066B2] transition">
+                      <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-white group-hover:text-[#0066B2] transition truncate">
                         {seq.name}
                       </h1>
-                      <Pencil className="h-4 w-4 text-zinc-400 opacity-0 group-hover:opacity-100 transition" />
+                      <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-zinc-400 opacity-60 sm:opacity-0 group-hover:opacity-100 transition shrink-0" />
                     </div>
                   )}
 
                   <span
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border shadow-xs ${
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-bold border shadow-xs shrink-0 ${
                       seq.status === "live"
                         ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                         : "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
                     }`}
                   >
-                    <span className={`h-2 w-2 rounded-full ${seq.status === "live" ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+                    <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${seq.status === "live" ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
                     {seq.status === "live" ? "Live Automation" : "Paused Drip"}
                   </span>
                 </div>
 
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 flex-wrap">
                   {attachedPage ? (
                     <>
                       <span>Linked Lead Magnet:</span>
                       <Link
                         href={`/dashboard/leadmagnets/${attachedPage.id}?tab=sequence`}
-                        className="font-semibold text-[#0066B2] dark:text-[#38BDF8] hover:underline inline-flex items-center gap-1"
+                        className="font-semibold text-[#0066B2] dark:text-[#38BDF8] hover:underline inline-flex items-center gap-1 truncate max-w-full"
                       >
                         🎯 {attachedPage.name}
-                        <ExternalLink className="h-3 w-3" />
+                        <ExternalLink className="h-3 w-3 shrink-0" />
                       </Link>
                     </>
                   ) : (
@@ -650,35 +650,35 @@ export default function SequenceEditor() {
               </div>
             </div>
 
-            {/* Actions Button Group */}
-            <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Actions Button Group - 2-Column Grid on Mobile, Flex on Desktop */}
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2.5 w-full lg:w-auto">
               <button
                 onClick={copyStartLink}
-                className="flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#18181B] px-3.5 py-2.5 text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition shadow-xs cursor-pointer"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#18181B] px-3 py-2.5 sm:px-3.5 text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition shadow-xs cursor-pointer w-full sm:w-auto"
               >
-                {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-zinc-400" />}
-                <span>{copied ? "Copied Stop Link" : "Copy Stop Link"}</span>
+                {copied ? <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500 shrink-0" /> : <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-zinc-400 shrink-0" />}
+                <span className="truncate">{copied ? "Copied Link" : "Copy Stop Link"}</span>
               </button>
 
               <button
                 onClick={toggleStatus}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition shadow-xs cursor-pointer border ${
+                className={`flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl px-3 py-2.5 sm:px-4 text-xs font-bold transition shadow-xs cursor-pointer border w-full sm:w-auto ${
                   seq.status === "live"
                     ? "border-amber-300 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100"
                     : "border-emerald-300 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100"
                 }`}
               >
-                <Zap className="h-4 w-4" />
-                <span>{seq.status === "live" ? "Pause Sequence" : "Activate Sequence"}</span>
+                <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="truncate">{seq.status === "live" ? "Pause Sequence" : "Activate Sequence"}</span>
               </button>
 
               <button
                 onClick={save}
                 disabled={saving}
-                className="flex items-center gap-2 rounded-xl bg-[#0066B2] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#005291] active:scale-[0.98] transition shadow-md cursor-pointer disabled:opacity-60"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[#0066B2] px-4 py-2.5 sm:px-5 text-xs font-bold text-white hover:bg-[#005291] active:scale-[0.98] transition shadow-md cursor-pointer disabled:opacity-60 w-full sm:w-auto"
               >
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                <span>{saving ? "Saving..." : "Save Changes"}</span>
+                {saving ? <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin shrink-0" /> : <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />}
+                <span className="truncate">{saving ? "Saving..." : "Save Changes"}</span>
               </button>
 
               <button
@@ -688,35 +688,35 @@ export default function SequenceEditor() {
                     router.push("/dashboard/sequences");
                   }
                 }}
-                className="flex items-center gap-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 px-3.5 py-2.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/60 transition shadow-xs cursor-pointer"
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 px-3 py-2.5 sm:px-3.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/60 transition shadow-xs cursor-pointer w-full sm:w-auto"
                 title="Delete this sequence permanently"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 <span>Delete</span>
               </button>
             </div>
           </div>
 
           {/* Main Grid Content */}
-          <div className="grid gap-8 lg:grid-cols-12 items-start">
+          <div className="grid gap-6 sm:gap-8 lg:grid-cols-12 items-start">
             
             {/* Left Column: Email Timeline (8 Cols) */}
-            <div className="lg:col-span-8 space-y-6">
+            <div className="lg:col-span-8 space-y-4 sm:space-y-6">
               
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" />
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2 truncate">
+                    <Mail className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8] shrink-0" />
                     <span>Automated Drip Sequence Steps</span>
                   </h3>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  <p className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
                     {emailsWithBody.length} scheduled email{emailsWithBody.length !== 1 ? "s" : ""} in this follow-up funnel.
                   </p>
                 </div>
                 
                 <button
                   onClick={addEmail}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#18181B] px-3 py-1.5 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8] hover:bg-blue-50 dark:hover:bg-zinc-800 transition shadow-xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#18181B] px-2.5 sm:px-3 py-1.5 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8] hover:bg-blue-50 dark:hover:bg-zinc-800 transition shadow-xs cursor-pointer shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Add Step</span>
@@ -727,7 +727,7 @@ export default function SequenceEditor() {
               <div className="relative space-y-4">
                 {/* Connecting Vertical Line */}
                 {emailsWithBody.length > 1 && (
-                  <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-gradient-to-b from-[#0066B2]/40 via-zinc-200 dark:via-zinc-800 to-transparent z-0 pointer-events-none" />
+                  <div className="absolute left-5 sm:left-6 top-8 bottom-8 w-0.5 bg-gradient-to-b from-[#0066B2]/40 via-zinc-200 dark:via-zinc-800 to-transparent z-0 pointer-events-none" />
                 )}
 
                 {emailsWithBody.map((email, i) => {
@@ -739,18 +739,18 @@ export default function SequenceEditor() {
                   return (
                     <div
                       key={email.id}
-                      className="relative z-10 rounded-2xl border border-zinc-200/90 dark:border-zinc-800/90 bg-white dark:bg-[#18181B] p-5 shadow-sm transition hover:shadow-md backdrop-blur-sm"
+                      className="relative z-10 rounded-2xl border border-zinc-200/90 dark:border-zinc-800/90 bg-white dark:bg-[#18181B] p-3.5 sm:p-5 shadow-sm transition hover:shadow-md backdrop-blur-sm"
                     >
-                      {/* Card Top Control Row */}
-                      <div className="flex items-center justify-between gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
-                        <div className="flex items-center gap-3">
-                          <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#0066B2] text-xs font-extrabold text-white shadow-xs">
+                      {/* Card Top Control Row - Flexible for Mobile */}
+                      <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                          <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-[#0066B2] text-xs font-extrabold text-white shadow-xs">
                             {i + 1}
                           </span>
 
                           {/* Delay Selector */}
-                          <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-2.5 py-1 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                            <Clock className="h-3.5 w-3.5 text-zinc-400" />
+                          <div className="flex items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-2 sm:px-2.5 py-1 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                            <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-zinc-400 shrink-0" />
                             <select
                               value={email.delayMinutes}
                               onChange={(e) => {
@@ -778,7 +778,7 @@ export default function SequenceEditor() {
                           </div>
 
                           {/* Reordering Controls */}
-                          <div className="flex items-center gap-0.5 border-l border-zinc-200 dark:border-zinc-800 pl-2">
+                          <div className="flex items-center gap-0.5 border-l border-zinc-200 dark:border-zinc-800 pl-1.5 sm:pl-2">
                             <button
                               disabled={i === 0}
                               onClick={() => moveEmailUp(i)}
@@ -799,15 +799,15 @@ export default function SequenceEditor() {
                         </div>
 
                         {/* Stats & Actions */}
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                            <Eye className="h-3 w-3" />
+                        <div className="flex items-center gap-1.5 sm:gap-2 ml-auto sm:ml-0">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] sm:text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                            <Eye className="h-3 w-3 shrink-0" />
                             {openPercentage}% Open Rate
                           </span>
 
                           <button
                             onClick={() => setExpandedEmailId(isExpanded ? null : email.id)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                            className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
                             title="Toggle email content editor"
                           >
                             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -817,24 +817,24 @@ export default function SequenceEditor() {
                             <button
                               aria-label="Delete email step"
                               onClick={() => removeEmail(email.id)}
-                              className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
+                              className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </button>
                           )}
                         </div>
                       </div>
 
                       {/* Subject Line Input Row */}
-                      <div className="mt-4 space-y-2">
+                      <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                          <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                             Subject Line *
                           </label>
                           <button
                             onClick={() => generateAiSubject(email.id)}
                             disabled={generatingAiForId === email.id}
-                            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline cursor-pointer disabled:opacity-50"
+                            className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#0066B2] dark:text-[#38BDF8] hover:underline cursor-pointer disabled:opacity-50"
                           >
                             {generatingAiForId === email.id ? (
                               <Loader2 className="h-3 w-3 animate-spin" />
@@ -851,19 +851,19 @@ export default function SequenceEditor() {
                             value={email.subject}
                             onChange={(e) => patchEmail(email.id, { subject: e.target.value })}
                             placeholder="Enter compelling email subject..."
-                            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-3 text-xs font-semibold text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-[#0066B2] focus:outline-none shadow-xs"
+                            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/90 p-2.5 sm:p-3 text-xs font-semibold text-zinc-900 dark:text-white placeholder-zinc-400 focus:border-[#0066B2] focus:outline-none shadow-xs"
                           />
                         </div>
                       </div>
 
                       {/* Expandable Email Body & Preview Section */}
                       {isExpanded && (
-                        <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-3 animate-in fade-in duration-200">
+                        <div className="mt-3.5 sm:mt-4 pt-3.5 sm:pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-3 animate-in fade-in duration-200">
                           <div className="flex items-center justify-between flex-wrap gap-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
                               <button
                                 onClick={() => setActiveTab((prev) => ({ ...prev, [email.id]: "edit" }))}
-                                className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                                className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition ${
                                   currentTab === "edit"
                                     ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-xs"
                                     : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
@@ -873,7 +873,7 @@ export default function SequenceEditor() {
                               </button>
                               <button
                                 onClick={() => setActiveTab((prev) => ({ ...prev, [email.id]: "preview" }))}
-                                className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                                className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition ${
                                   currentTab === "preview"
                                     ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-xs"
                                     : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
@@ -883,11 +883,11 @@ export default function SequenceEditor() {
                               </button>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
                               <button
                                 onClick={() => generateAiBody(email.id)}
                                 disabled={generatingAiBodyForId === email.id}
-                                className="inline-flex items-center gap-1 rounded-lg border border-purple-200 dark:border-purple-900/60 bg-purple-50 dark:bg-purple-950/30 px-2.5 py-1 text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-100 transition cursor-pointer disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-lg border border-purple-200 dark:border-purple-900/60 bg-purple-50 dark:bg-purple-950/30 px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-100 transition cursor-pointer disabled:opacity-50"
                               >
                                 {generatingAiBodyForId === email.id ? (
                                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -900,7 +900,7 @@ export default function SequenceEditor() {
                               <button
                                 onClick={() => sendTestEmail(email.id)}
                                 disabled={sendingTestForId === email.id}
-                                className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2.5 py-1 text-[11px] font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 transition cursor-pointer disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 transition cursor-pointer disabled:opacity-50"
                                 title="Send test email to your account email"
                               >
                                 {sendingTestForId === email.id ? (
@@ -914,14 +914,14 @@ export default function SequenceEditor() {
                           </div>
 
                           {/* Quick Variable Insertion Pills */}
-                          <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                            <span className="text-[11px] font-medium text-zinc-400">Insert tag:</span>
+                          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap pt-1">
+                            <span className="text-[10px] sm:text-[11px] font-medium text-zinc-400">Insert tag:</span>
                             {["{first_name}", "{resource_link}", "{name}"].map((tag) => (
                               <button
                                 key={tag}
                                 type="button"
                                 onClick={() => insertVariable(email.id, tag)}
-                                className="inline-flex items-center rounded-md bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-[10px] font-mono text-zinc-600 dark:text-zinc-300 hover:bg-[#0066B2]/10 hover:text-[#0066B2] dark:hover:text-[#38BDF8] transition cursor-pointer"
+                                className="inline-flex items-center rounded-md bg-zinc-100 dark:bg-zinc-800 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-mono text-zinc-600 dark:text-zinc-300 hover:bg-[#0066B2]/10 hover:text-[#0066B2] dark:hover:text-[#38BDF8] transition cursor-pointer"
                               >
                                 + {tag}
                               </button>
@@ -934,29 +934,29 @@ export default function SequenceEditor() {
                               value={email.body || ""}
                               onChange={(e) => patchEmail(email.id, { body: e.target.value })}
                               placeholder="Write your email content here..."
-                              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-3 text-xs font-medium text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 focus:border-[#0066B2] focus:outline-none font-sans leading-relaxed"
+                              className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 p-2.5 sm:p-3 text-xs font-medium text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 focus:border-[#0066B2] focus:outline-none font-sans leading-relaxed"
                             />
                           ) : (
-                            <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/80 p-4 text-xs space-y-3">
-                              <div className="text-[11px] font-semibold text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 pb-2 flex justify-between items-center">
-                                <div>
+                            <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/80 p-3 sm:p-4 text-xs space-y-3">
+                              <div className="text-[10px] sm:text-[11px] font-semibold text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 pb-2 flex justify-between items-center gap-2">
+                                <div className="truncate">
                                   From: {account?.name || "Your Brand"} &lt;{account?.email || "hello@yourbrand.com"}&gt;
                                   <br />
                                   Subject: <span className="text-zinc-800 dark:text-zinc-200">{email.subject}</span>
                                 </div>
-                                <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-bold">
+                                <span className="text-[9px] sm:text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-bold shrink-0">
                                   Preview Mode
                                 </span>
                               </div>
-                              <div className="whitespace-pre-wrap text-zinc-800 dark:text-zinc-200 font-sans leading-relaxed pt-1">
+                              <div className="whitespace-pre-wrap text-zinc-800 dark:text-zinc-200 font-sans leading-relaxed pt-1 text-xs">
                                 {(email.body || "")
                                   .replace(/\{first_name\}/g, "Alex")
                                   .replace(/\{name\}/g, "Alex")
                                   .replace(/\{resource_link\}/g, attachedPage ? `https://magnets.app/${account?.username || "demo"}/${attachedPage.slug}` : "https://download-resource.com")}
                               </div>
-                              <div className="pt-3 border-t border-zinc-200/80 dark:border-zinc-800/80 text-[10px] text-zinc-400 flex items-center justify-between">
-                                <span>No longer want these emails? <span className="text-rose-500 underline cursor-pointer">Unsubscribe</span></span>
-                                <span>Stop link attached</span>
+                              <div className="pt-2 sm:pt-3 border-t border-zinc-200/80 dark:border-zinc-800/80 text-[10px] text-zinc-400 flex items-center justify-between gap-2">
+                                <span className="truncate">No longer want these emails? <span className="text-rose-500 underline cursor-pointer">Unsubscribe</span></span>
+                                <span className="shrink-0">Stop link attached</span>
                               </div>
                             </div>
                           )}
@@ -964,9 +964,9 @@ export default function SequenceEditor() {
                       )}
 
                       {/* Card Footer Info */}
-                      <div className="mt-4 flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800/40">
+                      <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800/40">
                         <span className="flex items-center gap-1.5 font-medium">
-                          <Send className="h-3 w-3 text-zinc-400" />
+                          <Send className="h-3 w-3 text-zinc-400 shrink-0" />
                           <span>{email.sent.toLocaleString()} Delivered</span>
                           <span className="text-zinc-300 dark:text-zinc-700">•</span>
                           <span>{email.opened.toLocaleString()} Opened</span>
@@ -974,7 +974,7 @@ export default function SequenceEditor() {
 
                         <button
                           onClick={() => setExpandedEmailId(isExpanded ? null : email.id)}
-                          className="text-[#0066B2] dark:text-[#38BDF8] hover:underline font-bold text-[11px] cursor-pointer"
+                          className="text-[#0066B2] dark:text-[#38BDF8] hover:underline font-bold text-[11px] cursor-pointer self-start sm:self-auto"
                         >
                           {isExpanded ? "Collapse Editor" : "Edit Content & Body →"}
                         </button>
@@ -986,7 +986,7 @@ export default function SequenceEditor() {
                 {/* Add Email Step Action Button */}
                 <button
                   onClick={addEmail}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-zinc-300 dark:border-zinc-800 bg-white/40 dark:bg-[#18181B]/40 py-4 text-xs font-bold text-zinc-600 dark:text-zinc-400 hover:border-[#0066B2] hover:text-[#0066B2] dark:hover:border-[#38BDF8] dark:hover:text-[#38BDF8] hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition cursor-pointer shadow-xs"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-zinc-300 dark:border-zinc-800 bg-white/40 dark:bg-[#18181B]/40 py-3.5 sm:py-4 text-xs font-bold text-zinc-600 dark:text-zinc-400 hover:border-[#0066B2] hover:text-[#0066B2] dark:hover:border-[#38BDF8] dark:hover:text-[#38BDF8] hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition cursor-pointer shadow-xs"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Add Another Email Step to Funnel</span>
@@ -995,10 +995,10 @@ export default function SequenceEditor() {
             </div>
 
             {/* Right Column: Performance & Settings (4 Cols) */}
-            <div className="lg:col-span-4 space-y-6">
+            <div className="lg:col-span-4 space-y-4 sm:space-y-6">
               
               {/* Performance Metrics Card */}
-              <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800/90 bg-white dark:bg-[#18181B] p-5 shadow-sm space-y-4">
+              <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800/90 bg-white dark:bg-[#18181B] p-4 sm:p-5 shadow-sm space-y-4">
                 <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
                   <h3 className="text-xs font-extrabold uppercase tracking-wider text-zinc-900 dark:text-white flex items-center gap-2">
                     <Rocket className="h-4 w-4 text-[#0066B2] dark:text-[#38BDF8]" />
@@ -1057,7 +1057,7 @@ export default function SequenceEditor() {
               </div>
 
               {/* Stop on Booking Automation Card */}
-              <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800/90 bg-white dark:bg-[#18181B] p-5 shadow-sm space-y-3">
+              <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800/90 bg-white dark:bg-[#18181B] p-4 sm:p-5 shadow-sm space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-zinc-900 dark:text-white flex items-center gap-1.5">
@@ -1101,7 +1101,7 @@ export default function SequenceEditor() {
               </div>
 
               {/* Unsubscribe & Stop Link Explanation */}
-              <div className="rounded-2xl border border-blue-500/20 dark:border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 p-4 space-y-2">
+              <div className="rounded-2xl border border-blue-500/20 dark:border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 p-3.5 sm:p-4 space-y-2">
                 <div className="flex items-center gap-2 text-xs font-bold text-[#0066B2] dark:text-[#38BDF8]">
                   <HelpCircle className="h-4 w-4" />
                   <span>How Stop Links Work</span>
