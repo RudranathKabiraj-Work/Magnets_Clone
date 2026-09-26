@@ -185,10 +185,10 @@ export const BrandingSection = memo(function BrandingSection({
         </button>
 
         {openSections["branding-preview"] && (
-          <div className="border-t border-[#E2E8F0] dark:border-[#2e2e38] px-5 py-5 space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="border-t border-[#E2E8F0] dark:border-[#2e2e38] px-3.5 sm:px-5 py-4 sm:py-5 space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Favicon Section */}
-              <div className="space-y-3 rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-white/10 dark:bg-[#121214]">
+              <div className="space-y-3 rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-3.5 sm:p-4 dark:border-white/10 dark:bg-[#121214]">
                 <div className="flex items-center justify-between">
                   <label className="block text-xs font-bold text-zinc-900 dark:text-white">
                     Custom Favicon <span className="text-zinc-400 font-normal">(Browser Tab Icon)</span>
@@ -196,7 +196,7 @@ export const BrandingSection = memo(function BrandingSection({
                   <span className="text-[10px] font-mono text-zinc-400">32×32 px</span>
                 </div>
 
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                   <input
                     type="url"
                     placeholder="https://your-site.com/favicon.ico"
@@ -218,67 +218,69 @@ export const BrandingSection = memo(function BrandingSection({
                       }
                       handleSave();
                     }}
-                    className={`flex-1 rounded-xl border bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono ${
+                    className={`flex-1 min-w-0 rounded-xl border bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono ${
                       faviconUrlError ? "border-rose-500 focus:border-rose-500" : "border-[#E2E8F0] dark:border-[#2e2e38] focus:border-[#0066B2]"
                     }`}
                   />
-                  {faviconUrl && (
-                    <button
-                      type="button"
-                      title="Clear favicon"
-                      onClick={async () => {
-                        markDirty("faviconUrl");
-                        setFaviconUrl("");
-                        await handleSave({ faviconUrl: "" });
-                        addToast("Custom favicon removed", "info");
-                      }}
-                      className="rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition cursor-pointer shrink-0"
-                    >
-                      Clear ✕
-                    </button>
-                  )}
-                  <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-xl border border-zinc-300 dark:border-white/15 bg-white dark:bg-[#202026] px-3 py-2 text-xs font-bold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#282830] transition shrink-0">
-                    {uploadingFavicon ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2]" /> : <Sparkles className="h-3.5 w-3.5 text-[#0066B2]" />}
-                    <span>{uploadingFavicon ? "Uploading..." : "Upload File"}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setUploadingFavicon(true);
-                        markDirty("faviconUrl");
-                        const formData = new FormData();
-                        formData.append("file", file);
-                        try {
-                          const res = await fetch("/api/upload", { method: "POST", body: formData });
-                          const data = await res.json();
-                          if (!res.ok) {
-                            throw new Error(data.error || "Upload request failed");
+                  <div className="flex items-center gap-2 shrink-0">
+                    {faviconUrl && (
+                      <button
+                        type="button"
+                        title="Clear favicon"
+                        onClick={async () => {
+                          markDirty("faviconUrl");
+                          setFaviconUrl("");
+                          await handleSave({ faviconUrl: "" });
+                          addToast("Custom favicon removed", "info");
+                        }}
+                        className="rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition cursor-pointer shrink-0"
+                      >
+                        Clear ✕
+                      </button>
+                    )}
+                    <label className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl border border-zinc-300 dark:border-white/15 bg-white dark:bg-[#202026] px-3.5 py-2 text-xs font-bold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#282830] transition shrink-0 flex-1 sm:flex-initial">
+                      {uploadingFavicon ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2]" /> : <Sparkles className="h-3.5 w-3.5 text-[#0066B2]" />}
+                      <span>{uploadingFavicon ? "Uploading..." : "Upload File"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingFavicon(true);
+                          markDirty("faviconUrl");
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          try {
+                            const res = await fetch("/api/upload", { method: "POST", body: formData });
+                            const data = await res.json();
+                            if (!res.ok) {
+                              throw new Error(data.error || "Upload request failed");
+                            }
+                            const uploadedUrl = data.data?.fileUrl || data.data?.url || data.url || data.fileUrl;
+                            if (uploadedUrl) {
+                              setFaviconUrl(uploadedUrl);
+                              await handleSave({ faviconUrl: uploadedUrl });
+                              addToast("🎉 Favicon uploaded successfully!", "success");
+                            } else {
+                              throw new Error("No URL returned from upload server");
+                            }
+                          } catch (err: any) {
+                            console.error("Favicon upload error:", err);
+                            addToast(err.message || "Failed to upload favicon image.", "error");
+                          } finally {
+                            setUploadingFavicon(false);
                           }
-                          const uploadedUrl = data.data?.fileUrl || data.data?.url || data.url || data.fileUrl;
-                          if (uploadedUrl) {
-                            setFaviconUrl(uploadedUrl);
-                            await handleSave({ faviconUrl: uploadedUrl });
-                            addToast("🎉 Favicon uploaded successfully!", "success");
-                          } else {
-                            throw new Error("No URL returned from upload server");
-                          }
-                        } catch (err: any) {
-                          console.error("Favicon upload error:", err);
-                          addToast(err.message || "Failed to upload favicon image.", "error");
-                        } finally {
-                          setUploadingFavicon(false);
-                        }
-                      }}
-                    />
-                  </label>
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 {/* Favicon Browser Tab Mockup Preview */}
-                <div className="mt-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-2.5 flex items-center gap-3">
-                  <div className="flex items-center gap-2 rounded-md bg-zinc-100 dark:bg-[#0E0E10] px-3 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-white/10">
+                <div className="mt-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] p-2.5 flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-2 rounded-md bg-zinc-100 dark:bg-[#0E0E10] px-3 py-1.5 text-xs text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-white/10 shrink-0">
                     {faviconUrl ? (
                       <img src={faviconUrl} alt="Favicon preview" className="h-4 w-4 rounded object-contain shrink-0" />
                     ) : (
@@ -294,7 +296,7 @@ export const BrandingSection = memo(function BrandingSection({
               </div>
 
               {/* OG Social Share Image Section */}
-              <div className="space-y-3 rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-white/10 dark:bg-[#121214]">
+              <div className="space-y-3 rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-3.5 sm:p-4 dark:border-white/10 dark:bg-[#121214]">
                 <div className="flex items-center justify-between">
                   <label className="block text-xs font-bold text-zinc-900 dark:text-white">
                     Social Share Thumbnail <span className="text-zinc-400 font-normal">(Open Graph Card)</span>
@@ -302,7 +304,7 @@ export const BrandingSection = memo(function BrandingSection({
                   <span className="text-[10px] font-mono text-zinc-400">1200×630 px</span>
                 </div>
 
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                   <input
                     type="url"
                     placeholder="https://your-site.com/og-banner.png"
@@ -324,40 +326,41 @@ export const BrandingSection = memo(function BrandingSection({
                       }
                       handleSave();
                     }}
-                    className={`flex-1 rounded-xl border bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono ${
+                    className={`flex-1 min-w-0 rounded-xl border bg-white dark:bg-[#0E0E10] px-3.5 py-2.5 text-xs text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-[#52525b] transition font-mono ${
                       ogUrlError ? "border-rose-500 focus:border-rose-500" : "border-[#E2E8F0] dark:border-[#2e2e38] focus:border-[#0066B2]"
                     }`}
                   />
-                  {ogImageUrl && (
-                    <button
-                      type="button"
-                      title="Clear social share image"
-                      onClick={async () => {
-                        markDirty("ogImageUrl");
-                        setOgImageUrl("");
-                        await handleSave({ ogImageUrl: "" });
-                        addToast("Social share thumbnail removed", "info");
-                      }}
-                      className="rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition cursor-pointer shrink-0"
-                    >
-                      Clear ✕
-                    </button>
-                  )}
-                  <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-xl border border-zinc-300 dark:border-white/15 bg-white dark:bg-[#202026] px-3 py-2 text-xs font-bold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#282830] transition shrink-0">
-                    {uploadingOgImage ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2]" /> : <Sparkles className="h-3.5 w-3.5 text-[#0066B2]" />}
-                    <span>{uploadingOgImage ? "Uploading..." : "Upload File"}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setUploadingOgImage(true);
-                        markDirty("ogImageUrl");
-                        const formData = new FormData();
-                        formData.append("file", file);
-                        try {
+                  <div className="flex items-center gap-2 shrink-0">
+                    {ogImageUrl && (
+                      <button
+                        type="button"
+                        title="Clear social share image"
+                        onClick={async () => {
+                          markDirty("ogImageUrl");
+                          setOgImageUrl("");
+                          await handleSave({ ogImageUrl: "" });
+                          addToast("Social share thumbnail removed", "info");
+                        }}
+                        className="rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition cursor-pointer shrink-0"
+                      >
+                        Clear ✕
+                      </button>
+                    )}
+                    <label className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl border border-zinc-300 dark:border-white/15 bg-white dark:bg-[#202026] px-3.5 py-2 text-xs font-bold text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-[#282830] transition shrink-0 flex-1 sm:flex-initial">
+                      {uploadingOgImage ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0066B2]" /> : <Sparkles className="h-3.5 w-3.5 text-[#0066B2]" />}
+                      <span>{uploadingOgImage ? "Uploading..." : "Upload File"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingOgImage(true);
+                          markDirty("ogImageUrl");
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          try {
                           const res = await fetch("/api/upload", { method: "POST", body: formData });
                           const data = await res.json();
                           if (!res.ok) {
@@ -381,8 +384,9 @@ export const BrandingSection = memo(function BrandingSection({
                     />
                   </label>
                 </div>
+              </div>
 
-                {/* Real Social Media Share Card Mockup */}
+              {/* Real Social Media Share Card Mockup */}
                 <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] overflow-hidden shadow-xs">
                   <div className="h-32 w-full bg-zinc-100 dark:bg-[#0E0E10] relative flex items-center justify-center overflow-hidden">
                     {ogImageUrl ? (

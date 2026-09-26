@@ -254,17 +254,17 @@ export const EmailSchedulingSection = memo(function EmailSchedulingSection({
                     <label className="block text-xs font-semibold text-zinc-700 dark:text-[#9B9085]">
                       Booking Webhook Receiver URL
                     </label>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                       <input
                         type="text"
                         readOnly
                         value={`${appBaseUrl}/api/webhooks/booking`}
-                        className="flex-1 rounded-xl border border-zinc-200 bg-zinc-100 dark:border-white/10 dark:bg-[#09090B] px-3.5 py-2.5 text-xs text-zinc-800 dark:text-zinc-300 font-mono select-all outline-none"
+                        className="flex-1 min-w-0 rounded-xl border border-zinc-200 bg-zinc-100 dark:border-white/10 dark:bg-[#09090B] px-3.5 py-2.5 text-xs text-zinc-800 dark:text-zinc-300 font-mono select-all outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => copyToClipboard(`${appBaseUrl}/api/webhooks/booking`, "booking-webhook", "Booking webhook URL copied to clipboard!")}
-                        className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#18181B] hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-200 transition shrink-0 cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#18181B] hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-200 transition shrink-0 cursor-pointer"
                       >
                         {copiedField === "booking-webhook" ? (
                           <>

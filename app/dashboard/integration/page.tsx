@@ -206,11 +206,11 @@ export default function WorkspaceSetupPage() {
   return (
     <DashboardShell account={account} title="Integration">
       <div className="flex flex-col min-h-[calc(100vh-3rem)] bg-[#F8FBFF] dark:bg-[#0E0E10]">
-        <div className="flex-1 px-6 py-6 lg:px-8">
+        <div className="flex-1 px-3.5 sm:px-6 py-4 sm:py-6 lg:px-8 max-w-7xl mx-auto w-full">
 
           {/* Page heading */}
-          <div className="mb-6">
-            <h2 className="flex items-center gap-2 text-3xl font-bold text-zinc-900 dark:text-white">
+          <div className="mb-5 sm:mb-6">
+            <h2 className="flex items-center gap-2 text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">
               Integration
               <button
                 type="button"
@@ -230,11 +230,11 @@ export default function WorkspaceSetupPage() {
 
           {/* Workspace Essentials banner */}
           <div
-            className="conversion-banner-bg relative mb-5 overflow-hidden rounded-2xl border border-[#0066B2]/30 bg-white py-7 px-8 shadow-sm dark:border-[#0066B2]/35 dark:bg-[#18181C] transition-colors"
+            className="conversion-banner-bg relative mb-5 overflow-hidden rounded-2xl border border-[#0066B2]/30 bg-white p-4 sm:p-6 lg:py-7 lg:px-8 shadow-sm dark:border-[#0066B2]/35 dark:bg-[#18181C] transition-colors"
           >
             {/* Badge */}
-            <div className="mb-4 flex items-center">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#0066B2]/30 bg-[#EFF6FF] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0066B2] dark:border-[#0066B2]/40 dark:bg-[#0066B2]/15 dark:text-[#38BDF8]">
+            <div className="mb-3 sm:mb-4 flex items-center">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#0066B2]/30 bg-[#EFF6FF] px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#0066B2] dark:border-[#0066B2]/40 dark:bg-[#0066B2]/15 dark:text-[#38BDF8]">
                 <Sparkles className="h-3.5 w-3.5 text-[#0066B2] dark:text-[#38BDF8] fill-[#0066B2]/20" />
                 WORKSPACE ESSENTIALS
               </span>
@@ -242,20 +242,20 @@ export default function WorkspaceSetupPage() {
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="max-w-lg">
-                <h3 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight mb-2">
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight mb-1.5 sm:mb-2">
                   Set up once, then get back to creating
                 </h3>
-                <p className="text-sm text-zinc-600 dark:text-[#9B9085]/90 leading-relaxed">
+                <p className="text-xs sm:text-sm text-zinc-600 dark:text-[#9B9085]/90 leading-relaxed">
                   Your LeadMagnets URL is the only required setting. Domains and integrations stay out
                   of the way until you need them.
                 </p>
               </div>
 
               {/* Public URL ready status card */}
-              <div className="flex items-center gap-2.5 rounded-2xl border border-[#0066B2]/30 bg-white/80 dark:border-[#0066B2]/35 dark:bg-[#0E0E10]/70 px-4 py-3 shrink-0 shadow-sm dark:shadow-none">
+              <div className="flex items-center gap-2.5 rounded-2xl border border-[#0066B2]/30 bg-white/80 dark:border-[#0066B2]/35 dark:bg-[#0E0E10]/70 px-3.5 sm:px-4 py-2.5 sm:py-3 shrink-0 shadow-sm dark:shadow-none w-full sm:w-auto">
                 <span className={`h-2 w-2 rounded-full ${cnameVerified || domainVerified ? "bg-emerald-500" : "bg-amber-500"} shrink-0`} />
-                <div>
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1 sm:flex-initial">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-xs font-semibold text-zinc-900 dark:text-white">
                       {cnameVerified ? "Custom Domain Active" : "Public URL ready"}
                     </p>
@@ -265,7 +265,7 @@ export default function WorkspaceSetupPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5 font-mono">
+                  <p className="text-[11px] text-zinc-500 dark:text-[#9B9085] mt-0.5 font-mono truncate max-w-[260px] sm:max-w-xs">
                     {cnameVerified && rootDomain
                       ? formatFullHost(rootDomain, pageSubdomain)
                       : `${appBaseUrl}/${username}`}

@@ -58,14 +58,14 @@ export const HelpModal = memo(function HelpModal({ isOpen, onClose }: HelpModalP
             data-lenis-prevent
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-[#16181C]">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-zinc-800/80 bg-[#16181C]">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0066B2] text-white font-bold shadow-xs">
-                  <Settings className="h-5 w-5" />
+                <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-[#0066B2] text-white font-bold shadow-xs">
+                  <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">Help centre</h3>
-                  <p className="text-xs text-zinc-400">Learn the basics or find your next step.</p>
+                  <h3 className="text-sm sm:text-base font-bold text-white">Help centre</h3>
+                  <p className="text-[11px] sm:text-xs text-zinc-400">Learn the basics or find your next step.</p>
                 </div>
               </div>
               <button
@@ -73,33 +73,33 @@ export const HelpModal = memo(function HelpModal({ isOpen, onClose }: HelpModalP
                 onClick={onClose}
                 className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-white transition cursor-pointer"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
 
             {/* Sub-header navigation */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-800/60 bg-[#111215] text-xs font-semibold text-zinc-400">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-3 border-b border-zinc-800/60 bg-[#111215] text-xs font-semibold text-zinc-400">
               <button
                 type="button"
                 onClick={onClose}
                 className="flex items-center gap-2 hover:text-white transition cursor-pointer"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>All help topics</span>
               </button>
               <span className="uppercase tracking-wider text-[10px] text-zinc-500 font-bold">LEARN</span>
             </div>
 
             {/* Content Body */}
-            <div className="p-8 space-y-7 overflow-y-auto overscroll-contain" data-lenis-prevent>
+            <div className="p-4 sm:p-8 space-y-5 sm:space-y-7 overflow-y-auto overscroll-contain" data-lenis-prevent>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#38BDF8]">
-                    <Settings className="h-5 w-5" />
+                  <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-[#0066B2]/20 border border-[#0066B2]/40 text-[#38BDF8]">
+                    <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">YOUR ACCOUNT FOUNDATIONS</span>
-                    <h2 className="text-xl font-bold text-white leading-tight">What belongs in Integration?</h2>
+                    <h2 className="text-lg sm:text-xl font-bold text-white leading-tight">What belongs in Integration?</h2>
                   </div>
                 </div>
                 <p className="text-sm text-zinc-400 leading-relaxed">

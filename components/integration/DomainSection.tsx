@@ -88,9 +88,9 @@ export const DomainSection = memo(function DomainSection({
   const labelClass = "block text-[12.2px] font-semibold text-zinc-700 dark:text-[#9B9085] mb-1.5";
 
   return (
-    <div className="rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm transition-colors p-5">
+    <div className="rounded-2xl border border-[#0066B2]/30 bg-white dark:border-[#0066B2]/35 dark:bg-[#18181B] shadow-sm transition-colors p-3.5 sm:p-5">
       {/* Always-visible header */}
-      <div className="flex items-start justify-between gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4 sm:mb-5">
         <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#0066B2]/30 bg-[#F8FBFF] text-[#0066B2] shadow-sm dark:border-[#0066B2]/30 dark:bg-[#0066B2]/20 dark:text-[#38BDF8]">
             <Globe className="h-4.5 w-4.5" />
@@ -104,7 +104,7 @@ export const DomainSection = memo(function DomainSection({
         </div>
 
         {/* Status Pills */}
-        <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-start sm:justify-end">
           {domainVerified && (
             <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
               TXT Verified ✓
@@ -138,9 +138,9 @@ export const DomainSection = memo(function DomainSection({
         <label className={labelClass}>LeadMagnets Default URL</label>
         <div className="flex flex-col gap-3 md:flex-row md:items-start">
           {/* Input */}
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <div className="flex rounded-xl border border-[#E2E8F0] dark:border-[#0066B2]/30 bg-white dark:bg-[#0E0E10] focus-within:border-[#0066B2] dark:focus-within:border-[#0066B2] transition overflow-hidden">
-              <span className="flex items-center select-none border-r border-[#E2E8F0] bg-[#F0F4F8] px-3.5 py-2.5 text-xs font-mono text-[#0066B2] dark:border-[#0066B2]/30 dark:bg-[#18181C] dark:text-[#38BDF8] whitespace-nowrap">
+              <span className="flex items-center select-none border-r border-[#E2E8F0] bg-[#F0F4F8] px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-[11px] sm:text-xs font-mono text-[#0066B2] dark:border-[#0066B2]/30 dark:bg-[#18181C] dark:text-[#38BDF8] shrink-0 max-w-[160px] sm:max-w-none truncate">
                 {appBaseUrl}/
               </span>
               <input
@@ -151,15 +151,15 @@ export const DomainSection = memo(function DomainSection({
                   setUsername(e.target.value);
                 }}
                 onBlur={() => handleSave()}
-                className="w-full bg-transparent px-3 py-2.5 text-xs font-mono text-zinc-900 outline-none dark:text-white placeholder:text-zinc-400"
+                className="w-full bg-transparent px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs font-mono text-zinc-900 outline-none dark:text-white placeholder:text-zinc-400 min-w-0"
                 placeholder="your-workspace"
               />
             </div>
-            <p className="mt-2 text-xs text-zinc-400 dark:text-[#9B9085]">Lowercase letters, numbers, and hyphens.</p>
+            <p className="mt-1.5 sm:mt-2 text-xs text-zinc-400 dark:text-[#9B9085]">Lowercase letters, numbers, and hyphens.</p>
           </div>
           {/* Share this link card */}
-          <div className="rounded-xl border border-[#0066B2]/30 bg-[#F8FBFF] p-4 shrink-0 md:min-w-[320px] dark:border-[#0066B2]/35 dark:bg-[#0E0E10]">
-            <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="rounded-xl border border-[#0066B2]/30 bg-[#F8FBFF] p-3.5 sm:p-4 shrink-0 w-full md:w-auto md:min-w-[320px] dark:border-[#0066B2]/35 dark:bg-[#0E0E10]">
+            <div className="flex items-center justify-between gap-2 mb-1.5 sm:mb-2">
               <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#0066B2] dark:text-[#38BDF8]">SHARE THIS LINK</p>
               <button
                 type="button"
@@ -176,7 +176,7 @@ export const DomainSection = memo(function DomainSection({
       </div>
 
       {/* Custom domain nested box */}
-      <div className="rounded-xl border border-[#0066B2]/30 bg-[#F8FBFF] p-3.5 dark:border-[#0066B2]/35 dark:bg-[#121214]">
+      <div className="rounded-xl border border-[#0066B2]/30 bg-[#F8FBFF] p-3 sm:p-3.5 dark:border-[#0066B2]/35 dark:bg-[#121214]">
         <button
           type="button"
           onClick={onToggleCustomDomain}
