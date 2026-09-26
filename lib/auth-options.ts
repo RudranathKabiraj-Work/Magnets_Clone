@@ -85,7 +85,7 @@ export const authOptions: NextAuthOptions = {
       console.error(`[next-auth][${code}]`, metadata);
     },
     warn(code) {
-      if (code === "JWT_SESSION_ERROR") return;
+      if ((code as string) === "JWT_SESSION_ERROR") return;
       console.warn(`[next-auth][${code}]`);
     },
   },
