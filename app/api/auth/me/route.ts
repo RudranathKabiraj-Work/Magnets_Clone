@@ -113,10 +113,18 @@ export async function GET() {
       return response;
     }
 
+    // Sanitize user object to never leak password hashes or sensitive keys to client
+    const sanitizedUser = typeof (account as any).toObject === "function" ? (account as any).toObject() : { ...account };
+    delete sanitizedUser.password;
+    delete sanitizedUser.resetPasswordToken;
+    delete sanitizedUser.resetPasswordExpires;
+    delete sanitizedUser.linkedinLiAt;
+    delete sanitizedUser.linkedinJSessionId;
+
     const response = NextResponse.json({
       authenticated: true,
       email: email,
-      user: account || { email: email, name: name || email.split("@")[0] },
+      user: sanitizedUser || { email: email, name: name || email.split("@")[0] },
     });
 
     // Ensure custom session_token cookie is issued/synchronized for NextAuth / Google users

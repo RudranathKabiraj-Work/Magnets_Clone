@@ -224,10 +224,6 @@ export function loadAccount(): Account | null {
 }
 
 export async function saveAccount(account: Account): Promise<{ success: boolean; account?: Account; error?: string }> {
-  if (typeof window !== "undefined") {
-    safeSetItem("currentUserAccount", JSON.stringify(account));
-    if (account.email) safeSetItem("currentUserEmail", account.email);
-  }
   try {
     const res = await fetch("/api/data", {
       method: "POST",
@@ -238,7 +234,14 @@ export async function saveAccount(account: Account): Promise<{ success: boolean;
     if (!res.ok) {
       return { success: false, error: data.error || "Failed to save account" };
     }
-    return { success: true, account: data.account || account };
+    const cleanAccount = data.account || account;
+    if (typeof window !== "undefined") {
+      const sanitized = { ...cleanAccount };
+      delete sanitized.password;
+      safeSetItem("currentUserAccount", JSON.stringify(sanitized));
+      if (account.email) safeSetItem("currentUserEmail", account.email.trim().toLowerCase());
+    }
+    return { success: true, account: cleanAccount };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to save account" };
   }

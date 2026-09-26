@@ -21,14 +21,30 @@ function serverValidatePassword(pass: string): string | null {
   return null;
 }
 
+export function sanitizeAccount(accountDoc: any) {
+  if (!accountDoc) return null;
+  const acc = typeof accountDoc.toObject === "function" ? accountDoc.toObject() : { ...accountDoc };
+  delete acc.password;
+  delete acc.resetPasswordToken;
+  delete acc.resetPasswordExpires;
+  delete acc.linkedinLiAt;
+  delete acc.linkedinJSessionId;
+  return acc;
+}
+
 export async function handleSaveAccount(data: any, authEmail: string | null) {
-  let normalizedEmail = authEmail;
-  if (!normalizedEmail && data?.email) {
+  let normalizedEmail = authEmail ? authEmail.trim().toLowerCase() : null;
+  if (!normalizedEmail && data?.email && typeof data.email === "string") {
     normalizedEmail = data.email.trim().toLowerCase();
   }
 
   if (!normalizedEmail) {
     return NextResponse.json({ error: "Unauthorized. Please log in to update your account." }, { status: 401 });
+  }
+
+  // If user is authenticated, they cannot modify someone else's account
+  if (authEmail && data?.email && data.email.trim().toLowerCase() !== normalizedEmail) {
+    return NextResponse.json({ error: "Forbidden. You can only update your own account." }, { status: 403 });
   }
 
   data.email = normalizedEmail;
@@ -41,6 +57,16 @@ export async function handleSaveAccount(data: any, authEmail: string | null) {
   let existing = await AccountModel.findOne({ email: normalizedEmail });
   if (!existing && data.id) {
     existing = await AccountModel.findOne({ id: data.id, email: normalizedEmail });
+  }
+
+  // CRITICAL SECURITY GUARD:
+  // Unauthenticated requests (authEmail === null) are strictly new registrations.
+  // They MUST NOT be allowed to overwrite an existing account!
+  if (!authEmail && existing) {
+    return NextResponse.json(
+      { error: "An account with this email already exists. Please log in instead." },
+      { status: 409 }
+    );
   }
 
   let account;
@@ -102,7 +128,7 @@ export async function handleSaveAccount(data: any, authEmail: string | null) {
     account = await AccountModel.create(data);
   }
 
-  const res = NextResponse.json({ success: true, account });
+  const res = NextResponse.json({ success: true, account: sanitizeAccount(account) });
   setAuthCookie(res, normalizedEmail, account?.name);
   return res;
 }
@@ -168,7 +194,11 @@ export async function handleDeleteAccount(data: any, authEmail: string | null) {
 }
 
 export async function handleLogin(data: any) {
-  const { email, password } = data;
+  const { email, password } = data || {};
+  if (!email || !password || typeof email !== "string" || typeof password !== "string") {
+    return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
+  }
+
   const account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
   if (!account) {
     return NextResponse.json({ error: "No account found with this email. Sign up instead." }, { status: 400 });
@@ -184,14 +214,17 @@ export async function handleLogin(data: any) {
   }
 
   // Set the HttpOnly session cookie right here — identity is verified above.
-  // The login page no longer needs a separate POST to /api/auth/login.
-  const res = NextResponse.json({ success: true, account });
+  // Sensitive fields (password, tokens, LinkedIn session cookies) are completely sanitized.
+  const res = NextResponse.json({ success: true, account: sanitizeAccount(account) });
   setAuthCookie(res, account.email, account.name);
   return res;
 }
 
 export async function handleUpdatePassword(data: any, authEmail: string | null) {
-  const { email, currentPassword, newPassword } = data;
+  const { email, currentPassword, newPassword } = data || {};
+  if (!newPassword || typeof newPassword !== "string") {
+    return NextResponse.json({ error: "New password is required." }, { status: 400 });
+  }
   const pwdErr = serverValidatePassword(newPassword);
   if (pwdErr) {
     return NextResponse.json({ error: pwdErr }, { status: 400 });
@@ -201,11 +234,11 @@ export async function handleUpdatePassword(data: any, authEmail: string | null) 
     return NextResponse.json({ error: "Unauthorized. Please log in to perform this action." }, { status: 401 });
   }
 
-  if (authEmail !== email.trim().toLowerCase()) {
+  if (authEmail !== email?.trim().toLowerCase()) {
     return NextResponse.json({ error: "Forbidden. You can only update your own password." }, { status: 403 });
   }
 
-  const account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
+  const account = await AccountModel.findOne({ email: authEmail });
   if (!account) {
     return NextResponse.json({ error: "Account not found." }, { status: 400 });
   }
@@ -225,14 +258,25 @@ export async function handleGetAccountByEmail(authEmail: string | null) {
     return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
   }
   const account = await AccountModel.findOne({ email: authEmail }).select("-password").lean();
-  return NextResponse.json({ account });
+  return NextResponse.json({ account: sanitizeAccount(account) });
 }
 
-export async function handleSendResetEmail(data: any) {
-  const { email } = data;
-  const account = await AccountModel.findOne({ email: email.trim().toLowerCase() });
+export async function handleSendResetEmail(data: any, reqHostOrigin?: string) {
+  const { email } = data || {};
+  if (!email || typeof email !== "string" || !email.trim()) {
+    return NextResponse.json({ error: "A valid email address is required." }, { status: 400 });
+  }
+
+  const normEmail = email.trim().toLowerCase();
+  const account = await AccountModel.findOne({ email: normEmail });
+  
+  // Production security best practice (OWASP):
+  // Return success without leaking whether an account exists to prevent account enumeration.
   if (!account) {
-    return NextResponse.json({ error: "Account not found." }, { status: 400 });
+    return NextResponse.json({
+      success: true,
+      message: "If an account exists with this email, a reset password link has been sent."
+    });
   }
 
   const crypto = await import("crypto");
@@ -243,19 +287,20 @@ export async function handleSendResetEmail(data: any) {
   account.resetPasswordExpires = expires;
   await account.save();
 
-  const origin = process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in";
-  const resetUrl = `${origin}/reset-password?token=${token}`;
+  const origin = reqHostOrigin || process.env.NEXT_PUBLIC_APP_URL || "https://magnets.bdatech.in";
+  const cleanOrigin = origin.replace(/\/$/, "");
+  const resetUrl = `${cleanOrigin}/reset-password?token=${token}`;
 
   const sendResult = await sendMail({
-    to: email.trim(),
+    to: normEmail,
     subject: "Reset your LeadMagnets password",
     html: `
       <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-        <h2 style="color: #FE6F34; text-align: center;">Reset your password</h2>
+        <h2 style="color: #0066B2; text-align: center;">Reset your password</h2>
         <p>Hi ${account.name || "there"},</p>
         <p>We received a request to reset your password. Click the button below to choose a new one:</p>
         <div style="text-align: center; margin: 24px 0;">
-          <a href="${resetUrl}" style="background-color: #FE6F34; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
+          <a href="${resetUrl}" style="background-color: #0066B2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
         </div>
         <p style="font-size: 13px; color: #666;">This link will expire in 1 hour.</p>
         <p style="font-size: 11px; color: #999;">If you didn't request this, you can safely ignore this email.</p>
@@ -264,15 +309,15 @@ export async function handleSendResetEmail(data: any) {
   });
 
   if (!sendResult.success) {
-    return NextResponse.json({ error: sendResult.error || "Failed to send email." }, { status: 500 });
+    return NextResponse.json({ error: sendResult.error || "Failed to send reset email. Please try again later." }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, message: "Reset link sent! Please check your email inbox." });
 }
 
 export async function handleResetPassword(data: any) {
-  const { token, newPassword } = data;
-  if (!token || !newPassword) {
+  const { token, newPassword } = data || {};
+  if (!token || !newPassword || typeof token !== "string" || typeof newPassword !== "string") {
     return NextResponse.json({ error: "Invalid request parameters." }, { status: 400 });
   }
 
