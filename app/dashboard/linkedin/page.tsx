@@ -199,11 +199,13 @@ export default function LinkedInAutomationPage() {
     setConnectError(null);
 
     try {
+      const activeEmail = account?.email || (typeof window !== "undefined" ? localStorage.getItem("leadmagnets_active_user") || "" : "");
       const res = await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "loginLinkedInCredentials",
+          email: activeEmail,
           data: {
             email: inputEmail.trim(),
             password: inputPassword,
@@ -241,11 +243,13 @@ export default function LinkedInAutomationPage() {
     setConnectError(null);
 
     try {
+      const activeEmail = account?.email || (typeof window !== "undefined" ? localStorage.getItem("leadmagnets_active_user") || "" : "");
       const res = await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "submitLinkedInPin",
+          email: activeEmail,
           data: {
             pin: inputPin.trim(),
             transactionData,
@@ -280,11 +284,13 @@ export default function LinkedInAutomationPage() {
     setConnectError(null);
 
     try {
+      const activeEmail = account?.email || (typeof window !== "undefined" ? localStorage.getItem("leadmagnets_active_user") || "" : "");
       const res = await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "connectLinkedInNative",
+          email: activeEmail,
           data: {
             liAt: inputLiAt.trim(),
             jsessionId: inputJSessionId.trim(),
@@ -396,15 +402,18 @@ export default function LinkedInAutomationPage() {
     }
   };
 
-  // ── Recent Posts Fetcher & Campaign Config Handlers ──
   const fetchRecentPosts = useCallback(async () => {
     if (!account?.linkedinConnected) return;
     setLoadingPosts(true);
     try {
+      const activeEmail = account?.email || (typeof window !== "undefined" ? localStorage.getItem("leadmagnets_active_user") || "" : "");
       const res = await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "getLinkedInRecentPosts" }),
+        body: JSON.stringify({
+          action: "getLinkedInRecentPosts",
+          email: activeEmail,
+        }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -417,7 +426,7 @@ export default function LinkedInAutomationPage() {
     } finally {
       setLoadingPosts(false);
     }
-  }, [account?.linkedinConnected]);
+  }, [account?.linkedinConnected, account?.email]);
 
   useEffect(() => {
     if (account?.linkedinConnected) {
@@ -458,11 +467,13 @@ export default function LinkedInAutomationPage() {
       setPosts((prev) => [newEntry, ...prev.filter((p) => p.postId !== postId)]);
       setCustomPostUrl("");
 
+      const activeEmail = account?.email || (typeof window !== "undefined" ? localStorage.getItem("leadmagnets_active_user") || "" : "");
       await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "saveLinkedInPostCampaign",
+          email: activeEmail,
           data: newEntry,
         }),
       });
@@ -480,11 +491,13 @@ export default function LinkedInAutomationPage() {
     );
     const post = posts.find((p) => p.postId === postId);
     try {
+      const activeEmail = account?.email || (typeof window !== "undefined" ? localStorage.getItem("leadmagnets_active_user") || "" : "");
       await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "saveLinkedInPostCampaign",
+          email: activeEmail,
           data: {
             postId,
             enabled: newEnabled,
@@ -519,11 +532,13 @@ export default function LinkedInAutomationPage() {
 
     const post = posts.find((p) => p.postId === postId);
     try {
+      const activeEmail = account?.email || (typeof window !== "undefined" ? localStorage.getItem("leadmagnets_active_user") || "" : "");
       await fetch("/api/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "saveLinkedInPostCampaign",
+          email: activeEmail,
           data: {
             postId,
             enabled: post?.enabled !== false,
